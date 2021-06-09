@@ -42,6 +42,7 @@ jobs:
     #     path: detailed.log
     - name: build
       run: |
+        cd dealii
         make -j 2
         make documentation
 
