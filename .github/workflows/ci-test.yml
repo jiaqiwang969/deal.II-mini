@@ -9,17 +9,11 @@ jobs:
     name: transltor for documentation
     runs-on: [ubuntu-18.04]
 
-    steps: download
+    steps:
     - uses: actions/checkout@v2
     - name: download the current deal.ii code
       run: |
         git clone https://github.com/dealii/dealii.git
-
-    steps: 
-    - uses: actions/checkout@v2       
-    - name: setup
-      run: |
-        ./contrib/utilities/download_clang_format
     - name: info
       run: |
         g++ -v
@@ -27,6 +21,9 @@ jobs:
     - name: modules
       run: |
         sudo apt-get install libboost-all-dev doxygen python graphviz
+    - name: setup
+      run: |
+        ./contrib/utilities/download_clang_format
     - name: change to transltator file
       run: |
         mv examples Origin_file
