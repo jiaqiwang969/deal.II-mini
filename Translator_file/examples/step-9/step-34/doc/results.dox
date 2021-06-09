@@ -1,0 +1,243 @@
+examples/step-34/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+我们使用以下 <code>parameters.prm</code> 文件（也可以在所有其他源文件所在的目录中找到）运行该程序。
+
+@verbatim
+# Listing of Parameters
+# ---------------------
+set Extend solution on the -2,2 box = true
+set External refinement             = 5
+set Number of cycles                = 4
+set Run 2d simulation               = true
+set Run 3d simulation               = true
+
+
+
+subsection Exact solution 2d
+  # Any constant used inside the function which is not a variable name.
+  set Function constants  =
+
+
+  # Separate vector valued expressions by ';' as ',' is used internally by the
+  # function parser.
+  set Function expression = x+y   # default: 0
+
+
+  # The name of the variables as they will be used in the function, separated
+  # by ','.
+  set Variable names      = x,y,t
+end
+
+
+
+subsection Exact solution 3d
+  # Any constant used inside the function which is not a variable name.
+  set Function constants  =
+
+
+  # Separate vector valued expressions by ';' as ',' is used internally by the
+  # function parser.
+  set Function expression = .5*(x+y+z)   # default: 0
+
+
+  # The name of the variables as they will be used in the function, separated
+  # by ','.
+  set Variable names      = x,y,z,t
+end
+
+
+
+subsection Quadrature rules
+  set Quadrature order          = 4
+  set Quadrature type           = gauss
+  set Singular quadrature order = 5
+end
+
+
+
+subsection Solver
+  set Log frequency = 1
+  set Log history   = false
+  set Log result    = true
+  set Max steps     = 100
+  set Tolerance     = 1.e-10
+end
+
+
+
+subsection Wind function 2d
+  # Any constant used inside the function which is not a variable name.
+  set Function constants  =
+
+
+  # Separate vector valued expressions by ';' as ',' is used internally by the
+  # function parser.
+  set Function expression = 1; 1  # default: 0; 0
+
+
+  # The name of the variables as they will be used in the function, separated
+  # by ','.
+  set Variable names      = x,y,t
+end
+
+
+
+subsection Wind function 3d
+  # Any constant used inside the function which is not a variable name.
+  set Function constants  =
+
+
+  # Separate vector valued expressions by ';' as ',' is used internally by the
+  # function parser.
+  set Function expression = 1; 1; 1 # default: 0; 0; 0
+
+
+  # The name of the variables as they will be used in the function, separated
+  # by ','.
+  set Variable names      = x,y,z,t
+end
+@endverbatim
+
+
+
+当我们运行该程序时，屏幕上会打印出以下内容。
+
+@verbatim
+DEAL::
+DEAL::Parsing parameter file parameters.prm
+DEAL::for a 2 dimensional simulation.
+DEAL:GMRES::Starting value 2.21576
+DEAL:GMRES::Convergence step 1 value 2.37635e-13
+DEAL::Cycle 0:
+DEAL::   Number of active cells:       20
+DEAL::   Number of degrees of freedom: 20
+DEAL:GMRES::Starting value 3.15543
+DEAL:GMRES::Convergence step 1 value 2.89310e-13
+DEAL::Cycle 1:
+DEAL::   Number of active cells:       40
+DEAL::   Number of degrees of freedom: 40
+DEAL:GMRES::Starting value 4.46977
+DEAL:GMRES::Convergence step 1 value 3.11815e-13
+DEAL::Cycle 2:
+DEAL::   Number of active cells:       80
+DEAL::   Number of degrees of freedom: 80
+DEAL:GMRES::Starting value 6.32373
+DEAL:GMRES::Convergence step 1 value 3.22474e-13
+DEAL::Cycle 3:
+DEAL::   Number of active cells:       160
+DEAL::   Number of degrees of freedom: 160
+DEAL::
+cycle cells dofs    L2(phi)     Linfty(alpha)
+    0    20   20 4.465e-02    - 5.000e-02    -
+    1    40   40 1.081e-02 2.05 2.500e-02 1.00
+    2    80   80 2.644e-03 2.03 1.250e-02 1.00
+    3   160  160 6.529e-04 2.02 6.250e-03 1.00
+DEAL::
+DEAL::Parsing parameter file parameters.prm
+DEAL::for a 3 dimensional simulation.
+DEAL:GMRES::Starting value 2.84666
+DEAL:GMRES::Convergence step 3 value 8.68638e-18
+DEAL::Cycle 0:
+DEAL::   Number of active cells:       24
+DEAL::   Number of degrees of freedom: 26
+DEAL:GMRES::Starting value 6.34288
+DEAL:GMRES::Convergence step 5 value 1.38740e-11
+DEAL::Cycle 1:
+DEAL::   Number of active cells:       96
+DEAL::   Number of degrees of freedom: 98
+DEAL:GMRES::Starting value 12.9780
+DEAL:GMRES::Convergence step 5 value 3.29225e-11
+DEAL::Cycle 2:
+DEAL::   Number of active cells:       384
+DEAL::   Number of degrees of freedom: 386
+DEAL:GMRES::Starting value 26.0874
+DEAL:GMRES::Convergence step 6 value 1.47271e-12
+DEAL::Cycle 3:
+DEAL::   Number of active cells:       1536
+DEAL::   Number of degrees of freedom: 1538
+DEAL::
+cycle cells dofs    L2(phi)     Linfty(alpha)
+    0    24   26 3.437e-01    - 2.327e-01    -
+    1    96   98 9.794e-02 1.81 1.239e-01 0.91
+    2   384  386 2.417e-02 2.02 6.319e-02 0.97
+    3  1536 1538 5.876e-03 2.04 3.176e-02 0.99
+@endverbatim
+
+
+
+从2d中的收敛表可以看出，如果我们选择足够精确的正交公式，那么我们得到的 $\alpha(\mathbf{x})$ 的误差应该正好是元素数量的倒数。用N段大小相等的圆近似产生一个有N个面的正多边形，其角度正好是 $\pi-\frac {2\pi}{N}$ ，因此我们的误差应该正好是 $\frac 12 - (\frac 12 -\frac 1N) = \frac 1N$  。事实上，这是一个很好的指标，表明我们正在以适当的方式进行奇异积分。
+
+势的近似 $\phi$ 的误差主要是由于域的近似。通过使用高阶映射可以得到更好的近似值。
+
+如果我们修改main()函数，将fe_degree和mapping_degree设置为2，并提高参数文件中正交公式的顺序，我们得到以下二维模拟的收敛表
+
+@verbatim
+cycle cells dofs    L2(phi)     Linfty(alpha)
+    0    20   40 5.414e-05    - 2.306e-04    -
+    1    40   80 3.623e-06 3.90 1.737e-05 3.73
+    2    80  160 2.690e-07 3.75 1.253e-05 0.47
+    3   160  320 2.916e-08 3.21 7.670e-06 0.71
+@endverbatim
+
+
+
+和
+
+@verbatim
+cycle cells dofs    L2(phi)     Linfty(alpha)
+    0    24   98 3.770e-03    - 8.956e-03    -
+    1    96  386 1.804e-04 4.39 1.182e-03 2.92
+    2   384 1538 9.557e-06 4.24 1.499e-04 2.98
+    3  1536 6146 6.617e-07 3.85 1.892e-05 2.99
+@endverbatim
+
+
+
+三维的情况下。我们可以看到，高阶映射的收敛结果要好得多，这主要是由于曲线几何的分辨率更高。请注意，在自由度相同的情况下，例如在三维模拟中Q1案例的第3步和Q2案例的第2步，误差大约低三个数量级。
+
+运行这些计算的结果是一堆输出文件，我们可以将其传递给我们选择的可视化程序。输出文件有两种：边界元素表面的势，以及扩展到内外域的势。在二维的情况下，这两个文件的组合看起来像
+
+ <img src="https://www.dealii.org/images/steps/developer/step-34_2d.png" alt=""> 
+
+而在三维空间中，我们首先显示的是表面上的电位，同时还有一个等高线图。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-34_3d.png" alt=""> 
+
+然后是潜力的外部等高线图，不透明度设置为25%。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-34_3d-2.png" alt=""> 
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+这是第一个考虑解决嵌入高维空间的曲面上定义的方程的教程程序。但这里讨论的方程相对简单，因为它只涉及一个积分算子，而不涉及在曲面上更难定义的导数。step-38教程程序考虑了这类问题并提供了必要的工具。
+
+从实际角度来看，这里使用的边界元素方法（BEM）有两个瓶颈。首先是组装矩阵的成本是*二次方的未知数，即 ${\cal O}(N^2)$ ，其中 $N$ 是未知数的总数。通过查看`assemble_system()`函数可以看出这一点，它有这样的结构。
+
+@code
+    for (const auto &cell : dof_handler.active_cell_iterators())
+      {
+        ...
+
+
+        for (unsigned int i = 0; i < dof_handler.n_dofs(); ++i)
+          ...
+@endcode
+
+这里，第一个循环走过了所有的单元格（一个系数 $N$ ），而内循环则贡献了另一个系数 $N$  。
+
+这必须与*局部*微分算子的有限元方法进行对比。在那里，我们在所有单元上进行循环（ $N$ 的一个因子），并在每个单元上做一个与有多少单元或未知数无关的工作。这显然是一个瓶颈。
+
+第二个瓶颈是系统矩阵是密集的（即是FullMatrix类型），因为每个自由度都与其他自由度相耦合。正如上面所指出的，仅仅*计算*这个带有 $N^2$ 非零项的矩阵必然需要至少 ${\cal O}(N^2)$ 次操作，但值得指出的是，仅仅做一个矩阵-向量乘积也需要这么多操作。如果用于解决线性系统的GMRES方法需要的迭代次数随着问题的大小而增长，就像通常的情况一样，那么解决线性系统需要的运算次数甚至比 ${\cal O}(N^2)$ 还要快。
+
+"真实 "边界元素方法通过确定矩阵的哪些条目将是小的，因此可以被忽略的策略来解决这些问题（当然，代价是引入额外的误差）。这可以通过认识到矩阵项随着自由度 $i$ 和 $j$ 定义的位置之间的（物理）距离衰减而实现。这可以在快速多极法（FMM）等方法中得到利用，这些方法可以控制哪些矩阵项必须被存储和计算以达到一定的精度，并且--如果做得好的话--导致方法中线性系统的装配和求解都需要少于 ${\cal O}(N^2)$ 的操作。
+
+实施这些方法显然为扩展目前的计划提供了机会。
+
+

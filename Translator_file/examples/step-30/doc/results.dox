@@ -1,0 +1,201 @@
+examples/step-30/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+该程序的输出包括控制台输出、包含网格的SVG文件以及以VTU格式给出的解决方案。
+
+@code
+Performing a 2D run with isotropic refinement...
+
+
+------------------------------------------------
+Cycle 0:
+   Number of active cells:       128
+   Number of degrees of freedom: 512
+   Time of assemble_system: 0.092049
+   Writing grid to <grid-0.iso.svg>...
+   Writing solution to <sol-0.iso.vtu>...
+
+
+Cycle 1:
+   Number of active cells:       239
+   Number of degrees of freedom: 956
+   Time of assemble_system: 0.109519
+   Writing grid to <grid-1.iso.svg>...
+   Writing solution to <sol-1.iso.vtu>...
+
+
+Cycle 2:
+   Number of active cells:       491
+   Number of degrees of freedom: 1964
+   Time of assemble_system: 0.08303
+   Writing grid to <grid-2.iso.svg>...
+   Writing solution to <sol-2.iso.vtu>...
+
+
+Cycle 3:
+   Number of active cells:       1031
+   Number of degrees of freedom: 4124
+   Time of assemble_system: 0.278987
+   Writing grid to <grid-3.iso.svg>...
+   Writing solution to <sol-3.iso.vtu>...
+
+
+Cycle 4:
+   Number of active cells:       2027
+   Number of degrees of freedom: 8108
+   Time of assemble_system: 0.305869
+   Writing grid to <grid-4.iso.svg>...
+   Writing solution to <sol-4.iso.vtu>...
+
+
+Cycle 5:
+   Number of active cells:       4019
+   Number of degrees of freedom: 16076
+   Time of assemble_system: 0.47616
+   Writing grid to <grid-5.iso.svg>...
+   Writing solution to <sol-5.iso.vtu>...
+
+
+
+Performing a 2D run with anisotropic refinement...
+
+
+--------------------------------------------------
+Cycle 0:
+   Number of active cells:       128
+   Number of degrees of freedom: 512
+   Time of assemble_system: 0.052866
+   Writing grid to <grid-0.aniso.svg>...
+   Writing solution to <sol-0.aniso.vtu>...
+
+
+Cycle 1:
+   Number of active cells:       171
+   Number of degrees of freedom: 684
+   Time of assemble_system: 0.050917
+   Writing grid to <grid-1.aniso.svg>...
+   Writing solution to <sol-1.aniso.vtu>...
+
+
+Cycle 2:
+   Number of active cells:       255
+   Number of degrees of freedom: 1020
+   Time of assemble_system: 0.064132
+   Writing grid to <grid-2.aniso.svg>...
+   Writing solution to <sol-2.aniso.vtu>...
+
+
+Cycle 3:
+   Number of active cells:       394
+   Number of degrees of freedom: 1576
+   Time of assemble_system: 0.119849
+   Writing grid to <grid-3.aniso.svg>...
+   Writing solution to <sol-3.aniso.vtu>...
+
+
+Cycle 4:
+   Number of active cells:       648
+   Number of degrees of freedom: 2592
+   Time of assemble_system: 0.218244
+   Writing grid to <grid-4.aniso.svg>...
+   Writing solution to <sol-4.aniso.vtu>...
+
+
+Cycle 5:
+   Number of active cells:       1030
+   Number of degrees of freedom: 4120
+   Time of assemble_system: 0.128121
+   Writing grid to <grid-5.aniso.svg>...
+   Writing solution to <sol-5.aniso.vtu>...
+@endcode
+
+
+
+这个文本输出显示了各向异性细化的连续应用所带来的单元数量的减少。在最后一个细化步骤之后，节省的数量已经积累到几乎是各向同性情况下所需单元和自由度的四倍。装配所需的时间也以类似的因素进行扩展。
+
+第一个有趣的部分当然是看这些网格是什么样子的。左边是各向同性细化的网格，右边是各向异性的网格（颜色表示单元的细化程度）。
+
+ <table width="80%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-0.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-0.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-1.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-1.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-2.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-2.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-3.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-3.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-4.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-4.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-5.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.grid-5.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+
+当然，另一个有趣的事情是看这两个网格序列上的解。在这里，它们是在细化周期1和4上，清楚地显示出解决方案确实是由<i>discontinuous</i>分片多项式组成。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.sol-1.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.sol-1.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.sol-4.iso.9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-30.sol-4.aniso.9.2.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+我们看到，各向异性细化网格上的解与各向同性细化网格上的解非常相似。因此，各向异性指标似乎可以有效地选择适当的单元进行各向异性的细化。
+
+这些图片也解释了为什么网格被细化成这样。在整个域的左边部分，细化只沿着 $y$ 的单元轴进行。在域的右边部分，细化以各向同性的细化为主，因为解的各向异性特征--从1到0的跳跃--在平流方向转弯的地方不能很好地与网格对齐。然而，在四分之一圆的底部和最接近（观察者）的部分，这种跳跃又变得越来越与网格对齐，细化算法的反应是创建长宽比越来越大的各向异性单元。
+
+看起来，各向异性特征和粗大网格的必要对齐会大大降低实际问题的性能。这在一般情况下是不会错的。例如，如果将各向异性细化应用于出现冲击的问题（如步骤69中求解的方程），那么在许多情况下，冲击并没有与网格对齐，各向异性细化的帮助不大，除非同时引入技术将网格与冲击对齐。另一方面，许多陡峭的解的特征是由于边界层造成的。在这些情况下，网格已经与各向异性特征对齐，因为它当然是与边界本身对齐的，各向异性的细化几乎总是可以提高这些情况下适应网格的计算效率。
+
+

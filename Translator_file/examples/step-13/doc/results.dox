@@ -1,0 +1,156 @@
+examples/step-13/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+
+
+这个程序的结果并不那么有趣--毕竟它的目的不是为了演示一些新的数学思想，也不是为了演示如何用deal.II编程，而是为了利用我们在前面的例子中所开发的材料，形成一些演示以模块化和可扩展的方式建立现代有限元软件的方法。
+
+
+
+
+尽管如此，我们当然会展示程序的结果。最感兴趣的是点值计算，为此我们实现了相应的评估类。该程序的结果（即输出）看起来如下。
+
+@code
+Running tests with "global" refinement criterion:
+
+
+-------------------------------------------------
+Refinement cycle: 0 1 2 3 4 5 6
+DoFs  u(x_0)
+   25 1.2868
+   81 1.6945
+  289 1.4658
+ 1089 1.5679
+ 4225 1.5882
+16641 1.5932
+66049 1.5945
+
+
+Running tests with "kelly" refinement criterion:
+
+
+------------------------------------------------
+Refinement cycle: 0 1 2 3 4 5 6 7 8 9 10 11
+DoFs  u(x_0)
+   25 1.2868
+   47 0.8775
+   89 1.5365
+  165 1.2974
+  316 1.6442
+  589 1.5221
+ 1093 1.5724
+ 2042 1.5627
+ 3766 1.5916
+ 7124 1.5876
+13111 1.5942
+24838 1.5932
+@endcode
+
+
+
+
+这里令人惊讶的是，精确的数值是1.59491554...，而且计算该解显然出奇的复杂，甚至只达到百分之一的精度，尽管该解是平滑的（事实上是无限常可微）。这种平滑性显示在程序生成的图形输出中，这里是粗网格和凯利细化指标的前9个细化步骤。
+
+
+ <table width="80%" align="center">
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-0.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-1.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-2.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-3.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-4.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-5.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-6.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-7.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-8.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-13.solution-kelly-9.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+
+当我们已经在观看图片时，这是第八个网格，从顶部看。
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-13.grid-kelly-8.png" alt=""> 
+
+
+然而，我们还没有完成对点值计算的评估。事实上，将两个细化标准的误差 $e=|u(x_0)-u_h(x_0)|$ 绘制成图，可以得到下面的图片。
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-13.error.png" alt=""> 
+
+
+
+
+
+这幅图 <em> 令人不安的是，自适应网格细化不仅没有像人们通常期望的那样比全局细化好，甚至明显更差，因为它的收敛是不规则的，在使用后续网格的值时，阻止了所有的外推技术!另一方面，全局细化提供了一个完美的 $1/N$ 或 $h^{-2}$ 收敛历史，并提供了各种机会，甚至可以通过外推法来改善点值。因此，在这个例子中，全局网格细化必须被认为是优越的!这更令人惊讶，因为评估点不是在左边的某个地方，那里的网格是粗糙的，而是在右边，自适应细化也应该细化评估点周围的网格。
+
+
+
+
+因此，我们以一个问题来结束对这个例子程序的讨论。
+
+<p align="center"> <strong>  <em>  如果适应性不比全局细化好，那么它有什么问题？ </em>  </strong>
+
+
+
+
+
+ <em>  在这个例子的结尾处进行练习。 </em>  有一个简单的原因导致适应性网格解决方案的不良和不规则行为。通过观察每个步骤中评估点周围的网格，可以很简单地找到这个原因--这个数据在程序的输出文件中。因此，一个练习是修改网格细化程序，使问题（一旦你注意到它）得以避免。第二个练习是检查结果是否比全局细化要好，如果是的话，是否能达到更好的收敛顺序（就自由度数而言），或者只达到一个更好的常数。
+
+
+
+
+(  <em>  对于没有耐心的人来说，非常简短的回答。 </em> 在误差较大的步骤中，网格在评估点上是不规则的，即一些相邻的单元有悬空的节点；这破坏了一些超级近似的效果，而全局细化的网格可以从中受益。答案2：这个快速黑客
+
+@code
+  bool refinement_indicated = false;
+  for (const auto &cell : triangulation.active_cell_iterators())
+    for (const auto v : cell->vertex_indices())
+	  if (cell->vertex(v) == Point<dim>(.5,.5))
+	    {
+	      cell->clear_coarsen_flag();
+	      refinement_indicated |= cell->refine_flag_set();
+	    }
+  if (refinement_indicated)
+    for (const auto &cell : triangulation.active_cell_iterators())
+      for (const auto v : cell->vertex_indices())
+	    if (cell->vertex(v) == Point<dim>(.5,.5))
+	      cell->set_refine_flag ();
+@endcode
+
+在执行细化之前，在Kelly细化类的细化函数中，将改善结果（练习：代码是怎么做的？不过，行为仍然是不规则的，所以不可能有关于收敛顺序的结果）。)
+
+

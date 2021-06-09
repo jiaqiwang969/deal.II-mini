@@ -1,0 +1,380 @@
+examples/step-70/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Luca Heltai (International School for
+Advanced Studies, Trieste), Bruno Blais (Polytechnique Montréal),
+and Rene Gassmöller (University of California Davis)
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.3829064,https://zenodo.org/badge/DOI/10.5281/zenodo.3829064.svg} 
+
+
+
+
+<h1>Introduction</h1>
+
+<h3>Massively parallel non-matching grid simulations of fluid structure interaction problems</h3>
+
+在本教程中，我们考虑了层流体系中的混合问题。这类问题出现在从化学工程到发电（如涡轮机械）等广泛的应用中。混合问题特别难以用数值来解决，因为它们通常涉及一个容器（有固定的边界，可能还有复杂的几何形状，如挡板），由域 $\Omega$ 表示，和一个（或多个）浸入和旋转的叶轮（由域 $\Omega^{\text{imp}}$ 表示）。我们希望解决流动方程的域是两个域之间的（与时间有关的）差值，即。   $\Omega\setminus\Omega^{\text{imp}}$  .
+
+对于旋转叶轮，使用任意拉格朗日欧拉公式（其中流体域--连同网格！）是不可能的，除非只考虑小时间（即小的流体域变形）。-- 是不可能的，除非只考虑小时间（即小的流域变形）。如果想跟踪叶轮多次旋转时的流动演变，所产生的变形网格就会过于扭曲而无用。
+
+在这种情况下，一个可行的替代策略是使用非匹配方法（类似于我们在step-60中所做的），其中一个背景固定网格（可能在时间上进行局部细化以更好地捕捉实体运动）与一个旋转的、独立的网格相耦合。
+
+为了保持步骤60中使用的相同符号，我们使用 $\Omega$ 来表示 ${\mathbb R}^{\text{spacedim}}$ 中的域，代表流体和叶轮的容器，我们使用 $\Gamma$ 在 ${\mathbb R}^{\text{dim}}$ 来表示整个叶轮（当它的`spacedim`度量非负值时，也就是说，当我们可以把它表示为维数`dim`等于`spacedim`的网格时），薄叶轮的同维度表示，或者只是整个叶轮的边界。
+
+域 $\Gamma$ 被嵌入到 $\Omega$ （ $\Gamma \subseteq \Omega$ ）中，它是不匹配的：一般来说，它不与任何体积网格的特征对齐。我们在 $\Omega$ 上求解一个偏微分方程，通过一些惩罚技术在嵌入域 $\Gamma$ 上强制执行一些问题的解决条件。在当前情况下，条件是流体在 $\Gamma$ 上各点的速度等于固体叶轮在该点的速度。
+
+我们在此描述的技术在文献中使用了许多名称之一：<b>immersed finite element method</b>和<b>fictitious boundary
+method</b>等。  其主要原理是两个网格的离散化保持完全独立。在本教程中，这种方法被用来求解由斯托克斯方程描述的粘性流体的运动，该流体被一个刚性的非变形叶轮搅动。
+
+因此， $\Omega$ 中求解的方程是蠕动流的斯托克斯方程（即 $\text{Re}\rightarrow 0$ ），并且在与叶轮相关的移动*嵌入域* $\Gamma$ 上应用无滑动边界条件。然而，这个教程可以很容易地扩展到其他方程（例如，纳维-斯托克斯方程、线性弹性方程等）。它可以被看作是Step-60的一个自然扩展，它可以通过MPI使用分布式并行计算架构解决大型问题。
+
+然而，与第60步相反， $\Gamma$ 上的迪里希特边界条件是弱加的，而不是通过使用拉格朗日乘法器，而且我们集中处理两个完全分布的三角形的耦合（这种组合在第60步的实施中是不可能的）。
+
+当人们想在嵌入域上执行条件时，有两种有趣的情况发生  $\Gamma$  。
+
+- 嵌入域 $\Gamma$ 的几何维度`dim`与域 $\Omega$ 相同（`spacedim`），也就是说， $\Gamma$ 的spacedim-维度不为零。在这种情况下，对 $\Gamma$ 施加Dirichlet边界的边界条件是通过体积惩罚完成的。如果施加的惩罚只取决于速度，这通常被称为 $\mathcal{L}^2$ 惩罚，而如果惩罚同时取决于速度及其梯度，则是 $\mathcal{H}^1$ 惩罚。 $\mathcal{L}^2$  惩罚的情况与Darcy型方法非常相似。对 $\mathcal{L}^2$ 和 $\mathcal{H}^1$ 两种惩罚方法都进行了广泛的分析（例如，见 @cite Angot1999 ）。
+
+- 嵌入域 $\Gamma$ 的内在维度`dim`小于 $\Omega$ 的维度（`spacedim`），因此其spacedim维度为零；例如，它是一条嵌入二维域的曲线，或一个嵌入三维域的表面。当然，这在物理上是不可能的，但是如果金属片的厚度可以忽略不计的话，我们可以把在流体中运动的非常薄的金属片视为本质上的低维。在这种情况下，通过应用<a href="https://en.wikipedia.org/wiki/Joachim_Nitsche">Nitsche</a>方法（见 @cite Freund1995 ）对 $\Gamma$ 施加弱边界条件。
+
+这两种方法都有非常相似的要求，并导致高度相似的公式。因此，我们几乎以同样的方式对待它们。
+
+在本教程中，我们对 $\Gamma$ 的进一步细节不感兴趣：我们假设嵌入域的尺寸（`dim`）总是比嵌入域的尺寸 $\Omega$ （`spacedim`）小一或相等。
+
+我们要解决以下微分问题：给定 $g$ 上的一个足够规则的函数 $\Gamma$ ，找到 $(\textbf{u},p)$ 的解。
+
+@f{eqnarray*}
+
+
+  -\Delta \mathbf{u} + \nabla p &=& 0,\\
+
+
+  -\nabla \cdot \textbf{u} &=& 0,\\
+  \textbf{u} &=& \textbf{g}  \text{ in } \Gamma,\\
+  \textbf{u} &=& 0 \text{ on } \partial\Omega.
+
+
+@f}
+
+
+
+这个方程，我们通过缩放时间单位的方式将其规范化，使粘度的数值为1，描述了缓慢的粘性流动，如蜂蜜或岩浆。本教程的主要目的是展示如何用惩罚方法，以弱的方式将速度场条件 $\mathbf{u} = \mathbf{g}$ 强加于非匹配的 $\Gamma$ 。关于斯托克斯问题的更广泛的讨论，包括体力、不同的边界条件和解决策略，可以在步骤22中找到。
+
+让我们开始单独考虑整个域 $\Omega$ 中的斯托克斯问题。我们寻找一个速度场 $\mathbf{u}$ 和一个压力场 $p$ ，满足斯托克斯方程和 $\partial\Omega$ 上的同质边界条件。
+
+斯托克斯方程的微弱形式首先通过将其写成矢量形式而得到
+
+@f{eqnarray*}
+  \begin{pmatrix}
+    {-\Delta \textbf{u} + \nabla p}
+    \\
+    {-\textrm{div}\;\textbf{u}}
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+  0
+  \\
+  0
+  \end{pmatrix},
+
+
+@f}
+
+从左边开始与一个矢量值测试函数 $\phi = \begin{pmatrix}\textbf{v} \\ q\end{pmatrix}$ 形成点积，并在域 $\Omega$ 上进行积分，得到以下一组方程。
+
+@f{eqnarray*}
+  (\mathrm v,
+
+
+   -\Delta \textbf{u} + \nabla p)_{\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+  =
+  0
+
+
+@f}
+
+这对所有的测试函数都必须成立  $\phi = \begin{pmatrix}\textbf{v}
+\\ q\end{pmatrix}$  。
+
+
+通过部分积分并利用 $\partial\Omega$ 的边界条件，我们得到以下变分问题。
+
+@f{eqnarray*}{
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega} - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+
+
+ - (q, \textrm{div}\; \textbf{u})_{\Omega}&=& 0
+
+
+@f}
+
+
+
+其中 $(\cdot, \cdot)_{\Omega}$ 代表 $L^2$ 标量积。这也是步骤22中使用的变异形式。
+
+这个变分公式没有考虑到嵌入域。与step-60相反，我们并不强行执行 $\textbf{u}$ 对 $\Gamma$ 的约束，而是通过惩罚项弱行执行这些约束。
+
+对这种弱强加边界条件的分析取决于 $\Gamma$ 的spacedim-dimensional度量是正的（如果`dim`等于`spacedim`）或零（如果`dim`小于`spacedim`）。我们讨论这两种情况。
+
+
+
+
+<h4>Co-dimension one case</h4>
+
+在这种情况下，我们假设 $\Gamma$ 是实际叶轮的边界，即嵌入二维域的封闭曲线或三维域的封闭表面。这种方法的思路首先是考虑在 $\Gamma$ 上弱加迪里切特边界条件，遵循尼采方法。这是通过在流体域上使用以下修改后的公式来实现的，其中没有对 $\Gamma$ 上的测试函数施加强条件。
+
+@f{multline*}{
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega\setminus\Omega^{\text{imp}}} - (\textrm{div}\;  \textbf{v}, p)_{\Omega\setminus\Omega^{\text{imp}}}
+
+
+  - (q, \textrm{div}\; \textbf{u})_{\Omega\setminus\Omega^{\text{imp}}} \\
+
+
+  - (\textbf{v},\nabla \textbf{u} \cdot \textbf{n})_{\Gamma}
+  + (\textbf{v}\cdot \textbf{n},p)_{\Gamma} \\
+
+
+ -  (\nabla\textbf{v}\cdot \textbf{n},\textbf{u})_{\Gamma}
+ + (q, \textbf{u} \cdot \textbf{n})_{\Gamma}
+ + \beta (\textbf{v},\textbf{u})_{\Gamma} \\
+=  - (\nabla\textbf{v}\cdot \textbf{n},\textbf{g})_{\Gamma} + (q, \textbf{g} \cdot \textbf{n})_{\Gamma}
+ + \beta (\textbf{v},\textbf{g})_{\Gamma}.
+
+
+@f}
+
+
+
+过 $\Gamma$ 的积分是低维积分。可以证明（见 @cite Freund1995 ），存在一个正的常数 $C_1$ ，所以如果 $\beta > C_1$ ，边界的弱强加将是一致和稳定的。在 $\Gamma$ 上的前两个附加积分（上式中的第二行）在通过部分积分后自然出现，此时我们不假设 $\mathbf{v}$ 在 $\Gamma$ 上是零。
+
+上述方程中的第三行包含两个项，是为了确保弱形式的一致性而添加的，还有一个稳定项，是为了强制执行边界条件，其误差与近似误差一致。一致性项和稳定项是用实际的边界数据添加到右手边的  $\mathbf{g}$  。
+
+当 $\mathbf{u}$ 满足 $\Gamma$ 上的条件 $\mathbf{u}=\mathbf{g}$ 时， $\Gamma$ 上的所有一致性和稳定性积分都被抵消，就剩下斯托克斯流的通常弱形式，也就是说，上述表述是一致的。
+
+我们注意到，可以使用另一种（非对称的）表述方式。
+
+@f{multline*}{
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega\setminus\Omega^{\text{imp}}} -  (\textrm{div}\;  \textbf{v}, p)_{\Omega\setminus\Omega^{\text{imp}}}
+
+
+  - (q, \textrm{div}\; \textbf{u})_{\Omega\setminus\Omega^{\text{imp}}} \\
+
+
+  -(\textbf{v},\nabla \textbf{u} \cdot \textbf{n})_{\Gamma}
+  + (\textbf{v}\cdot \textbf{n},p)_{\Gamma} \\
+   +(\nabla\textbf{v}\cdot \textbf{n},\textbf{u})_{\Gamma}
+
+
+ - (q, \textbf{u} \cdot \textbf{n})_{\Gamma}
+ + \beta (\textbf{v},\textbf{u})_{\Gamma} \\
+=   (\nabla\textbf{v}\cdot \textbf{n},\textbf{g})_{\Gamma} - (q, \textbf{g} \cdot \textbf{n})_{\Gamma}
+ + \beta (\textbf{v},\textbf{g})_{\Gamma}.
+
+
+@f}
+
+注意第三行和第四行的第一项的不同符号。在这种情况下，稳定性和一致性条件成为 $\beta > 0$  。在对称情况下， $\beta$ 的值取决于 $h$ ，一般来说，它被选择为 $\beta = C h^{-1} $ ， $h$ 是衡量被整合面的大小， $C$ 是一个常数，以便 $1 \leq C \leq 10$  。这就像人们通常使用Nitsche惩罚方法来执行Dirichlet边界条件一样。
+
+另一方面，非对称方法与非连续Galerkin方法的非对称内部惩罚方法（"NIPG "方法 @cite Riviere1999 ）的连续性的执行方式有关。即使非对称情况在稳定参数的可能选择方面似乎更有优势，我们还是选择了对称离散化，因为在这种情况下，可以证明对偶问题也是一致的，导致解决方案不仅能量准则以正确的顺序收敛，而且其 $L^2$ 准则也是如此。此外，得到的矩阵仍然是对称的。
+
+上述表述是在假设领域被精确离散的情况下进行的。然而，如果叶轮的变形是一个刚体运动，就有可能人为地将斯托克斯问题的解扩展到螺旋桨本身，因为刚体运动也是斯托克斯问题的解。我们的想法是在 $\Omega^{\text{imp}}$ 内解决同样的问题，在 $\Gamma$ 上施加同样的边界条件，使用同样的惩罚技术，并用在 $\Omega$ 上全局连续的测试函数 $\mathbf{v}$ 来测试。
+
+这导致了以下（中间）配方。
+
+@f{multline*}{
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega} - (\textrm{div}\;  \textbf{v}, p)_{\Omega}
+
+
+  - (q, \textrm{div}\; \textbf{u})_{\Omega} \\
+
+
+  - (\textbf{v},  \lbrack \nabla \textbf{u} \rbrack \cdot \textbf{n})_{\Gamma}
+  + (\textbf{v}\cdot \textbf{n},\lbrack p \rbrack )_{\Gamma} \\
+
+
+ -  (\lbrack \nabla\textbf{v} \rbrack \cdot \textbf{n},\textbf{u})_{\Gamma}
+ + (\lbrack q \rbrack, \textbf{u} \cdot n)_{\Gamma}
+ + 2\beta (\textbf{v},\textbf{u})_{\Gamma} \\
+=  - (\lbrack \nabla\textbf{v}\rbrack\cdot \textbf{n},\textbf{g})_{\Gamma} + (\lbrack q\rbrack, \textbf{g} \cdot n)_{\Gamma}
+ + 2\beta (\textbf{v},\textbf{g})_{\Gamma},
+
+
+@f}
+
+其中跳跃项，用 $\lbrack \cdot \rbrack$ 表示，是相对于法向量 $\textbf{n}$ 的一个固定方向计算的。2的因子出现在 $\beta$ 前面，因为我们看到 $\Gamma$ 的每一部分两次，一次来自流体内部，一次来自在其中移动的障碍物。对于 $\Gamma$ 上的所有其他积分，我们对 $\Gamma$ 的每一部分都访问了两次，但符号相反，因此得到的是跳跃项）。
+
+这里我们注意到，与不连续的Galerkin方法不同，测试和试验函数在 $\Gamma$ 中是连续的。此外，如果 $\Gamma$ 不与单元边界对齐，所有的跳跃项也是零，因为一般来说，有限元函数空间在每个单元内都是平滑的，如果 $\Gamma$ 只在有限的几个点上切过一个单元与它的边界相交，除了稳定化的贡献外， $\Gamma$ 上的所有贡献都可以从公式中忽略掉，导致以下变量公式的最终形式。
+
+@f{multline*}{
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega} - (\textrm{div}\;  \textbf{v}, p)_{\Omega}
+
+
+  - (q, \textrm{div}\; \textbf{u})_{\Omega}  + 2\beta (\textbf{v},\textbf{u})_{\Gamma} \\
+=  2\beta (\textbf{v},\textbf{g})_{\Gamma}.
+
+
+@f}
+
+
+
+在step-60中，约束条件的施加需要以拉格朗日乘数的形式增加新的变量。本教程程序不存在这种情况。使用Nitsche方法施加边界条件只修改了系统矩阵和右手边，没有增加额外的未知数。然而，嵌入域上的速度矢量 $\textbf{u}$ 不会与规定的速度 $\textbf{g}$ 完全匹配，而只是达到一个数值误差，这个误差与有限元方法的插值误差相同。此外，与第60步一样，我们仍然需要在不匹配的嵌入网格上进行积分，以构建对 $\Gamma$ 施加边界条件的必要边界项。
+
+
+
+
+<h4>Co-dimension zero case</h4>
+
+在这种情况下， $\Gamma$ 具有相同的尺寸，但被嵌入到 $\Omega$ 中。我们可以把它看作是一个在流体中移动的厚物体。在 $\mathcal{L}^2$ 惩罚的情况下，额外的惩罚项可以被解释为 $\Gamma$ 内的达西项，结果是。
+
+@f{eqnarray*}
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega} - & (\textrm{div}\;  \textbf{v}, p)_{\Omega}
+
+
+  - (q, \textrm{div}\; \textbf{u})_{\Omega}  + \beta (\textbf{v},\textbf{u})_{\Gamma}
+=  \beta (\textbf{v},\textbf{g})_{\Gamma}.
+
+
+@f}
+
+
+
+这里，对 $\Gamma$ 的积分只是对部分体积的积分。因此， $\mathcal{L}^2$ 的惩罚包括增加一个体积项，约束流体的速度与 $\Gamma$ 内刚体的速度保持一致。在这种情况下， $\beta$ 必须被选择得足够大，以确保 $\Gamma$ 中的迪里希特边界条件得到充分尊重，但也不能太高，以保持系统矩阵的适当调节。
+
+一个 $\mathcal{H}^1$ 的惩罚可以用类似的方式构建，在惩罚中加入一个粘性成分，以阻尼 $\Gamma$ 内的速度梯度。
+
+@f{eqnarray*}{
+(\nabla \textbf{v}, \nabla \textbf{u})_{\Omega} - & (\textrm{div}\;  \textbf{v}, p)_{\Omega}
+
+
+  - (q, \textrm{div}\; \textbf{u})_{\Omega}
+  + \beta_1 (\textbf{v},\textbf{u})_{\Gamma}
+  + \beta_2 (\nabla \textbf{v}, \nabla \textbf{u})_{\Gamma}
+=  \beta_1 (\textbf{v},\textbf{g})_{\Gamma}
++ \beta_2 (\nabla \textbf{v}, \nabla \textbf{g})_{\Gamma}.
+
+
+@f}
+
+
+
+请注意， $L^2$ 的惩罚（`dim`等于`spacedim`）和Nitsche的惩罚（`dim`等于`spacedim-1`）导致了完全相同的数值实现，这要感谢deal.II的独立维度能力。
+
+
+
+
+<h4>Representation of Ω and Γ</h4>
+
+在本教程中，嵌入网格 $\Gamma$ 和嵌入网格都是用 parallel::distributed::Triangulation. 来描述的。这两个三角形可以通过GridGenerator命名空间中的函数来建立，或者通过读取其他应用程序（例如GMSH，见步骤-49的讨论）产生的网格文件来建立。这比之前在第60步中的做法略微通用了一些。
+
+无论是在 "dim=spacedim "还是 "dim<spacedim "的情况下，增加沉没边界法，只是在系统矩阵和系统的右手边引入了额外的项，这些项是在 $\Gamma$ 上积分的结果。这并没有改变必须解决的问题的变量数量。因此，挑战与必须进行的积分有关  $\Gamma$  。
+
+在有限元中，我们将这个积分分成来自用于离散化 $\Gamma$ 的所有单元的贡献，我们将 $K$ 上的积分转换为参考元素 $\hat K$ 上的积分，其中 $F_{K}$ 是 $\hat K$ 到 $K$ 的映射，并使用正交公式计算 $\hat K$ 上的积分。比如说。
+
+\f[
+\beta (\textbf{v},\textbf{u})_{\Gamma} =  \sum_{K\in \Gamma} \int_{\hat K}
+\hat{\textbf{u}}(\hat x) (\textbf{v} \circ F_{K}) (\hat x) J_K (\hat x) \mathrm{d} \hat x =
+\sum_{K\in \Gamma} \sum_{i=1}^{n_q}  \big(\hat{\textbf{u}}(\hat x_i)  (\textbf{v} \circ F_{K}) (\hat x_i) J_K (\hat x_i) w_i \big)
+\f]
+
+计算这个和是不容易的，因为我们必须评估 $(v_j \circ F_{K})
+(\hat x_i)$  。一般来说，如果 $\Gamma$ 和 $\Omega$ 没有对齐，那么 $y_i = F_{K}(\hat x_i)$ 这个点相对于 $\Omega$ 来说是完全任意的，除非我们想出一个办法，将 $V_h(\Omega)$ 的所有基函数插在 $\Omega$ 上的一个任意点上，否则我们无法计算出需要的积分。
+
+
+要评估 $(v_j \circ F_{K}) (\hat x_i)$ ，需要采取以下步骤（如下图所示）。
+
+- 对于 $\Gamma$ 中的一个给定单元 $K$ ，计算实点 $y_i \dealcoloneq F_{K} (\hat
+x_i)$ ，其中 $x_i$ 是用于 $K
+\subseteq \Gamma$ 上的积分的正交点之一。这是最容易的部分。   FEValues::quadrature_point() 给了我们所有正交点的实空间位置。
+
+- 找到 $\Omega$ 中 $y_i$ 所在的单元。我们将称这个元素为 $T$  。
+
+- 找到 $T$ 内 $y_i$ 的参考坐标。为此，我们需要将参考元素 $\hat T$ 转换为元素 $T$ ： $\hat y_i = G^{-1}_{T} (y_i)$ 的映射 $G_T$ 的逆映射。
+
+- 评估  $v_j$  网格在此点  $\hat y_i$  的基函数  $\Omega$  。这也是比较简单的，使用FEValues。
+
+
+<p align="center"> <img src="https://www.dealii.org/images/steps/developer/step-60.C_interpolation.png" alt="">  </p> 
+
+在步骤60中，上述第二至第四步是通过依次调用来计算的。
+
+-  GridTools::find_active_cell_around_point(),  后面是
+
+-  Mapping::transform_real_to_unit_cell().  然后我们
+
+- 构建一个自定义的正交公式，包含参考单元格中的点，然后
+
+- 构建一个FEValues对象，具有给定的正交公式，并以第一步中获得的单元格为初始化。
+
+虽然这种方法对目前的情况是可行的，但它并不适合于使用分布式三角形的平行模拟。事实上，由于嵌入域 $\Gamma$ 单元上的正交点的位置与嵌入三角形的位置不一致，而且 $\Gamma$ 是不断移动的，这就要求代表 $\Gamma$ 的三角形被完整地存储在所有处理器中。随着处理器的数量和 $\Gamma$ 中单元格数量的增加，这将导致内存方面的严重瓶颈。因此，在这一步骤中寻求一种替代策略。
+
+
+
+
+<h4>Using particles to track Γ</h4>
+
+请记住，对于惩罚法（ $\mathcal{L}^2$ 或 $\mathcal{H}^1$ ）和尼采法，我们要计算的是由正交近似的积分。也就是说，我们需要计算
+
+\f[
+\beta (\textbf{v},\textbf{u})_{\Gamma} =
+\sum_{K\in \Gamma} \sum_{i=1}^{n_q}  \big(\hat{\textbf{u}}(\hat x_i)  (\textbf{v} \circ F_{K}) (\hat x_i) J_K (\hat x_i) w_i \big)
+\f] 如果你跟随上面的讨论，那么你会记得  $\textbf{u}$  和  $\textbf{v}$  是定义在流体网格上的形状函数。唯一定义在实体网格上的东西是。   $F_K(\hat x_i)$  ，是实体单元上正交点的位置，是 $\Gamma$ 的一部分， $J_K$ 是其雅各布系数的行列式， $w_i$ 是相应的正交权值。
+
+现在要认识到的重要部分是这样的。   $w_i$ 是正交公式的一个属性，不随时间变化。此外， $F_K$ 的雅各布矩阵本身随着固体障碍物在流体中的移动而变化，但由于固体被认为是非变形的（它只是平移和旋转，但不扩张），雅各布矩阵的行列式保持不变。因此，乘积 $J_K(\hat x_i) w_i$ （我们通常用`JxW`表示）在每个正交点上都保持不变。因此，我们唯一需要跟踪的是位置 $x_i=F_K(\hat x_i)$ --但这些位置随着实体域的速度移动。
+
+换句话说，我们实际上根本不需要保留实体网格。我们所需要的只是位置 $x_i(t)$ 和相应的`JxW`值。由于这两个属性都是附着在实体材料上的点属性（或点向量），它们可以被理想化为一组不相连的无限小的 "粒子"，它们随着实体的运动携带所需的`JxW`信息。deal.II有能力以ParticleHandler类的形式在大规模并行计算中分配和存储这样一组粒子（关于实现的细节见 @cite GLHPW2018  ），我们将在本教程中使用这一功能。
+
+因此，本步骤采取的方法如下。
+
+- 为域名  $\Gamma$  创建一个  parallel::distributed::Triangulation  。
+
+- 在 Particles::Particle 上的正交点位置创建 $\Gamma$  。
+
+- 调用 Particles::ParticleHandler::insert_global_particles() 函数，将粒子分配到各个处理器上，*遵循实体三角形*的做法。
+
+- 将 "JxW "值作为一个 "属性 "附加到每个 Particles::Particle 对象。
+
+这种结构的生成相对来说比较昂贵，但是每次模拟必须只生成一次。一旦 Particles::ParticleHandler 被生成，并且所需的信息被附加到粒子上，就可以利用粒子在ParticleHandler内按单元分组的事实，对 $\Gamma$ 进行积分，使我们能够。
+
+- 在 $\Omega$ 中至少包含一个粒子的所有单元格上循环操作
+
+- 循环处理给定单元中的所有粒子
+
+- 计算积分并填充全局矩阵。
+
+由于 Particles::ParticleHandler 可以管理粒子从一个处理器到另一个处理器的交换，嵌入的三角形可以通过位移粒子而被移动或变形。与这种位移相关的唯一约束是，颗粒的位移距离不应大于一个单元的大小。这是因为这是 Particles::ParticleHandler 能够追踪离开当前单元的粒子现在所处的单元的极限。
+
+一旦整个问题（斯托克斯问题和沉没边界施加）被集合起来，最后的鞍点问题由迭代求解器解决，应用于舒尔补数 $S$ （其构造例如在步骤22中描述），我们使用LinearOperator类构造 $S$ 。
+
+
+
+
+<h3>The testcase</h3>
+
+我们在这里解决的问题是对斯托克斯流的时间可逆性的证明。这在科学教育实验中经常用泰勒-库伊特流和染料液滴来说明，在流体以周期性的方式位移后，染料液滴又恢复到原来的形状。
+
+@htmlonly
+
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/p08_KlTKP50" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
+@endhtmlonly
+
+
+
+在目前的问题中，一个非常粘稠的流体被一个叶轮的旋转所搅动，在二维中，叶轮被一个矩形网格所模拟。叶轮旋转了一定的圈数，之后流动被逆转，从而在相反的方向上进行相同圈数的旋转。我们回顾一下，由于斯托克斯方程是自交的，蠕动流是可逆的。因此，如果叶轮运动在相反的方向上被逆转，流体应该回到其原来的位置。在本例中，我们通过插入一圈被动示踪剂颗粒来说明这一点，这些颗粒被流体平移并返回到原来的位置，从而证明了流动的时间可逆性。
+
+
+
+
+<h3> More references</h3>
+
+本教程程序使用了一些关于对流体内部的非匹配界面施加速度条件的技术。要了解更多的背景材料，你可能要查阅以下参考资料。   @cite Freund1995  ,  @cite Angot1999  ,  @cite Glowinski1999  ,  @cite Boffi2008  ,  @cite Heltai2012  。
+
+

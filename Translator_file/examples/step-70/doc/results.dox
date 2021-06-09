@@ -1,0 +1,444 @@
+examples/step-70/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行该程序的目录中包含一些样本参数文件，你可以用它们来重现本节介绍的结果。如果你没有在命令行中指定参数文件作为参数，程序将默认尝试读取文件"`parameters.prm`"，并执行二维版本的代码。正如在源代码的讨论中所解释的那样，如果你的文件名包含字符串 "23"，那么程序将运行一个三维问题，即共维度为1的沉入式实体。如果文件名包含字符串 "3"，它将运行一个三维问题，同维度的沉浸实体为零，否则它将运行一个二维问题，同维度的沉浸实体为零。
+
+无论具体的参数文件名是什么，如果指定的文件不存在，当你执行程序时，你会得到一个异常，即找不到这样的文件。
+
+@code
+
+
+----------------------------------------------------
+Exception on processing:
+
+
+--------------------------------------------------------
+An error occurred in line <74> of file <../source/base/parameter_acceptor.cc> in function
+    static void dealii::ParameterAcceptor::initialize(const std::string &, const std::string &, const ParameterHandler::OutputStyle, dealii::ParameterHandler &)
+The violated condition was:
+    false
+Additional information:
+    You specified <parameters.prm> as input parameter file, but it does not exist. We created it for you.
+
+
+--------------------------------------------------------
+
+
+Aborting!
+
+
+----------------------------------------------------
+@endcode
+
+
+
+然而，正如错误信息已经指出的，触发异常的代码也将生成指定的文件（"`parameters.prm`"在这种情况下），该文件仅仅包含这个程序关心的所有参数的默认值（对于正确的尺寸和辅助尺寸，根据文件名中是否包含字符串 "23 "或 "3"）。通过检查默认参数文件，我们看到以下内容。
+
+@code
+# Listing of Parameters
+# ---------------------
+subsection Stokes Immersed Problem
+  set Final time                            = 1
+  # Extraction level of the rtree used to construct global bounding boxes
+  set Fluid bounding boxes extraction level = 1
+
+
+  # Boundary Ids over which homogeneous Dirichlet boundary conditions are
+  # applied
+  set Homogeneous Dirichlet boundary ids    = 0
+
+
+  # Initial mesh refinement used for the fluid domain Omega
+  set Initial fluid refinement              = 5
+
+
+  # Initial mesh refinement used for the solid domain Gamma
+  set Initial solid refinement              = 5
+  set Nitsche penalty term                  = 100
+  set Number of time steps                  = 501
+  set Output directory                      = .
+  set Output frequency                      = 1
+
+
+  # Refinement of the volumetric mesh used to insert the particles
+  set Particle insertion refinement         = 3
+  set Velocity degree                       = 2
+  set Viscosity                             = 1
+
+
+
+  subsection Angular velocity
+    # Sometimes it is convenient to use symbolic constants in the expression
+    # that describes the function, rather than having to use its numeric value
+    # everywhere the constant appears. These values can be defined using this
+    # parameter, in the form `var1=value1, var2=value2, ...'.
+    #
+    # A typical example would be to set this runtime parameter to
+    # `pi=3.1415926536' and then use `pi' in the expression of the actual
+    # formula. (That said, for convenience this class actually defines both
+    # `pi' and `Pi' by default, but you get the idea.)
+    set Function constants  =
+
+
+    # The formula that denotes the function you want to evaluate for
+    # particular values of the independent variables. This expression may
+    # contain any of the usual operations such as addition or multiplication,
+    # as well as all of the common functions such as `sin' or `cos'. In
+    # addition, it may contain expressions like `if(x>0, 1, -1)' where the
+    # expression evaluates to the second argument if the first argument is
+    # true, and to the third argument otherwise. For a full overview of
+    # possible expressions accepted see the documentation of the muparser
+    # library at http://muparser.beltoforion.de/.
+    #
+    # If the function you are describing represents a vector-valued function
+    # with multiple components, then separate the expressions for individual
+    # components by a semicolon.
+    set Function expression = t < .500001 ? 6.283185 : -6.283185 # default: 0
+
+
+    # The names of the variables as they will be used in the function,
+    # separated by commas. By default, the names of variables at which the
+    # function will be evaluated are `x' (in 1d), `x,y' (in 2d) or `x,y,z' (in
+    # 3d) for spatial coordinates and `t' for time. You can then use these
+    # variable names in your function expression and they will be replaced by
+    # the values of these variables at which the function is currently
+    # evaluated. However, you can also choose a different set of names for the
+    # independent variables at which to evaluate your function expression. For
+    # example, if you work in spherical coordinates, you may wish to set this
+    # input parameter to `r,phi,theta,t' and then use these variable names in
+    # your function expression.
+    set Variable names      = x,y,t
+  end
+
+
+  subsection Grid generation
+    set Fluid grid generator              = hyper_cube
+    set Fluid grid generator arguments    = -1: 1: false
+    set Particle grid generator           = hyper_ball
+    set Particle grid generator arguments = 0.3, 0.3: 0.1: false
+    set Solid grid generator              = hyper_rectangle
+    set Solid grid generator arguments    = -.5, -.1: .5, .1: false
+  end
+
+
+  subsection Refinement and remeshing
+    set Maximum number of cells        = 20000
+    set Refinement coarsening fraction = 0.3
+    set Refinement fraction            = 0.3
+    set Refinement maximal level       = 8
+    set Refinement minimal level       = 5
+    set Refinement step frequency      = 5
+    set Refinement strategy            = fixed_fraction
+  end
+
+
+  subsection Right hand side
+    # Sometimes it is convenient to use symbolic constants in the expression
+    # that describes the function, rather than having to use its numeric value
+    # everywhere the constant appears. These values can be defined using this
+    # parameter, in the form `var1=value1, var2=value2, ...'.
+    #
+    # A typical example would be to set this runtime parameter to
+    # `pi=3.1415926536' and then use `pi' in the expression of the actual
+    # formula. (That said, for convenience this class actually defines both
+    # `pi' and `Pi' by default, but you get the idea.)
+    set Function constants  =
+
+
+    # The formula that denotes the function you want to evaluate for
+    # particular values of the independent variables. This expression may
+    # contain any of the usual operations such as addition or multiplication,
+    # as well as all of the common functions such as `sin' or `cos'. In
+    # addition, it may contain expressions like `if(x>0, 1, -1)' where the
+    # expression evaluates to the second argument if the first argument is
+    # true, and to the third argument otherwise. For a full overview of
+    # possible expressions accepted see the documentation of the muparser
+    # library at http://muparser.beltoforion.de/.
+    #
+    # If the function you are describing represents a vector-valued function
+    # with multiple components, then separate the expressions for individual
+    # components by a semicolon.
+    set Function expression = 0; 0; 0
+
+
+    # The names of the variables as they will be used in the function,
+    # separated by commas. By default, the names of variables at which the
+    # function will be evaluated are `x' (in 1d), `x,y' (in 2d) or `x,y,z' (in
+    # 3d) for spatial coordinates and `t' for time. You can then use these
+    # variable names in your function expression and they will be replaced by
+    # the values of these variables at which the function is currently
+    # evaluated. However, you can also choose a different set of names for the
+    # independent variables at which to evaluate your function expression. For
+    # example, if you work in spherical coordinates, you may wish to set this
+    # input parameter to `r,phi,theta,t' and then use these variable names in
+    # your function expression.
+    set Variable names      = x,y,t
+  end
+
+
+end
+@endcode
+
+
+
+如果你现在运行该程序，你会在参数`Output directory`（默认为当前目录）指定的目录下得到一个名为`parameters_22.prm`的文件，其中包含上述参数的简短版本（没有注释和文档），记录了所有用于运行程序的参数。
+
+@code
+subsection Stokes Immersed Problem
+  set Final time                            = 1
+  set Fluid bounding boxes extraction level = 1
+  set Homogeneous Dirichlet boundary ids    = 0
+  set Initial fluid refinement              = 5
+  set Initial solid refinement              = 5
+  set Nitsche penalty term                  = 100
+  set Number of time steps                  = 501
+  set Output directory                      = .
+  set Output frequency                      = 1
+  set Particle insertion refinement         = 3
+  set Velocity degree                       = 2
+  set Viscosity                             = 1
+  subsection Angular velocity
+    set Function constants  =
+    set Function expression = t < .500001 ? 6.283185 : -6.283185
+    set Variable names      = x,y,t
+  end
+  subsection Grid generation
+    set Fluid grid generator              = hyper_cube
+    set Fluid grid generator arguments    = -1: 1: false
+    set Particle grid generator           = hyper_ball
+    set Particle grid generator arguments = 0.3, 0.3: 0.1: false
+    set Solid grid generator              = hyper_rectangle
+    set Solid grid generator arguments    = -.5, -.1: .5, .1: false
+  end
+  subsection Refinement and remeshing
+    set Maximum number of cells        = 20000
+    set Refinement coarsening fraction = 0.3
+    set Refinement fraction            = 0.3
+    set Refinement maximal level       = 8
+    set Refinement minimal level       = 5
+    set Refinement step frequency      = 5
+    set Refinement strategy            = fixed_fraction
+  end
+  subsection Right hand side
+    set Function constants  =
+    set Function expression = 0; 0; 0
+    set Variable names      = x,y,t
+  end
+end
+@endcode
+
+
+
+首先创建 "parameters.prm "文件（程序第一次运行时），然后创建 "output/parameters_22.prm "文件（每次使用现有的输入文件运行程序时），这是因为你可能想把大多数参数保留为默认值，只修改其中的一小部分，同时仍然能够重现结果，检查特定模拟使用了哪些参数。一般来说，将用于模拟的参数文件与模拟输出一起保存起来是很好的科学做法，这样你就可以在以后的时间里重复相同的运行。
+
+另一个原因是输入文件可能只包含那些与默认值不同的参数。例如，你可以在本教程程序中使用以下（完全有效的）参数文件。
+
+@code
+subsection Stokes Immersed Problem
+  set Final time                         = 1
+  set Nitsche penalty term               = 10
+  set Number of time steps               = 101
+  set Velocity degree                    = 3
+end
+@endcode
+
+你将使用Q3/Q2 Taylor-Hood有限元运行程序，进行101步，使用Nitsche惩罚为`10`，并将所有其他参数保持为默认值。输出目录不仅包含了这些参数的记录，而且包含了仿真中使用的所有参数。你可以在生成的文件`parameters_22.prm`中查看所有其他参数。
+
+
+
+
+<h3> Two dimensional test case </h3>
+
+默认问题产生了一个同维度的零叶轮，由一个旋转的矩形网格组成，在一个方向上旋转半个时间单位，在相反方向上旋转半个时间单位，恒定的角速度等于 $\approx 2\pi \frac{\text{rad}}{\text{time unit}}$  。因此，叶轮做了半个旋转，并返回到原来的位置。下面的动画显示了速度的大小，固体叶轮和示踪粒子的运动。
+
+
+<p align="center"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-70.2d_tracing.gif" alt="" width="500"> </div>  </p> 
+
+在一个核心上，程序的输出将看起来像下面这样。
+
+@code
+bash$ mpirun -np 1 ./step-70 test.prm
+Running StokesImmersedProblem<2> using Trilinos.
+Cycle 0:
+Time : 0, time step: 0.002
+   Number of degrees of freedom: 9539 (8450+1089 -- 0+0)
+Tracer particles: 337
+Solid particles: 9216
+   Solved in 158 iterations.
+   Number of degrees of freedom: 9845 (8722+1123 -- 9216+337)
+Cycle 1:
+Time : 0.002, time step: 0.002
+   Solved in 142 iterations.
+Cycle 2:
+Time : 0.004, time step: 0.002
+   Solved in 121 iterations.
+Cycle 3:
+Time : 0.006, time step: 0.002
+   Solved in 121 iterations.
+
+
+...
+
+
+Cycle 499:
+Time : 0.998, time step: 0.002
+   Solved in 199 iterations.
+Cycle 500:
+Time : 1, time step: 0.002
+   Solved in 196 iterations.
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |       302s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble Nitsche terms          |       501 |      43.3s |        14% |
+| Assemble Stokes terms           |       501 |      21.5s |       7.1% |
+| Initial setup                   |         1 |  0.000792s |         0% |
+| Output fluid                    |       502 |      31.8s |        11% |
+| Output solid particles          |       502 |      32.2s |        11% |
+| Output tracer particles         |       502 |      0.61s |       0.2% |
+| Refine                          |       100 |      4.68s |       1.5% |
+| Set solid particle position     |       500 |      3.34s |       1.1% |
+| Set tracer particle motion      |       501 |     0.729s |      0.24% |
+| Setup dofs                      |       101 |       2.2s |      0.73% |
+| Solve                           |       501 |       164s |        54% |
++---------------------------------+-----------+------------+------------+
+@endcode
+
+
+
+你可能会注意到，组装耦合系统比组装斯托克斯部分更昂贵。这在很大程度上取决于用于应用Nitsche限制的高斯点（固体粒子）的数量。在目前的情况下，所使用的示踪粒子的数量相对较少。因此，跟踪它们的运动是相对便宜的。
+
+下面的影片显示了解决方案随时间的演变。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/y4Gypj2jpXw"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+这部电影显示了灰色的旋转障碍物（实际上是用足够大的点绘制的固体粒子的叠加，使它们重叠），浅色的<a
+href="https://en.wikipedia.org/wiki/Streamlines,_streaklines,_and_pathlines">streamlines
+of the fluid flow</a>（包括在模拟过程中特定时间形成的角顶点），以及蓝色色调的示踪粒子。
+
+模拟结果显示，在结束的时候，示踪剂颗粒已经在一定程度上回到了原来的位置，尽管它们已经被流场扭曲了。下面的图片比较了粒子在一个时间单位的流动后的初始和最终位置。
+
+<p align="center"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-70.tracer_comparison.png" alt="" width="500"> </div>  </p> 
+
+在这种情况下，我们看到在叶轮扫过的体积之外的示踪剂颗粒已经非常接近它们的初始位置，而在扫过的体积内的示踪剂颗粒的变形略大。这种变形是非物理性的。它是由用于平移粒子的显式欧拉方案引起的数值误差、由虚构领域引起的精度损失以及最后由斯托克斯方程的离散化误差引起的。前两个错误是造成这种变形的主要原因，它们可以通过使用更细的网格和更小的时间步长来缓解。
+
+
+
+
+<h3> Three dimensional test case </h3>
+
+为了玩一玩，我们将虚构的领域复杂化（取自https://grabcad.com/library/lungstors-blower-1），并在三个空间维度上运行共维一模拟，使用以下"`参数_23.prm`"文件。
+
+@code
+subsection Stokes Immersed Problem
+  set Final time                            = 1
+  set Homogeneous Dirichlet boundary ids    = 0
+  set Fluid bounding boxes extraction level = 1
+  set Initial fluid refinement              = 3
+  set Initial solid refinement              = 0
+  set Nitsche penalty term                  = 10
+  set Number of time steps                  = 101
+  set Output frequency                      = 1
+  set Particle insertion refinement         = 3
+  set Velocity degree                       = 2
+  set Viscosity                             = 1
+  subsection Angular velocity
+    set Function constants  =
+    set Function expression = t < .500001 ? 5 : -5
+    set Variable names      = x,y,z,t
+  end
+  subsection Grid generation
+    set Fluid grid generator              = hyper_rectangle
+    set Fluid grid generator arguments    = -50,-50, -10: 50, 50, 40: false
+    set Solid grid generator              = impeller.vtk
+    set Solid grid generator arguments    = 1:impeller.step
+    set Particle grid generator           = hyper_ball
+    set Particle grid generator arguments = 30, 30, 20: 10: false
+  end
+  subsection Refinement and remeshing
+    set Maximum number of cells        = 100000
+    set Refinement coarsening fraction = 0.3
+    set Refinement fraction            = 0.3
+    set Refinement maximal level       = 6
+    set Refinement step frequency      = 5
+    set Refinement strategy            = fixed_fraction
+  end
+  subsection Right hand side
+    set Function constants  =
+    set Function expression = 0; 0; 0; 0
+    set Variable names      = x,y,z,t
+  end
+end
+@endcode
+
+
+
+在这种情况下，定时输出有点不同。
+
+@code
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |  5.54e+03s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble Nitsche terms          |       101 |       111s |         2% |
+| Assemble Stokes terms           |       101 |       208s |       3.8% |
+| Initial setup                   |         1 |   0.00187s |         0% |
+| Output fluid                    |       102 |      15.5s |      0.28% |
+| Output solid particles          |       102 |      2.63s |         0% |
+| Output tracer particles         |       102 |      2.49s |         0% |
+| Refine                          |        20 |      18.4s |      0.33% |
+| Set solid particle position     |       100 |       6.1s |      0.11% |
+| Set tracer particle motion      |       101 |      10.8s |       0.2% |
+| Setup dofs                      |        21 |      13.9s |      0.25% |
+| Solve                           |       101 |  5.16e+03s |        93% |
++---------------------------------+-----------+------------+------------+
+@endcode
+
+
+
+现在，求解器在三维空间中占用了大部分的求解时间，就运行时间而言，粒子运动和Nitsche装配仍然相对不重要。
+
+
+
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/Srwq7zyR9mg"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+目前的教程程序显示了流体和固体之间的单向耦合，其中固体运动是强加的（而不是求解的），并通过利用固体正交点的位置和权重在固体域中读取。
+
+代码的结构已经允许人们通过利用读取实体网格正交点上流体速度值的可能性来实现双向耦合。为了提高MPI通信模式的效率，我们应该将正交点的所有权保持在实体处理器上，该处理器拥有创建这些正交点的单元。在目前的代码中，通过使用实体分区而不是初始流体分区来定义用于交换正交点信息的向量索引集就足够了。
+
+这使得本教程程序中使用的技术与教程步骤-60中提出的技术相结合，以解决带有分布式拉格朗日乘数的流体结构交互问题，在 parallel::distributed::Triangulation 对象上。
+
+上面的时间显示，目前的预处理策略对Nitsche惩罚的效果并不好，如果我们想瞄准更大的问题，我们应该想出一个更好的预处理方法。此外，应该实施检查点重启策略，以允许较长的模拟被中断和恢复，例如在step-69教程中就是这样做的。
+
+

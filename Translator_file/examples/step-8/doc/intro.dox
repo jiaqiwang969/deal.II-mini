@@ -1,0 +1,416 @@
+examples/step-8/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+
+在现实生活中，大多数偏微分方程实际上是方程组。相应地，解通常是矢量值的。deal.II库支持这样的问题（见 @ref vector_valued 模块中的大量文档），我们将表明这大多是相当简单的。唯一比较复杂的问题是在组装矩阵和右手边，但这些也很容易理解。
+
+ @dealiiVideoLecture{19} 
+
+在这个教程程序中，我们将想解决<a href="https://en.wikipedia.org/wiki/Linear_elasticity">elastic equations</a>。它们是对拉普拉斯方程的扩展，有一个矢量值的解，描述了受力的刚体在每个空间方向的位移。当然，力也是矢量值的，意味着在每一个点上它都有一个方向和一个绝对值。
+
+人们可以用多种方式来写弹性方程。以最明显的方式显示与拉普拉斯方程的对称性的是将其写成
+
+@f[
+
+
+  -
+  \text{div}\,
+  ({\mathbf C} \nabla \mathbf{u})
+  =
+  \mathbf f,
+
+
+@f]
+
+其中 $\mathbf u$ 是每一点的矢量值位移， $\mathbf f$ 是力， ${\mathbf C}$ 是一个等级4的张量（即它有四个指数），编码应力-应变关系--本质上，它代表胡克斯定律中的<a href="https://en.wikipedia.org/wiki/Hooke%27s_law">"spring constant"</a>，将位移与力联系起来。  在许多情况下，如果我们想要模拟的物体的变形是由不同的材料组成的，那么 ${\mathbf C}$ 将取决于 $\mathbf x$ 。
+
+虽然上述方程的形式是正确的，但这并不是它们通常的推导方式。事实上，位移的梯度 $\nabla\mathbf u$ （一个矩阵）没有物理意义，而其对称版本。
+
+@f[
+\varepsilon(\mathbf u)_{kl} =\frac{1}{2}(\partial_k u_l + \partial_l u_k),
+
+
+@f]
+
+做，通常被称为 "应变"。(在这里和下文中， $\partial_k=\frac{\partial}{\partial x_k}$  。我们还将使用<a href="https://en.wikipedia.org/wiki/Einstein_notation">Einstein summation
+convention</a>，即只要同一指数在方程式中出现两次，就意味着对该指数进行求和；但是，我们将不区分上下指数）。)有了这个应变的定义，弹性方程就读作
+
+@f[
+
+
+  -
+  \text{div}\,
+  ({\mathbf C} \varepsilon(\mathbf u))
+  =
+  \mathbf f,
+
+
+@f]
+
+你可以把它看作是拉普拉斯方程对矢量值问题的更自然的概括。(首先显示的形式等同于这种形式，因为张量 ${\mathbf C}$ 具有某些对称性，即 $C_{ijkl}=C_{ijlk}$  ，因此 ${\mathbf C} \varepsilon(\mathbf u)_{kl}
+= {\mathbf C} \nabla\mathbf u$  。)
+
+当然，我们也可以把这些方程写成组件形式。
+
+@f[
+
+
+  -
+  \partial_j (c_{ijkl} \varepsilon_{kl})
+  =
+  f_i,
+  \qquad
+  i=1\ldots d.
+
+
+@f]
+
+
+
+在许多情况下，我们知道所考虑的材料是各向同性的，在这种情况下，通过引入两个系数 $\lambda$ 和 $\mu$ ，系数张量减少为
+
+@f[
+  c_{ijkl}
+  =
+  \lambda \delta_{ij} \delta_{kl} +
+  \mu (\delta_{ik} \delta_{jl} + \delta_{il} \delta_{jk}).
+
+
+@f]
+
+
+
+然后，弹性方程可以用更简单的形式重写。
+
+@f[
+
+
+   -
+   \nabla \lambda (\nabla\cdot {\mathbf u})
+
+
+   -
+   (\nabla \cdot \mu \nabla) {\mathbf u}
+
+
+   -
+   \nabla\cdot \mu (\nabla {\mathbf u})^T
+   =
+   {\mathbf f},
+
+
+@f]
+
+而各自的双线性形式则是
+
+@f[
+  a({\mathbf u}, {\mathbf v}) =
+  \left(
+    \lambda \nabla\cdot {\mathbf u}, \nabla\cdot {\mathbf v}
+  \right)_\Omega
+  +
+  \sum_{k,l}
+  \left(
+    \mu \partial_k u_l, \partial_k v_l
+  \right)_\Omega
+  +
+  \sum_{k,l}
+  \left(
+    \mu \partial_k u_l, \partial_l v_k
+  \right)_\Omega,
+
+
+@f]
+
+或将第一项写成成分之和。
+
+@f[
+  a({\mathbf u}, {\mathbf v}) =
+  \sum_{k,l}
+  \left(
+    \lambda \partial_l u_l, \partial_k v_k
+  \right)_\Omega
+  +
+  \sum_{k,l}
+  \left(
+    \mu \partial_k u_l, \partial_k v_l
+  \right)_\Omega
+  +
+  \sum_{k,l}
+  \left(
+    \mu \partial_k u_l, \partial_l v_k
+  \right)_\Omega.
+
+
+@f]
+
+
+
+ @note 按照写法，如果位移很小，我们可以假设<a
+href="http://en.wikipedia.org/wiki/Hookes_law">Hooke's law</a>是有效的，上面的方程一般被认为是对三维物体位移的正确描述。在这种情况下，上面的指数 $i,j,k,l$ 都是在集合 $\{1,2,3\}$ 上运行的（或者，在C++源中，在 $\{0,1,2\}$ 上运行）。然而，按照目前的情况，程序是在2d中运行的，虽然上面的方程在这种情况下也有数学意义，但它们只能描述一个真正的二维实体。特别是，它们不是对 $x-y$ 方向上无限大的体的横截面的适当描述；这与其他许多二维方程相反，这些方程可以通过假设体在 $z$ -方向上具有无限大的范围和解函数不依赖于 $z$ 坐标来获得。另一方面，也有二维弹性模型的方程；例如，见维基百科上的<a
+href="http://en.wikipedia.org/wiki/Infinitesimal_strain_theory#Special_cases">plane
+strain</a>、<a
+href="http://en.wikipedia.org/wiki/Antiplane_shear">antiplane shear</a>和<a
+href="http://en.wikipedia.org/wiki/Plane_stress#Plane_stress">plan stress</a>文章。
+
+但让我们回到最初的问题上。我们如何为这样一个方程组装矩阵？在 @ref vector_valued 模块的文档中给出了一个很长的答案，其中有许多不同的选择。从历史上看，下面所示的解决方案是该库早期唯一可用的解决方案。事实证明，它也是最快的。另一方面，如果百分之几的计算时间并不重要，还有比下面讨论的更简单、更直观的方法来组装线性系统，但这些方法直到本教程首次编写后的几年才可用；如果你对它们感兴趣，可以看看  @ref vector_valued  模块。
+
+让我们回到如何组装线性系统的问题上来。首先我们需要一些关于形状函数在矢量值有限元情况下如何工作的知识。基本上，这归结为以下几点：让 $n$ 为我们建立矢量元素的标量有限元素的形状函数的数量（例如，我们将对矢量值有限元素的每个分量使用双线性函数，所以标量有限元素是我们在以前的例子中已经使用过的 <code>FE_Q(1)</code> 元素，以及两个空间维度的 $n=4$ ）。此外，让 $N$ 为矢量元素的形状函数数量；在两个空间维度中，我们需要为矢量的每个分量提供 $n$ 个形状函数，因此 $N=2n$  。那么，矢量元素的 $i$ 个形状函数的形式为
+
+@f[
+  \Phi_i({\mathbf x}) = \varphi_{\text{base}(i)}({\mathbf x})\ {\mathbf e}_{\text{comp}(i)},
+
+
+@f]
+
+其中 $e_l$ 是第 $l$ 个单位向量， $\text{comp}(i)$ 是告诉我们 $\Phi_i$ 的哪个分量是不为零的函数（对于每个向量形状函数，只有一个分量是不为零的，其他都是零）。   $\varphi_{\text{base}(i)}(x)$ 描述了形状函数的空间依赖性，它被认为是标量元素的第 $\text{base}(i)$ 个形状函数。当然，虽然 $i$ 的范围是 $0,\ldots,N-1$ ，但函数 $\text{comp}(i)$ 和 $\text{base}(i)$ 的范围分别为 $0,1$ （在二维）和 $0,\ldots,n-1$ 。
+
+例如（尽管这种形状函数的顺序不被保证，你也不应该依赖它），下面的布局可以被库使用。
+
+@f{eqnarray*}
+  \Phi_0({\mathbf x}) &=&
+  \left(\begin{array}{c}
+    \varphi_0({\mathbf x}) \\ 0
+  \end{array}\right),
+  \\
+  \Phi_1({\mathbf x}) &=&
+  \left(\begin{array}{c}
+    0 \\ \varphi_0({\mathbf x})
+  \end{array}\right),
+  \\
+  \Phi_2({\mathbf x}) &=&
+  \left(\begin{array}{c}
+    \varphi_1({\mathbf x}) \\ 0
+  \end{array}\right),
+  \\
+  \Phi_3({\mathbf x}) &=&
+  \left(\begin{array}{c}
+    0 \\ \varphi_1({\mathbf x})
+  \end{array}\right),
+  \ldots
+
+
+@f}
+
+在这里
+
+@f[
+  \text{comp}(0)=0, \quad  \text{comp}(1)=1, \quad  \text{comp}(2)=0, \quad  \text{comp}(3)=1, \quad  \ldots
+
+
+@f]
+
+
+
+@f[
+  \text{base}(0)=0, \quad  \text{base}(1)=0, \quad  \text{base}(2)=1, \quad  \text{base}(3)=1, \quad  \ldots
+
+
+@f]
+
+
+
+除了非常罕见的情况，你不需要知道标量元素的哪个形状函数 $\varphi_{\text{base}(i)}$ 属于矢量元素的一个形状函数 $\Phi_i$ 。因此，让我们定义
+
+@f[
+  \phi_i = \varphi_{\text{base}(i)}
+
+
+@f]
+
+据此，我们可以将矢量形状函数写为
+
+@f[
+  \Phi_i({\mathbf x}) = \phi_{i}({\mathbf x})\ {\mathbf e}_{\text{comp}(i)}.
+
+
+@f]
+
+现在你可以安全地忘记函数 $\text{base}(i)$ 了，至少在这个例子程序的其余部分。
+
+现在使用这个矢量形状函数，我们可以将离散的有限元解写为
+
+@f[
+  {\mathbf u}_h({\mathbf x}) =
+  \sum_i \Phi_i({\mathbf x})\ U_i
+
+
+@f]
+
+具有标量系数  $U_i$  。如果我们定义一个模拟函数 ${\mathbf v}_h$ 作为测试函数，我们可以将离散问题写成如下。找出系数 $U_i$ ，使得
+
+@f[
+  a({\mathbf u}_h, {\mathbf v}_h) = ({\mathbf f}, {\mathbf v}_h)
+  \qquad
+  \forall {\mathbf v}_h.
+
+
+@f]
+
+
+
+如果我们把双线性形式的定义和 ${\mathbf u}_h$ 和 ${\mathbf v}_h$ 的表示插入这个公式。
+
+@f{eqnarray*}
+  \sum_{i,j}
+    U_i V_j
+  \sum_{k,l}
+  \left\{
+  \left(
+    \lambda \partial_l (\Phi_i)_l, \partial_k (\Phi_j)_k
+  \right)_\Omega
+  +
+  \left(
+    \mu \partial_l (\Phi_i)_k, \partial_l (\Phi_j)_k
+  \right)_\Omega
+  +
+  \left(
+    \mu \partial_l (\Phi_i)_k, \partial_k (\Phi_j)_l
+  \right)_\Omega
+  \right\}
+\\
+=
+  \sum_j V_j
+  \sum_l
+  \left(
+    f_l,
+    (\Phi_j)_l
+  \right)_\Omega.
+
+
+@f}
+
+我们注意到，在这里和下文中，指数 $k,l$ 在空间方向上运行，即 $0\le k,l < d$  ，而指数 $i,j$ 在自由度上运行。
+
+因此，单元 $K$ 上的局部刚度矩阵有以下条目。
+
+@f[
+  A^K_{ij}
+  =
+  \sum_{k,l}
+  \left\{
+  \left(
+    \lambda \partial_l (\Phi_i)_l, \partial_k (\Phi_j)_k
+  \right)_K
+  +
+  \left(
+    \mu \partial_l (\Phi_i)_k, \partial_l (\Phi_j)_k
+  \right)_K
+  +
+  \left(
+    \mu \partial_l (\Phi_i)_k, \partial_k (\Phi_j)_l
+  \right)_K
+  \right\},
+
+
+@f]
+
+其中 $i,j$ 现在是局部自由度，因此 $0\le i,j < N$  。在这些公式中，我们总是取矢量形状函数 $\Phi_i$ 的一些分量，当然，这些分量是如下给出的（见其定义）。
+
+@f[
+  (\Phi_i)_l = \phi_i \delta_{l,\text{comp}(i)},
+
+
+@f]
+
+与克朗克符号  $\delta_{nm}$  。由于这一点，我们可以删除一些对  $k$  和  $l$  的和。
+
+@f{eqnarray*}
+  A^K_{ij}
+  &=&
+  \sum_{k,l}
+  \Bigl\{
+  \left(
+    \lambda \partial_l \phi_i\ \delta_{l,\text{comp}(i)},
+            \partial_k \phi_j\ \delta_{k,\text{comp}(j)}
+  \right)_K
+\\
+  &\qquad\qquad& +
+  \left(
+    \mu \partial_l \phi_i\ \delta_{k,\text{comp}(i)},
+        \partial_l \phi_j\ \delta_{k,\text{comp}(j)}
+  \right)_K
+  +
+  \left(
+    \mu \partial_l \phi_i\ \delta_{k,\text{comp}(i)},
+        \partial_k \phi_j\ \delta_{l,\text{comp}(j)}
+  \right)_K
+  \Bigr\}
+\\
+  &=&
+  \left(
+    \lambda \partial_{\text{comp}(i)} \phi_i,
+            \partial_{\text{comp}(j)} \phi_j
+  \right)_K
+  +
+  \sum_l
+  \left(
+    \mu \partial_l \phi_i,
+        \partial_l \phi_j
+  \right)_K
+  \ \delta_{\text{comp}(i),\text{comp}(j)}
+  +
+  \left(
+    \mu \partial_{\text{comp}(j)} \phi_i,
+        \partial_{\text{comp}(i)} \phi_j
+  \right)_K
+\\
+  &=&
+  \left(
+    \lambda \partial_{\text{comp}(i)} \phi_i,
+            \partial_{\text{comp}(j)} \phi_j
+  \right)_K
+  +
+  \left(
+    \mu \nabla \phi_i,
+        \nabla \phi_j
+  \right)_K
+  \ \delta_{\text{comp}(i),\text{comp}(j)}
+  +
+  \left(
+    \mu \partial_{\text{comp}(j)} \phi_i,
+        \partial_{\text{comp}(i)} \phi_j
+  \right)_K.
+
+
+@f}
+
+
+
+同样地，单元格 $K$ 对右侧向量的贡献是
+
+@f{eqnarray*}
+  f^K_j
+  &=&
+  \sum_l
+  \left(
+    f_l,
+    (\Phi_j)_l
+  \right)_K
+\\
+  &=&
+  \sum_l
+  \left(
+    f_l,
+    \phi_j \delta_{l,\text{comp}(j)}
+  \right)_K
+\\
+  &=&
+  \left(
+    f_{\text{comp}(j)},
+    \phi_j
+  \right)_K.
+
+
+@f}
+
+
+
+这就是我们要实现局部刚度矩阵和右手边向量的形式。
+
+作为最后的说明：在第17步的例子程序中，我们将重新审视这里提出的弹性问题，并将展示如何在一个计算机集群上以%并行的方式解决这个问题。因此，所产生的程序将能够以更高的精度解决这个问题，而且如果需要的话，效率更高。此外，在第20步， @ref step_21 "第21步"，以及其他一些后来的教程程序中，我们将重新审视一些矢量值问题，并展示一些技术，这些技术可能使实际通过上面显示的所有东西更简单，与 FiniteElement::system_to_component_index 等。
+
+

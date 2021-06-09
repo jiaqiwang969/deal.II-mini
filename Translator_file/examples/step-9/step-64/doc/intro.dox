@@ -1,0 +1,126 @@
+examples/step-64/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Bruno Turcksin and Daniel Arndt, Oak Ridge National Laboratory.
+</i>
+
+
+
+
+<h1>Introduction</h1>
+
+这个例子展示了如何使用CUDA在GPU上实现超立方体上系数可变的亥姆霍兹方程的无矩阵方法。该线性系统将使用共轭梯度法进行求解，并通过MPI进行并行化。
+
+在过去的几年里，一般的异构计算，特别是GPU，已经获得了很多的青睐。这是因为在给定的功率预算下，GPU比CPU提供更好的计算能力和内存带宽。在2019年初的架构中，对于PDE相关的任务，GPU的功率效率约为服务器CPU的2-3倍，宽<a
+href="https://en.wikipedia.org/wiki/SIMD">SIMD</a>。GPU也是机器学习中最受欢迎的架构。另一方面，GPU并不容易编程。这个程序探索了deal.II的能力，看看这样的程序可以如何有效地实现。
+
+虽然我们试图让CPU和GPU的无矩阵类的接口尽可能接近，但还是有一些区别。当在GPU上使用无矩阵框架时，人们必须编写一些CUDA代码。然而，其数量相当少，而且CUDA的使用仅限于几个关键词。
+
+
+
+
+<h3>The test case</h3>
+
+在这个例子中，我们考虑亥姆霍兹问题@f{eqnarray*} - \nabla \cdot
+\nabla u + a(\mathbf x) u &=&1,\\ u &=& 0 \quad \text{on } \partial \Omega @f} 。
+
+其中 $a(\mathbf x)$ 是一个可变系数。
+
+我们选择 $\Omega=[0,1]^3$ 和 $a(\mathbf x)=\frac{10}{0.05 +
+2\|\mathbf x\|^2}$ 作为域。由于系数是围绕原点对称的，但域却不是，我们最终会得到一个非对称的解决方案。
+
+如果你在本教程中读到这里，你就会知道这个问题的弱式表述是怎样的，以及原则上是怎样为它组建线性系统的。当然，在这个程序中，我们实际上不会形成矩阵，而只是表示它与之相乘时的作用。
+
+
+
+
+<h3>Moving data to and from the device</h3>
+
+GPU（我们从现在开始用 "设备 "一词来指代GPU）有自己的内存，与CPU（我们从现在开始用 "主机 "一词）可访问的内存分开。设备上的正常计算可以分为三个独立的步骤。
+
+-# 数据从主机移到设备上。
+
+-#计算是在设备上完成的。
+
+-# 结果从设备移回主机。
+
+数据移动可以由用户代码显式完成，也可以使用UVM（统一虚拟内存）自动完成。在deal.II中，只支持第一种方法。虽然这意味着用户有额外的负担，但这可以更好地控制数据移动，更重要的是可以避免在主机而不是设备上错误地运行重要的内核。
+
+deal.II中的数据移动是使用 LinearAlgebra::ReadWriteVector. 完成的，这些向量可以被看作是主机上的缓冲区，用于存储从设备接收的数据或向设备发送数据。有两种类型的向量可以在设备上使用。
+
+-  LinearAlgebra::CUDAWrappers::Vector, ，它类似于更常见的Vector<Number>，和
+
+-  LinearAlgebra::distributed::Vector<Number,   MemorySpace::CUDA>, 这是一个普通的 LinearAlgebra::distributed::Vector ，我们已经指定了要使用哪个内存空间。
+
+如果没有指定内存空间，默认为 MemorySpace::Host. 。
+
+接下来，我们展示如何使用 LinearAlgebra::CUDAWrappers::Vector: 将数据移入/移出设备。
+
+@code
+  unsigned int size = 10;
+  LinearAlgebra::ReadWriteVector<double> rw_vector(size);
+
+
+  ...do something with the rw_vector...
+
+
+  // Move the data to the device:
+  LinearAlgebra::CUDAWrappers::Vector<double> vector_dev(size);
+  vector_dev.import(rw_vector, VectorOperations::insert);
+
+
+  ...do some computations on the device...
+
+
+  // Move the data back to the host:
+  rw_vector.import(vector_dev, VectorOperations::insert);
+@endcode
+
+这里使用的两个向量类都只在一台机器上工作，也就是说，一个内存空间在主机上，一个在设备上。
+
+但在有些情况下，人们希望在一些机器上的多个MPI进程之间运行并行计算，而每个机器都配备了GPU。在这种情况下，人们希望使用 `LinearAlgebra::distributed::Vector<Number,MemorySpace::CUDA>`, ，它是类似的，但`import()`阶段可能涉及MPI通信。
+
+@code
+  IndexSet locally_owned_dofs, locally_relevant_dofs;
+  ...fill the two IndexSet objects...
+
+
+  // Create the ReadWriteVector using an IndexSet instead of the size
+  LinearAlgebra::ReadWriteVector<double> owned_rw_vector(locally_owned_dofs);
+
+
+  ...do something with the rw_vector...
+
+
+  // Move the data to the device:
+  LinearAlgebra::distributed::Vector<double, MemorySpace::CUDA>
+    distributed_vector_dev(locally_owned_dofs, MPI_COMM_WORLD);
+  distributed_vector_dev.import(owned_rw_vector, VectorOperations::insert);
+
+
+  ...do something with the dev_vector...
+
+
+  // Create a ReadWriteVector with a different IndexSet:
+  LinearAlgebra::ReadWriteVector<double>
+    relevant_rw_vector(locally_relevant_dofs);
+
+
+  // Move the data to the host, possibly using MPI communication:
+  relevant_rw_vector.import(distributed_vector_dev, VectorOperations::insert);
+@endcode
+
+`relevant_rw_vector`是一个存储向量所有元素的子集的对象。通常情况下，这些是 @ref GlossLocallyRelevantDof "本地相关的DoF"，这意味着它们在不同的MPI进程之间是重叠的。因此，一台机器上存储在该向量中的元素可能与该机器上的GPU存储的元素不一致，需要MPI通信来导入它们。
+
+在所有这些情况下，在导入矢量时，可以插入数值（使用 VectorOperation::insert) 或添加到矢量的先前内容中（使用 VectorOperation::add).  ）。
+
+
+
+
+<h3>Matrix-vector product implementation</h3>
+
+在设备上评估无矩阵算子所需的代码与主机上的代码非常相似。然而，也有一些区别，主要是Step-37中的`local_apply()`函数和正交点的循环都需要封装在自己的函数中。
+
+

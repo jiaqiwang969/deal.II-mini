@@ -1,0 +1,225 @@
+examples/step-36/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Running the problem</h3>
+
+该问题的输入由一个输入文件 <code>\step-36.prm</code> 设定参数，例如，该文件可以包含以下文本。
+
+@code
+set Global mesh refinement steps         = 5
+set Number of eigenvalues/eigenfunctions = 5
+set Potential                            = 0
+@endcode
+
+
+
+这里，域内电势为零，我们知道特征值由 $\lambda_{(mn)}=\frac{\pi^2}{4}(m^2+n^2)$ 给出，其中 $m,n\in{\mathbb N^+}$  。特征函数是正弦和余弦，在 $m$ 和 $n$ 方向的周期为 $x$ 和 $y$ 。这与我们的程序产生的输出相匹配。
+
+@code
+examples/\step-36> make run
+============================ Running \step-36
+   Number of active cells:       1024
+   Number of degrees of freedom: 1089
+   Solver converged in 67 iterations.
+
+
+      Eigenvalue 0 : 4.93877
+      Eigenvalue 1 : 12.3707
+      Eigenvalue 2 : 12.3707
+      Eigenvalue 3 : 19.8027
+      Eigenvalue 4 : 24.837
+
+
+   Job done.  @endcode 这些特征值正是对应于 $(m,n)=(1,1)$ 、 $(1,2)$ 和 $(2,1)$ 、 $(2,2)$ 和 $(3,1)$ 等对。相应的特征方程的可视化看起来是这样的。
+
+ <table width="80%">
+<tr>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.default.eigenfunction.0.png" alt=""></td>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.default.eigenfunction.1.png" alt=""></td>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.default.eigenfunction.2.png" alt=""></td>
+</tr>
+<tr>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.default.eigenfunction.3.png" alt=""></td>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.default.eigenfunction.4.png" alt=""></td>
+<td></td>
+</tr>
+</table> 
+
+<h3>Possibilities for extensions</h3>
+
+在操场上玩几个游戏总是值得的!所以这里有几个建议。
+
+ <ul> 
+
+ <li> 上面使用的势（称为<i>infinite well</i>，因为它是一个由无限高的墙包围的平坦势）很有趣，因为它允许有分析上已知的解决方案。然而，除此之外，它是相当无聊的。也就是说，通过在输入文件中设置不同的势来玩弄这个势是很容易的。例如，让我们假设我们想在2d中使用以下势。
+
+@f[
+  V(x,y) = \left\{
+       \begin{array}{ll}
+
+
+         -100 & \text{if}\ \sqrt{x^2+y^2}<\frac 34 \ \text{and}
+                         \ xy>0
+         \\
+
+
+         -5 & \text{if}\ \sqrt{x^2+y^2}<\frac 34 \ \text{and}
+                         \ xy\le 0
+         \\
+         0 & \text{otherwise}
+      \end{array} \right.\quad.
+
+
+@f]
+
+换句话说，在半径为0.75的圆的两个扇面中，电位为-100，在另外两个扇面中为-5，而在圆外为零。我们可以通过在输入文件中使用以下内容来实现这一点。
+
+@code
+set Potential = if (x^2 + y^2 < 0.75^2, if (x*y > 0, -100, -5), 0)
+@endcode
+
+此外，如果我们还将网格细化程度提高一级，我们会得到以下结果。
+
+@code
+examples/\step-36> make run
+============================ Running \step-36
+   Number of active cells:       4096
+   Number of degrees of freedom: 4225
+
+
+   Eigenvalue 0 : -74.2562
+   Eigenvalue 1 : -72.7322
+   Eigenvalue 2 : -42.7406
+   Eigenvalue 3 : -42.2232
+   Eigenvalue 4 : -37.0744
+@endcode
+
+
+
+输出文件还包含一个内插的势的版本，看起来像这样（注意，正如预期的那样，最低的几个特征模式的概率密度 $|\Psi(\mathbf x)|^2$ 只有在势最低的地方才是显著的，即在势的内圈的右上角和左下角部分）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-36.mod.potential.png" alt=""> 
+
+前五个特征函数现在是这样的。
+
+ <table width="80%">
+<tr>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.mod.eigenfunction.0.png" alt=""></td>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.mod.eigenfunction.1.png" alt=""></td>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.mod.eigenfunction.2.png" alt=""></td>
+</tr>
+<tr>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.mod.eigenfunction.3.png" alt=""></td>
+<td><img src="https://www.dealii.org/images/steps/developer/step-36.mod.eigenfunction.4.png" alt=""></td>
+<td></td>
+</tr>
+</table> 
+
+ <li> 在我们对问题的推导中，我们假设粒子被限制在一个域 $\Omega$ 中，并且在这个域的边界处，它的概率 $|\Psi|^2$ 为零。这相当于解决所有 ${\mathbb R}^d$ 上的特征值问题，并假设能量势只在 $\Omega$ 区域内是有限的，而在区域外是无限的。比较容易的是，在 $|\Psi(\mathbf x)|^2$ 的所有位置 $\mathbf x$ ， $V(\mathbf
+x)=\infty$ 。那么问题来了，如果我们的势不是这种形式的，即没有一个势是无限的有界域，会发生什么？在这种情况下，可能值得只考虑一个非常大的边界域，其中 $V(\mathbf x)$ 即使不是无限的，也至少是非常大的。在这样的情况下玩一玩，探索一下当我们使计算区域越来越大时，频谱和特征函数如何变化。
+
+ <li>  如果我们研究简单的谐波振荡器问题 $V(\mathbf x)=c|\mathbf x|^2$ 会怎样？这个势正是上一段所讨论的形式，具有超球面对称性。人们可能想用一个大的外半径的球面域，来近似于全空间问题（例如，通过引用 GridGenerator::hyper_ball). 
+
+ <li>  上面的图显示了波函数  $\Psi(\mathbf x)$  ，但感兴趣的物理量实际上是粒子处于位置  $|\Psi(\mathbf x)|^2$  的概率密度。一些可视化程序可以从输入文件中的数据计算出衍生量，但我们也可以在创建输出文件时立即这样做。这样做的工具是DataPostprocessor类，可以和DataOut类一起使用。如何做到这一点的例子可以在步骤29和步骤33中找到。
+
+ <li>  如果盒子里的粒子有%的内部自由度会怎样？例如，如果该粒子是一个自旋-  $1/2$  粒子？在这种情况下，我们可能要开始解决一个矢量值的问题，而不是。
+
+ <li>  我们这里的deal.II库的实现使用PETScWrappers和SLEPcWrappers，适合在串行机器架构上运行。然而，对于更大的网格和更多的自由度，我们可能希望在并行架构上运行我们的应用程序。上述代码的并行实现在这里可能特别有用，因为广义的特征谱问题比前面大多数教程中考虑的标准问题的解决成本更高。幸运的是，修改上述程序使其符合MPI标准是一个相对简单的过程。关于如何做到这一点的简图可以在 @ref
+step_17 "step-17 "中找到。
+
+deal.II有与其中之一ARPACK（见<a
+href="../../external-libs/arpack.html">the ARPACK configuration page</a>的设置说明）的接口，在ArpackSolver类中实现。下面是一个简短的、快速的概述，说明使用它需要改变什么，前提是你有一个工作的ARPACK安装，并且deal.II已经为它正确配置了（见deal.II <a href="../../readme.html" target="body">README</a>文件）。
+
+首先，为了使用ARPACK接口，我们可以回到使用标准的deal.II矩阵和向量，所以我们首先替换PETSc和SLEPc头文件
+
+@code
+#include <deal.II/lac/petsc_sparse_matrix.h>
+#include <deal.II/lac/petsc_vector.h>
+#include <deal.II/lac/slepc_solver.h>
+@endcode
+
+与这些。
+
+@code
+#include <deal.II/lac/arpack_solver.h>
+#include <deal.II/lac/sparse_direct.h>
+#include <deal.II/lac/sparse_matrix.h>
+#include <deal.II/lac/compressed_sparsity_pattern.h>
+@endcode
+
+ARPACK允许复杂的特征值，所以我们还需要
+
+@code
+#include <complex>
+@endcode
+
+
+
+其次，我们在主类中切换回deal.II矩阵和向量定义。
+
+@code
+    SparsityPattern                     sparsity_pattern;
+    SparseMatrix<double>                stiffness_matrix, mass_matrix;
+    std::vector<Vector<double> >        eigenfunctions;
+    std::vector<std::complex<double>>   eigenvalues;
+@endcode
+
+并按照惯例对它们进行初始化  <code>make_grid_and_dofs()</code>  。
+
+@code
+    sparsity_pattern.reinit (dof_handler.n_dofs(),
+                             dof_handler.n_dofs(),
+                             dof_handler.max_couplings_between_dofs());
+
+
+    DoFTools::make_sparsity_pattern (dof_handler, sparsity_pattern);
+    constraints.condense (sparsity_pattern);
+    sparsity_pattern.compress();
+
+
+    stiffness_matrix.reinit (sparsity_pattern);
+    mass_matrix.reinit (sparsity_pattern);
+@endcode
+
+
+
+为了用ARPACK解决特征值问题，我们最后需要修改  <code>solve()</code>  。
+
+@code
+  template <int dim>
+  unsigned int EigenvalueProblem<dim>::solve ()
+  {
+    SolverControl solver_control (dof_handler.n_dofs(), 1e-9);
+
+
+    SparseDirectUMFPACK inverse;
+    inverse.initialize (stiffness_matrix);
+
+
+    const unsigned int num_arnoldi_vectors = 2*eigenvalues.size() + 2;
+    ArpackSolver::AdditionalData additional_data(num_arnoldi_vectors);
+
+
+    ArpackSolver eigensolver (solver_control, additional_data);
+    eigensolver.solve (stiffness_matrix,
+                       mass_matrix,
+                       inverse,
+                       eigenvalues,
+                       eigenfunctions,
+                       eigenvalues.size());
+
+
+    for (unsigned int i=0; i<eigenfunctions.size(); ++i)
+      eigenfunctions[i] /= eigenfunctions[i].linfty_norm ();
+
+
+    return solver_control.last_step ();
+  }
+@endcode
+
+请注意我们是如何使用精确分解（使用SparseDirectUMFPACK）作为ARPACK的预处理程序的。   </ul> 
+
+

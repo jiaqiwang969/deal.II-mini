@@ -1,0 +1,342 @@
+examples/step-31/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3> Results in 2d </h3>
+
+当你在2D中运行该程序时，输出将看起来像这样。<code> <pre> 活动单元的数量：256（在5层） 自由度的数量：3556（2178+289+1089)
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.919118温度的9次CG迭代。    温度范围：-0.16687 1.30011
+
+活动单元的数量：280（在6层） 自由度的数量：4062（2490+327+1245）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.459559温度的9次CG迭代。    温度范围：-0.0982971 0.598503
+
+活动单元的数量：520（在7个层面上） 自由度的数量：7432（4562+589+2281）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.229779 温度的9次CG迭代。    温度范围：-0.0551098 0.294493
+
+活动单元的数量：1072（在8层） 自由度的数量：15294（9398+1197+4699）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.11489 温度的9次CG迭代。    温度范围：-0.0273524 0.156861
+
+活动单元的数量：2116（在9层） 自由度的数量：30114（18518+2337+9259）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.0574449温度的9次CG迭代。    温度范围：-0.014993 0.0738328
+
+时间步骤1：t=0.0574449 装配...    解决...    斯托克斯子系统的56次GMRES迭代。    时间步长：0.0574449 温度的9次CG迭代。    温度范围：-0.0273934 0.14488
+
+...</pre> </code>
+
+在开始的时候，我们自适应地细化了几次网格，并总是返回到时间步长为零的新细化的网格上重新开始。只有这样，我们才开始实际的时间迭代。
+
+程序运行了一段时间。时间步数为0、500、1000、1500、2000、3000、4000和5000的温度字段看起来是这样的（注意温度使用的色标并不总是相同）。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.00.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.01.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.02.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.03.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.04.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.05.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.06.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.solution.07.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+这里显示的视觉效果是使用实例的一个版本生成的，该版本在传输网格后没有强制执行约束。
+
+可以看出，我们有三个加热流体的热源，因此产生了一个浮力效应，让流体的热袋上升并旋转起来。通过烟囱效应，这三股气流被来自外部并想加入上升气流的流体压在一起。请注意，由于流体最初处于静止状态，那些最初在源头上的流体部分比后来被充分发展的流场拖到源头上的流体获得更长的加热时间。因此，它更热，这一事实可以从三个羽流的红色尖端看出。还要注意流场的相对精细的特征，这是我们选择的温度方程的复杂传输稳定的结果。
+
+除了上面的图片外，下面的图片显示了自适应网格和同一时间步长的流场。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.00.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.01.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.02.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.03.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.04.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.05.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.06.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.2d.grid.07.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+
+
+
+<h3> Results in 3d </h3>
+
+当然，同样的事情也可以在3D中完成，将 <code>main()</code> 中的BoussinesqFlowProblem对象的模板参数从2改为3，这样，现在的输出看起来如下。
+
+<code> <pre> 活动单元的数量：64（在3层） 自由度的数量：3041（2187+125+729）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：2.45098 温度的9次CG迭代。    温度范围：-0.675683 4.94725
+
+活动单元的数量：288（在4层） 自由度的数量：12379（8943+455+2981）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：1.22549 温度的9次CG迭代。    温度范围：-0.527701 2.25764
+
+活动单元的数量：1296（在5层） 自由度的数量：51497（37305+1757+12435）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.612745温度的10次CG迭代。    温度范围：-0.496942 0.847395
+
+活动单元的数量：5048（在6层） 自由度的数量：192425（139569+6333+46523）。
+
+时间步数0: t=0 正在组装...    重建斯托克斯预处理程序...    解算...    0次GMRES迭代，用于斯托克斯子系统。    时间步长：0.306373 温度的10次CG迭代。    温度范围：-0.267683 0.497739
+
+时间步数1：t=0.306373 正在组装...    解决...    斯托克斯子系统的27次GMRES迭代。    时间步长：0.306373 温度的10次CG迭代。    温度范围：-0.461787 0.958679
+
+...</pre> </code>
+
+在时间步数为0、50、100、150、200、300、400、500、600、700和800的情况下，将温度等值线可视化，得到以下图示。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.00.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.01.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.02.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.03.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.04.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.05.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.06.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.07.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.08.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.09.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.3d.solution.10.png" alt="">
+    </td>
+    <td>
+    </td>
+  </tr>
+</table> 
+
+第一张图片看起来像三只刺猬，这是因为我们的方案基本上是将源乘以第一时间步长投射到网格上，以获得第一时间步的温度场。由于源函数是不连续的，我们需要期待这个项目的过冲和欠冲。这就是事实上发生的情况（在2d中更容易检查），并导致等值面的皱缩外观。  这里显示的视觉效果是使用例子的一个版本生成的，该版本在传输网格后没有强制执行约束。
+
+
+
+
+<h3> Numerical experiments to determine optimal parameters </h3>
+
+现在的程序有三个参数，我们在理论上并没有掌握如何以最佳方式进行选择。这三个参数是。   <ul>   <li>  时间步骤必须满足CFL条件  $k\le \min_K \frac{c_kh_K}{\|\mathbf{u}\|_{L^\infty(K)}}$  。这里， $c_k$ 是无量纲的，但什么是正确的值？     <li>  在计算人工黏度时。
+
+@f{eqnarray*}
+  \nu_\alpha(T)|_K
+  =
+  \beta
+  \|\mathbf{u}\|_{L^\infty(K)}
+  \min\left\{
+    h_K,
+    h_K^\alpha
+    \frac{\|R_\alpha(T)\|_{L^\infty(K)}}{c(\mathbf{u},T)}
+  \right\},
+
+
+@f}
+
+      与 $c(\mathbf{u},T) =
+      c_R\ \|\mathbf{u}\|_{L^\infty(\Omega)} \ \mathrm{var}(T)
+      \ |\mathrm{diam}(\Omega)|^{\alpha-2}$  。       这里，无量纲%数 $\beta,c_R$ 的选择是有意义的。   </ul>  在所有这些情况下，我们将不得不期望每个值的正确选择取决于其他值的正确选择，而且很可能也取决于用于温度的有限元的空间尺寸和多项式程度。下面我们将讨论一些数值实验来选择常数  $c_k$  和  $\beta$  。
+
+下面，我们将不讨论 $c_R$ 的选择问题。在程序中，我们将其设定为 $c_R=2^{\frac{4-2\alpha}{d}}$  。这个值的原因有点复杂，与程序的历史而不是推理有关：虽然全局缩放参数 $c(\mathbf{u},T)$ 的正确公式如上所示，但程序（包括与deal.II 6.2一起出厂的版本）最初有一个错误，即我们计算的是 $c(\mathbf{u},T) =
+      \|\mathbf{u}\|_{L^\infty(\Omega)} \ \mathrm{var}(T)
+      \ \frac{1}{|\mathrm{diam}(\Omega)|^{\alpha-2}}$ ，而在这里我们将缩放参数设置为1。由于我们只在 $\mathrm{diam}(\Omega)=2^{1/d}$ 的单位平方/立方体上进行计算，这完全等同于使用 $c_R=\left(2^{1/d}\right)^{4-2\alpha}=2^{\frac{4-2\alpha}{d}}$ 的正确公式。由于 $c_R$ 的这个值对于当前的程序来说似乎很好用，我们在程序中修正了公式，并将 $c_R$ 设置为一个值，正好再现了我们之前的结果。不过，我们将在第32步中再次审视这个问题。
+
+然而，现在回到讨论 $c_k$ 和 $\beta$ 的什么值来选择。
+
+
+
+
+<h4> Choosing <i>c<sub>k</sub></i><i>c<sub>k</sub></i> and beta </h4> 。
+
+这两个常数肯定在某种程度上有联系。原因很容易看出来。在纯平流问题的情况下， $\frac{\partial T}{\partial t} + \mathbf{u}\cdot\nabla T = \gamma$ ，任何显式方案都必须满足形式为 $k\le \min_K \frac{c_k^a h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ 的CFL条件。另一方面，对于纯扩散问题， $\frac{\partial T}{\partial t} + \nu \Delta T = \gamma$ ，显式方案需要满足一个条件 $k\le \min_K \frac{c_k^d h_K^2}{\nu}$ 。因此，鉴于上述 $\nu$ 的形式，像我们这里要解决的平流扩散问题将导致一个 $
+k\le \min_K \min \left\{
+  \frac{c_k^a h_K}{\|\mathbf{u}\|_{L^\infty(K)}},
+  \frac{c_k^d h_K^2}{\beta \|\mathbf{u}\|_{L^\infty(K)} h_K}\right\}
+  =
+  \min_K \left( \min \left\{
+  c_k^a,
+  \frac{c_k^d}{\beta}\right\}
+  \frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}} \right)
+$ 的条件。因此，我们必须面对这样一个事实：我们可能想选择 $\beta$ 大一些，以提高数值方案的稳定性（通过增加人工扩散量），但我们必须以更小的、因而更多的时间步骤为代价。因此，在实践中，人们希望尽可能地选择 $\beta$ ，以保持传输问题的充分稳定，同时尽量选择大的时间步长，以减少总体工作量。
+
+要找到正确的平衡，唯一的办法是做一些计算实验。下面是我们的做法。我们稍微修改了程序，允许更少的网格细化（所以我们不一定要等那么久），并选择 $
+  \nu(T)|_K
+  =
+  \beta
+  \|\mathbf{u}\|_{L^\infty(K)} h_K
+$ 来消除常数 $c_R$ 的影响（我们知道通过使用这个版本的 $\nu(T)$ 作为人工粘度，解决方案是稳定的，但我们可以通过使用这个人工粘度的更复杂的公式来改善情况--即使解决方案更清晰）。然后我们对不同的值 $c_k,\beta$ 运行程序，观察域中的最大和最小温度。我们期望看到的情况是这样的。如果我们选择的时间步长过大（即选择一个比理论上允许的大的 $c_k$ ），那么我们将得到温度的指数式增长。如果我们选择 $\beta$ 太小，那么传输稳定变得不充分，解决方案将显示出明显的振荡，但不是指数级增长。
+
+
+
+
+<h5>Results for Q<sub>1</sub> elements</h5>
+
+下面是我们对 $\beta=0.01, \beta=0.1$ ，和 $\beta=0.5$ ， $c_k$ 的不同选择，以及2d的双线性元素（ <code>temperature_degree=1</code> ）得到的结果。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q1.beta=0.01.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q1.beta=0.03.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q1.beta=0.1.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q1.beta=0.5.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+解释这些图表的方法是这样的：对于 $\beta=0.01$ 和 $c_k=\frac 12,\frac 14$ ，我们看到指数增长或至少是大的变化，但如果我们选择 $k=\frac 18\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ 或更小，那么这个方案虽然有点摇摆不定，但还是稳定的。对于更多的人工扩散，我们可以选择 $k=\frac 14\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ 或更小的 $\beta=0.03$ ， $k=\frac 13\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ 或更小的 $\beta=0.1$ ，并再次需要 $k=\frac 1{15}\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ 的 $\beta=0.5$ （这次是因为许多扩散需要一个小的时间步长）。
+
+那么该如何选择呢？如果我们只是对大时间步长感兴趣，那么我们会选择 $\beta=0.1$ 和 $k=\frac 13\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$  。另一方面，我们也对准确性感兴趣，在这里，实际调查这些曲线所显示的内容可能会有兴趣。为此，请注意，我们从零温度开始，我们的来源是正的&mdash；所以我们会直观地期望温度永远不会降到零以下。但它确实如此，这是使用连续元素来近似不连续的解决方案时，吉布现象的结果。因此，我们可以看到，选择 $\beta$ 太小是不好的：太少的人工扩散会导致没有扩散掉的过冲和欠冲。另一方面，对于大的 $\beta$ ，最低温度在开始时下降到零以下，但随后迅速扩散回零。
+
+另一方面，我们也来看看最高温度。观察溶液的电影，我们看到最初流体处于静止状态。源头不断加热相同体积的流体，其温度在开始时呈线性增长，直到其浮力能够使其向上移动。因此，流体中最热的部分被带离了溶液，取而代之的流体只被加热了很短的时间就被移出了源区，因此仍然比初始气泡要冷。如果 $\kappa=0$ （在程序中是非零的，但非常小），那么流体中最热的部分应该随着流动而平移，其温度不变。这就是我们在最小的 $\beta$ 图中可以看到的：一旦达到最高温度，它就几乎不再变化。另一方面，人工扩散越大，热点的扩散就越多。请注意，对于这个标准，时间步长的大小并不发挥重要作用。
+
+因此，总结起来，可能最好的选择似乎是 $\beta=0.03$ 和 $k=\frac 14\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$  。曲线有点摇摆不定，但总的来说，图片看起来相当合理，除了由于吉布现象而在接近开始时间时出现一些过冲和欠冲的情况。
+
+
+
+
+<h5>Results for Q<sub>2</sub> elements</h5>
+
+我们也可以对高阶元素重复同样的实验序列。这里是温度的双二次方形状函数（ <code>temperature_degree=2</code> ）的图形，同时我们保留了斯托克斯系统的 $Q_2/Q_1$ 稳定泰勒-胡德元素。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q2.beta=0.01.png" alt="">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q2.beta=0.03.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-31.timestep.q2.beta=0.1.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+同样， $\beta$ 的小值会导致较少的扩散，但我们必须选择非常小的时间步长来保持事情的控制。太大的 $\beta$ 值会导致更多的扩散，但同样需要小的时间步骤。最佳值似乎是 $\beta=0.03$ ，和 $Q_1$ 元素一样，然后我们必须选择 $k=\frac 18\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ &mdash；正好是 $Q_1$ 元素的一半大小。]元素，如果我们把CFL条件说成是要求时间步长足够小，以便运输在每个时间步长中的移动距离不超过一个<i>grid point</i>距离（对于 $Q_1$ 元素是 $h_K$ ，但对于 $Q_2$ 元素是 $h_K/2$ ），这个事实可能并不令人惊讶。事实证明， $\beta$ 需要稍微大一点，以便在模拟后期获得稳定的结果，时间大于60，所以我们实际上在代码中选择它作为 $\beta = 0.034$ 。
+
+
+
+
+<h5>Results for 3d</h5>
+
+我们可以在3D中重复这些实验，找到每个 $\beta$ 值的最佳时间步骤，并找到 $\beta$ 的最佳值。人们发现，对于2d中已经使用的相同的 $\beta$ ，时间步长需要小一点，大约是1.2倍左右。这很容易解释：时间步长的限制是 $k=\min_K \frac{ch_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ ，其中 $h_K$ 是单元的<i>diameter</i>。然而，真正需要的是网格点之间的距离，它是 $\frac{h_K}{\sqrt{d}}$  。所以更合适的形式是  $k=\min_K \frac{ch_K}{\|\mathbf{u}\|_{L^\infty(K)}\sqrt{d}}$  。
+
+第二个发现是，需要把 $\beta$ 选得稍微大一点（大约 $\beta=0.05$ 左右）。这就再次减少了我们可以采取的时间步骤。
+
+
+
+
+
+
+
+<h5>Conclusions</h5>
+
+总之，从上面的简单计算来看， $\beta=0.034$ 似乎是2D中稳定参数的一个好选择，而 $\beta=0.05$ 则是3D中的稳定参数。以独立于维度的方式，我们可以将其建模为 $\beta=0.017d$  。如果在更细的网格上做更长时间的计算（几千个时间步长），就会意识到时间步长还不够小，为了稳定，就必须把上述数值再降低一些（大约是 $\frac 78$ 的一个系数）。
+
+因此，调和2D、3D和可变多项式程度并考虑到所有因素的公式如下。
+
+@f{eqnarray*}
+  k =
+  \frac 1{2 \cdot 1.7} \frac 1{\sqrt{d}}
+  \frac 2d
+  \frac 1{q_T}
+  \frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}
+  =
+  \frac 1{1.7 d\sqrt{d}}
+  \frac 1{q_T}
+  \frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}.
+
+
+@f}
+
+在第一种形式中（方程中心）， $\frac
+1{2 \cdot 1.7}$ 是一个通用常数， $\frac 1{\sqrt{d}}$ 是说明单元直径和网格点间距的因素， $\frac 2d$ 说明 $\beta$ 随着空间尺寸的增加而增加， $\frac 1{q_T}$ 说明高阶元素的网格点之间的距离， $\frac{h_K}{\|\mathbf{u}\|_{L^\infty(K)}}$ 说明相对于单元尺寸的局部传输速度。这就是我们在程序中使用的公式。
+
+至于对温度使用 $Q_1$ 或 $Q_2$ 元素的问题，以下考虑可能是有用的。首先，解决温度方程在整个方案中几乎不是一个因素，因为几乎所有的计算时间都用于解决每个时间步骤中的斯托克斯系统。因此，温度方程的高阶元素并不是一个重要的缺点。另一方面，如果比较一下由于不连续的源描述而产生的过冲和欠冲的大小，我们会注意到，对于上述 $\beta$ 和 $k$ 的选择， $Q_1$ 的解决方案下降到 $-0.47$ 左右，而 $Q_2$ 的解决方案只到 $-0.13$ （记住，精确解决方案根本不应该变成负数。这意味着 $Q_2$ 解明显更准确；因此程序使用这些高阶元素，尽管我们在较小的时间步长方面付出了代价。
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+有各种方法来扩展当前的程序。当然，特别感兴趣的是使其更快和/或提高程序的分辨率，特别是在3D方面。这就是step-32教程程序的主题，它将实现在集群上以%并行方式解决这个问题的策略。它也是更大的开放源代码ASPECT（见https://aspect.geodynamics.org/）的基础，它可以解决现实问题，并构成step-32的进一步发展。
+
+另一个方向是使流体流动更加真实。这个程序最初是为了模拟各种情况，模拟地幔中的物质对流，即外地核和固体地壳之间的区域：在那里，物质从下面被加热，从上面被冷却，导致热对流。然而，这种流体的物理学要比这个程序中显示的复杂得多。地幔材料的粘度与温度有很大的关系，即 $\eta=\eta(T)$ ，这种关系经常被模拟为粘度随温度升高而呈指数下降。其次，地幔的大部分动态是由化学反应决定的，主要是构成地幔的各种晶体的相变；然后，斯托克斯方程右边的浮力项不仅取决于温度，而且还取决于某个特定位置的化学成分，这些化学成分被流场平流，但也作为压力和温度的函数而变化。我们将在以后的教程程序中也研究其中的一些影响。
+
+

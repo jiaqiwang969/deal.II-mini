@@ -1,0 +1,133 @@
+examples/step-55/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Timo Heister. Special thanks to Sander
+Rhebergen for the inspiration to finally write this tutorial.
+
+
+This material is based upon work partially supported by National Science
+Foundation grant DMS1522191 and the Computational Infrastructure in
+Geodynamics initiative (CIG), through the National Science Foundation under
+Award No. EAR-0949446 and The University of California-Davis.
+
+
+The authors would like to thank the Isaac Newton Institute for
+Mathematical Sciences, Cambridge, for support and hospitality during
+the programme Melt in the Mantle where work on this tutorial was
+undertaken. This work was supported by EPSRC grant no EP/K032208/1.
+</i>
+
+
+
+
+ @note  作为这个程序的前提条件，你需要安装PETSc或Trilinos和p4est库。在<a href="../../readme.html"
+target="body">README</a>文件中描述了deal.II与这些附加库的安装情况。
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+在第40步的基础上，本教程展示了如何使用MPI与PETSc或Trilinos进行线性代数，并行解决具有多个组件的线性PDEs。为此，我们返回到步骤22中讨论的斯托克斯方程。编写本教程的动机是在第40步（并行拉普拉斯）和第32步（针对时间相关问题的并行耦合斯托克斯与布西尼斯克）之间提供一个中间步骤（双关）。
+
+本教程的学习成果是。
+
+- 你能够并行地解决有多个变量的PDEs，并能将其应用于不同的问题。
+
+- 你了解最佳预处理程序的概念，并能对某一特定问题进行检查。
+
+- 你能够使用免费的计算机algreba系统SymPy（https://sympy.org）来构建制造的解决方案。
+
+- 你可以为并行程序实现各种其他任务：错误计算、编写图形输出等。
+
+- 你可以将矢量场、流线和矢量的轮廓可视化。
+
+我们要解决的是满足斯托克斯方程的速度 $\textbf{u}$ 和压力 $p$ ，其内容为
+
+@f{eqnarray*}
+
+
+  - \triangle \textbf{u} + \nabla p &=& \textbf{f}, \\
+
+
+  -\textrm{div}\; \textbf{u} &=& 0.
+
+
+@f}
+
+
+
+
+
+
+<h3>Optimal preconditioners</h3>
+
+请确保你阅读（甚至更好：尝试）步骤22中 "可能的扩展 "部分的 "块舒尔补码预处理 "所描述的内容。就像那里描述的那样，我们将使用Krylov方法和块状预处理程序来解决块状系统。
+
+我们的目标是为线性系统构造一个非常简单的（也许是最简单的）最优预处理。如果预处理系统的迭代次数与网格大小无关，则该预处理程序被称为 "最优 "或 "最优复杂性" $h$  。你可以把这个定义扩展到要求与使用的处理器数量无关（我们将在结果部分讨论这个问题），计算域和网格质量，测试案例本身，有限元空间的多项式程度，等等。
+
+为什么恒定的迭代次数被认为是 "最佳 "的？假设离散化的PDE给出一个有N个未知数的线性系统。因为来自有限元离散化的矩阵是稀疏的，矩阵-向量乘积可以在O(N)时间内完成。先决条件的应用充其量也只能是O(N)（例如可以用多网格方法来做）。如果解决线性系统所需的迭代次数与 $h$ 无关（因此也与N无关），那么解决该系统的总成本将是O(N)。不可能战胜这个复杂度，因为即使是查看右手边的所有条目也已经需要O(N)的时间。更多信息见  @cite elman2005  ，第2.5章（多网格）。
+
+这里描述的预处理程序甚至比步骤22中描述的更简单，通常需要更多的迭代，因此需要更多的时间来解决。在考虑预处理程序时，最优性并不是唯一重要的衡量标准。但是一个最优的、昂贵的预处理程序通常比一个更便宜的、非最优的预处理程序更可取。这是因为，最终，随着网格尺寸越来越小，线性问题越来越大，前者将最终击败后者。
+
+<h3>The solver and preconditioner</h3>
+
+我们对线性系统进行预处理
+
+@f{eqnarray*}
+  \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+  \left(\begin{array}{c}
+    U \\ P
+  \end{array}\right)
+  =
+  \left(\begin{array}{c}
+    F \\ 0
+  \end{array}\right),
+
+
+@f}
+
+
+
+块状对角线预处理器
+
+@f{eqnarray*}
+  P^{-1}
+  =
+  \left(\begin{array}{cc}
+    A & 0 \\ 0 & S
+  \end{array}\right) ^{-1},
+  =
+  \left(\begin{array}{cc}
+    A^{-1} & 0 \\ 0 & S^{-1}
+  \end{array}\right),
+
+
+@f}
+
+其中 $S=-BA^{-1} B^T$ 是舒尔补。
+
+对于 $P$ 的这种选择，假设我们准确地处理了 $A^{-1}$ 和 $S^{-1}$ （这是一种 "理想化 "的情况），预处理的线性系统有三个独立于 $h$ 的特征值，因此是 "最优 "的。  见  @cite elman2005  中的6.2.1节（特别是第292页）。作为比较，在第22步中使用理想版的上块三角预处理（也用于第56步）会使所有的特征值都等于1。
+
+我们将使用 $P^{-1}$ 中的逆运算的近似值，它（几乎）独立于 $h$ 。在这种情况下，我们可以再次证明，特征值是独立于 $h$ 的。对于Krylov方法，我们选择MINRES，它对分析很有吸引力（迭代次数被证明与 $h$ 无关，见上述书中第6.2.1章的其余部分），从计算的角度看很好（例如比GMRES更简单、更便宜），而且适用（矩阵和预处理器是对称的）。
+
+对于近似，我们将使用压力空间中的质量矩阵的CG解来近似 $S^{-1}$  的作用。请注意，质量矩阵在光谱上等同于 $S$  。我们可以预期CG迭代的数量与 $h$ 无关，即使使用ILU这样的简单预处理程序。
+
+对于速度块 $A$ 的近似，我们将执行一个单一的AMG V-循环。在实践中，这种选择并不完全独立于 $h$ ，这可以解释迭代数的轻微增加。一个可能的解释是，最粗的层次将被精确解决，而最粗的矩阵的层次数和大小是不可预测的。
+
+
+
+
+<h3>The testcase</h3>
+
+我们将根据经典的Kovasznay问题构建一个制造的解决方案，见  @cite kovasznay1948laminar  。这里是一个由x速度着色的解决方案的图像，包括速度的流线。
+
+   <img src="https://www.dealii.org/images/steps/developer/step-55.solution.png" alt=""> 
+
+不过，我们在这里必须作弊，因为我们不是在解决非线性的纳维-斯托克斯方程，而是解决没有对流项的线性斯托克斯系统。因此，为了重现完全相同的解，我们用科瓦兹内问题的解来制造解的方法。这将有效地把对流项移到右手边  $f$  。
+
+右手边是用脚本 "reference.py "计算的，我们使用精确的解决方案来计算边界条件和误差。
+
+

@@ -1,0 +1,198 @@
+examples/step-56/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3> Errors </h3>
+
+我们首先运行代码，确认有限元解以混合有限元问题的误差分析所预测的正确速率收敛。考虑到足够平滑的精确解 $u$ 和 $p$ ，Taylor-Hood元素 $Q_k \times Q_{k-1}$ 的误差应该是
+
+@f[
+\| u -u_h \|_0 + h ( \| u- u_h\|_1 + \|p - p_h \|_0)
+\leq C h^{k+1} ( \|u \|_{k+1} + \| p \|_k )
+
+
+@f]
+
+
+
+例如见Ern/Guermond《有限元的理论与实践》，第4.2.5节第195页。这确实是我们观察到的，以 $Q_2 \times Q_1$ 元素为例（这就是代码中的做法，但在 <code>main()</code> 中很容易改变）。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <th>&nbsp;</th>
+    <th>L2 Velocity</th>
+    <th>Reduction</th>
+    <th>L2 Pressure</th>
+    <th>Reduction</th>
+    <th>H1 Velocity</th>
+    <th>Reduction</th>
+  </tr>
+  <tr>
+    <td>3D, 3 global refinements</td>
+    <td>0.000670888</td>
+    <td align="center">-</td>
+    <td>0.0036533</td>
+    <td align="center">-</td>
+    <td>0.0414704</td>
+    <td align="center">-</td>
+  </tr>
+  <tr>
+    <td>3D, 4 global refinements</td>
+    <td>8.38E-005</td>
+    <td>8.0</td>
+    <td>0.00088494</td>
+    <td>4.1</td>
+    <td>0.0103781</td>
+    <td>4.0</td>
+  </tr>
+  <tr>
+    <td>3D, 5 global refinements</td>
+    <td>1.05E-005</td>
+    <td>8.0</td>
+    <td>0.000220253</td>
+    <td>4.0</td>
+    <td>0.00259519</td>
+    <td>4.0</td>
+</th>
+  </tr>
+</table> 
+
+<h3> Timing Results </h3>
+
+让我们比较一下使用UMFPACK的直接求解方法和两种方法，其中我们选择 $\widetilde {A^{-1}}=A^{-1}$ 和 $\widetilde{S^{-1}}=S^{-1}$ ，用CG求解 $A,S$ 的线性系统。然后CG的预处理程序是ILU或GMG。下表总结了求解器的迭代、时序和虚拟内存（VM）的峰值使用。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th></th>
+  <th colspan="3">General</th>
+  <th colspan="6">GMG</th>
+  <th colspan="6">ILU</th>
+  <th colspan="3">UMFPACK</th>
+</tr>
+<tr>
+  <th></th>
+  <th></th>
+  <th colspan="2">Timings</th>
+  <th colspan="2">Timings</th>
+  <th colspan="3">Iterations</th>
+  <th></th>
+  <th colspan="2">Timings</th>
+  <th colspan="3">Iterations</th>
+  <th></th>
+  <th colspan="2">Timings</th>
+  <th></th>
+</tr>
+<tr>
+  <th>Cycle</th>
+  <th>DoFs</th>
+  <th>Setup</th>
+  <th>Assembly</th>
+  <th>Setup</th>
+  <th>Solve</th>
+  <th>Outer</th>
+  <th>Inner (A)</th>
+  <th>Inner (S)</th>
+  <th>VM Peak</th>
+  <th>Setup</th>
+  <th>Solve</th>
+  <th>Outer</th>
+  <th>Inner (A)</th>
+  <th>Inner (S)</th>
+  <th>VM Peak</th>
+  <th>Setup</th>
+  <th>Solve</th>
+  <th>VM Peak</th>
+</tr>
+<tr>
+  <td>0</td>
+  <td>15468</td>
+  <td>0.1s</td>
+  <td>0.3s</td>
+  <td>0.3s</td>
+  <td>1.3s</td>
+  <td>21</td>
+  <td>67</td>
+  <td>22</td>
+  <td>4805</td>
+  <td>0.3s</td>
+  <td>0.6s</td>
+  <td>21</td>
+  <td>180</td>
+  <td>22</td>
+  <td>4783</td>
+  <td>2.65s</td>
+  <td>2.8s</td>
+  <td>5054</td>
+</tr>
+<tr>
+  <td>1</td>
+  <td>112724</td>
+  <td>1.0s</td>
+  <td>2.4s</td>
+  <td>2.6s</td>
+  <td>14s</td>
+  <td>21</td>
+  <td>67</td>
+  <td>22</td>
+  <td>5441</td>
+  <td>2.8s</td>
+  <td>15.8s</td>
+  <td>21</td>
+  <td>320</td>
+  <td>22</td>
+  <td>5125</td>
+  <td>236s</td>
+  <td>237s</td>
+  <td>11288</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>859812</td>
+  <td>9.0s</td>
+  <td>20s</td>
+  <td>20s</td>
+  <td>101s</td>
+  <td>20</td>
+  <td>65</td>
+  <td>21</td>
+  <td>10641</td>
+  <td>27s</td>
+  <td>268s</td>
+  <td>21</td>
+  <td>592</td>
+  <td>22</td>
+  <td>8307</td>
+  <td>-</td>
+  <td>-</td>
+  <td>-</td>
+</tr>
+</table> 
+
+从表中可以看出。
+
+1.UMFPACK使用了大量的内存，特别是在3D中。另外，UMFPACK的计时并不随问题的大小而变化。
+
+2.因为我们对 $A$ 和 $S$ 使用内部求解器，ILU和GMG需要相同数量的外部迭代。
+
+3.对于ILU来说， $A$ 的（内部）迭代次数随着细化而增加，导致求解时间的线性扩展性较差。相比之下， $A$ 的内部迭代次数在GMG中保持不变，导致求解时间几乎完美的缩放。
+
+4.GMG需要比ILU多一点的内存来存储电平和接口矩阵。
+
+<h3> Possibilities for extensions </h3>
+
+<h4> Check higher order discretizations </h4>
+
+用更高阶的稳定FE对进行实验，检查你是否观察到正确的收敛率。
+
+<h4> Compare with cheap preconditioner </h4>
+
+介绍中还概述了对整个系统进行预处理的另一种选择，即我们不选择上表中的 $\widetilde
+{A^{-1}}=A^{-1}$ ，而是选择 $\widetilde{A^{-1}}$ ，只分别用GMG或ILU进行单一预处理的应用。
+
+这实际上是在代码中实现的。目前，布尔值 <code>use_expensive</code> in <code>solve()</code> 被设置为 @p true.  上面提到的选项是通过设置为 @p false. 得到的。
+
+你会发现，如果你用GMG这种方式，FGMRES的迭代次数在细化过程中保持不变。这意味着多重网格是最优的，并且与 $h$ 无关。
+
+

@@ -1,0 +1,95 @@
+examples/step-4/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+ @dealiiVideoLecture{12,13} 
+
+deal.II有一个独特的功能，我们称之为 "无维度编程"。你可能已经注意到，在前面的例子中，许多类的后缀都是角括号中的数字。这是为了表明，例如，二维和三维空间的三角形是不同的，但是相关的数据%类型。我们完全可以把它们称为 <code>Triangulation2d</code> and <code>Triangulation3d</code> 而不是 <code>Triangulation@<2@></code> 和 <code>Triangulation@<3@></code> 来命名这两个类，但这有一个重要的缺点：假设你有一个功能完全相同的函数，但在2D或3D三角形上，取决于我们目前想在哪个维度上解方程（如果你不相信一个函数在所有维度上都做同样的事情是常见的情况，看看下面的代码就知道了，2D和3D之间几乎没有区别！）。我们将不得不把同一个函数写两次，一次在 <code>Triangulation2d</code> 上工作，一次在 <code>Triangulation3d</code> 上工作。这在编程中是一个不必要的障碍，并且导致了保持两个函数同步的麻烦（最好是），或者在两个版本不同步时难以发现错误（最坏的情况是；这可能是更常见的情况）。
+
+
+
+
+
+这种障碍可以通过使用C++语言提供的一些模板魔法来规避：模板化的类和函数并不是真正的类或函数，而只是取决于一个尚未定义的数据类型参数或在定义时也未知的数值的一种模式。然而，如果你向它提供了所需的信息，编译器可以从这些模板中建立适当的类或函数。当然，模板的部分内容可以依赖于模板参数，它们将在编译时被解析为特定的模板参数。例如，考虑下面这段代码。
+
+@code
+  template <int dim>
+  void make_grid (Triangulation<dim> &triangulation)
+  {
+    GridGenerator::hyper_cube (triangulation, -1, 1);
+  };
+@endcode
+
+
+
+
+
+
+在编译器看到这个函数的时候，它对 <code>dim</code> 的实际值并不了解。编译器唯一拥有的是一个模板，即蓝图，如果给定 <code>make_grid</code> 的特定值有一个未知的值，编译器暂时没有可以生成的代码。
+
+
+
+
+然而，如果以后下来，编译器会遇到一些代码，例如，看起来像这样。
+
+@code
+  Triangulation<2> triangulation;
+  make_grid (triangulation);
+@endcode
+
+那么编译器将推断出请求将函数 <code>make_grid</code> 替换为 <code>dim==2</code> ，并将上述模板编译为一个到处都用2替换了dim的函数，也就是说，它将编译该函数，就好像它被定义为
+
+@code
+  void make_grid (Triangulation<2> &triangulation)
+  {
+    GridGenerator::hyper_cube (triangulation, -1, 1);
+  };
+@endcode
+
+
+
+
+
+
+然而，值得注意的是，函数 <code>GridGenerator::hyper_cube</code> 也取决于维度，所以在这种情况下，编译器将调用函数 <code>GridGenerator::hyper_cube@<2@></code> ，而如果dim是3，它将调用 <code>GridGenerator::hyper_cube@<3@></code> ，这可能是（实际上是）一个完全无关的函数。
+
+
+
+
+对成员变量也可以这样做。考虑一下下面的函数，它可能反过来调用上面的函数。
+
+@code
+  template <int dim>
+  void make_grid_and_dofs (Triangulation<dim> &triangulation)
+  {
+    make_grid (triangulation);
+
+
+    DoFHandler<dim> dof_handler(triangulation);
+    ...
+  };
+@endcode
+
+这个函数有一个类型为  <code>DoFHandler@<dim@></code>  的成员变量。同样，编译器在知道哪个维度之前不能编译这个函数。如果你像上面那样为一个特定的维度调用这个函数，编译器将使用模板，用调用的维度替换所有出现的dim，并编译它。如果你为不同的维度多次调用该函数，它将多次编译，每次都调用正确的 <code>make_grid</code> 函数，并为成员变量保留适当的内存量；注意， <code>DoFHandler</code> 的大小可能，事实上也确实取决于空间维度。
+
+
+
+
+deal.II库是围绕这个独立于维度的编程概念建立的，因此允许你以一种不需要区分空间维度的方式来编程。应该注意的是，只有在极少数的地方才有必要使用 <code>if</code>s or <code>switch</code> es来实际比较尺寸。然而，由于编译器必须为每个维度单独编译每个函数，即使在那里，它在编译时也知道 <code>dim</code> 的值，因此将能够优化掉 <code>if</code> 语句和未使用的分支。
+
+
+
+
+在这个例子程序中，我们将展示如何独立编程维度（事实上，这比你必须照顾到维度还要简单），我们将把上一个例子的拉普拉斯问题扩展到一个同时在两个和三个空间维度运行的程序。其他的扩展是使用非恒定的右手边函数和非零边界值。
+
+
+
+
+ @note  在使用模板时，C++强加了各种语法限制，有时让人有点难以理解为什么到底要这样写。一个典型的例子是，在很多地方都需要使用关键字 <code>typename</code> 。如果你已经不完全熟悉，那么在<a
+href="http://www.dealii.org/">deal.II homepage</a>中链接的deal.II常见问题解答（FAQ）中解释了其中的几个困难。
+
+<！--我们需要一个空行来正确结束上述块。
+
+

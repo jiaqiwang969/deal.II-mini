@@ -1,0 +1,107 @@
+examples/step-58/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行该代码的结果是屏幕输出如下。```活动单元的数量：4096 自由度的数量：16641
+
+时间步数1在t=0 时间步数2在t=0.00390625 时间步数3在t=0.0078125 时间步数4在t=0.0117188 [...] ```运行程序也会产生大量的输出文件，我们将在下面进行可视化。
+
+
+
+
+<h3>Visualizing the solution</h3>
+
+该程序的`output_results()`函数生成的输出文件由若干变量组成。解（分为实部和虚部）、振幅和相位。如果我们将这四个字段可视化，在经过几个时间步骤后（准确地说，在时间 $t=0.242$ ，我们得到如下图像。
+
+<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-58.re.png" alt="t=0.242时溶液的实部" width="400"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-58.im.png" alt="t=0时溶液的虚部。242" width="400"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-58.magnitude.png" alt="t=0.242时解决方案的振幅" width="400"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-58.phase.png" alt="t=0.242时解决方案的相位" width="400"> </div> <div>
+
+虽然上面显示的解决方案的实部和虚部并不特别有趣（因为从物理角度来看，相位的全局偏移以及因此实部和虚部之间的平衡是没有意义的），但将解决方案的振幅 $|\psi(\mathbf x,t)|^2$ 和相位 $\text{arg}(\psi(\mathbf x,t))$ 可视化，特别是它们的演变，则要有趣得多。这就导致了如下的图片。
+
+这里显示的相图显然有一些缺陷。
+
+- 首先，相位是一个 "循环量"，但色标对接近 $-\pi$ 的值和接近 $+\pi$ 的值使用的颜色根本不同。这是一个麻烦--我们需要的是一个 "循环色标"，对相位范围的两个极端使用相同的颜色。这样的颜色图存在，例如见<a href="https://nicoguaro.github.io/posts/cyclic_colormaps/">this
+  blog post of Nicolás Guarín-Zapata</a>或<a href="https://stackoverflow.com/questions/23712207/cyclic-colormap-without-visual-distortions-for-use-in-phase-angle-plots">this
+  StackExchange post</a>。问题是，笔者最喜欢的两个大的可视化软件包之一VisIt，并没有内置这些颜色图。无奈之下，我只好使用Paraview，因为它已经实现了上面帖子中提到的几种颜色地图。下图使用了`nic_Edge`地图，其中两个极端值都显示为黑色。
+
+- 在相位缠绕的单元中存在一个问题。如果在单元格的某个评估点，相位值接近 $-\pi$ ，而在另一个评估点，它接近 $+\pi$ ，那么我们真正希望发生的是整个单元格的颜色接近极端值。但是，相反，可视化程序产生了一个线性插值，其中单元格内的值，即评估点之间的值，是在这两个值之间线性插值的，基本上涵盖了整个可能的相位值范围，因此，在一个单元格的过程中，从深红色到深绿色的整个彩虹色循环往复。解决这个问题的方法是将每个单元的相位值作为一个片断常数输出。因为对接近 $-\pi$ 和 $+\pi$ 的值进行平均，会产生一个与实际相位角无关的平均值，`ComplexPhase'类只是使用每个单元上遇到的*大相位角。
+
+经过这些修改，现在的相位图看起来如下。
+
+<p align="center"> <img src="https://www.dealii.org/images/steps/developer/step-58.phase-cyclic.png" alt="在t=0.242时解的相位，有一个循环的颜色图" width="400">  </p> 
+
+最后，我们可以从中生成一部电影。准确地说，这个视频又使用了两个全局细化周期，时间步长是上面程序中使用的一半）。这几行字的作者用VisIt制作了这部电影，因为这是他比较熟悉的，并使用了一个黑客的颜色地图，也是循环的--尽管这个颜色地图缺乏上面链接中提到的写帖子的人所使用的所有技巧。然而，如果你看一下半径为0.7的圆以外的域的阴影部分，其中电势为零，它确实显示了解决方案作为一个波浪方程的特征--你可以看到每次一个凸点（显示振幅 $|\psi_h(\mathbf x,t)|^2$ ）撞到电势大的区域时：一个波从那里向外传播。看一下这个视频吧。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/nraszP3GZHk"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+那么，为什么我最终会在势能 $V(\mathbf x)$ 较大的区域进行遮蔽？在那个外部区域，解决方案是相对较小的。它也是相对平滑的。因此，在某种近似程度上，该区域的方程简化为
+
+@f[
+
+
+  - i \frac{\partial \psi}{\partial t}
+  + V \psi
+  \approx 0,
+
+
+@f]
+
+或者说更容易阅读。
+
+@f[
+  \frac{\partial \psi}{\partial t}
+  \approx - i V \psi.
+
+
+@f]
+
+在这个近似值有效的程度上（除其他外，它消除了你在视频中可以看到的行波），这个方程有一个解
+
+@f[
+  \psi(\mathbf x, t) = \psi(\mathbf x, 0) e^{-i V t}.
+
+
+@f]
+
+因为 $V$ 很大，这意味着相位*旋转得相当快*。如果你把注意力集中在域的半透明的外部，你就可以看到这一点。如果用与域的内部相同的方式给这个区域上色，这个快速闪烁的外部部分可能是迷幻的，但也分散了内部发生的事情；也很难真正看到在视频开始时很容易看到的辐射波。
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4> Better linear solvers </h4>
+
+这里选择的解算器实在是太简单了。它的效率也不高。我们在这里所做的是在每个时间步骤中把矩阵交给一个稀疏的直接求解器，让它找到线性系统的解。但我们知道，我们可以做得更好。
+
+- 首先，我们应该利用这样一个事实，即矩阵实际上并没有从时间步长到时间步长的变化。这是一个伪命题，因为我们在这里有恒定的边界值，而且我们不改变时间步长--这两个假设在实际应用中可能并不真实。但至少在这种情况下，只对矩阵进行一次因式分解（即计算一次 $L$ 和 $U$ 因子），然后在接下来的所有时间步骤中使用这些因子，直到矩阵 $C$ 发生变化，需要进行新的因式分解。SparseDirectUMFPACK类的接口允许这样做。
+
+- 然而，最终，稀疏直接求解器只对相对较小的问题有效，比如说最多几十万个未知数。除此之外，我们需要迭代求解器，如共轭梯度法（用于对称和正定问题）或GMRES。我们已经在其他教程程序中使用了许多这样的方法。在所有情况下，它们都需要伴随着良好的预处理程序。对于目前的情况，原则上可以使用GMRES--一种不需要矩阵的任何特定属性的方法--但最好实施一种迭代方案，利用我们知道的这个问题的一个结构特征：矩阵是复数对称的（尽管不是赫米特）。
+
+
+
+
+<h4> Boundary conditions </h4>
+
+为了能够用于实际的、现实的问题，非线性Schr&ouml;dinger方程的求解器需要利用对手头的问题有意义的边界条件。我们在这里将自己限制在简单的诺伊曼边界条件上--但这些条件实际上对问题没有意义。事实上，这些方程通常是在一个无限的域上提出的。但是，由于我们不能在无限域上进行计算，我们需要在某处截断它，而提出对这个人为的小域有意义的边界条件。广泛使用的方法是使用<a
+href="https://en.wikipedia.org/wiki/Perfectly_matched_layer">Perfectly
+Matched Layer</a>方法，它对应于一种特殊的衰减。在不同的背景下，它也用于步骤-62。
+
+
+
+
+<h4> Adaptive meshes </h4>
+
+最后，我们从经验和许多其他教程程序中知道，使用自适应细化网格是值得的，而不是这里使用的均匀网格。事实上，在这里增加这一点并不是很困难。step-26将是一个很好的指南，说明如何实现这一点。
+
+

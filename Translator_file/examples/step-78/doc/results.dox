@@ -1,0 +1,63 @@
+examples/step-78/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+下面是该程序的输出。
+
+@code
+===========================================
+Number of active cells: 1
+Number of degrees of freedom: 2
+
+
+Time step 0 at t=0.0002
+[...]
+
+
+Cycle 7:
+Number of active cells: 128
+Number of degrees of freedom: 129
+
+
+Time step 0 at t=0.0002
+Time step 1000 at t=0.2002
+Time step 2000 at t=0.4002
+Time step 3000 at t=0.6002
+Time step 4000 at t=0.8002
+
+
+cells dofs    L2        H1      Linfty
+    1    2 1.667e-01 5.774e-01 2.222e-01
+    2    3 3.906e-02 2.889e-01 5.380e-02
+    4    5 9.679e-03 1.444e-01 1.357e-02
+    8    9 2.405e-03 7.218e-02 3.419e-03
+   16   17 5.967e-04 3.609e-02 8.597e-04
+   32   33 1.457e-04 1.804e-02 2.155e-04
+   64   65 3.307e-05 9.022e-03 5.388e-05
+  128  129 5.016e-06 4.511e-03 1.342e-05
+
+
+n cells         H1                  L2
+      1 5.774e-01    -    - 1.667e-01    -    -
+      2 2.889e-01 2.00 1.00 3.906e-02 4.27 2.09
+      4 1.444e-01 2.00 1.00 9.679e-03 4.04 2.01
+      8 7.218e-02 2.00 1.00 2.405e-03 4.02 2.01
+     16 3.609e-02 2.00 1.00 5.967e-04 4.03 2.01
+     32 1.804e-02 2.00 1.00 1.457e-04 4.10 2.03
+     64 9.022e-03 2.00 1.00 3.307e-05 4.41 2.14
+    128 4.511e-03 2.00 1.00 5.016e-06 6.59 2.72
+@endcode
+
+
+
+更有趣的是收敛表的输出。它们被输出到控制台，以及一个LaTeX文件中。收敛表如上所示。在这里，你可以看到，相对于 $H^1$ -norm，解决方案的收敛率为 $\mathcal{O}(h)$ ，相对于 $L^2$ -norm，解决方案的收敛率为 $\mathcal{O}(h^2)$ 。
+
+
+下面是解决方案的可视化。
+
+<div style="text-align:center;"> <img src="https://www.dealii.org/images/steps/developer/step-78.mms-solution.png" alt="MMS问题的解决方案。"> </div>
+
+

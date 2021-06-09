@@ -1,0 +1,767 @@
+examples/step-32/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Martin Kronbichler, Wolfgang
+Bangerth, and Timo Heister.
+
+
+This material is based upon work partly supported by the National
+Science Foundation under Award No. EAR-0426271 and The California Institute of
+Technology; and in a continuation by the National Science
+Foundation under Award No. EAR-0949446 and The University of California
+&ndash; Davis. Any opinions, findings, and conclusions or recommendations
+expressed in this publication are those of the author and do not
+necessarily reflect the views of the National Science Foundation, The
+California Institute of Technology, or of The University of California
+&ndash; Davis.
+
+
+The work discussed here is also presented in the following publication:
+<b>
+  M. Kronbichler, T. Heister, W. Bangerth:
+  <i>High Accuracy Mantle Convection Simulation through Modern Numerical
+  Methods</i><b>
+  M. Kronbichler, T. Heister, W. Bangerth:
+  <i>High Accuracy Mantle Convection Simulation through Modern Numerical
+  Methods</i>, Geophysical Journal International, 2012, 191, 12-29.
+  <a href="http://dx.doi.org/10.1111/j.1365-246X.2012.05609.x">[DOI]</a><i>High Accuracy Mantle Convection Simulation through Modern Numerical
+  Methods</i>, Geophysical Journal International, 2012, 191, 12-29.
+  <a href="http://dx.doi.org/10.1111/j.1365-246X.2012.05609.x">[DOI]</a>
+</b><a href="http://dx.doi.org/10.1111/j.1365-246X.2012.05609.x">[DOI]</a>
+</b>
+
+
+The continuation of development of this program has led to the much larger open
+source code <i>ASPECT</i><i>ASPECT</i> (see http://aspect.geodynamics.org/) which is much
+more flexible in solving many kinds of related problems.
+</i>
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这个程序所做的事情与step-31已经做的差不多：它解决了描述温度不平衡的流体运动的Boussinesq方程。因此，我们在step-31中描述的所有方程仍然成立：我们使用相同的有限元方案、相同的时间步进算法和或多或少相同的温度平流-扩散方程的稳定方法来解决相同的一般偏微分方程（只做了些许修改，以适应问题设置的更多现实性）。因此，你可能首先要了解那个程序和它的实现，然后再研究当前的程序。
+
+step-31和当前程序的不同之处在于，在这里，我们想以%并行的方式做事，既利用集群中许多机器的可用性（基于MPI的并行化），也利用一台机器中的许多处理器核心（基于线程的并行化）。因此，本程序的主要工作是引入必要的变化，以利用这些%并行计算资源的可用性。在这方面，它建立在第40步程序的基础上，该程序首先为大部分的%并行功能介绍了必要的类，而第55步则展示了如何为一个矢量值的问题做这件事。
+
+除了这些变化之外，我们还使用了一个略微不同的预处理程序，而且我们将不得不做出一些改变，这与我们在这里想要解决一个<i>realistic</i>问题，而不是一个模型问题有关。特别是后者，将要求我们考虑比例问题，以及所考虑的方程中所有这些参数和系数的实际含义。我们将首先讨论影响数学公式和求解器结构变化的问题，然后讨论如何将事情并行化，最后讨论我们将考虑的实际测试案例。
+
+
+
+
+<h3> Using the "right" pressure </h3>
+
+在步骤31中，我们对速度和压力场使用了以下斯托克斯模型。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+
+
+  -\rho \; \beta \; T \mathbf{g},
+  \\
+  \nabla \cdot {\mathbf u} &=& 0.
+
+
+@f}
+
+第一个等式的右手边显得有点无动于衷。事情其实应该是这样的。我们需要作用在流体上的外力，我们假设这些外力只是由重力给出的。在目前的情况下，我们假设流体确实为了这个重力的目的而轻微膨胀，但还不足以让我们需要修改不可压缩性条件（第二个方程）。这意味着，为了右手边的目的，我们可以假设 $\rho=\rho(T)$  。一个可能不完全合理的假设是，我们可以假设密度作为温度的函数的变化很小，导致形式为 $\rho(T) = \rho_{\text{ref}}
+[1-\beta(T-T_{\text{ref}})]$  的表达，即在参考温度下密度等于 $\rho_{\text{ref}}$ ，并且随着温度的升高（随着材料的膨胀）线性下降。然后，力平衡方程看起来正确地写成这样。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+  \rho_{\text{ref}} [1-\beta(T-T_{\text{ref}})] \mathbf{g}.
+
+
+@f}
+
+现在注意到，引力是由重力势产生的，如 $\mathbf g=-\nabla \varphi$  ，因此我们可以将其重新写成如下。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+
+
+  -\rho_{\text{ref}} \; \beta\; T\; \mathbf{g}
+
+
+  -\rho_{\text{ref}} [1+\beta T_{\text{ref}}] \nabla\varphi.
+
+
+@f}
+
+右边的第二个项是与时间无关的，因此我们可以引入一个新的 "动态 "压力 $p_{\text{dyn}}=p+\rho_{\text{ref}}
+[1+\beta T_{\text{ref}}] \varphi=p_{\text{total}}-p_{\text{static}}$ ，用它来表示斯托克斯方程。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p_{\text{dyn}} &=&
+
+
+  -\rho_{\text{ref}} \; \beta \; T \; \mathbf{g},
+  \\
+  \nabla \cdot {\mathbf u} &=& 0.
+
+
+@f}
+
+这正是我们在第31步中使用的形式，这样做是合适的，因为流体流动的所有变化只由温度差异导致的动态压力驱动。(换句话说。任何因取标量场的梯度而导致的对右手边的贡献都对速度场没有影响）。)
+
+另一方面，我们在这里将使用考虑总压力的斯托克斯方程的形式来代替。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+  \rho(T)\; \mathbf{g},
+  \\
+  \nabla \cdot {\mathbf u} &=& 0.
+
+
+@f}
+
+这有几个好处。
+
+- 这样我们就可以在我们的程序中绘制压力图，它实际上显示的是包括温差影响以及上覆岩石的静压力在内的总压力。由于压力没有进一步出现在任何其他方程中，因此使用一个还是另一个，更多的是口味问题，而不是正确性问题。流动场是完全相同的，但我们得到的压力现在可以与地球物理书籍中给出的数值进行比较，例如，在地幔底部的压力。
+
+- 如果我们想让这个模型更加真实，我们就必须考虑到许多材料参数（如粘度、密度等）不仅取决于温度，而且还取决于<i>total</i>压力。
+
+- 上面的模型假设了一个线性依赖 $\rho(T) = \rho_{\text{ref}}
+  [1-\beta(T-T_{\text{ref}})]$ ，并假定 $\beta$ 很小。在实践中，情况可能并非如此。事实上，现实的模型肯定不是线性的，而且 $\beta$ 至少在部分温度范围内也可能不小，因为密度的行为不仅大大取决于热膨胀，而且取决于相变。
+
+- 这样做的最后一个原因将在结果部分讨论，涉及到对我们在这里使用的模型的可能扩展。这与我们在这里使用的温度方程（见下文）不包括包含压力的条款这一事实有关。然而，它应该包括：岩石，像气体一样，在你压缩它的时候会升温。因此，上升的物质以绝热方式冷却，而下沉的冷物质以绝热方式升温。我们在下面进一步讨论这个问题。
+
+ @note  然而，这个程序有一个缺点。在地球上，动压比总压要小几个数量级。如果我们使用上述方程并解决所有变量，例如，4位数的精度，那么我们可能会得到正确的速度和总压力，但如果我们通过从总压力中减去静态部分来计算动态压力，我们将完全没有精度  $p_\text{static}=\rho_{\text{ref}}
+[1+\beta T_{\text{ref}}] \varphi$  。例如，如果动压比静压小六个数量级，那么我们就需要将总压解到至少七位数的精度，才能得到任何精确的结果。也就是说，在实践中，这并不是一个限制性因素。
+
+
+
+
+<h3> The scaling of discretized equations </h3>
+
+请记住，我们要解决以下方程组。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+  \rho(T) \mathbf{g},
+  \\
+  \nabla \cdot {\mathbf u} &=& 0,
+  \\
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot \kappa \nabla T &=& \gamma,
+
+
+@f}
+
+用适当的边界条件和初始条件加以补充。正如第31步所讨论的，我们将通过在每个时间步长中首先求解斯托克斯问题，然后将温度方程向前移动一个时间间隔来解决这组方程。
+
+本节所考虑的问题是斯托克斯问题：如果我们像往常一样对其进行离散化，我们会得到一个线性系统
+
+@f{eqnarray*}
+  M \; X
+  =
+  \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+  \left(\begin{array}{c}
+    U \\ P
+  \end{array}\right)
+  =
+  \left(\begin{array}{c}
+    F_U \\ 0
+  \end{array}\right)
+  =
+  F
+
+
+@f}
+
+在这个程序中，我们将用FGMRES求解器来解决这些问题。这个求解器一直迭代到这些线性方程的残差低于某个公差，也就是说，直到
+
+@f[
+  \left\|
+  \left(\begin{array}{c}
+    F_U - A U^{(k)} - B P^{(k)}
+    \\
+    B^T U^{(k)}
+  \end{array}\right)
+  \right\|
+  < \text{Tol}.
+
+
+@f]
+
+从物理单位的角度来看，这没有任何意义：这里涉及的量有物理单位，所以残差的第一部分有单位 $\frac{\text{Pa}}{\text{m}}
+\text{m}^{\text{dim}}$ （通过考虑术语 $(\nabla \cdot \mathbf v, p)_{\Omega}$ 和考虑压力有单位 $\text{Pa}=\frac{\text{kg}}{\text{m}\;\text{s}^2}$ 以及积分得到的系数 $\text{m}^{\text{dim}}$ 最容易确定），而残差的第二部分有单位 $\frac{\text{m}^{\text{dim}}}{\text{s}}$  。取这个残差向量的常数将得到一个单位为  $\text{m}^{\text{dim}-1} \sqrt{\left(\text{Pa}\right)^2 +
+       \left(\frac{\text{m}}{\text{s}}\right)^2}$  的量。很明显，这样做是没有意义的，而且我们不应该惊讶这样做最终会伤害到我们。
+
+那么，为什么这在这里是个问题，而在第31步却不是呢？原因是一切都很平衡：速度是1，压力也是1，粘度是1，域的直径是 $\sqrt{2}$  。结果是，虽然不符合逻辑，但没有发生什么坏事。另一方面，正如我们将在下面解释的那样，这里的事情不会是那么简单的缩放。   $\eta$ 将在 $10^{21}$ 左右，速度在 $10^{-8}$ 的数量级，压力在 $10^8$ 左右，域的直径是 $10^7$ 。换句话说，第一个方程的数量级将是  $\eta\text{div}\varepsilon(\mathbf u) \approx 10^{21} \frac{10^{-8}}{(10^7)^2}
+\approx 10^{-1}$  ，而第二个方程将是  $\text{div}{\mathbf u}\approx \frac{10^{-8}}{10^7} \approx 10^{-15}$  左右。那么，这将导致这样的结果：如果求解器想使残差变小，它几乎会完全集中在第一组方程上，因为它们大得多，而忽略描述质量守恒的发散方程。这正是发生的情况：除非我们将公差设置为极小的值，否则所得到的流场肯定不是无发散的。作为一个辅助问题，事实证明，很难找到一个始终有效的公差；在实践中，人们往往最终得到一个公差，在大多数时间步骤中需要30或40次迭代，而在其他一些时间步骤中需要10,000次。
+
+那么，在这样的情况下，数字分析员该怎么做呢？答案是要从根本上入手，首先确保一切在数学上是一致的。在我们的例子中，这意味着如果我们想联合解决斯托克斯方程组，我们必须对它们进行缩放，使它们都有相同的物理尺寸。在我们的例子中，这意味着将第二个方程乘以具有单位 $\frac{\text{Pa}\;\text{s}}{\text{m}}$ 的东西；一种选择是乘以 $\frac{\eta}{L}$ ，其中 $L$ 是我们领域的典型长度尺度（实验表明最好选择羽流的直径&mdash；大约10公里&mdash；而不是领域的直径）。使用 $\eta$ 和 $L$ 的这些%数，这个系数约为 $10^{17}$ 。因此，我们现在对斯托克斯系统得到这个。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+  \rho(T) \; \mathbf{g},
+  \\
+  \frac{\eta}{L} \nabla \cdot {\mathbf u} &=& 0.
+
+
+@f}
+
+这样做的问题是，结果不再是对称的（我们在左下方有 $\frac{\eta}{L} \nabla \cdot$ ，但在右上方没有它的转置算子）。然而，这可以通过引入一个按比例的压力 $\hat p = \frac{L}{\eta}p$ 来解决，我们得到按比例的方程式
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) +
+  \nabla \left(\frac{\eta}{L} \hat p\right) &=&
+  \rho(T) \; \mathbf{g},
+  \\
+  \frac{\eta}{L} \nabla \cdot {\mathbf u} &=& 0.
+
+
+@f}
+
+这现在是对称的。很明显，我们可以很容易地从我们作为这个程序的结果计算的比例压力 $\hat p$ 中恢复原始压力 $p$ 。
+
+在下面的程序中，我们将引入一个与 <code>EquationData::pressure_scaling</code> 相对应的因子，我们将在系统矩阵和预处理程序的装配中使用这个因子。因为这很烦人而且容易出错，我们将在线性系统的解之后立即恢复未标定的压力，也就是说，解矢量的压力分量将立即被取消标定以检索物理压力。由于求解器使用的是我们可以通过推断以前的解来使用一个好的初始猜测，所以我们也要立即对压力进行缩放<i>before</i>求解。
+
+
+
+
+<h3> Changes to the Stokes preconditioner and solver </h3>
+
+在这个教程程序中，我们应用了步骤31中使用的预处理程序的一个变体。该预处理程序是以块状形式对系统矩阵 $M$ 进行操作，从而使乘积矩阵
+
+@f{eqnarray*}
+  P^{-1} M
+  =
+  \left(\begin{array}{cc}
+    A^{-1} & 0 \\ S^{-1} B A^{-1} & -S^{-1}
+  \end{array}\right)
+  \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+
+
+@f}
+
+其形式是基于Krylov的迭代求解器，如GMRES，可以在几次迭代中解决。然后，我们用基于矢量拉普拉斯矩阵的AMG预处理程序 $\tilde{A}$ 的作用取代了 $A$ 的精确逆，用压力空间上的质量矩阵 $M_p$ 来逼近舒尔补码 $S = B A^{-1} B^T$ ，并编写了一个<tt>InverseMatrix</tt>类，用于实现 $M_p^{-1}\approx S^{-1}$ 对矢量的作用。在InverseMatrix类中，我们使用了带有不完全Cholesky（IC）预处理的CG求解器来进行内部求解。
+
+我们可以观察到，我们仅仅使用了预处理程序的作用来逼近速度逆 $A^{-1}$ （外部GMRES迭代处理了逆的近似特性），而我们对 $M_p^{-1}$ 使用了或多或少的<i>exact</i>逆，由完全收敛的CG解实现。这似乎是不平衡的，但这种疯狂是有系统的：几乎所有的努力都用在了左上角的区块上，我们将AMG预处理程序应用于此，而即使是压力质量矩阵的精确反转也基本上不需要花费什么。因此，如果它能帮助我们在一定程度上减少总的迭代次数，那么这种努力是值得的。
+
+也就是说，尽管求解器对step-31工作得很好，但我们这里的问题有点复杂（细胞是变形的，压力有数量级的变化，我们要为更复杂的物理学提前做计划），所以我们要稍微改变一些东西。
+
+- 对于更复杂的问题，事实证明，仅仅使用单一的AMG V-循环作为预处理器并不总是足够的。外围求解器在大多数时候都能在合理的迭代次数内收敛（例如，少于50次），但偶尔会出现突然需要700次左右的时间步骤。到底发生了什么，很难确定，但这个问题可以通过对左上角的块使用更精确的求解器来避免。因此，我们要使用CG迭代来反转预处理矩阵的左上块，并使用AMG作为CG求解器的预处理。
+
+- 这样做的缺点是，当然，斯托克斯预处理程序变得更加昂贵（比我们只使用单个V型循环时大约昂贵10倍）。我们的策略是这样的：让我们只用V型循环作为预处理程序做多达30次的GMRES迭代，如果没有收敛，那么在这第一轮迭代后得到的斯托克斯解的最佳近似值，并将其作为我们使用具有相当宽松容忍度的完整内部求解器作为预处理程序的迭代的起始猜测。在我们所有的实验中，这只导致了少数额外迭代的收敛。
+
+- 我们需要注意的一点是，当在前置条件器中使用具有宽松容忍度的CG时，那么 $y = \tilde A^{-1} r$ 就不再是 $r$ 的线性函数（当然，如果我们的求解器中具有非常严格的容忍度，或者我们只应用单一的V型循环，它就是如此）。这是一个问题，因为现在我们的预处理程序不再是一个线性算子；换句话说，每次GMRES使用它时，预处理程序看起来都不一样。标准的GMRES求解器无法处理这个问题，导致收敛缓慢甚至崩溃，但F-GMRES变体正是为了处理这种情况而设计的，我们因此使用了它。
+
+- 另一方面，一旦我们确定使用F-GMRES，我们就可以放宽在倒置 $S$ 的预处理时使用的容忍度。在第31步中，我们对 $\tilde S$ 运行了一个预处理的CG方法，直到残差减少了7个数量级。在这里，我们可以再次宽松一些，因为我们知道外部预处理程序不会受到影响。
+
+- 在第31步中，我们使用了一个左边的预处理程序，首先反转预处理矩阵的左上块，然后应用左下块（发散）的，再反转右下块。换句话说，预处理器的应用起到了左下块三角矩阵的作用。另一种选择是使用右预处理器，这里将是右上块三角化，即我们首先反转右下舒尔补码，应用右上（梯度）算子，然后反转椭圆的左上块。在某种程度上，选择哪一个是一个品味的问题。也就是说，在GMRES类型的求解器中，右预处理有一个明显的优势：我们决定是否应该停止迭代的残差是真正的残差，而不是预处理方程的规范。因此，将其与我们通常使用的停止标准，即右手边向量的规范进行比较要简单得多。在编写这段代码时，我们发现上面讨论的缩放问题也使我们难以确定适合于左预处理线性系统的停止准则，因此本程序使用了右预处理器。
+
+- 在第31步中，我们对舒尔补码预处理中的压力质量矩阵和温度系统的解使用了IC（不完全Cholesky）预处理。在这里，我们原则上也可以这样做，但我们确实选择了一个更简单的预处理程序，即两个系统的雅可比预处理程序。这是因为在这里我们的目标是大规模的并行计算，IC/ILU的分解必须在每个处理器上对本地拥有的自由度逐块执行。这意味着，无论如何，预处理程序会变得更像一个雅可比预处理程序，所以我们宁愿直接从这个变体开始。请注意，我们只对有质量矩阵的CG求解器使用Jacobi预处理，无论如何它们都能提供最佳的（<i>h</i>独立的）收敛性，尽管它们通常需要两倍于IC预处理的迭代次数。
+
+最后，让我们指出，在第31步中，我们通过逼近 $-\text{div}(-\eta\Delta)^{-1}\nabla \approx \frac 1{\eta} \mathbf{1}$ 来计算舒尔补数 $S=B A^{-1} B^T$ 。然而现在，我们已经对 $B$ 和 $B^T$ 算子进行了重新缩放。所以 $S$ 现在应该近似于 $-\frac{\eta}{L}\text{div}(-\eta\Delta)^{-1}\nabla \frac{\eta}{L} \approx
+\left(\frac{\eta}{L}\right)^2 \frac 1{\eta} \mathbf{1}$  。我们用这个的右手边的离散形式作为我们对 $\tilde S$ 的近似 $S$ 。
+
+
+
+
+<h3> Changes to the artificial viscosity stabilization </h3>
+
+与第31步类似，我们将使用一个基于方程残差的人工黏度进行稳定。  作为与步骤-31的不同之处，我们将提供两个略有不同的稳定参数的定义。对于 $\alpha=1$ ，我们使用与步骤31相同的定义。
+
+@f{eqnarray*}
+  \nu_\alpha(T)|_K
+  =
+  \nu_1(T)|_K
+  =
+  \beta
+  \|\mathbf{u}\|_{L^\infty(K)}
+  h_K
+  \min\left\{
+    1,
+    \frac{\|R_1(T)\|_{L^\infty(K)}}{c(\mathbf{u},T)}
+  \right\}
+
+
+@f}
+
+我们从方程的残差 $\|R_1(T)\|_{L^\infty(K)}$ 中计算粘度，在残差较大的区域（陡峭的梯度周围），由与网格大小 $h_K$ 成比例的扩散来限制粘度。这个定义已被证明对给定的情况， $\alpha = 1$ 在step-31中效果很好，但它通常不如 $\alpha=2$ 的扩散有效。对于这种情况，我们选择一个稍微可读的粘度定义。
+
+@f{eqnarray*}
+  \nu_2(T)|_K = \min (\nu_h^\mathrm{max}|_K,\nu_h^\mathrm{E}|_K)
+
+
+@f}
+
+其中第一项又给出了最大耗散量（类似于一阶上风方案）。
+
+@f{eqnarray*}
+  \nu^\mathrm{max}_h|_K = \beta h_K \|\mathbf {u}\|_{L^\infty(K)}
+
+
+@f}
+
+而熵粘度的定义为
+
+@f{eqnarray*}
+  \nu^\mathrm{E}_h|_K = c_R \frac{h_K^2 \|R_\mathrm{2,E}(T)\|_{L^\infty(K)}}
+  {\|E(T) - \bar{E}(T)\|_{L^\infty(\Omega)} }.
+
+
+@f}
+
+
+
+这个公式在<i>J.-L. Guermond, R. Pasquetti, \&
+B. Popov, 2011.  Entropy viscosity method for nonlinear conservation laws, J.
+Comput. Phys., 230, 4248--4267.</i>一文中有描述。与 $\alpha = 1$ 的情况相比，残差是由温度熵计算出来的， $T_m$ 是平均温度（我们在计算中选择最高和最低温度之间的平均值），这就得到了以下公式
+
+@f{eqnarray*}
+ R_\mathrm{E}(T) = \frac{\partial E(T)}{\partial t} +
+    (T-T_\mathrm{m}) \left(\mathbf{u} \cdot \nabla T -  \kappa \nabla^2 T - \gamma\right).
+
+
+@f}
+
+ $\nu^\mathrm{E}_h|_K$ 公式中的分母被计算为熵与空间平均熵的整体偏差  $\bar{E}(T) =
+\int_\Omega E(T) d\mathbf{x}/\int_\Omega d\mathbf{x}$  。如同在步骤31中，我们根据前两个时间层次的温度和速度来评估人工黏度，以避免其定义中的非线性。
+
+上述粘度的定义很简单，但取决于两个参数，即  $\beta$  和  $c_R$  。  对于目前的程序，我们想在 $\alpha =1$ 的情况下对这两个参数更系统地去解决这个问题，使用我们在步骤31的结果部分选择离散化的另外两个参数 $c_k$ 和 $\beta$ 的相同推理。特别是，请记住，我们希望使人工粘度尽可能小，同时保持必要的大。在下文中，让我们描述一下人们可能遵循的一般策略。这里显示的计算是用程序的早期版本完成的，因此你在运行程序时得到的实际数值可能不再与这里显示的数值一致；尽管如此，一般的方法仍然有效，并已被用于寻找程序中实际使用的参数值。
+
+为了了解发生了什么，请注意，下面我们将对973和4273开尔文之间的温度施加边界条件，初始条件也选择在这个范围内；出于这些考虑，我们在没有%内部热源或散热器的情况下运行程序，因此温度应该总是在这个范围内，排除任何%内部振荡。如果最低温度下降到973开尔文以下，那么我们需要通过增加 $\beta$ 或减少 $c_R$ 来增加稳定度。
+
+正如我们在第31步所做的那样，我们首先通过使用 "传统 "公式确定 $\beta$ 的最佳值
+
+@f{eqnarray*}
+  \nu_\alpha(T)|_K
+  =
+  \beta
+  \|\mathbf{u}\|_{L^\infty(K)}
+    h_K,
+
+
+@f}
+
+我们知道，只要 $\beta$ 足够大，它就是稳定的。在2d中做几百个时间步数（在比程序中显示的网格更粗的网格上，用不同的粘度影响传输速度，从而影响时间步数大小），将产生以下图表。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-32.beta.2d.png" alt=""> 
+
+可以看出， $\beta \le 0.05$ 的数值太小，而 $\beta=0.052$ 似乎是有效的，至少在这里显示的时间范围内。顺便说一句，这里至少有两个问题是人们可能想知道的。首先，当解决方案变得不稳定时，会发生什么？看一下图形输出，我们可以看到，在这些实验所选择的不合理的粗大网格下，大约在 $t=10^{15}$ 秒的时间里，一直向冷的外部边界上升，然后向侧面扩散的热物质羽流开始相互靠近，将中间的冷物质挤出去。这就形成了一个细胞层，流体从两个相对的侧面流入，并向第三个侧面流出，显然，这种情况会在没有足够稳定的情况下产生这些不稳定性。第二：在步骤31中，我们使用了 $\beta=0.015\cdot\text{dim}$ ；为什么这在这里不起作用？这个问题的答案并不完全清楚--稳定参数肯定取决于单元格的形状等因素，在第31步中我们使用的是正方形，而在当前程序中则是梯形。不管具体原因是什么，我们至少有一个 $\beta$ 的值，即2d的0.052，对当前程序有效。在3d中也可以做类似的实验，我们发现 $\beta=0.078$ 是一个很好的选择&mdash; 整齐地引出公式 $\beta=0.026 \cdot \textrm{dim}$  。
+
+有了这个值，我们就可以回到粘度的原始公式 $\nu$ ，并玩弄常数 $c_R$ ，使其尽可能大，以便使 $\nu$ 尽可能小。这样我们就得到了这样的画面。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-32.beta_cr.2d.png" alt=""> 
+
+因此， $c_R=0.1$ 似乎是这里的正确值。虽然这个图形是针对指数 $\alpha=1$ 得到的，但在程序中我们用 $\alpha=2$ 代替，在这种情况下，必须重新调整参数（并观察到 $c_R$ 出现在分子中而不是分母中）。事实证明， $c_R=1$ 与 $\alpha=2$ 一起工作。
+
+
+
+
+<h3> Locally conservative Stokes discretization </h3>
+
+Stokes的标准Taylor-Hood离散化，使用 $Q_{k+1}^d
+\times Q_k$ 元素，是全局保守的，即 $\int_{\partial\Omega}
+\mathbf n \cdot \mathbf u_h = 0$  。这很容易看出：发散方程的弱形式为  $(q_h, \textrm{div}\; \mathbf u_h)=0, \forall
+q_h\in Q_h$  。因为压力空间确实包含函数  $q_h=1$  ，所以我们得到
+
+@f{align*}
+  0 = (1, \textrm{div}\; \mathbf u_h)_\Omega
+  = \int_\Omega \textrm{div}\; \mathbf u_h
+  = \int_{\partial\Omega} \mathbf n \cdot \mathbf u_h
+
+
+@f}
+
+由发散定理决定。这个性质很重要：如果我们想用速度场 $u_h$ 沿途输送其他量（如电流方程中的温度，但也可以是化学物质的浓度或完全是人为的示踪量），那么守恒性质保证所输送的量保持恒定。
+
+也就是说，在有些应用中，这个<i>global</i>属性是不够的。相反，我们希望它在每个单元上都持有<i>locally</i>。这可以通过使用空间 $Q_{k+1}^d \times DGP_k$ 进行离散化来实现，我们用相同程度的完整多项式的<i>discontinuous</i>空间代替压力的张量积多项式 $k$ 空间。(注意，2d中的张量积多项式包含函数 $1, x, y, xy$ ，而完全多项式只包含函数 $1,x,y$ ) 。这个空间对斯托克斯方程来说是稳定的。
+
+因为空间是不连续的，我们现在可以特别选择测试函数  $q_h(\mathbf x)=\chi_K(\mathbf x)$  ，即单元格  $K$  的特征函数。然后我们以类似于上面的方式得到
+
+@f{align*}
+  0
+  = (q_h, \textrm{div}\; \mathbf u_h)_\Omega
+  = (1, \textrm{div}\; \mathbf u_h)_K
+  = \int_K \textrm{div}\; \mathbf u_h
+  = \int_{\partial K} \mathbf n \cdot \mathbf u_h,
+
+
+@f}
+
+显示了单元格 $K$ 的保存属性。这显然对每个细胞都是成立的。
+
+使用这种离散化是有充分理由的。如上所述，这个元素保证了每个单元上平流量的守恒。第二个优点是，我们用作预处理的压力质量矩阵代替了Schur补码，成为块状对角线，因此非常容易反转。然而，也有缺点。首先，现在有更多的压力变量，增加了问题的总体规模，尽管这在实践中似乎没有造成太大的影响。但更重要的是，现在每个单元上的发散是零，而以前不是，这并不能保证发散是点状的小。事实上，我们可以很容易地验证，与标准Taylor-Hood离散化相比，这个离散化的 $L_2$ 准则是<i>larger</i>。然而，两者都以相同的速度收敛到零，因为很容易看到 $\|\textrm{div}\; u_h\|=
+\|\textrm{div}\; (u-u_h)\|=
+\|\textrm{trace}\; \nabla (u-u_h)\|\le
+\|\nabla (u-u_h)\|={\cal O}(h^{k+2})$  。因此，并不是先验的，仅仅因为我们现在有更多的自由度，误差就真的小了。
+
+鉴于这些考虑，目前还不清楚应该选择哪种离散化方式。因此，我们把这个问题留给用户，并在输入文件中规定使用哪个参数。
+
+
+
+
+<h3> Higher order mappings for curved boundaries </h3>
+
+在程序中，我们将使用一个球壳作为域。这意味着域的内部和外部边界不再是 "直的"（我们通常指它们是可以用FlatManifold类表示的双线性表面）。相反，它们是弯曲的，如果我们已经使用高阶有限元来计算速度，那么在程序中使用一个弯曲的近似值似乎是谨慎的。因此，我们将引入一个MappingQ类型的成员变量，表示这样的映射（步骤10和步骤11首次引入这样的映射），我们将在与边界相邻的单元的所有计算中使用。由于这只影响到相对较小的一部分单元格，额外的努力并不是很大，我们将对这些单元格使用四分法映射。ls.
+
+
+
+
+<h3> Parallelization on clusters </h3>
+
+在三维空间中运行具有显著雷利数的对流代码需要大量的计算；在整个地球模拟的情况下，需要一或几亿个未知数的数量。这显然不能用一台机器来完成（至少在2010年我们开始编写这段代码时不能）。因此，我们需要将其并行化。科学代码在计算机集群的多台机器上的并行化几乎总是使用消息传递接口（MPI）来完成。这个程序也不例外，它遵循了第17步和第18步程序的一般精神，尽管在实践中它更多地借用了第40步，在该步中我们首先介绍了当我们想<i>completely</i>分布所有计算时使用的类和策略，而第55步则展示了如何为 @ref vector_valued  "向量值问题"：包括，例如，将网格分割成若干部分，使每个处理器只存储自己的份额和一些幽灵单元，以及使用任何处理器都不可能有足够的内存在本地保存组合解向量的条目的策略。我们的目标是以合理的可扩展性在数百甚至数千台处理器上运行这段代码。
+
+ @note  即使它有一个较大的数字，步骤40在逻辑上是在当前程序之前。第55步的情况也是如此。在你试图理解我们在这里所做的事情之前，你可能会想看看这些程序。
+
+MPI是一个相当笨拙的编程接口。它是一套半面向对象的函数，虽然人们用它在网络上发送数据，但需要明确地描述数据类型，因为MPI函数坚持以 <code>void*</code> 对象的形式获得数据的地址，而不是通过重载或模板自动推断数据类型。我们已经在第17步和第18步中看到，如何通过将所有必要的通信放到deal.II库中，或者在这些程序中放到PETSc中，来避免几乎所有的MPI。我们将在这里做一些类似的事情：就像第40步和第55步一样，deal.II和底层的p4est库负责分配网格所需的所有通信，而我们将让Trilinos库（以及命名空间TrilinosWrappers中的包装器）处理线性代数组件的并行化问题。我们已经在step-31中使用了Trilinos，在这里也会这样做，不同的是我们将使用它的%并行能力。
+
+Trilinos由大量的包组成，实现了基本的%并行线性代数操作（Epetra包），不同的求解器和预处理包，以及对deal.II不太重要的东西（例如。deal.II的Trilinos接口封装了Trilinos提供的许多与PDE求解器相关的东西，并提供了封装类（在命名空间TrilinosWrappers中），使Trilinos的矩阵、向量、求解器和预处理器类看起来与deal.II自己对这些功能的实现非常相同。然而，与deal.II的类相比，如果我们给它们提供必要的信息，它们可以在%并行中使用。因此，有两个Trilinos类我们必须直接处理（而不是通过包装器），这两个类都是Trilinos的Epetra基本线性代数和工具类库的一部分。   <ul>   <li>  Epetra_Comm类是MPI "通信器 "的抽象，也就是说，它描述了多少台机器和哪些机器可以相互通信。   每个分布式对象，如稀疏矩阵或矢量，我们可能想在不同的机器上存储部分，需要有一个通信器对象来知道有多少部分，在哪里可以找到它们，以及如何访问它们。
+
+  在这个程序中，我们只真正使用了一个通信器对象--基于MPI变量 <code>MPI_COMM_WORLD</code> --它包含了<i>all</i>个一起工作的进程。在 $N$ 机器上启动一个进程，但只在其中的一个子集上存储向量，产生一个只包括这个子集的机器的通信器对象是完全合法的；不过，在这里确实没有令人信服的理由这样做。
+
+ <li>  IndexSet类用于描述一个向量的哪些元素或一个矩阵的哪些行应该驻留在作为通信器一部分的当前机器上。要创建这样一个对象，你需要知道（i）元素或行的总数，（ii）你想在本地存储的元素的索引。我们将在下面的 <code>partitioners</code> 函数中设置这些 <code>BoussinesqFlowProblem::setup_dofs</code> ，然后把它交给我们创建的每个%parallel对象。
+
+  与PETSc不同，Trilinos没有假设矢量的元素需要被分割成连续的小块。至少在原则上，我们可以在一个处理器上存储所有偶数索引的元素，在另一个处理器上存储所有奇数索引的元素。当然，这不是很有效率，但这是可能的。此外，这些分区的元素不一定是相互排斥的。这一点很重要，因为在对解决方案进行后处理时，我们需要访问所有本地相关的或至少是本地活跃的自由度（定义见 @ref distributed 上的模块，以及步骤40中的讨论）。那么Trilinos矢量认为哪些元素是本地拥有的，对我们来说并不重要。我们所关心的是，它在本地存储了我们所需要的那些元素。   </ul> 
+
+还有一些与将网格分布到若干处理器上有关的概念；在尝试理解这个程序之前，你可能想看一下 @ref
+distributed 模块和步骤40或步骤55。  程序的其余部分几乎完全不知道我们没有完全在本地存储所有对象的事实。有几个地方我们必须将所有单元的循环限制在本地拥有的单元上，或者我们需要区分只存储本地拥有的元素的向量和存储本地相关的所有元素的向量（见 @ref GlossLocallyRelevantDof "这个词汇表条目"），但总的来说，使程序在%parallel中运行所需的大量繁重工作都很好地隐藏在这个程序赖以建立的库中。在任何情况下，当我们在程序代码中看到这些位置时，我们会对它们进行评论。
+
+
+
+
+<h3> Parallelization within individual nodes of a cluster </h3>
+
+使程序并行化的第二个策略是利用这样一个事实，即今天大多数计算机都有一个以上的处理器，它们都可以访问相同的内存。换句话说，在这个模型中，我们不需要明确地说哪块数据在哪里，我们需要的所有数据都可以直接访问，我们要做的就是在可用的处理器之间分割<i>processing</i>这些数据。然后，我们将把它与上述的MPI并行化结合起来，也就是说，我们将让一台机器上的所有处理器一起工作，例如，为这台机器实际 "拥有 "的单元汇集对全局矩阵的局部贡献，而不是为那些被其他机器拥有的单元。我们将把这种策略用于本程序中经常进行的四种操作：组装斯托克斯和温度矩阵，组装形成斯托克斯预处理的矩阵，以及组装温度系统的右手边。
+
+所有这些操作基本上都是这样的：我们需要在 <code>cell-@>subdomain_id()</code> 等于我们机器在用于所有通信的通信器对象中的索引（即 <code>MPI_COMM_WORLD</code>  ，如上所述）的所有单元中循环。我们实际要使用的测试，简明扼要地描述了我们为什么要测试这个条件，是  <code>cell-@>is_locally_owned()</code>  。在每一个这样的单元上，我们需要集合对全局矩阵或向量的局部贡献，然后我们必须将每个单元的贡献复制到全局矩阵或向量中。请注意，第一部分（循环）定义了一个必须发生的迭代器的范围。第二部分，本地贡献的组装是在这个步骤序列中花费大部分CPU时间的事情，也是一个可以在%并行中完成的典型例子：每个单元的贡献完全独立于所有其他单元的贡献。第三部分，复制到全局矩阵中，不能在%parallel中进行，因为我们正在修改一个对象，所以几个线程不能同时读取一个现有的矩阵元素，增加他们的贡献，并将总和写回内存而不产生<a
+href="http://en.wikipedia.org/wiki/Race_condition">race condition</a>危险。
+
+deal.II有一个类，正是为这个工作流程而生的。WorkStream，首先在步骤9和步骤13中讨论。它的使用在 @ref threads 模块中也有大量的记录（在 @ref MTWorkStream "WorkStream类 "一节），我们不会在这里重复那里阐述的原理和详细说明，尽管你会想通读这个模块以了解从头开始的空间和每单元数据之间的区别。我只想说，我们需要以下条件。
+
+- 迭代器的范围是我们要处理的那些单元格。这是由FilteredIterator类提供的，它的作用就像deal.II中的其他单元格迭代器一样，只是它跳过了所有不满足特定谓词（即，一个评估为真或假的标准）的单元。在我们的例子中，该谓词是一个单元格是否为本地所有。
+
+- 一个为上面确定的每项任务在每个单元上做工作的函数，即集合对斯托克斯矩阵和预调节器、温度矩阵和温度右侧的局部贡献的函数。这些是下面代码中的 <code>BoussinesqFlowProblem::local_assemble_stokes_system</code> 、 <code>BoussinesqFlowProblem::local_assemble_stokes_preconditioner</code> 、 <code>BoussinesqFlowProblem::local_assemble_temperature_matrix</code> 和 <code>BoussinesqFlowProblem::local_assemble_temperature_rhs</code> 函数。这四个函数都可以有几个实例同时并行运行。
+
+- 将前一个函数的结果复制到全局对象中的函数，并按顺序运行以避免竞赛条件。这些是 <code>BoussinesqFlowProblem::copy_local_to_global_stokes_system</code> 、 <code>BoussinesqFlowProblem::copy_local_to_global_stokes_preconditioner</code> 、 <code>BoussinesqFlowProblem::copy_local_to_global_temperature_matrix</code> 、和 <code>BoussinesqFlowProblem::copy_local_to_global_temperature_rhs</code> 函数。
+
+我们将在实际代码中再评论一些要点，但总的来说，它们的结构应该从  @ref threads  的讨论中清楚。
+
+WorkStream的底层技术识别需要处理的 "任务"（例如，在一个单元上组装本地贡献），并将这些任务自动安排到可用的处理器上。WorkStream通过将迭代器范围分割成合适的小块，自动创建这些任务。
+
+ @note  在每个MPI进程中使用多个线程，只有当你在集群的每个节点上运行的MPI进程少于这台机器上的处理器核心时才有意义。否则，MPI已经让你的处理器很忙了，你不会从使用线程中获得任何额外的速度。例如，如果你的集群节点有8个内核，就像在写这篇文章的时候经常有的那样，如果你的批处理调度程序在每个节点上放8个MPI进程，那么使用线程并不能使程序更快。因此，你可能想在运行之前，要么配置你的deal.II不使用线程，要么将 Utilities::MPI::MPI_InitFinalize 中的线程数设置为1（第三个参数），或者 "export DEAL_II_NUM_THREADS=1"。也就是说，在写这篇文章的时候，我们只用WorkStream类来组装（部分）线性系统，而程序的75%或更多的运行时间是在没有并行化的线性求解器中度过的&mdash;换句话说，我们最好的希望是将剩下的25%并行化。
+
+
+
+
+<h3> The testcase </h3>
+
+这个程序的设置稍微让人想起我们当初想解决的问题（见步骤31的介绍）：地幔的对流。因此，我们选择了以下数据，所有这些数据在程序中都是以米和秒为单位（国际单位制）出现的，即使我们在这里以其他单位列出它们。然而，我们注意到，这些选择基本上仍然只是示范性的，而不是要形成对地幔对流的完全现实的描述：为此，必须实现更多、更困难的物理学，而且目前这个程序中也缺少其他几个方面。我们将在结果部分再次讨论这个问题，但现在要说明的是，在写这篇文章时，提供真实的描述是正在开发的<i>ASPECT</i>代码的一个目标。
+
+作为提醒，让我们再次说明我们要解决的方程是这些。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) +
+  \nabla \left( \frac{\eta}{L} \hat p\right) &=&
+  \rho(T) \mathbf{g},
+  \\
+  \frac{\eta}{L} \nabla \cdot {\mathbf u} &=& 0,
+  \\
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot \kappa \nabla T &=& \gamma,
+
+
+@f}
+
+用边界条件和初始条件增强。然后我们必须选择以下数量的数据。   <ul>   <li>  域是一个环形（2D）或一个球壳（3D），其内外半径与地球的半径一致：地球的总半径为6371km，地幔从大约35km的深度开始（就在由<a target="_top"
+  href="http://en.wikipedia.org/wiki/Continental_crust">continental</a>和<a
+  target="_top" href="http://en.wikipedia.org/wiki/Oceanic_crust">oceanic
+  plates</a>组成的固体地球<a target="_top"
+  href="http://en.wikipedia.org/wiki/Crust_(geology)">crust</a>之下）到2890km深度（<a target="_top" href="http://en.wikipedia.org/wiki/Outer_core">outer earth
+  core</a>开始）。因此半径为 $R_0=(6371-2890)\text{km},
+  R_1=(6371-35)\text{km}$  。这个领域是使用 GridGenerator::hyper_shell() 函数方便地生成的。
+
+    <li>  在地壳和地幔的界面，温度在500到900摄氏度之间，而在其底部则是4000摄氏度左右（例如，见<a target="_top"
+  href="http://en.wikipedia.org/wiki/Mantle_(geology)">this Wikipedia
+  entry</a>）。因此，在开尔文中，我们选择 $T_0=(4000+273)\text{K}$  ， $T_1=(500+273)\text{K}$ 作为内外边缘的边界条件。
+
+  除此以外，我们还必须为温度场指定一些初始条件。由于已经持续了40多亿年的对流，地球的真实温度场是相当复杂的--事实上，我们正是想通过这样的程序来探索这种温度分布的特性。因此，我们在这里并没有什么有用的东西可以提供，但是我们可以希望，如果我们从一些东西开始，让事情运行一段时间，确切的初始条件就不再那么重要了&mdash; 事实上，通过查看<a href="#Results">results section
+  below</a>中显示的图片就可以看出。我们在这里使用的初始温度场是由@f{align*}
+    s &= \frac{\|\mathbf x\|-R_0}{R_1-R_0}, \\
+    \varphi &= \arctan \frac{y}{x}, \\
+    \tau &= s + \frac 15 s(1-s) \sin(6\varphi) q(z), \\
+    T(\mathbf x) &= T_0(1-\tau) + T_1\tau,
+  @f}给出半径的。
+
+  其中@f{align*}
+    q(z) = \left\{
+    \begin{array}{ll}
+      1 & \text{in 2d} \\
+      \max\{0, \cos(\pi |z/R_1|)\} & \text{in 3d}
+    \end{array}
+    \right. .
+  @f}
+
+  这个复杂的函数本质上是内部和外部温度之间的线性轮廓的扰动。在2D中，函数 $\tau=\tau(\mathbf x)$ 看起来是这样的（我从<a
+  href="http://www.wolframalpha.com/input/?i=plot+%28sqrt%28x^2%2By^2%29%2B0.2*%28sqrt%28x^2%2By^2%29*%281-sqrt%28x^2%2By^2%29%29*sin%286*atan2%28x%2Cy%29%29%29%2C+x%3D-1+to+1%2C+y%3D-1+to+1">this
+  page</a>得到的图片）。
+
+    <img src="https://www.dealii.org/images/steps/developer/step-32.2d-initial.png" alt=""> 
+
+  这个剖面的重点是，如果我们在 $T(\mathbf x)$ 的定义中使用 $s$ 而不是 $\tau$ ，那么它将只是一个线性内插。   $\tau$ 在内部和外部边界具有与 $s$ 相同的函数值（分别为0和1），但它根据角度和3D中的 $z$ 值将温度曲线拉长一些，产生线性内插场的角度依赖性扰动。我们将在结果部分看到，这是一个完全不实际的温度场（尽管它将会产生有趣的图像），因为温度的平衡状态将是一个几乎恒定的温度，在内部和外部边界有边界层。
+
+    <li>  温度方程的右边包含了内部加热%的速率  $\gamma$  。地球确实通过几种机制自然升温：放射性衰变、化学分离（较重的元素沉到底部，较轻的元素升到顶部；逆流耗散的能量相当于这一分离过程中的势能损失）；随着地球内部固体核心的增长，液态金属结晶释放热量；以及流体运动时粘性摩擦产生的热量耗散。
+
+  化学分离很难建模，因为它需要将地幔物质建模为多个相；它也是一个相对较小的效应。结晶热就更难了，因为它只限于温度和压力允许相变的区域，也就是一个不连续的过程。鉴于对这两种现象进行建模的困难，我们将忽略它们。
+
+  另外两个很容易处理，考虑到我们对温度方程进行缩放的方式，可得出方程@f[
+    \gamma(\mathbf x)
+     =
+     \frac{\rho q+2\eta \varepsilon(\mathbf u):\varepsilon(\mathbf u)}
+     {\rho c_p},
+  @f]
+
+  其中 $q$ 是 $\frac{W}{kg}$ 中的辐射性加热，列举器中的第二项是粘性摩擦加热。   $\rho$  是密度， $c_p$  是比热。文献中提供了以下近似值。   $c_p=1250 \frac{J}{kg\; K}, q=7.4\cdot 10^{-12}\frac{W}{kg}$  .   其他参数将在本节的其他地方讨论。
+
+  我们在这里忽略了一个内部热源，即绝热加热，这将导致一个令人惊讶的温度场。这一点将在下面的结果部分进行详细评论。
+
+    <li> 对于速度，我们在内半径处选择 $\mathbf{v}=0$ 作为边界条件（即流体粘在地心上），在外半径处选择 $\mathbf{n}\cdot\mathbf{v}=0$ （即流体沿地壳底部切向流动）。这两种情况在物理上都不过分正确：当然，在这两个边界上，流体可以切向流动，但它们会通过与界面另一侧的介质（分别是金属核心和地壳）摩擦而产生剪切应力。这样的情况可以用切向速度的罗宾式边界条件来模拟；在这两种情况下，法向（垂直）速度将为零，尽管即使这样也不完全正确，因为大陆板块也有垂直运动（例如，见<a
+  href="http://en.wikipedia.org/wiki/Postglacial_rebound">post-glacial
+  rebound</a>的现象）。但是，对切向速度来说，另一侧的介质也在运动，这已经使事情变得更糟了，因此，在最简单的情况下，剪应力将与<i>velocity
+  difference</i>成正比，导致边界条件的形式为@f{align*}
+    \mathbf{n}\cdot [2\eta \varepsilon(\mathbf v)]
+    &=
+    s \mathbf{n} \times [\mathbf v - \mathbf v_0],
+    \\
+    \mathbf{n} \cdot \mathbf v &= 0,
+  @f}
+
+  有一个比例常数  $s$  。然而，我们没有走这条路，而是选择了零（棒）和切向流的边界条件。
+
+  顺便提一下，我们也可以在内外边界都选择切向流动条件。然而，这有一个明显的缺点：它使速度不是唯一定义的。原因是所有对应于绕域中心旋转的固体体的速度场 $\hat{\mathbf v}$ 都满足 $\mathrm{div}\;
+  \varepsilon(\hat{\mathbf v})=0, \mathrm{div} \;\hat{\mathbf v} = 0$ ，和 $\mathbf{n} \cdot \hat{\mathbf v} = 0$ 。因此，如果 $\mathbf v$ 满足方程和边界条件，那么 $\mathbf v +
+  \hat{\mathbf v}$  也满足。这当然不是一个我们想避免的好情况。解决这个问题的传统方法是在边界上选一个任意的点，通过选择速度在那里的所有分量为零，将其称为你的固定点。(在三维空间中，必须选择两个点。)由于这个程序开始时并不打算太现实，我们通过简单地固定整个内部边界的速度来避免这种复杂情况。
+
+    <li> 根据第一顺序，重力矢量总是指向下方。对于像地球这样大的物体来说，问题只是："向上 "是什么地方。天真的答案当然是 "径向向内，向地球中心"。所以在地球表面，我们有@f[
+    \mathbf g
+    =
+
+
+    -9.81 \frac{\text{m}}{\text{s}^2} \frac{\mathbf x}{\|\mathbf x\|},
+  @f]
+
+  其中 $9.81 \frac{\text{m}}{\text{s}^2}$ 刚好是地球表面的平均重力加速度。但是在地球内部，问题变得有点复杂：例如，在地球的（轨道）中心，你有物质在各个方向上同样用力拉扯，所以 $\mathbf g=0$  。在这两者之间，净力的描述如下：让我们用<a target="_top"
+  href="http://en.wikipedia.org/wiki/Potential_energy#Gravitational_potential_energy">gravity
+  potential</a>来定义@f[
+    \varphi(\mathbf x)
+    =
+    \int_{\text{earth}}
+
+
+    -G \frac{\rho(\mathbf y)}{\|\mathbf x-\mathbf y\|}
+    \ \text{d}y,
+  @f] 。
+
+  那么 $\mathbf g(\mathbf x) = -\nabla \varphi(\mathbf x)$  。如果我们假设密度 $\rho$ 在整个地球上是恒定的，我们可以产生一个重力矢量的分析表达式（不要试图以某种方式整合上述方程--它导致了椭圆积分；一个更简单的方法是注意到 $-\Delta\varphi(\mathbf x) = -4\pi G \rho
+  \chi_{\text{earth}}(\mathbf x)$ 并利用径向对称性在所有 ${\mathbb R}^3$ 中解决这个偏微分方程）。   @f[
+    \mathbf g(\mathbf x) =
+    \left\{
+      \begin{array}{ll}
+
+
+        -\frac{4}{3}\pi G \rho \|\mathbf x\| \frac{\mathbf x}{\|\mathbf x\|}
+        & \text{for} \ \|\mathbf x\|<R_1, \\
+
+
+        -\frac{4}{3}\pi G \rho R^3 \frac{1}{\|\mathbf x\|^2}
+        \frac{\mathbf x}{\|\mathbf x\|}
+        & \text{for} \ \|\mathbf x\|\ge R_1.
+      \end{array}
+    \right.
+  @f]
+
+  因子 $-\frac{\mathbf x}{\|\mathbf x\|}$ 是指向径向内的单位矢量。当然，在这个问题中，我们只对与地球内部有关的分支感兴趣，即 $\|\mathbf
+  x\|<R_1$ 。因此，我们将只考虑表达式@f[
+    \mathbf g(\mathbf x) =
+
+
+        -\frac{4}{3}\pi G \rho \|\mathbf x\| \frac{\mathbf x}{\|\mathbf x\|}
+        =
+
+
+        -\frac{4}{3}\pi G \rho \mathbf x
+        =
+
+
+        - 9.81 \frac{\mathbf x}{R_1} \frac{\text{m}}{\text{s}^2},
+  @f] 。
+
+  其中我们可以推断出最后一个表达式，因为我们知道地球在表面的重力（其中 $\|x\|=R_1$  ）。
+
+  我们可以通过整合 $\varphi(r)$ 的微分方程，在密度分布是径向对称的情况下，即 $\rho(\mathbf
+  x)=\rho(\|\mathbf x\|)=\rho(r)$ ，推导出一个更一般的表达。在这种情况下，我们将得到@f[
+    \varphi(r)
+    = 4\pi G \int_0^r \frac 1{s^2} \int_0^s t^2 \rho(t) \; dt \; ds.
+  @f] 。
+
+
+
+
+  然而，这有两个问题。(i) 地球不是均匀的，即密度 $\rho$ 取决于 $\mathbf x$ ；事实上它甚至不是一个只取决于半径 $r=\|\mathbf x\|$ 的函数。因此，在现实中，重力并不总是随着我们的深入而减少：因为地心比地幔的密度大得多，重力实际上在地心地幔边界的 $10.7
+  \frac{\text{m}}{\text{s}^2}$ 左右达到峰值（见<a
+  target="_top" href="http://en.wikipedia.org/wiki/Earth's_gravity">this
+  article</a>）。(ii) 密度，以及由此产生的重力矢量，在时间上甚至不是恒定的：毕竟，我们要解决的问题是与时间有关的热的、密度较小的物质的上涌和冷的密度大的物质的下涌。这就导致了重力矢量随空间和时间的变化而变化，并不总是直接指向下方。
+
+  为了不使情况变得更加复杂，我们可以使用这样的近似值：在地幔的内部边界，重力是 $10.7 \frac{\text{m}}{\text{s}^2}$ ，在外部边界，重力是 $9.81 \frac{\text{m}}{\text{s}^2}$ ，在每种情况下都是径向向内的，在两者之间，重力随着离地球中心的径向距离而线性变化。也就是说，实际上稍微现实一点，假设（就像我们下面做的那样）地幔具有恒定的密度也不是那么难。在这种情况下，上面的方程可以被整合，我们得到一个 $\|\mathbf{g}\|$ 的表达式，我们可以拟合常数以匹配地幔顶部和底部的重力，得到@f[
+    \|\mathbf{g}\|
+    = 1.245\cdot 10^{-6} \frac{1}{\textrm{s}^2} r + 7.714\cdot 10^{13} \frac{\textrm{m}^3}{\textrm{s}^2}\frac{1}{r^2}.
+  @f]
+
+
+
+    <li> 地幔的密度在空间上有变化，但变化幅度不大。   $\rho_{\text{ref}}=3300 \frac{\text{kg}}{\text{m}^3}$ 是参考温度 $T_{\text{ref}}=293$ 开尔文时的密度的一个相对较好的平均值。
+
+    <li>  热膨胀系数 $\beta$ 也随深度变化（通过其对温度和压力的依赖）。在接近地表的地方，它似乎是 $\beta=45\cdot 10^{-6} \frac 1{\text{K}}$ ，而在地心地幔边界，它可能更接近 $\beta=10\cdot
+  10^{-6} \frac 1{\text{K}}$ 。作为一个合理的值，让我们选择 $\beta=2\cdot 10^{-5} \frac 1{\text{K}}$ 。那么密度与温度的关系是 $\rho(T)=[1-\beta(T-T_{\text{ref}})]\rho_{\text{ref}}$  。
+
+    <li>  我们需要指定的第二个至最后一个参数是粘度  $\eta$  。这是一个棘手的问题，因为在地幔典型的温度和压力下，岩石的流动非常缓慢，以至于在实验室里无法准确地确定粘度。那么我们如何知道地幔的粘度呢？最常用的方法是考虑在冰期和冰期之后，冰盾形成和消失的时间尺度比地幔流动的时间尺度短。因此，大陆在冰盾的附加重量下慢慢沉入地幔，而在冰盾再次消失后，它们又慢慢升起（这被称为<a target="_top"
+  href="http://en.wikipedia.org/wiki/Postglacial_rebound"><i>postglacial
+  rebound</i><i>postglacial
+  rebound</i></a>）。通过测量这种反弹的速度，我们可以推断出流向反弹的大陆板块下腾出的区域的物质的粘度。
+
+  使用这种技术，发现 $\eta=10^{21} \text{Pa}\;\text{s}
+  = 10^{21} \frac{\text{N}\;\text{s}}{\text{m}^2}
+  = 10^{21} \frac{\text{kg}}{\text{m}\;\text{s}}$ 附近的数值是最有可能的，尽管这上面的误差至少是一个数量级的。
+
+  虽然我们将使用这个值，但我们不得不再次提醒，有许多物理原因可以假设这不是正确的值。首先，它确实应该取决于温度：较热的材料很可能比较冷的材料的粘性要小。然而，在现实中，情况甚至更为复杂。地幔中的大多数岩石随着温度和压力的变化而发生相变：根据温度和压力的不同，不同的晶体构型在热力学上比其他的更受青睐，即使地幔的化学成分是均匀的。例如，常见的地幔物质MgSiO<sub>3</sub>在整个地幔的大部分地区以其<a target="_top"
+  href="http://en.wikipedia.org/wiki/Perovskite_(structure)">perovskite
+  structure</a>的形式存在，但在地幔下部，同样的物质只以<a targe="_top"
+  href="http://en.wikipedia.org/wiki/Postperovskite">post-perovskite</a>的形式稳定。显然，为了计算现实的粘度，我们不仅需要知道地幔的确切化学成分和所有物质的粘度，而且还必须计算所有物质在每个正交点的热力学上最稳定的配置。在编写这个程序时，这不是一个可行的建议。
+
+    <li>  我们的最后一个材料参数是热扩散率 $\kappa$  ，其定义为 $\kappa=\frac{k}{\rho c_p}$  ，其中 $k$  是热导率， $\rho$  是密度， $c_p$  是比热。对于这一点，文献表明，它从上地幔的 $0.7$ 左右增加到下地幔的 $1.7 \frac{\text{mm}^2}{\text{s}}$ 左右，尽管确切的数值其实并不那么重要：通过对流的热传输比通过热传导的热传输要重要几个数量级。可能有兴趣知道的是，地幔中最丰富的材料--过氧化物，在超过大约120GPa的压力下似乎变得透明（例如，见J. Badro等人，《科学》305，383-386（2004年））；因此，在下地幔中，通过辐射传输的热传输可能比通过热传导更有效。
+
+  鉴于这些考虑，让我们选择 $\kappa=1 \frac{\text{mm}^2}{\text{s}} =10^{-6} \frac{\text{m}^2}{\text{s}}$ 作为本方案的目的。   </ul> 
+
+所有这些方程数据都在程序中定义在 <code>EquationData</code> 命名空间。当运行时，该程序产生的长期最大速度大约为每年10-40厘米（见下面的结果部分），大约是物理上正确的数量级。我们将设定结束时间为10亿年。
+
+ @note  上述常数和材料参数的选择在很大程度上遵循了G.Schubert和D.L.Turcotte和P.Olson（剑桥，2001）的综合书籍《地球和行星的地幔对流，第一部分》。它包含了关于如何使程序更加真实的广泛讨论。
+
+
+
+
+<h3> Implementation details </h3>
+
+与step-31相比，这个程序有一些值得注意的区别。
+
+-  <code>EquationData</code> 命名空间要大得多，这反映了我们现在有更多的物理学需要处理的事实。也就是说，这些额外的物理细节大部分是在这个命名空间的函数中自成一体的，并没有扩散到程序的其他部分。
+
+- 更明显的可见性是，我们把大量的参数放入由ParameterHandler类处理的输入文件中（例如，见步骤29，关于用这个类设置运行时参数文件的方法）。当人们想避免仅仅因为想玩弄一个参数而重新编译程序时，这往往是有意义的（例如，想想确定上面讨论的稳定常数的最佳值的参数研究），特别是考虑到重新编译当前规模的程序需要花费非同小可的时间。为了仅仅概述我们从固定值移入输入文件的参数种类，这里列出了一个典型的 <code>\step-32.prm</code> 文件。   @code
+# Listing of Parameters
+# ---------------------
+# The end time of the simulation in years.
+set End time                            = 1e8
+
+
+# Whether graphical output is to be generated or not. You may not want to get
+# graphical output if the number of processors is large.
+set Generate graphical output           = false
+
+
+# The number of adaptive refinement steps performed after initial global
+# refinement.
+set Initial adaptive refinement         = 1
+
+
+# The number of global refinement steps performed on the initial coarse mesh,
+# before the problem is first solved there.
+set Initial global refinement           = 1
+
+
+# The number of time steps between each generation of graphical output files.
+set Time steps between graphical output = 50
+
+
+# The number of time steps after which the mesh is to be adapted based on
+# computed error indicators.
+set Time steps between mesh refinement  = 10
+
+
+
+subsection Discretization
+  # The polynomial degree to use for the velocity variables in the Stokes
+  # system.
+  set Stokes velocity polynomial degree       = 2
+
+
+  # The polynomial degree to use for the temperature variable.
+  set Temperature polynomial degree           = 2
+
+
+  # Whether to use a Stokes discretization that is locally conservative at the
+  # expense of a larger number of degrees of freedom, or to go with a cheaper
+  # discretization that does not locally conserve mass (although it is
+  # globally conservative.
+  set Use locally conservative discretization = true
+end
+
+
+
+subsection Stabilization parameters
+  # The exponent in the entropy viscosity stabilization.
+  set alpha = 2
+
+
+  # The beta factor in the artificial viscosity stabilization. An appropriate
+  # value for 2d is 0.052 and 0.078 for 3d.
+  set beta  = 0.078
+
+
+  # The c_R factor in the entropy viscosity stabilization.
+  set c_R   = 0.5
+end
+  @endcode
+
+
+
+- 很明显，有很多变化是与我们想在可能非常多的机器上运行我们的程序这一事实有关的。尽管人们可能会怀疑这需要我们完全重新构建我们的代码，但事实上并非如此（尽管在deal.II中实现大部分功能的类从实现的角度来看肯定非常不同，但这并没有反映在它们的公共接口中）。相反，这些变化大多是微妙的，主类的整体结构几乎没有变化。也就是说，魔鬼在细节中：正确地进行%并行计算，没有死锁，确保正确的数据在正确的地方可用（例如，见关于全分布式向量与有鬼魂元素的向量的讨论），以及避免瓶颈是很困难的，关于这个话题的讨论将出现在本程序中的很多地方。
+
+
+
+
+<h3> Outlook </h3>
+
+这是一个教程性的程序。这意味着至少它的大部分重点需要放在演示如何使用deal.II和相关的库上，而不是通过过度关注物理细节来稀释这个教学课程。尽管上面有关于物理参数选择的长篇大论，但程序中专门讨论这个问题的部分实际上是很短的，而且是自成一体的。
+
+也就是说，第31步和目前的第32步都不是偶然出现的，而肯定是作为通向更全面的计划的路标，该计划将模拟地幔的对流。我们把这个代码称为<i>ASPECT</i>（简称<i>Advanced %Solver for Problems in Earth's
+ConvecTion</i>）；它的开发是由<a href="http://www.geodynamics.org">Computational Infrastructure in
+Geodynamics</a>计划资助的，得到了美国国家科学基金会的支持。关于<i>ASPECT</i>的更多信息可在其<a href="https://aspect.geodynamics.org/">homepage</a>中找到。
+
+

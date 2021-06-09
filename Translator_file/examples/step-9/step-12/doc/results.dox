@@ -1,0 +1,135 @@
+examples/step-12/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+这个程序的输出包括控制台输出和vtk格式的解决方案。
+
+@code
+Cycle 0
+  Number of active cells:       64
+  Number of degrees of freedom: 256
+  Solver converged in 4 iterations.
+  Writing solution to <solution-0.vtk>
+  L-infinity norm: 1.09057
+Cycle 1
+  Number of active cells:       112
+  Number of degrees of freedom: 448
+  Solver converged in 9 iterations.
+  Writing solution to <solution-1.vtk>
+  L-infinity norm: 1.10402
+Cycle 2
+  Number of active cells:       214
+  Number of degrees of freedom: 856
+  Solver converged in 16 iterations.
+  Writing solution to <solution-2.vtk>
+  L-infinity norm: 1.09813
+Cycle 3
+  Number of active cells:       415
+  Number of degrees of freedom: 1660
+  Solver converged in 26 iterations.
+  Writing solution to <solution-3.vtk>
+  L-infinity norm: 1.09579
+Cycle 4
+  Number of active cells:       796
+  Number of degrees of freedom: 3184
+  Solver converged in 44 iterations.
+  Writing solution to <solution-4.vtk>
+  L-infinity norm: 1.09612
+Cycle 5
+  Number of active cells:       1561
+  Number of degrees of freedom: 6244
+  Solver converged in 81 iterations.
+  Writing solution to <solution-5.vtk>
+@endcode
+
+
+
+我们展示了初始网格的解决方案，以及经过两个和五个自适应细化步骤后的网格。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-12.sol-0.png" alt="">   <img src="https://www.dealii.org/images/steps/developer/step-12.sol-2.png" alt="">   <img src="https://www.dealii.org/images/steps/developer/step-12.sol-5.png" alt=""> 。
+
+最后我们展示一个3D计算的图。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-12.sol-5-3d.png" alt=""> 
+
+
+<a name="dg-vs-cg"></a>
+
+<h3>Why use discontinuous elements</h3>
+
+在这个程序中，我们使用了不连续的元素。这是一个合理的问题，为什么不简单地使用正常的、连续的元素呢？当然，对于每个有数值方法背景的人来说，答案是显而易见的：连续Galerkin（cG）方法对于输运方程是不稳定的，除非特别添加稳定项。然而，DG方法<i>is</i>则是稳定的。用目前的程序来说明这一点并不十分困难；事实上，只需要做以下的小修改就可以了。
+
+- 将该元素改为FE_Q，而不是FE_DGQ。
+
+- 以与步骤6完全相同的方式增加对悬挂节点约束的处理。
+
+- 我们需要一个不同的求解器；步骤29中的直接求解器是一个方便的选择。一个有经验的deal.II用户将能够在10分钟内完成这一工作。
+
+虽然上面显示了二维解决方案，在界面上含有一些小的尖峰，但是在网格细化的情况下，这些尖峰的高度是稳定的，当使用连续元素时，结果看起来有很大不同。
+
+ <table align="center">
+  <tr>
+    <td valign="top">
+      0 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-12.cg.sol-0.png" alt="">
+    </td>
+    <td valign="top">
+      1 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-12.cg.sol-1.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      2 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-12.cg.sol-2.png" alt="">
+    </td>
+    <td valign="top">
+      3 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-12.cg.sol-3.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      4 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-12.cg.sol-4.png" alt="">
+    </td>
+    <td valign="top">
+      5 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-12.cg.sol-5.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+在细化迭代5中，图像不能再以合理的方式绘制成三维图。因此我们展示了一个范围为 $[-1,2]$ 的彩色图（当然，精确解的解值位于 $[0,1]$ ）。在任何情况下，很明显，连续Galerkin解表现出振荡行为，随着网格的细化越来越差。
+
+如果出于某种原因想使用连续元素，有很多策略可以稳定cG方法。讨论这些方法超出了本教程程序的范围；例如，感兴趣的读者可以看看步骤31。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+鉴于在这种情况下确切的解是已知的，进一步扩展的一个有趣的途径是确认这个程序的收敛顺序。在目前的情况下，解是非光滑的，因此我们不能期望得到特别高的收敛阶，即使我们使用高阶元素。但是，即使解<i>is</i>光滑，方程也不是椭圆的，因此，我们应该得到等于最优插值估计的收敛阶，这一点并不明显（例如，我们通过使用二次元会得到 $h^3$ 在 $L^2$ 准则下的收敛）。
+
+事实上，对于双曲方程来说，理论预测常常表明，我们所能希望的最好结果是比插值估计值低二分之一的阶。例如，对于流线扩散法（此处用于稳定传输方程解的DG法的替代方法），可以证明对于度数为 $p$ 的元素，在任意网格上的收敛阶为 $p+\frac 12$ 。虽然在均匀细化的网格上观察到的顺序经常是 $p+1$ ，但人们可以构建所谓的彼得森网格，在这些网格上实际上达到了更差的理论约束。这应该是比较容易验证的，例如使用 VectorTools::integrate_difference 函数。
+
+一个不同的方向是观察运输问题的解决经常有不连续性，因此，我们<i>bisect</i>在每个坐标方向上的每个单元的网格可能不是最佳的。相反，一个更好的策略是只在平行于不连续的方向上切割单元。这被称为<i>anisotropic mesh refinement</i>，是步骤30的主题。
+
+

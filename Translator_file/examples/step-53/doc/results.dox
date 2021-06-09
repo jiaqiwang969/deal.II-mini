@@ -1,0 +1,128 @@
+examples/step-53/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行程序会产生一个网格文件 <code>mesh.vtu</code> ，我们可以用任何可以读取VTU文件格式的常规可视化程序来进行可视化。如果只看网格本身，实际上很难看到任何不只是看起来像一块完全圆形的球体的东西（尽管如果修改程序，使其确实产生一个球体，并同时看它们，整体球体和WGS 84形状之间的差异是相当明显的）。很明显，地球实际上是一个相当平坦的地方。当然，我们已经从卫星图片中知道了这一点。然而，我们可以通过对细胞的体积进行着色来找出更多的东西。这既产生了沿顶面的轻微色调变化，也为可视化程序提供了应用其着色算法的东西（因为单元的顶面现在不再只是与球体的切线，而是倾斜的）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-53.mesh.png" alt=""> 
+
+然而，至少就视觉化而言，这仍然不是太令人印象深刻。相反，让我们以一种可视化的方式，使我们显示出沿顶面的实际海拔。换句话说，我们想要一张这样的图片，有难以置信的细节。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-53.topo.png" alt=""> 
+
+这张照片的放大显示了相当清楚的垂直位移（这里，从西-西北方向看裂谷上空，<a href="http://en.wikipedia.org/wiki/Mount_Stanley">Mount Stanley</a>、<a href="http://en.wikipedia.org/wiki/Mount_Speke">Mount Speke</a>和<a href="http://en.wikipedia.org/wiki/Mount_Baker_%28Uganda%29">Mount Baker</a>的三座山峰在<a href="http://en.wikipedia.org/wiki/Rwenzori_Mountains">Rwenzori Range</a>、<a href="http://en.wikipedia.org/wiki/Lake_George_%28Uganda%29">Lake
+George</a>和向<a href="http://en.wikipedia.org/wiki/Lake_Victoria">Lake Victoria</a>的巨大平坦处）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-53.topozoom.png" alt=""> 
+
+
+这些图片是经过三个小的修改后产生的。<ol>  <li>  在这两张图片中，第一张图片的顶面增加了第七个网格细化，第二张图片总共增加了九个。在第二张图片中，水平方向的网格大小约为1.5km，垂直方向的网格大小略低于1km。(这张图也是用一个更有分辨率的数据集制作的；但是，它太大了，不能作为教程的一部分分发)。
+
+    <li>  增加以下函数，在给定一个点 <code>x</code> 时，通过将该点转换为参考WGS 84坐标并只保留深度变量来计算海拔高度（因此，该函数是 <code>AfricaGeometry::pull_back_wgs84()</code> 函数的简化版本）。
+
+@code
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/dofs/dof_handler.h>
+#include <deal.II/numerics/data_out.h>
+#include <deal.II/numerics/vector_tools.h>
+
+
+
+double get_elevation (const Point<3> &x)
+  {
+    const double R           = 6378137;
+    const double ellipticity = 8.1819190842622e-2;
+
+
+    const double b     = std::sqrt(R * R * (1 - ellipticity * ellipticity));
+    const double ep    = std::sqrt((R * R - b * b) / (b * b));
+    const double p     = std::sqrt(x(0) * x(0) + x(1) * x(1));
+    const double th    = std::atan2(R * x(2), b * p);
+    const double theta = std::atan2((x(2) + ep * ep * b * std::sin(th) * std::sin(th) * std::sin(th)),
+                                      (p - (ellipticity * ellipticity * R  * (std::cos(th) * std::cos(th) * std::cos(th)))));
+    const double R_bar = R / (std::sqrt(1 - ellipticity * ellipticity * std::sin(theta) * std::sin(theta)));
+    const double R_plus_d = p / std::cos(theta);
+
+
+    return R_plus_d - R_bar;
+  }
+@endcode
+
+
+
+    <li>  在 <code>run()</code> 函数的底部添加以下一块。
+
+@code
+      FE_Q<3>       fe(1);
+      DoFHandler<3> dof_handler (triangulation);
+      dof_handler.distribute_dofs(fe);
+
+
+      Vector<double> elevation (dof_handler.n_dofs());
+      {
+        std::map<unsigned int,double> boundary_values;
+        VectorTools::interpolate_boundary_values(dof_handler,
+                                                 5,
+                                                 ScalarFunctionFromFunctionObject<3>(get_elevation),
+                                                 boundary_values);
+        for (std::map<unsigned int,double>::const_iterator p = boundary_values.begin();
+             p!=boundary_values.end(); ++p)
+          elevation[p->first] = p->second;
+      }
+
+
+      DataOut<3>    data_out;
+      data_out.attach_dof_handler(dof_handler);
+      data_out.add_data_vector (elevation, "elevation");
+      data_out.build_patches();
+
+
+      std::ofstream out ("data.vtu");
+      data_out.write_vtu (out);
+@endcode
+
+ </ol>  这最后一段代码首先在网格上创建一个 $Q_1$ 有限元空间。然后使用 VectorTools::interpolate_boundary_values() 对顶部边界的每个节点（边界指标为5的节点）进行高程函数的评估。我们在这里用ScalarFunctionFromFunctionObject类来包装对 <code>get_elevation()</code> 的调用，使一个普通的C++函数看起来像一个派生自Function类的对象，我们想在 VectorTools::interpolate_boundary_values(). 中使用。然后像往常一样用DataOut输出这个向量，并可以如上图所示进行可视化。
+
+
+
+
+<h3>Issues with adaptively refined meshes generated this way</h3>
+
+如果你放大上图所示的网格并仔细观察，你会发现在悬空节点处，连接到悬空节点的两条小边与相邻单元的大边的位置不完全相同。这可以通过使用不同的表面描述来更清楚地显示出来，在这种描述中，我们放大了垂直地形以增强效果（由Alexander Grayver提供）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-53.smooth-geometry.png" alt=""> 
+
+那么这里发生了什么？部分原因是，这只是视觉化的结果，但也有一个潜在的真正原因。
+
+ <ul>   <li>  当你使用任何一个常见的可视化程序对网格进行可视化时，它们真正显示的只是一组在三维空间中被绘制成直线的边缘。这是因为几乎所有用于可视化的数据文件格式都只将六面体单元描述为三维空间中八个顶点的集合，而不允许任何更复杂的描述。这就是为什么 DataOut::build_patches() 需要一个可以设置为大于1的参数的主要原因）。这些线性边缘可能是你进行实际计算的单元格的边缘，也可能不是，这取决于你在使用FEValues进行积分时使用何种映射。当然，在默认情况下，FEValues使用的是线性映射（即MappingQ1类的对象），在这种情况下，一个3D单元确实完全由其8个顶点描述，它所填充的体积是这些点之间的三线插值，从而产生了线性边缘。但是，你也可以使用三次方、三次立方、甚至更高阶的映射，在这些情况下，每个单元的体积将由二次方、三次方或高阶多项式曲线来限定。然而，你只能在可视化程序中看到这些带有线性边缘的曲线，因为如前所述，文件格式不允许描述细胞的真实几何形状。
+
+    <li>  也就是说，为了简单起见，让我们假设你确实在使用三线性映射，那么上面显示的图像就是你形成积分的单元的忠实代表。在这种情况下，一般来说，悬空节点上的小单元并不与大单元紧密贴合，而是留有间隙，或者可能与大单元相交。这是为什么呢？   因为当三角测量需要在它想要细化的边缘上增加一个新的顶点时，它会询问流形描述这个新的顶点应该在哪里，流形描述通过（在从ChartManifold派生的几何体的情况下）将线的相邻点拉回到参考域，平均它们的位置，并将这个新的位置推到真实域，从而适当地返回这样一个点。但是这个新的位置通常不是沿着相邻顶点之间的直线（在实空间），因此，形成精炼边缘的两条小直线并不完全位于形成悬挂节点的未精炼边的一条大直线上。   </ul> 
+
+如果你使用MappingQ类的高阶映射，情况会稍微复杂一些，但没有根本的不同。我们暂且采用二次映射（高阶映射也没有什么根本性的变化）。那么你需要把你所整合的单元格的每条边想象成一条二次曲线，尽管你实际上不会看到可视化程序以这种方式绘制。但请先想象一下。那么，MappingQ采用哪条二次曲线呢？它是经过边缘末端的两个顶点以及中间的一个点的二次曲线，它从流形中查询。在未精炼一侧的长边的情况下，这当然正是悬空节点的位置，所以描述长边的二次曲线确实经过了悬空节点，这与线性映射的情况不同。但是两条小边也是二次曲线；例如，左边的小边会经过长边的左顶点和悬挂节点，再加上它从流形中查询到的一个点。因为如前所述，流形沿左小边中途返回的点很少完全在描述长边的二次曲线上，二次短边通常不会与二次长边的左半边重合，右短边也是如此。换句话说，同样的，大单元格和它在悬挂节点上的小邻居的几何形状并不相依相偎。
+
+这一切引出了两个问题：第一，这是否重要，第二，这是否可以解决。让我们在下文中讨论这些问题。
+
+ <ul>   <li>  这重要吗？几乎可以肯定的是，这取决于你所求解的方程。例如，众所周知，在复杂几何体上求解气体动力学的欧拉方程需要高度精确的边界描述，以确保衡量靠近边界的流动的量的收敛。另一方面，具有椭圆成分的方程（如拉普拉斯方程或斯托克斯方程）通常对这些问题比较宽容：无论如何都要做正交来近似积分，鉴于每个悬空节点的重叠或间隙的体积只有 ${\cal O}(h^d)$ ，进一步近似几何可能不会像人们担心的那样造成伤害。]，即使是线性映射，对于度数为 $p$ 的映射，也只有 ${\cal
+  O}(h^{d+p-1})$ 。 (你可以通过考虑到在2D中，间隙/重叠是一个三角形，底 $h$ ，高 ${\cal
+  O}(h)$ ；在3D中，它是一个类似金字塔的结构，底面积 $h^2$ ，高 ${\cal O}(h)$  。类似的考虑也适用于高阶映射，其中空隙/重叠的高度为  ${\cal O}(h^p)$  .)换句话说，如果你使用线性元素的线性映射，你所积分的体积的误差已经与使用通常的高斯正交的积分误差处于同一水平。当然，对于更高阶的元素，人们将不得不选择匹配的映射对象。
+
+  关于为什么不值得过分担心这个问题的另一个观点是，在数值分析界肯定没有人说这些问题是使用复杂几何体时需要注意的一个主要问题。如果从业者之间似乎并不经常讨论这个问题，如果有的话，那么它至少不是人们认定的一个普遍问题。
+
+  这个问题与在弯曲的边界上有悬挂的节点没有什么不同，在这种情况下，边界的几何描述通常会将悬挂的节点拉到边界上，而大的边缘仍然是直的，使得相邻的小单元和大单元不能相互匹配。虽然这种行为从一开始就存在于deal.II中，在流形描述出现之前的15年，但在邮件列表的讨论或与同事的交谈中，它从未出现过。
+
+    <li>  能否修复？原则上是的，但这是一个复杂的问题。我们暂且假设我们只会使用MappingQ1类，也就是线性映射。在这种情况下，每当三角化类需要沿着一条将成为悬空节点的边建立一个新的顶点时，它就会直接取相邻顶点的平均值<i>in real
+  space</i>，也就是说，不问流形的描述。这样一来，该点就位于长直边上，两条短直边将与一条长直边匹配。只有当所有相邻的单元都被细化，并且该点不再是一个悬挂的节点时，我们才会用通过流形得到的坐标来替换它的坐标。这在实现上可能比较麻烦，但肯定是可行的。
+
+  更复杂的问题出现了，因为人们可能想使用高阶的MappingQ对象。在这种情况下，Triangulation类可以自由选择悬挂节点的位置（因为长边的二次曲线可以选择通过悬挂节点的方式），但是MappingQ类在确定中边点的位置时，必须确保如果该边是相邻的较粗单元的长边的一半，那么中点不能从流形中获得，而必须沿着长二次边选择。对于立方体（和所有其他奇数）映射，这个问题又有点复杂了，因为人们通常安排立方体边沿着边的1/3和2/3点走，因此必然要通过悬挂的节点，但这可能是可以解决的。在任何情况下，即使如此，这也有两个问题。
+
+  - 在细化三角函数时，三角函数类不可能知道将使用什么映射。事实上，在同一个程序中，一个三角函数在不同的情况下被使用的情况并不罕见。如果使用的映射决定了我们是否可以自由选择一个点，那么，三角剖分应该如何定位新的顶点？
+
+  - 映射是纯粹的局部构造：它们只对孤立的单元起作用，而这正是有限元方法的重要特征之一。要问一条边的一个顶点是否是悬空节点，需要查询一个单元的邻域；此外，这样的查询不只是涉及到三维中一个单元的6个面的邻域，而是可能需要遍历与一条边相连的大量的其他单元。即使可以做到这一点，人们仍然需要根据邻域的样子做不同的事情，产生的代码可能非常复杂，难以维护，而且可能很慢。
+
+  因此，至少在目前，这些想法都没有被实施。这导致了不连续的几何形状的不良后果，但是，正如上面所讨论的，这种影响在实际操作中似乎并不构成问题。
+
+ </ul> 
+
+

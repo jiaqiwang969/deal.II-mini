@@ -1,0 +1,228 @@
+examples/step-29/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Moritz Allmaras at Texas A&amp;M
+University. Some of the work on this tutorial program has been funded
+by NSF under grant DMS-0604778.
+</i>
+
+<b>Note:</b> 为了运行这个程序，deal.II必须被配置为使用UMFPACK稀疏直接求解器。请参考<a
+href="../../readme.html#umfpack">ReadMe</a>中的说明如何做到这一点。
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+
+一个经常出现的问题是如何用deal.II解决涉及复值函数的问题。对于许多问题，与其直接使用复值有限元，不如将复值函数分成实部和虚部，并使用单独的标量有限元场来离散它们中的每一个，这样做往往更方便。基本上，这相当于把一个复值方程看作是两个实值方程的系统。这个简短的例子演示了如何在deal.II中通过使用 <code>FE_system</code> 对象来堆叠两个代表实部和虚部的有限元场来实现。(相反的方法，保持所有的复值，在另一个教程程序中演示：见步骤58)。当分成实部和虚部时，这里涉及的方程属于矢量值问题的范畴。这个主题的顶层概述可以在  @ref vector_valued  模块中找到。
+
+除了这些讨论，我们还讨论了ParameterHandler类，它提供了一种方便的方法，在运行时从配置文件中读取参数，而不需要重新编译程序代码。
+
+
+
+
+<h3>Problem setting</h3>
+
+这个程序的最初目的是模拟由一个几何形状可变的换能器透镜产生的超声波的聚焦特性。最近在医学成像方面的应用，不仅将超声波用于成像，而且还能激发材料中的某些局部效应，如光学特性的变化，然后可以用其他成像技术来测量。这些方法的一个重要因素是能够将超声波的强度集中在材料的一个特定部分，最好是一个点，以便能够检查该特定位置的材料特性。
+
+为了推导出这个问题的模型，我们把超声波看成是由波浪方程支配的压力波。
+
+@f[
+	\frac{\partial^2 U}{\partial t^2}	-	c^2 \Delta U = 0
+
+
+@f]
+
+其中 $c$ 是波速（为简单起见，我们假设为常数）， $U
+= U(x,t),\;x \in \Omega,\;t\in\mathrm{R}$  。边界 $\Gamma=\partial\Omega$ 分为两部分 $\Gamma_1$ 和 $\Gamma_2=\Gamma\setminus\Gamma_1$ ，其中 $\Gamma_1$ 代表换能器透镜， $\Gamma_2$ 是吸收边界（也就是说，我们希望在 $\Gamma_2$ 上选择边界条件，使其模仿一个更大的域）。在 $\Gamma_1$ 上，换能器产生一个恒定频率 ${\omega}>0$ 和恒定振幅（我们在这里选择为1）的波。
+
+@f[
+U(x,t) = \cos{\omega t}, \qquad x\in \Gamma_1
+
+
+@f]
+
+
+
+如果没有其他（内部或边界）源，并且由于唯一的源具有频率 $\omega$ ，那么解决方案可以接受形式为 $U(x,t) = \textrm{Re}\left(u(x)\,e^{i\omega
+t})\right)$ 的变量分离。复值函数 $u(x)$ 描述了频率为 ${\omega}$ 的波的振幅和相位（相对于源）的空间依赖性，其中振幅是我们感兴趣的量。通过将这种形式的解决方案插入波浪方程，我们看到，对于 $u$ ，我们有
+
+@f{eqnarray*}
+
+
+-\omega^2 u(x) - c^2\Delta u(x) &=& 0, \qquad x\in\Omega,\\
+u(x) &=& 1,  \qquad x\in\Gamma_1.
+
+
+@f}
+
+
+
+为了在 $\Gamma_2$ 上找到模拟吸收边界的合适条件，考虑一个频率为 ${\omega}$ 的波在 $k\in {\mathrm{R}^2}$ 方向上行驶。为了使 $V$ 能够解决波浪方程， $|k|={\frac{\omega}{c}}$ 必须成立。假设这个波以直角击中 $x_0\in\Gamma_2$ 的边界，即 $n=\frac{k}{|k|}$ ， $n$ 表示 $\Omega$ 在 $x_0$ 的外单位法线。然后在 $x_0$ ，这个波满足方程式
+
+@f[
+c (n\cdot\nabla V) + \frac{\partial V}{\partial t} = (i\, c\, |k| - i\, \omega) V = 0.
+
+
+@f]
+
+因此，通过强制执行边界条件
+
+@f[
+c (n\cdot\nabla U) + \frac{\partial U}{\partial t} = 0, \qquad x\in\Gamma_2,
+
+
+@f]
+
+以直角撞击边界 $\Gamma_2$ 的波将被完全吸收。另一方面，那些没有以直角撞击边界的波场部分不满足这个条件，将其作为边界条件强制执行会产生部分反射，即只有部分波会通过边界，就像它不在这里一样，而剩下的部分波会被反射回域中。
+
+如果我们愿意接受这一点作为吸收边界的充分近似，我们最终得出以下问题，对于 $u$  。
+
+@f{eqnarray*}
+
+
+-\omega^2 u - c^2\Delta u &=& 0, \qquad x\in\Omega,\\
+c (n\cdot\nabla u) + i\,\omega\,u &=&0, \qquad x\in\Gamma_2,\\
+u &=& 1,  \qquad x\in\Gamma_1.
+
+
+@f}
+
+这是一个亥姆霍兹方程（类似于步骤7中的方程，但这次有''坏符号''），在 $\Gamma_1$ 上有Dirichlet数据，在 $\Gamma_2$ 上有混合边界条件。由于 $\Gamma_2$ 上的条件，我们不能只是分别处理 $u$ 的实部和虚部方程。然而，我们可以把 $u$ 的PDE看作是 $u$ 的实部和虚部的两个PDE系统， $\Gamma_2$ 的边界条件代表系统中两个部分之间的耦合项。这是按以下思路进行的。让 $v=\textrm{Re}\;u,\; w=\textrm{Im}\;u$ ，然后在 $v$ 和 $w$ 方面，我们有以下系统。
+
+@f{eqnarray*}
+  \left.\begin{array}{ccc}
+
+
+    -\omega^2 v - c^2\Delta v &=& 0 \quad\\
+
+
+    -\omega^2 w - c^2\Delta w &=& 0 \quad
+  \end{array}\right\} &\;& x\in\Omega,
+	\\
+  \left.\begin{array}{ccc}
+    c (n\cdot\nabla v) - \omega\,w &=& 0 \quad\\
+    c (n\cdot\nabla w) + \omega\,v &=& 0 \quad
+  \end{array}\right\} &\;& x\in\Gamma_2,
+	\\
+	\left.\begin{array}{ccc}
+    v &=& 1 \quad\\
+    w &=& 0 \quad
+  \end{array}\right\} &\;& x\in\Gamma_1.
+
+
+@f}
+
+
+
+对于 $\phi,\psi$ 与 $\phi|_{\Gamma_1}=\psi|_{\Gamma_1}=0$ 的测试函数，经过通常的乘法，在 $\Omega$ 上的积分和应用部分积分，我们得到弱的表述
+
+@f{eqnarray*}
+
+
+-\omega^2 \langle \phi, v \rangle_{\mathrm{L}^2(\Omega)}
++ c^2 \langle \nabla \phi, \nabla v \rangle_{\mathrm{L}^2(\Omega)}
+
+
+- c \omega \langle \phi, w \rangle_{\mathrm{L}^2(\Gamma_2)} &=& 0, \\
+
+
+-\omega^2 \langle \psi, w \rangle_{\mathrm{L}^2(\Omega)}
++ c^2 \langle \nabla \psi, \nabla w \rangle_{\mathrm{L}^2(\Omega)}
++ c \omega \langle \psi, v \rangle_{\mathrm{L}^2(\Gamma_2)} &=& 0.
+
+
+@f}
+
+
+
+我们选择有限元空间 $V_h$ 和 $W_h$ ，基数为 $\{\phi_j\}_{j=1}^n,
+\{\psi_j\}_{j=1}^n$ ，寻找近似解
+
+@f[
+v_h = \sum_{j=1}^n \alpha_j \phi_j, \;\; w_h = \sum_{j=1}^n \beta_j \psi_j.
+
+
+@f]
+
+将其插入变异形式中，可以得到方程组
+
+@f[
+\renewcommand{\arraystretch}{2.0}
+\left.\begin{array}{ccc}
+\sum_{j=1}^n
+\left(
+
+
+-\omega^2 \langle \phi_i, \phi_j \rangle_{\mathrm{L}^2(\Omega)}
++ c^2 \langle \nabla \phi_i, \nabla \phi_j \rangle_{\mathrm{L}^2(\Omega)}
+\right)
+\alpha_j
+
+
+- \left(
+c\omega \langle \phi_i,\psi_j\rangle_{\mathrm{L}^2(\Gamma_2)}\right)\beta_j
+&=& 0 \\
+\sum_{j=1}^n
+\left(
+
+
+-\omega^2 \langle \psi_i, \psi_j \rangle_{\mathrm{L}^2(\Omega)}
++ c^2 \langle \nabla \psi_i, \nabla \psi_j \rangle_{\mathrm{L}^2(\Omega)}
+\right)\beta_j
++ \left(
+c\omega \langle
+\psi_i,\phi_j\rangle_{\mathrm{L}^2(\Gamma_2)}
+\right)\alpha_j
+&=& 0
+\end{array}\right\}\;\;\forall\; i =1,\ldots,n.
+
+
+@f]
+
+用矩阵符号表示。
+
+@f[
+\renewcommand{\arraystretch}{2.0}
+\left(
+\begin{array}{cc}
+
+
+-\omega^2 \langle \phi_i, \phi_j \rangle_{\mathrm{L}^2(\Omega)}
++ c^2 \langle \nabla \phi_i, \nabla \phi_j \rangle_{\mathrm{L}^2(\Omega)}
+& -c\omega \langle \phi_i,\psi_j\rangle_{\mathrm{L}^2(\Gamma_2)} \\
+c\omega \langle \psi_i,\phi_j\rangle_{\mathrm{L}^2(\Gamma_2)}
+& -\omega^2 \langle \psi_{i}, \psi_j \rangle_{\mathrm{L}^2(\Omega)}
++ c^2 \langle \nabla \psi_{i}, \nabla \psi_j  \rangle_{\mathrm{L}^2(\Omega)}
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+\alpha \\ \beta
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+0 \\ 0
+\end{array}
+\right)
+
+
+@f]
+
+(不要被这里的右手边为零所迷惑，那是因为我们还没有包括Dirichlet边界数据)。由于非对角线区块的交替符号，我们已经可以看到这个系统是非对称的，事实上它甚至是不确定的。当然，没有必要选择空间 $V_h$ 和 $W_h$ 是相同的。然而，我们期望解的实部和虚部具有类似的性质，因此在实现中确实会采取 $V_h=W_h$ ，并且也会对两个空间使用相同的基函数 $\phi_i = \psi_i$ 。使用不同符号的原因只是让我们能够区分 $v$ 和 $w$ 的形状函数，因为这种区分在实施中起着重要作用。
+
+
+
+
+<h3>The test case</h3>
+
+在计算中，我们将考虑波在单位方阵中的传播，超声由换能器透镜产生，透镜的形状是圆的一段，中心在 $(0.5, d)$ ，半径略大于 $d$ ；这种形状应该导致声波在圆中心的聚焦。改变 $d$ 会改变透镜的 "焦点"，并影响 $u$ 强度的空间分布，我们主要关注的是 $|u|=\sqrt{v^2+w^2}$ 的聚焦效果如何。
+
+在下面的程序中，我们将使用实部和虚部分裂的公式来实现复值亥姆霍兹方程。我们还将讨论如何生成一个看起来像正方形并带有轻微隆起的模拟换能器的域（在 <code>UltrasoundProblem<dim>::make_grid()</code> 函数中），以及如何生成不仅包含解分量 $v$ 和 $w$ ，而且直接在输出文件中包含幅值 $\sqrt{v^2+w^2}$ 的图形输出（在 <code>UltrasoundProblem<dim>::output_results()</code> ）。最后，我们使用ParameterHandler类来轻松读取参数，如焦距 $d$ 、波速 $c$ 、频率 $\omega$ ，以及在运行时从输入文件中读取其他一些参数，而不是在源代码中固定这些参数，因为每次我们想改变参数时，都必须重新编译。
+
+

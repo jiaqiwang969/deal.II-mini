@@ -1,0 +1,728 @@
+examples/step-22/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Martin Kronbichler and Wolfgang
+Bangerth.
+<br>
+This material is based upon work partly supported by the National
+Science Foundation under Award No. EAR-0426271 and The California Institute of
+Technology. Any opinions, findings, and conclusions or recommendations
+expressed in this publication are those of the author and do not
+necessarily reflect the views of the National Science Foundation or of The
+California Institute of Technology.
+</i>
+
+
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这个程序处理斯托克斯方程组，其非维度形式如下。
+
+@f{eqnarray*}
+
+
+  -2\; \textrm{div}\; \varepsilon(\textbf{u}) + \nabla p &=& \textbf{f},
+  \\
+
+
+  -\textrm{div}\; \textbf{u} &=& 0,
+
+
+@f}
+
+其中 $\textbf u$ 表示流体的速度， $p$ 是其压力， $\textbf f$ 是外力， $\varepsilon(\textbf{u})= \nabla^s{\textbf{u}}= \frac 12 \left[
+(\nabla \textbf{u}) + (\nabla \textbf{u})^T\right]$ 是对称梯度的第2级张量；它的分量定义是 $\varepsilon(\textbf{u})_{ij}=\frac
+12\left(\frac{\partial u_i}{\partial x_j} + \frac{\partial u_j}{\partial x_i}\right)$  。
+
+斯托克斯方程描述了缓慢移动的粘性流体的稳态运动，如蜂蜜、地幔中的岩石，或其他惯性不起作用的情况。如果流体的运动速度足够快，与粘性摩擦力相比，惯性力很重要，那么斯托克斯方程就不再有效；考虑到惯性效应，就会产生非线性纳维-斯托克斯方程。然而，在这个教程程序中，我们将重点关注更简单的斯托克斯系统。
+
+请注意，在推导更一般的可压缩纳维-斯托克斯方程时，扩散被建模为应力张量的发散。
+
+@f{eqnarray*}
+  \tau = - \mu (2\varepsilon(\textbf{u}) - \frac{2}{3}\nabla \cdot \textbf{u} I),
+
+
+@f}
+
+其中 $\mu$ 是流体的粘度。有了 $\mu=1$ 的假设（假设粘度恒定，通过除以 $\mu$ 使方程非立体化），并假设不可压缩性（ $\textrm{div}\; \textbf{u}=0$ ），我们就可以得出上面的公式。
+
+@f{eqnarray*}
+  \textrm{div}\; \tau = -2\textrm{div}\;\varepsilon(\textbf{u}).
+
+
+@f}
+
+一个不同的公式使用拉普拉斯算子（ $-\triangle \textbf{u}$ ）而不是对称梯度。这里一个很大的区别是，速度的不同分量并不耦合。如果你假定解的额外规律性 $\textbf{u}$ （第二部分导数存在并且是连续的），这些公式是等同的。
+
+@f{eqnarray*}
+  \textrm{div}\; \tau
+  = -2\textrm{div}\;\varepsilon(\textbf{u})
+  = -\triangle \textbf{u} + \nabla \cdot (\nabla\textbf{u})^T
+  = -\triangle \textbf{u}.
+
+
+@f}
+
+这是因为 $i$ 中的第1个条目 $\nabla \cdot (\nabla\textbf{u})^T$ 是由以下内容给出的。
+
+@f{eqnarray*}
+[\nabla \cdot (\nabla\textbf{u})^T]_i
+= \sum_j \frac{\partial}{\partial x_j} [(\nabla\textbf{u})^T]_{i,j}
+= \sum_j \frac{\partial}{\partial x_j} [(\nabla\textbf{u})]_{j,i}
+= \sum_j \frac{\partial}{\partial x_j} \frac{\partial}{\partial x_i} \textbf{u}_j
+= \sum_j \frac{\partial}{\partial x_i} \frac{\partial}{\partial x_j} \textbf{u}_j
+= \frac{\partial}{\partial x_i} \textrm{div}\; \textbf{u}
+= 0.
+
+
+@f}
+
+如果你不能假设上述的规律性，或者你的粘度不是一个常数，那么这个等价关系就不再成立。因此，我们决定在本教程中坚持使用物理上更准确的对称张量公式。
+
+
+为了得到良好的解决，我们将不得不在方程中加入边界条件。一旦我们讨论方程的微弱形式，哪些边界条件在这里是容易做到的就会变得清晰。
+
+这里所涉及的方程属于矢量值问题的范畴。这个主题的顶层概述可以在 @ref vector_valued 模块中找到。
+
+
+
+
+<h3>Weak form</h3>
+
+通过将其写成矢量形式，可以得到方程的弱形式为
+
+@f{eqnarray*}
+  \begin{pmatrix}
+    {-2\; \textrm{div}\; \varepsilon(\textbf{u}) + \nabla p}
+    \\
+    {-\textrm{div}\; \textbf{u}}
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+  {\textbf{f}}
+  \\
+  0
+  \end{pmatrix},
+
+
+@f}
+
+从左边开始与一个矢量值测试函数 $\phi = \begin{pmatrix}\textbf{v} \\ q\end{pmatrix}$ 形成点积，并在域 $\Omega$ 上进行积分，得到以下一组方程。
+
+@f{eqnarray*}
+  (\mathrm v,
+
+
+   -2\; \textrm{div}\; \varepsilon(\textbf{u}) + \nabla p)_{\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+  =
+  (\textbf{v}, \textbf{f})_\Omega,
+
+
+@f}
+
+这对所有的测试函数都必须成立  $\phi = \begin{pmatrix}\textbf{v}
+\\ q\end{pmatrix}$  。
+
+一般来说，一个好的经验法则是，如果一个人<i>can</i>减少公式中任何变量的导数，那么他<i>should</i>实际上是用部分积分来做。这是由<a
+href="https://en.wikipedia.org/wiki/Partial_differential_equation">partial
+differential equations</a>的理论引起的，特别是强和<a href="https://en.wikipedia.org/wiki/Weak_solution">weak
+solutions</a>之间的区别）。我们已经为拉普拉斯方程做了这个工作，在那里我们对第二导数进行了分项积分，以获得在测试和试验函数上都只有一个导数的弱表述。
+
+在当前情况下，我们对第二项进行分项积分。
+
+@f{eqnarray*}
+  (\textbf{v}, -2\; \textrm{div}\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+  - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+  + (\textbf{n}\cdot\textbf{v}, p)_{\partial\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+  =
+  (\textbf{v}, \textbf{f})_\Omega.
+
+
+@f}
+
+同样地，我们对第一项进行分项积分，得到
+
+@f{eqnarray*}
+  (\nabla \textbf{v}, 2\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+  -
+  (\textbf{n} \otimes \textbf{v}, 2\; \varepsilon(\textbf{u}))_{\partial\Omega}
+
+
+  - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+  + (\textbf{n}\cdot\textbf{v}, p)_{\partial\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+  =
+  (\textbf{v}, \textbf{f})_\Omega,
+
+
+@f}
+
+其中，两个张量值的量之间的标量乘积在此定义为
+
+@f{eqnarray*}
+  (\nabla \textbf{v}, 2\; \varepsilon(\textbf{u}))_{\Omega}
+  =
+  2 \int_\Omega \sum_{i,j=1}^d \frac{\partial v_j}{\partial x_i}
+  \varepsilon(\textbf{u})_{ij} \ dx.
+
+
+@f}
+
+利用这一点，我们现在已经将对我们的变量的要求降低到 $\mathbf u,\mathbf v$ 的一阶导数，而对 $p,q$ 完全没有导数。
+
+因为像 $\nabla\textbf{v}$ 这样的一般张量和 $\varepsilon(\textbf{u})$ 这样的对称张量之间的标量积等于两者的对称形式之间的标量积，我们也可以把上面的双线性形式写成如下。
+
+@f{eqnarray*}
+  (\varepsilon(\textbf{v}), 2\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+  -
+  (\textbf{n} \otimes \textbf{v}, 2\; \varepsilon(\textbf{u}))_{\partial\Omega}
+
+
+  - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+  + (\textbf{n}\cdot\textbf{v}, p)_{\partial\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+  =
+  (\textbf{v}, \textbf{f})_\Omega,
+
+
+@f}
+
+我们将在下一节处理边界条款，但从域条款中已经可以看出
+
+@f{eqnarray*}
+  (\varepsilon(\textbf{v}), 2\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+  - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+
+
+@f}
+
+的双线性形式，斯托克斯方程产生一个对称的双线性形式，并因此产生一个对称的（如果是不确定的）系统矩阵。
+
+
+
+
+<h3>Boundary conditions</h3>
+
+ @dealiiVideoLecture{21.5}  （  @dealiiVideoLectureSeeAlso{21.55,21.6,21.65})  。
+
+刚刚导出的弱形式立即为我们提供了施加边界条件的不同可能性。<ol>  <li>  迪里希特速度边界条件。在一个部分 $\Gamma_D\subset\partial\Omega$ ，我们可以对速度 $\textbf u$ 施加迪里希特条件。
+
+    @f{eqnarray*}
+        \textbf u = \textbf g_D \qquad\qquad \textrm{on}\ \Gamma_D.
+    @f}
+
+    因为测试函数 $\textbf{v}$ 来自解变量的切线空间，我们有 $\textbf{v}=0$ 对 $\Gamma_D$ ，因此有@f{eqnarray*}
+
+
+      -(\textbf{n} \otimes \mathrm
+        v, 2\; \varepsilon(\textbf{u}))_{\Gamma_D}
+      +
+      (\textbf{n}\cdot\textbf{v}, p)_{\Gamma_D}
+      = 0.
+    @f}。
+
+    换句话说，像往常一样，强加的边界值并没有出现在弱形式中。
+
+    值得注意的是，如果我们在整个边界上施加迪里希特边界值，那么压力就只能确定到一个常数。这方面的算法实现将使用类似于步骤11中的工具。
+
+ <li>  诺伊曼型或自然边界条件。在边界的其余部分 $\Gamma_N=\partial\Omega\backslash\Gamma_D$ ，让我们把边界条款重新写成如下。     @f{eqnarray*}
+
+
+      -(\textbf{n} \otimes \mathrm
+        v, 2\; \varepsilon(\textbf{u}))_{\Gamma_N}
+      +
+      (\textbf{n}\cdot\textbf{v}, p)_{\Gamma_N}
+      &=&
+      \sum_{i,j=1}^d
+
+
+      -(n_i v_j, 2\; \varepsilon(\textbf{u})_{ij})_{\Gamma_N}
+      +
+      \sum_{i=1}^d
+      (n_i v_i, p)_{\Gamma_N}
+      \\
+      &=&
+      \sum_{i,j=1}^d
+
+
+      -(n_i v_j, 2\; \varepsilon(\textbf{u})_{ij})_{\Gamma_N}
+      +
+      \sum_{i,j=1}^d
+      (n_i v_j, p \delta_{ij})_{\Gamma_N}
+      \\
+      &=&
+      \sum_{i,j=1}^d
+      (n_i v_j,p \delta_{ij} - 2\; \varepsilon(\textbf{u})_{ij})_{\Gamma_N}
+      \\
+      &=&
+      (\textbf{n} \otimes \textbf{v},
+      p \textbf{I} - 2\; \varepsilon(\textbf{u}))_{\Gamma_N}.
+      \\
+      &=&
+      (\textbf{v},
+       \textbf{n}\cdot [p \textbf{I} - 2\; \varepsilon(\textbf{u})])_{\Gamma_N}.
+    @f}
+
+    换句话说，在边界的诺伊曼部分，我们可以规定总应力的数值。     @f{eqnarray*}
+      \textbf{n}\cdot [p \textbf{I} - 2\; \varepsilon(\textbf{u})]
+      =
+      \textbf g_N \qquad\qquad \textrm{on}\ \Gamma_N.
+    @f}
+
+    如果边界被细分为Dirichlet和Neumann部分  $\Gamma_D,\Gamma_N$  ，这就导致了以下弱形式。     @f{eqnarray*}
+      (\varepsilon(\textbf{v}), 2\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+      - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+
+
+      -
+      (q,\textrm{div}\; \textbf{u})_{\Omega}
+      =
+      (\textbf{v}, \textbf{f})_\Omega
+
+
+      -
+      (\textbf{v}, \textbf g_N)_{\Gamma_N}.
+    @f}
+
+
+
+
+ <li>  罗宾式边界条件。罗宾式边界条件是迪里切特和诺伊曼边界条件的混合物。它们将读作@f{eqnarray*}
+      \textbf{n}\cdot [p \textbf{I} - 2\; \varepsilon(\textbf{u})]
+      =
+      \textbf S \textbf u \qquad\qquad \textrm{on}\ \Gamma_R,
+    @f}。
+
+    有一个等级2的张量（矩阵）  $\textbf S$  。相关的弱形式是@f{eqnarray*}
+      (\varepsilon(\textbf{v}), 2\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+      - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+
+
+      -
+      (q,\textrm{div}\; \textbf{u})_{\Omega}
+      +
+      (\textbf S \textbf u, \textbf{v})_{\Gamma_R}
+      =
+      (\textbf{v}, \textbf{f})_\Omega.
+    @f} 。
+
+
+
+ <li>  部分边界条件。可以通过只对速度的某些分量强制执行Dirichlet和Neumann边界条件来结合它们。例如，施加人工边界条件的一种方法是要求流动垂直于边界，即切向分量 $\textbf u_{\textbf t}=(\textbf
+    1-\textbf n\otimes\textbf n)\textbf u$ 为零，从而约束速度的 <code>dim</code> -1分量。剩下的分量可以通过要求法向应力的法向分量为零来约束，产生以下一组边界条件。     @f{eqnarray*}
+      \textbf u_{\textbf t} &=& 0,
+      \\
+      \textbf n \cdot \left(\textbf{n}\cdot [p \textbf{I} - 2\;
+      \varepsilon(\textbf{u})] \right)
+      &=&
+      0.
+    @f}
+
+
+
+    另一种情况是当人们希望流动是<i>parallel</i>而不是垂直于边界时（在deal.II中， VectorTools::compute_no_normal_flux_constraints 函数可以为你这样做）。这种情况经常发生在自由边界的问题上（例如，在河流或湖泊的表面，如果流动的垂直力不足以使表面实际变形），或者如果边界对流体没有施加明显的摩擦力（例如，在地幔和地核的界面上，两种流体因密度不同而相遇，但它们的粘度都很小，不会对彼此产生很大的切向应力）。     在公式中，这意味着@f{eqnarray*}
+      \textbf{n}\cdot\textbf u &=& 0,
+      \\
+      (\textbf 1-\textbf n\otimes\textbf n)
+      \left(\textbf{n}\cdot [p \textbf{I} - 2\;
+      \varepsilon(\textbf{u})] \right)
+      &=&
+      0,
+    @f}
+
+    第一个条件（需要强加）固定了速度的一个分量，第二个条件（将在弱形式下强制执行）固定了其余的两个分量。   </ol> 
+
+尽管有这么多的可能性，我们在这个教程程序中只使用迪里希特和（同质）诺伊曼边界条件。
+
+
+
+
+<h3>Discretization</h3>
+
+如上所述，在 $\Gamma_D$ 和 $\Gamma_N$ 上有迪里希特和诺伊曼边界条件的方程的弱形式是这样的：找到 $\textbf u\in \textbf V_g = \{\varphi \in H^1(\Omega)^d: \varphi_{\Gamma_D}=\textbf
+g_D\}, p\in Q=L^2(\Omega)$ ，以便
+
+@f{eqnarray*}
+  (\varepsilon(\textbf{v}), 2\; \varepsilon(\textbf{u}))_{\Omega}
+
+
+  - (\textrm{div}\; \textbf{v}, p)_{\Omega}
+
+
+  -
+  (q,\textrm{div}\; \textbf{u})_{\Omega}
+  =
+  (\textbf{v}, \textbf{f})_\Omega
+
+
+  -
+  (\textbf{v}, \textbf g_N)_{\Gamma_N}
+
+
+@f}
+
+为所有测试函数  $\textbf{v}\in \textbf V_0 = \{\varphi \in H^1(\Omega)^d: \varphi_{\Gamma_D}=0\},q\in
+Q$  。
+
+这些方程代表一个对称的<a
+href="https://en.wikipedia.org/wiki/Ladyzhenskaya%E2%80%93Babu%C5%A1ka%E2%80%93Brezzi_condition">saddle
+point problem</a>。众所周知，那么只有当我们寻找解决方案的函数空间必须满足某些条件时，解决方案才会存在，这些条件通常被称为Babuska-Brezzi或Ladyzhenskaya-Babuska-Brezzi（LBB）条件。上面的连续函数空间满足这些条件。然而，当我们将方程离散化，用有限维空间中的有限元函数取代连续变量和检验函数 $\textbf V_{g,h}\subset \textbf V_g,
+Q_h\subset Q$ 时，我们必须确保 $\textbf V_h,Q_h$ 也满足LBB条件。这与我们在第20步中要做的事情类似。
+
+对于斯托克斯方程，有许多可能的选择来确保有限元空间与LBB条件兼容。一个简单而准确的选择是 $\textbf u_h\in Q_{p+1}^d,
+p_h\in Q_p$ ，即对速度使用比压力高一阶的元素。
+
+这就导致了以下的离散问题：找到 $\textbf u_h,p_h$ ，以便于
+
+@f{eqnarray*}
+  (\varepsilon(\textbf{v}_h), 2\; \varepsilon(\textbf u_h))_{\Omega}
+
+
+  - (\textrm{div}\; \textbf{v}_h, p_h)_{\Omega}
+
+
+  -
+  (q_h,\textrm{div}\; \textbf{u}_h)_{\Omega}
+  =
+  (\textbf{v}_h, \textbf{f})_\Omega
+
+
+  -
+  (\textbf{v}_h, \textbf g_N)_{\Gamma_N}
+
+
+@f}
+
+为所有测试函数  $\textbf{v}_h, q_h$  。组装与此问题相关的线性系统遵循  @ref step_20  "步骤-20"、步骤-21中使用的相同路线，并在  @ref
+vector_valued  模块中详细解释。
+
+
+
+
+<h3>Linear solver and preconditioning issues</h3>
+
+离散方程的微弱形式自然导致了以下速度场和压力场的节点值的线性系统。
+
+@f{eqnarray*}
+  \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+  \left(\begin{array}{c}
+    U \\ P
+  \end{array}\right)
+  =
+  \left(\begin{array}{c}
+    F \\ G
+  \end{array}\right),
+
+
+@f}
+
+与第20步和第21步一样，我们将通过形成舒尔补数来解决这个方程组，也就是说，我们将首先找到 $P$ 的解。
+
+@f{eqnarray*}
+  BA^{-1}B^T P &=& BA^{-1} F - G, \\
+
+
+@f}
+
+然后
+
+@f{eqnarray*}
+  AU &=& F - B^TP.
+
+
+@f}
+
+我们这样做的方式与我们在以前的这些教程程序中做的差不多，也就是说，我们再次使用相同的类 <code>SchurComplement</code> 和 <code>InverseMatrix</code> 。然而，有两个显著的区别。
+
+<ol>  <li>  首先，在混合拉普拉斯方程中，我们必须处理如何对舒尔补数 $B^TM^{-1}B$ 进行预处理的问题，它在谱上等同于压力空间上的拉普拉斯算子（因为 $B$ 代表梯度算子， $B^T$ 代表其邻接算子 $-\textrm{div}$ ，而 $M$ 代表身份（直到材料参数 $K^{-1}$ 为止），因此 $B^TM^{-1}B$ 类似于 $-\textrm{div} \mathbf 1 \nabla = -\Delta$ ）。因此，对于小的网格尺寸来说，矩阵的条件很差，我们不得不为Schur补数提出一个精心设计的预处理方案。
+
+ <li>  其次，每次我们与 $B^TM^{-1}B$ 相乘时，我们必须用质量矩阵 $M$ 来解决。然而，这并不特别困难，因为质量矩阵总是有很好的条件的，所以使用CG和一点点预处理就能简单地反转。  换句话说， </ol> 的内部求解器的预处理很简单，而 $B^TM^{-1}B$ 的外部求解器的预处理很复杂。
+
+在这里，情况几乎完全相反。差异源于这样一个事实，即舒尔补码的核心矩阵不是来自身份算子，而是来自拉普拉斯算子的一个变体， $-\textrm{div} \nabla^s$ （其中 $\nabla^s$ 是对称梯度），作用于一个矢量场。在对这个问题的研究中，我们主要遵循D. Silvester和A. Wathen的论文。"稳定的斯托克斯系统的快速迭代解第二部分。使用一般块状先决条件"。(SIAM J. Numer.Anal., 31 (1994), pp. 1352-1367)，可在线查阅<a
+href="http://siamdl.aip.org/getabs/servlet/GetabsServlet?prog=normal&id=SJNAAM000031000005001352000001&idtype=cvips&gifs=Yes" target="_top">here</a>。主要来说，舒尔补码的核心矩阵的差异有两个后果。
+
+<ol>  <li>  首先，它使外部预处理变得简单：Schur补数对应于压力空间上的算子 $-\textrm{div} (-\textrm{div} \nabla^s)^{-1}
+\nabla$ ；忘记我们处理的是对称梯度而不是常规梯度的事实，Schur补数类似于 $-\textrm{div} (-\textrm{div} \nabla)^{-1} \nabla =
+
+
+-\textrm{div} (-\Delta)^{-1} \nabla$ ，即使在数学上不完全简明，在光谱上也等同于身份算子（一个启发式的论证是将算子换算成 $-\textrm{div}(-\Delta)^{-1} \nabla = -\textrm{div}\nabla(-\Delta)^{-1} =
+
+
+-\Delta(-\Delta)^{-1} = \mathbf 1$ ）。事实证明，用CG方法直接解决这个Schur补数并不容易：在没有预处理的情况下，Schur补数矩阵的条件数取决于最大和最小单元的大小比，而且仍然需要50-100次CG迭代。然而，有一个简单的解决办法：用压力空间上的质量矩阵进行预处理，我们就可以减少到5-15次CG迭代，几乎不受网格结构的影响（看看这个程序的<a href="#Results">results section</a>，可以看到CG迭代的数量确实不会随着我们细化网格而改变）。
+
+因此，除了我们已经有的东西之外，我们需要的是压力变量上的质量矩阵，我们将把它存储在一个单独的对象中。
+
+
+
+
+ <li>  虽然与第20步讨论的混合拉普拉斯情况相比，外部预调节器变得简单了，但内部求解器的问题却变得更加复杂。在混合拉普拉斯离散化中，舒尔补数的形式为  $B^TM^{-1}B$  。因此，每当我们与舒尔补码相乘时，我们必须解决一个线性系统 $M_uz=y$ ；然而，这并不太复杂，因为压力空间上的质量矩阵 $M_u$ 是有条件的。
+
+
+另一方面，对于我们这里考虑的斯托克斯方程，舒尔补码是 $BA^{-1}B^T$ ，其中矩阵 $A$ 与拉普拉斯算子有关（事实上，它是对应于双线性形式 $(\nabla^s \varphi_i, \nabla^s\varphi_j)$ 的矩阵）。因此，用 $A$ 求解要复杂得多：矩阵的条件很差，我们知道我们需要很多迭代，除非我们有一个非常好的预处理程序。更糟糕的是，我们每次与舒尔补码相乘时都要用 $A$ 求解，使用上述的预处理程序需要5-15次。
+
+因为我们必须多次用 $A$ 求解，所以多花一次时间为这个矩阵创建一个好的预处理程序是值得的。所以我们要做的是：如果在2d中，我们使用终极预处理程序，即矩阵的直接稀疏LU分解。这是用SparseDirectUMFPACK类实现的，它使用UMFPACK直接求解器来计算分解。要使用它，你必须建立支持UMFPACK的deal.II（这是默认的）；参见<a href="../../readme.html#optional-software">ReadMe file</a>中的说明。有了它，内解器在一次迭代中就能收敛。
+
+在2D中，我们可以做这种事情，因为即使是合理的大问题，也很少有超过100,000个未知数的，每行的非零项相对较少。此外，2D中矩阵的带宽是 ${\cal
+O}(\sqrt{N})$ ，因此是中等的。对于这样的矩阵，稀疏因子可以在几秒钟内计算出来。作为参考，计算一个大小为 $N$ 、带宽为 $B$ 的矩阵的稀疏因子需要 ${\cal
+O}(NB^2)$ 次操作。在2d中，这是 ${\cal O}(N^2)$ ；尽管这比例如组装线性系统的复杂度要高，后者需要 ${\cal
+O}(N)$ ，但计算分解的常数非常小，直到我们达到非常大的未知数%，甚至更多，它才成为整个程序中的主导因素）。)
+
+情况在3D中发生了变化，因为在那里我们很快就会有更多的未知数，而且矩阵的带宽（决定了稀疏LU因子中非零项的数量）是 ${\cal O}(N^{2/3})$ ，而且每行也有很多条目。这使得像UMFPACK这样的稀疏直接求解器的效率很低：只有在问题规模为10,000到100,000个未知数时，才能用合理的时间和内存资源计算稀疏分解。
+
+在这种情况下，我们要做的是使用一个不完整的LU分解（ILU）作为预处理，而不是实际计算完整的LU因子。恰好，deal.II有一个类可以做到这一点。SparseILU。计算ILU所需要的时间只取决于稀疏矩阵中的非零项的数量（或者说我们愿意填入LU因子，如果这些非零项应该多于矩阵中的非零项），但与矩阵的带宽无关。因此，这也是一个可以有效地在三维中计算的操作。另一方面，根据定义，一个不完整的LU分解并不代表矩阵的精确逆  $A$  。因此，与稀疏直接求解器的预处理不同，用ILU进行预处理仍然需要一次以上的迭代。因此，当与舒尔补码相乘时，内解器将花费更多时间：这是一个不可避免的权衡。   </ol> 
+
+在下面的程序中，我们将利用SparseILU和SparseDirectUMFPACK类具有非常相似的接口，可以互换使用的事实。我们所需要的是一个开关类，根据维度的不同，提供一个类型，即上述两个类中的任何一个。我们就是这样做的。
+
+@code
+template <int dim>
+struct InnerPreconditioner;
+
+
+template <>
+struct InnerPreconditioner<2>
+{
+  using type = SparseDirectUMFPACK;
+};
+
+
+template <>
+struct InnerPreconditioner<3>
+{
+  using type = SparseILU<double>;
+};
+@endcode
+
+
+
+从这里开始，我们可以引用<code>typename  InnerPreconditioner@<dim@>::%type</code> 这个类型，并自动得到正确的预处理程序类。由于这两个类的接口相似，我们将能够在所有地方使用相同的语法来互换使用它们。
+
+
+
+
+<h4> Is this how one should solve the Stokes equations? </h4>
+
+上面的讨论显示了解决由斯托克斯方程产生的线性系统的*种方式，由于辅导程序是教学工具，这是有意义的。但这是解决这个方程组的**方式吗？
+
+这个问题的答案是否定的。上面已经指出了这个方法的主要瓶颈，就是我们必须反复求解Schur补数内的 $A$ 线性系统，由于我们没有一个好的Schur补数的预处理程序，这些求解就不得不经常发生。一个更好的方法是使用块分解，这是基于Silvester和Wathen  @cite SW94 的观察，在 @cite elman2005 中有更详细的解释。下面在本程序的结果部分的a <a href="#block-schur">block Schur
+complementation preconditioner</a>一节中讨论了这种替代方法的实现。
+
+
+
+
+<h4> A note on the structure of the linear system </h4>
+
+以上，我们已经声称线性系统的形式是
+
+@f{eqnarray*}
+  \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+  \left(\begin{array}{cc}
+    U \\ P
+  \end{array}\right)
+  =
+  \left(\begin{array}{cc}
+    F \\ G
+  \end{array}\right),
+
+
+@f}
+
+即，特别是在矩阵的右下方有一个零块。这样，我们就可以把舒尔补码写成 $S=B A^{-1} B^T$  。但这并不完全正确。
+
+想一想，如果对某些压力变量有约束会怎样（见 @ref constraints "自由度的约束 "文件模块），例如因为我们使用自适应细化网格和连续压力有限元，所以会有悬挂节点。造成这种约束的另一个原因是压力的迪里希特边界条件。然后，AffineConstraints类，在将矩阵的局部贡献复制到全局线性系统时，会将对应于受限自由度的行和列清零，并在对角线上放一个正条目。为了简单起见，你可以认为这个条目是1，尽管实际上它是一个与其他矩阵条目相同数量级的值）。换句话说，右下角区块其实根本不是空的：它在对角线上有几个条目，每个受限的压力自由度都有一个，对我们要解决的线性系统的正确描述是，它的形式如下
+
+@f{eqnarray*}
+  \left(\begin{array}{cc}
+    A & B^T \\ B & D_c
+  \end{array}\right)
+  \left(\begin{array}{cc}
+    U \\ P
+  \end{array}\right)
+  =
+  \left(\begin{array}{cc}
+    F \\ G
+  \end{array}\right),
+
+
+@f}
+
+其中 $D_c$ 是零矩阵，除了受限自由度的正对角线项。那么正确的舒尔补码实际上是矩阵 $S = B A^{-1} B^T - D_c $ ，而不是上面说的那个。
+
+思考这个问题使我们，首先，意识到所得到的舒尔补数现在是不确定的，因为 $B A^{-1} B^T$ 是对称的和正定的，而 $D_c$ 是正半定的，从前者减去后者可能不再是正定的。这很烦人，因为我们不能再对这个真正的舒尔补数采用共轭梯度法。也就是说，我们可以在 AffineConstraints::distribute_local_to_global() 中通过简单地将*负*值放在受限压力变量的对角线上来解决这个问题--因为我们实际上只是放了一些非零的东西来确保结果矩阵不是奇异的；我们真的不关心那个条目是正还是负。因此，如果 $D_c$ 的对角线上的条目是负的，那么 $S$ 将再次成为一个对称的正定矩阵。
+
+但是，其次，下面的代码实际上并没有做这些事。它很高兴地用错误的Schur补码 $S = B A^{-1} B^T$ 来解决线性系统，完全忽略了这个问题。为什么会这样呢？为了理解为什么会这样，回顾一下，当把局部贡献写入全局矩阵时， AffineConstraints::distribute_local_to_global() 把对应于受限自由度的行和列置零。这意味着 $B$ 有一些零行， $B^T$ 零列。因此，如果要乘出 $S$ 的条目是什么，就会发现它的所有受限压力自由度的行和列都是零，包括对角线上的一个零。 $D_c$ 的非零条目将正好适合于这些零对角线位置，并确保 $S$ 是可逆的。不这样做，严格来说，意味着 $S$ 仍然是单数。它在非约束压力自由度子集上是对称和正定的，而在约束压力上只是一个零矩阵。为什么共轭梯度法对这个矩阵有效？因为 AffineConstraints::distribute_local_to_global() 也确保了对应于矩阵这些零行的右手边条目*也是零，也就是说，右手边是兼容的。
+
+这意味着无论这些受限压力自由度的解向量的值是多少，这些行的残差总是为零，如果考虑到CG算法的内部操作，就永远不会对解向量产生任何更新。换句话说，CG算法只是*忽略*这些行，尽管矩阵是单数。这只是因为这些自由度与线性系统的其他部分完全解耦（因为整个行和相应的列都是零）。在求解过程结束时，求解向量中的受限压力值仍然和我们开始调用求解器时一模一样；当我们在CG求解器完成后调用 AffineConstraints::distribute() 时，它们最终被正确的值所覆盖。
+
+这个讨论的结果是，大矩阵的右下角块为零的假设有点简化，但仅仅按照这个假设，实际上并没有导致任何值得解决的实际问题。
+
+
+
+
+<h3>The testcase</h3>
+
+我们下面实现的域、右手边和边界条件与地球物理学中的一个问题有关：在那里，人们想计算大洋中裂缝下地球内部岩浆的流动场。裂缝是两个大陆板块非常缓慢地漂移开来的地方（每年最多几厘米），在地壳上留下一个裂缝，被下面的岩浆填充。在不试图完全现实的情况下，我们通过求解域 $\Omega=[-2,2]\times[0,1]\times[-1,0]$ 上的以下一组方程和边界条件来模拟这种情况。
+
+@f{eqnarray*}
+
+
+  -2\; \textrm{div}\; \varepsilon(\textbf{u}) + \nabla p &=& 0,
+  \\
+
+
+  -\textrm{div}\; \textbf{u} &=& 0,
+  \\
+  \mathbf u &=&   \left(\begin{array}{c}
+
+
+    -1 \\ 0 \\0
+  \end{array}\right)
+  \qquad\qquad \textrm{at}\ z=0, x<0,
+  \\
+  \mathbf u &=&   \left(\begin{array}{c}
+    +1 \\ 0 \\0
+  \end{array}\right)
+  \qquad\qquad \textrm{at}\ z=0, x>0,
+  \\
+  \mathbf u &=&   \left(\begin{array}{c}
+    0 \\ 0 \\0
+  \end{array}\right)
+  \qquad\qquad \textrm{at}\ z=0, x=0,
+
+
+@f}
+
+并在其他地方使用自然边界条件 $\textbf{n}\cdot [p \textbf{I} - 2
+\varepsilon(\textbf{u})] = 0$ 。换句话说，在顶面的左边部分，我们规定流体以速度 $-1$ 随大陆板向左移动，在顶面的右边部分向右移动，并在其他地方施加自然流动条件。如果我们在2d中，描述基本上是相同的，只是我们省略了上述所有矢量的第二部分。
+
+正如在<a href="#Results">results section</a>中会变得很明显的那样，流场将从下面拉动材料，并将其移动到域的左右两端，这是预期的。速度边界条件的不连续性将在顶面中心产生一个压力奇点，将材料一直吸到顶面，以填补材料在此位置向外运动所留下的缺口。
+
+
+
+
+<h3>Implementation</h3>
+
+<h4>Using imhomogeneous constraints for implementing Dirichlet boundary conditions</h4>
+
+在之前的所有教程程序中，我们仅仅使用AffineConstraints对象来处理悬挂节点约束（步骤11除外）。然而，这个类也可以用来实现Dirichlet边界条件，正如我们将在这个程序中展示的，通过固定一些节点值  $x_i = b_i$  。注意，这些是不均匀约束，我们要特别注意一些。我们要实现的方法是，首先通过调用AffineConstraints对象读入边界值
+
+@code
+  VectorTools::interpolate_boundary_values (dof_handler,
+                                            1,
+                                            BoundaryValues<dim>(),
+                                            constraints);
+@endcode
+
+
+
+非常类似于我们之前制作边界节点列表的方式（注意，我们只在边界标志为1的边界上设置Dirichlet条件）。然后边界值的实际应用由AffineConstraints对象直接处理，没有任何额外的干扰。
+
+然后我们可以像以前一样进行，即通过填充矩阵，然后在约束对象上调用一个浓缩函数，其形式为
+
+@code
+  constraints.condense (system_matrix, system_rhs);
+@endcode
+
+
+
+请注意，我们在系统矩阵和系统右侧同时调用，因为解决不均匀约束需要对矩阵条目和右侧的知识。但出于效率的考虑，我们选择了另一种策略：所有收集在AffineConstraints对象中的约束都可以在将本地数据写入全局矩阵的同时得到解决，方法是使用调用
+
+@code
+  constraints.distribute_local_to_global (local_matrix, local_rhs,
+                                          local_dof_indices,
+                                          system_matrix, system_rhs);
+@endcode
+
+
+
+这个技术在step-27教程程序中进一步讨论。我们在这里需要知道的是，这个函数同时做了三件事：它把局部数据写入全局矩阵和右手边，它分布了悬挂的节点约束，另外还实现了（不均匀的）迪里切特边界条件。这很好，不是吗？
+
+我们可以得出结论，AffineConstraints类提供了一个替代使用 MatrixTools::apply_boundary_values 来实现Dirichlet边界条件的方法。
+
+
+<a name="constraint-matrix">
+
+
+<h4>Using AffineConstraints for increasing performance</h4><h4>Using AffineConstraints for increasing performance</h4>
+</a> 。
+
+通常，稀疏矩阵包含大量的元素，当我们要开始线性求解时，这些元素实际上是零。这样的元素是在我们消除约束条件或实现Dirichlet条件时引入的，我们通常会删除受约束行和列中的所有条目，即把它们设置为零。对于本教程程序中所考虑的三维应用，存在于稀疏模式中但并不真正包含任何信息的那部分元素，可以达到矩阵中元素总数的四分之一。请记住，矩阵-向量乘积或预处理程序对稀疏矩阵的所有元素（甚至那些为零的元素）进行操作，这是我们在这里要避免的低效率。
+
+直接解决约束自由度的一个好处是，我们可以避免在我们的稀疏矩阵中出现大部分要为零的条目&mdash；在矩阵构建过程中，我们不需要约束的条目（与传统算法相反，传统算法是先填充矩阵，之后才解决约束）。这将在形成矩阵-向量乘积时节省内存和时间。我们要做的是将约束信息传递给生成稀疏模式的函数，然后设置一个<tt>false</tt>参数，指定我们不打算使用约束条目。
+
+@code
+  DoFTools::make_sparsity_pattern (dof_handler, sparsity_pattern,
+                                   constraints, false);
+@endcode
+
+顺便说一下，这个函数也避免了对稀疏模式的<tt>condense()</tt>函数的调用。
+
+
+
+
+<h4>Performance optimizations</h4>
+
+下面开发的程序已经看到了很多的TLC。我们在分析工具（主要是<a
+href="http://www.valgrind.org/">valgrind</a>的cachegrind和callgrind工具，以及用于可视化的KDE<a
+href="http://kcachegrind.sourceforge.net/">KCachegrind</a>程序）下一遍又一遍地运行它，看看瓶颈在哪里。这已经得到了回报：通过这种努力，当考虑到细化周期0到3的运行时间时，程序的速度已经提高了大约4倍，将CPU指令的总体执行数量从869,574,060,348减少到199,853,005,625。对于更高的细化水平，收益可能更大，因为一些不是 ${\cal O}(N)$ 的算法被取消了。
+
+基本上，目前程序中有两种算法不随自由度数量的增加而线性扩展：自由度的重新编号（即 ${\cal O}(N \log N)$  ，以及线性求解器（即 ${\cal O}(N^{4/3})$  ）。至于第一个，虽然自由度的重新排序可能不是线性扩展，但它是整个算法中不可缺少的部分，因为它极大地提高了稀疏ILU的质量，很容易弥补计算重新编号的时间；证明这一点的图表和时间显示在DoFRenumbering命名空间的文档中，也强调了下面选择的Cuthill-McKee重新排序算法。
+
+至于线性求解器：如上所述，我们在这里的实现使用了Schur补码公式。这不一定是非常好的选择，但展示了deal.II中的各种重要技术。关于哪种求解器最好的问题，在本程序的<a
+href="#improved-solver">section on improved solvers in the results part</a>中再次进行了讨论，同时还有显示备选求解器的代码和对其结果的比较。
+
+除此以外，在这个程序的创建过程中，许多其他的算法也被测试和改进。例如，在建立稀疏性模式时，我们最初使用了一个（现在已经不存在了）BlockCompressedSparsityPattern对象，每次增加一个元素；然而，它的数据结构对于我们在3d中离散化所产生的每行大量的非零条目来说适应性很差，导致了一个二次方的行为。替换deal.II中的内部算法，一次设置许多元素，并使用BlockCompressedSimpleSparsityPattern（截至2015年初，它又被BlockDynamicSparsityPattern取代）作为一个更好的适应性数据结构，消除了这个瓶颈，代价是内存消耗略高。同样，SparseILU类中的分解步骤的实现也非常低效，已经被一个快10倍的步骤所取代。甚至SparseILU的vmult函数也得到了改进，节省了大约20%的时间。小的改进在这里和那里被应用。此外，AffineConstraints对象被用来消除稀疏矩阵中很多最终将为零的条目，见<a href="#constraint-matrix">the section on using advanced
+features of the AffineConstraints class</a>。
+
+这里显示了在3D的细化周期0到3中，CPU指令在程序中各个不同的地方花费了多少的概况。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.profile-3.png" alt=""> 
+
+可以看出，在这个细化级别，大约四分之三的指令数花在实际求解上（左边的 SparseILU::vmult 调用，中间的 SparseMatrix::vmult 调用用于舒尔补码求解，另一个方框代表在求解<i>U</i>时与稀疏ILU和稀疏矩阵的乘法）。大约五分之一的指令数用于矩阵装配和稀疏ILU计算（右下角的方框），其余的用于其他方面。由于 SparseILU::vmult 调用中的浮点运算通常比矩阵装配中的许多逻辑运算和查表要长得多，矩阵装配所占用的运行时间的比例实际上大大低于指令的比例，这在我们在结果部分的比较中会变得很明显。
+
+对于更高的细化水平，代表求解器的方框以及右上角源自重排算法的蓝色方框将以牺牲程序的其他部分为代价而增长，因为它们不是线性扩展。在这个中等细化水平（3168个单元和93176个自由度），线性求解器已经占了大约四分之三的指令，这是一个很好的迹象，说明这个程序中使用的大多数算法都是经过良好调整的，加快程序速度的主要改进很可能不是来自手工优化的个别方面，而是通过改变求解器的算法。我们将在下面的结果讨论中也讨论这一点。
+
+最后一点，作为参考，下图也显示了在优化这个程序的早期阶段，配置文件的样子。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.profile-3.original.png" alt=""> 
+
+如上所述，这个版本的运行时间大约是第一个配置文件的四倍，其中SparseILU分解占用了大约30%的指令数，而操作早期低效版本的DynamicSparsityPattern大约占10%。这两个瓶颈后来都被完全消除了。
+
+

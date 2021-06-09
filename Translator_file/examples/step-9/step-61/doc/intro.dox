@@ -1,0 +1,418 @@
+examples/step-61/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Zhuoran Wang.
+Some more information about this program, as well as more numerical
+results, are presented in @cite Wang2019 .
+</i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+本教程程序介绍了泊松方程的 "弱加勒金 "有限元方法的实现。从某种意义上说，考虑这种方法的动机与步骤51中的动机相同：我们想考虑不连续的形状函数，但又需要解决这样一个事实：与通常的连续Galerkin方法相比，所产生的问题有更多的自由度（因为，例如，每个顶点携带的自由度与相邻单元一样多）。我们还必须解决这样一个事实：与连续Galerkin方法不同，<i>every</i>一个单元上的自由度与它的每个面邻单元上的所有自由度相耦合。因此，从 "传统的 "非连续Galerkin方法得到的矩阵既大又相对密集。
+
+step-51中的混合非连续Galerkin方法（HDG）和本教程中的弱Galerkin（WG）方法都是通过引入额外的自由度来解决耦合问题的，这些自由度的形状函数只存在于单元间的一个面上（即网格的 "骨架 "上），因此它们将相邻单元上的自由度相互 "隔离"：单元自由度只与同一单元上的其他单元自由度以及面自由度耦合，而与相邻单元上的单元自由度不耦合。因此，这些细胞自由度的形状函数的耦合确实正好耦合在一个细胞和定义在其面上的自由度上。
+
+对于一个给定的方程，例如二阶泊松方程，HDG和WG方法的区别在于如何精确地制定连接所有这些不同形状函数的问题。事实上，对于某些WG和HDG的表述，有可能表明它们是等价的）。HDG的做法是用一阶方程系统重新表述二阶问题，然后在概念上把面的自由度看作是这个一阶系统的 "通量"。相比之下，WG方法保持二阶形式，并将面的自由度视为与主解变量相同的类型，只是限制在低维的面。为了方程的目的，在定义对其应用微分算子的含义时，人们需要以某种方式将这些形状函数 "扩展 "到单元的内部。与HDG相比，该方法的优势在于它不会因为将方程重写为一阶系统而导致未知数的增加，但它也不太容易实现。然而，正如我们在下文中所看到的，这种额外的努力并不可怕。
+
+
+
+
+<h3> Weak Galerkin finite element methods </h3>
+
+弱加勒金有限元方法（WGFEMs）使用离散的弱函数来近似标量未知数，使用离散的弱梯度来近似经典梯度。该方法最初是由王俊平和叶秀在论文<a href="https://doi.org/10.1016/j.cam.2012.10.003">
+<i>A weak Galerkin finite element method for second order elliptic problems</i><i>A weak Galerkin finite element method for second order elliptic problems</i>,
+J. Comput. Appl. Math., 103-115, 2013</a>中提出。与连续Galerkin方法相比，弱Galerkin方法满足重要的物理特性，即局部质量守恒和体法通量连续。它的结果是一个SPD线性系统，并且通过网格细化可以获得最佳收敛率。
+
+
+
+
+<h3> The equation to solve </h3> 该程序使用弱加尔金有限元法求解泊松方程。
+
+@f{align*}{
+  \nabla \cdot \left( -\mathbf{K} \nabla p \right)
+    &= f,
+    \qquad \mathbf{x} \in \Omega, \\
+  p &=  p_D,\qquad \mathbf{x} \in \Gamma^D, \\
+  \mathbf{u} \cdot \mathbf{n} &= u_N,
+  \qquad \mathbf{x} \in \Gamma^N,
+
+
+@f}
+
+其中 $\Omega \subset \mathbb{R}^n (n=2,3)$ 是一个有界域。在流体流经多孔介质的背景下， $p$ 是压力， $\mathbf{K}$ 是渗透性张量， $f$ 是源项， $p_D, u_N$ 代表Dirichlet和Neumann边界条件。我们可以引入一个通量， $\mathbf{u} = -\mathbf{K} \nabla p$ ，对应于达西速度（以我们在步骤20中的方式），这个变量在下面的考虑中很重要。
+
+在这个程序中，我们将考虑一个测试案例，即在单位平方域上的确切压力为 $p = \sin \left( \pi x\right)\sin\left(\pi y \right)$ ，具有同质Dirichelet边界条件和 $\mathbf{K}$ 身份矩阵。然后我们将计算压力、速度和通量的 $L_2$ 误差。
+
+
+
+
+<h3> Weak Galerkin scheme </h3>
+
+上面的泊松方程有一个解 $p$ ，需要满足问题的弱表述。
+
+@f{equation*}
+\mathcal{A}\left(p,q \right) = \mathcal{F} \left(q \right),
+
+
+@f}
+
+为所有测试函数  $q$  ，其中
+
+@f{equation*}
+\mathcal{A}\left(p,q\right)
+  \dealcoloneq \int_\Omega \left(\mathbf{K} \nabla p\right) \cdot \nabla q \;\mathrm{d}x,
+
+
+@f}
+
+和
+
+@f{equation*}
+\mathcal{F}\left(q\right)
+  \dealcoloneq \int_\Omega f \, q \;\mathrm{d}x
+
+
+  - \int_{\Gamma^N} u_N q \; \mathrm{d}x.
+
+
+@f}
+
+在这里，我们以双线性形式进行了部分积分，我们在内部评估 $p,p$ 的梯度，在域的边界评估 $q$ 的值。所有这些都是很好的定义，因为我们假设解是在 $H^1$ 中，对它来说，取梯度和评估边界值是有效的操作。
+
+弱Galerkin方法的想法是用一个<i>discontinuous function</i> $p_h$ 来近似精确的 $p$ 解。这个函数可能只在单元格之间的界面上不连续，由于我们也想沿着界面评估这个函数，我们不仅要规定它在单元格内部应该有什么值，还要规定它在界面上的值。我们通过说 $p_h$ 实际上是一个元组， $p_h=(p^\circ,p^\partial)$ ，尽管它实际上只是一个单一的函数，它要么等于 $p^\circ(x)$ ，要么等于 $p^\partial(x)$ ，这取决于它是在位于细胞内部还是在细胞界面的某一点 $x$ 上被评估。
+
+然后我们想把这个近似值简单地贴到上面的双线性表格中。这适用于我们必须在边界上评估测试函数 $q_h$ 的情况（我们只需取其界面部分 $q_h^\partial$ ），但我们必须小心处理梯度，因为它只在单元格内部定义。因此，泊松方程的弱Galerkin方案被定义为
+
+@f{equation*}
+\mathcal{A}_h\left(p_h,q \right) = \mathcal{F} \left(q_h \right),
+
+
+@f}
+
+对于所有离散测试函数  $q_h$  ，其中
+
+@f{equation*}
+\mathcal{A}_h\left(p_h,q_h\right)
+  \dealcoloneq \sum_{K \in \mathbb{T}}
+    \int_K \mathbf{K} \nabla_{w,d} p_h \cdot \nabla_{w,d} q_h \;\mathrm{d}x,
+
+
+@f}
+
+和
+
+@f{equation*}
+\mathcal{F}\left(q_h\right)
+  \dealcoloneq \sum_{K \in \mathbb{T}} \int_K f \, q_h^\circ \;\mathrm{d}x
+
+
+  - \sum_{\gamma \in \Gamma_h^N} \int_\gamma u_N q_h^\partial \;\mathrm{d}x,
+
+
+@f}
+
+关键的一点是，在这里，我们用<i>discrete weak gradient</i>算子 $\nabla_{w,d} p_h$ 代替了梯度 $\nabla p_h$ ，这对于我们特殊定义的近似 $p_h$ 是有意义的。
+
+那么问题是该算子如何工作。为此，让我们首先说说我们是如何看待压力的离散近似值 $p_h$ 的。如上所述，"函数" $p_h$ 实际上由两部分组成：单元内部的值 $p_h^\circ$ 和界面上的 $p_h^\partial$ 。我们必须为这两部分定义离散的（有限维）函数空间；在这个程序中，我们将用FE_DGQ来表示 $p_h^\circ$ 作为细胞内部的空间（在每个细胞上定义，但一般沿界面是不连续的），用FE_FaceQ表示 $p_h^\partial$ 作为界面上的空间。
+
+那么让我们只考虑一个单元（因为上面的积分都是逐个单元定义的，而且弱离散梯度是逐个单元定义的）。 $p_h$ 对 $K$ , $p_h|_K$ 的限制由一对 $(p_h^\circ|_K,p_h^\partial|_{\partial K})$ 组成。从本质上讲，我们可以认为 $\nabla_{w,d} p_h$ 是定义在 $K$ 上的某个函数，它近似于梯度；特别是，如果 $p_h|_K$ 是一个可微函数的限制（对 $K$ 的内部和边界--这将使它在内部和边界之间连续），那么 $\nabla_{w,d} p_h$  将只是精确梯度 $\nabla p_h$  。但是，由于 $p_h|_K$ 在 $K$ 的内部和边界之间不连续，我们需要一个更一般的定义；此外，我们不能处理任意函数，因此要求 $\nabla_{w,d} p_h$ 也在一个有限元空间中（由于梯度是一个矢量，必须是矢量值，而且由于弱梯度是在每个单元上单独定义的，因此在单元之间也将是不连续的）。
+
+这样做的方法是以下列方式定义这个弱梯度算子 $\nabla_{w,d}|_K :
+DGQ_k(K) \times DGQ_r(\partial K) \rightarrow RT_s(K)$ （其中 $RT_s(K)$ 是单元格 $K$ 上阶为 $s$ 的矢量值Raviart-Thomas空间）。
+
+@f{equation*}{
+  \int_K \mathbf v_h \cdot (\nabla_{w,d} p_h)
+  =
+
+
+  -\int_K (\nabla \cdot \mathbf v_h) p_h^\circ
+  +\int_{\partial K} (\mathbf v_h \cdot \mathbf n) p_h^\partial,
+
+
+@f}
+
+为所有测试函数  $\mathbf v_h \in RT_s(K)$  。从本质上讲，这只是一个逐部积分公式的应用。换句话说，对于一个给定的 $p_h=(p^\circ_h,p^\partial_h)$ ，我们需要把 $\nabla_{w,d} p_h|_K$ 看作是度数为 $s$ 的Raviart-Thomas函数，对于这个函数，左手边和右手边在所有测试函数中是相等的。
+
+那么，需要说明的一个关键点是以下几点。通常的梯度 $\nabla$ 是一个*本地*算子，它仅仅根据一个函数在某一点及其（无限小）邻域的值来计算导数，而弱离散梯度 $\nabla_{w,d}$ 却没有这个特性。它取决于它所应用的函数在整个单元上的值，包括单元的边界。然而，两者都是线性算子，从上面 $\nabla_{w,d}$ 的定义可以看出，这将允许我们在下面的讨论中通过矩阵来表示 $\nabla_{w,d}$ 。
+
+ @note  值得指出的是，虽然弱的离散梯度是Raviart-Thomas空间 $RT_s(K)$ 在每个单元 $K$ 的一个元素，但它在单元之间是不连续的。另一方面，定义在整个网格上并由FE_RaviartThomas类实现的Raviart-Thomas空间 $RT_s=RT_s({\mathbb T})$ 代表在单元间界面上具有连续法线分量的函数。这意味着<i>globally</i>,  $\nabla_{w,d} p_h$ 不在 $RT_s$ 中，尽管它在 $K$ 中的每个单元上。   相反，它是在一个 "破碎的 "拉维-托马斯空间中，下面我们将用符号 $DGRT_s$ 来表示。 这里的术语 "破碎 "指的是 "把东西打碎 "的过程，而不是表达 "没有功能 "的同义词。因此，人们可能会（理所当然地）争辩说，在弱加尔金文献中使用的符号有点误导，但这往往取决于使用某种符号的背景--在目前的背景下，对Raviart-Thomas空间或元素的提及总是被理解为对 "破碎 "空间的提及。
+
+ @note  deal.II恰好有一个实现了这个破碎的Raviart-Thomas空间。FE_DGRT类。因此，在本教程中，我们将简单地一直使用FE_DGRT类，尽管在所有那些我们必须计算单元格本地矩阵和向量的地方，它没有任何区别。
+
+
+
+
+<h3> Representing the weak gradient </h3>
+
+由于 $p_h$ 是有限元空间的一个元素，我们可以像往常一样在一个基础上展开它，也就是说，我们可以写出
+
+@f{equation*}{
+  p_h(\mathbf x) = \sum_j P_j \varphi_j(\mathbf x).
+
+
+@f}
+
+这里，由于 $p_h$ 有两个分量（内部分量和界面分量），对于基函数 $\varphi_j(\mathbf x)$ 也必须如此，我们可以写成 $\varphi_j = (\varphi_j^\circ,\varphi_j^\partial)$  。如果你按照步骤8、步骤20和 @ref vector_valued "向量值问题文件模块 "中的描述，就不会感到奇怪，对于 $j$ 的某些值， $\varphi_j^\circ$ 将为零，而对于 $j$ 的其他值， $\varphi_j^\partial$ 将为零--也就是说，形状函数将是一种或另一种类型。然而，这在这里并不重要。重要的是，我们需要思考如何表示 $\nabla_{w,d} \varphi_j$ ，因为当我们想实现双线性形式时，这显然是问题中会出现的东西
+
+@f{equation*}
+\mathcal{A}_h\left(p_h,q_h\right)
+  = \sum_{K \in \mathbb{T}}
+    \int_K \mathbf{K} \nabla_{w,d} p_h \cdot \nabla_{w,d} q_h \;\mathrm{d}x,
+
+
+@f}
+
+
+
+关键的一点是，已知 $\nabla_{w,d} \varphi_j$ 是 "破碎的 "Raviart-Thomas空间 $DGRT_s$ 的一个成员。这意味着我们可以（在每个单元 $K$ 上分别表示
+
+@f{equation*}
+\nabla_{w,d} \varphi_j|_K
+  = \sum_k C_{jk}^K \mathbf v_k|_K
+
+
+@f}
+
+其中，函数 $\mathbf v_k \in DGRT_s$ ，以及 $C^K$ 是一个维数的矩阵
+
+@f{align*}{
+ \text{dim}\left(DGQ_k(K) \times DGQ_r(K)\right) &\times \text{dim}\left(RT_s(K)\right)
+  \\
+ &=
+ \left(\text{dim}(DGQ_k(K)) + \text{dim}(DGQ_r(K))\right) \times \text{dim}\left(RT_s(K)\right).
+
+
+@f}
+
+弱离散梯度可以被表示为一个矩阵，这不应该是一个惊喜：它是一个从一个有限维空间到另一个有限维空间的线性算子。如果为这两个空间都选择基数，那么<i>every linear operator</i>当然可以写成一个矩阵，将与算子的域空间的基数有关的扩展系数向量映射到与图像空间的基数有关的扩展系数向量）。)
+
+利用这个扩展，我们可以很容易地使用上面的弱离散梯度的定义来定义矩阵要做什么。
+
+@f{equation*}{
+  \int_K \mathbf v_i \cdot \left(\sum_k C_{jk}^K \mathbf v_k\right)
+  =
+
+
+  -\int_K (\nabla \cdot \mathbf v_i) \varphi_j^\circ
+  +\int_{\partial K} (\mathbf v_i \cdot \mathbf n) \varphi_j^\partial,
+
+
+@f}
+
+对于所有的测试功能  $\mathbf v_i \in DGRT_s$  。
+
+这显然导致了一个线性系统，其形式为
+
+@f{equation*}{
+  \sum_k M_{ik}^K C_{jk}^K
+  =
+  G_{ij}^K
+
+
+@f}
+
+与
+
+@f{equation*}{
+  M_{ik}^K = \int_K \mathbf v_i \cdot \mathbf v_k,
+  \qquad\qquad
+  G_{ij}^K = -\int_K (\nabla \cdot \mathbf v_i) \varphi_j^\circ
+             +\int_{\partial K} (\mathbf v_i \cdot \mathbf n) \varphi_j^\partial,
+
+
+@f}
+
+因此
+
+@f{equation*}{
+  \left(C^K\right)^T = \left(M^K\right)^{-1} G^K.
+
+
+@f}
+
+(在这最后一步中，我们假设指数 $i,j,k$ 只涉及在单元 $K$ 上活动的自由度，从而确保空间 $RT_s(K)$ 上的质量矩阵是可逆的。)等价地，利用矩阵 $M$ 的对称性，我们可以看到
+
+@f{equation*}{
+  C^K = \left(G^K\right)^{T} \left(M^K\right)^{-1}.
+
+
+@f}
+
+另外值得指出的是，矩阵 $C^K$ 和 $G^K$ 当然不是正方形而是长方形。
+
+
+
+
+<h3> Assembling the linear system </h3>
+
+在解释了弱离散梯度是如何定义的之后，我们现在可以回到有关方程的线性系统应该如何组装的问题上。具体来说，利用上面显示的双线性形式 ${\cal A}_h$ 的定义，我们就需要计算局部对全局矩阵的贡献元素。
+
+@f{equation*}{
+  A^K_{ij} = \int_K \left({\mathbf K} \nabla_{w,d} \varphi_i\right) \cdot \nabla_{w,d} \varphi_j.
+
+
+@f}
+
+如上所述，我们可以用Raviart-Thomas基础在每个单元格上展开 $\nabla_{w,d} \varphi_i$ ，同样，对于 $\nabla_{w,d} \varphi_j$ 也是如此。
+
+@f{equation*}{
+  A^K_{ij} = \int_K
+    \left(
+      {\mathbf K}
+      \sum_k C_{ik}^K \mathbf v_k|_K
+    \right)
+    \cdot
+    \sum_l C_{jl}^K \mathbf v_l|_K.
+
+
+@f}
+
+通过重新排列和，可以得到以下表达式。
+
+@f{equation*}{
+  A^K_{ij} =
+    \sum_k \sum_l C_{ik}^K C_{jl}^K
+     \int_K
+    \left(
+      {\mathbf K}
+      \mathbf v_k|_K
+    \right)
+    \cdot
+    \mathbf v_l|_K.
+
+
+@f}
+
+因此，如果我们有每个单元格 $K$ 的矩阵 $C^K$ ，那么我们可以很容易地计算出单元格 $K$ 对矩阵 $A$ 的贡献 $A^K$ ，如下所示。
+
+@f{equation*}{
+  A^K_{ij} =
+    \sum_k \sum_l C_{ik}^K C_{jl}^K
+    H^K_{kl}
+    =
+    \sum_k \sum_l C_{ik}^K H^K_{kl} C_{jl}^K
+    =
+    \left(C^K H^K (C^K)^T \right)_{ij}.
+
+
+@f}
+
+在这里。
+
+@f{equation*}{
+  H^K_{kl} =
+  \int_K
+    \left(
+      {\mathbf K}
+      \mathbf v_k|_K
+    \right)
+    \cdot
+    \mathbf v_l|_K,
+
+
+@f}
+
+这实际上只是单元 $K$ 上的质量矩阵，使用Raviart-Thomas基础并通过渗透性张量 $\mathbf K$ 加权。这里的推导表明，弱加尔金法实际上只需要我们计算每个单元 $C^K$ 和 $H^K$ 的矩阵，然后再计算 $A^K = C^K H^K (C^K)^T$ ，这很容易计算出来。下面要显示的代码正是这样做的。
+
+在计算出单元格 $A^K$ 对全局矩阵的贡献后，我们要做的就是将这些局部贡献 "分配 "到全局矩阵中。如何做到这一点，首先显示在步骤3和步骤4中。在目前的程序中，这将通过调用 AffineConstraints::distribute_local_to_global(). 来促进。
+
+一个线性系统当然也需要一个右手边。除了我们只需要对每个形状函数 $\varphi_i^\circ$ 使用单元格内部部分外，这里没有与计算右手边有关的困难。
+
+
+
+
+<h3> Post-processing and <i>L<sub>2</sub></i><i>L<sub>2</sub></i>-errors </h3> 。
+
+前面几节的讨论已经给了我们一个线性系统，我们可以求解数值压力 $p_h$  。我们可以用它来计算变量 $\mathbf u = -{\mathbf K}\nabla p$ 的近似值，如果这是我们要解决的模型，它对应于介质在多孔介质中的流动速度。这种步骤--从离散问题的解中计算一个派生量--通常被称为 "后处理"。
+
+这里，我们不使用 $p_h$ 的精确梯度，而是使用 $p_h$ 的离散弱梯度来计算每个元素上的速度。如上所述，在每个元素上，数值压力 $\nabla p$ 的梯度可以用离散弱梯度 $ \nabla_{w,d}\phi_i$ 来近似。
+
+@f{equation*}
+\nabla_{w,d} p_h
+= \nabla_{w,d} \left(\sum_{i} P_i \phi_i\right)
+= \sum_{i} P_i \nabla_{w,d}\phi_i.
+
+
+@f}
+
+
+
+在单元格 $K$ 上，数值速度 $ \mathbf{u}_h = -\mathbf{K} \nabla_{w,d}p_h$ 可写为
+
+@f{align*}{
+  \mathbf{u}_h
+  &= -\mathbf{K} \nabla_{w,d} p_h
+   = -\mathbf{K}\sum_{i} \sum_{j} P_i C^K_{ij}\mathbf{v}_j,
+
+
+@f}
+
+其中 $C^K$ 是上面的扩展矩阵， $\mathbf{v}_j$ 是 $RT$ 空间在一个单元上的基函数。
+
+不幸的是， $\mathbf{K} \mathbf{v}_j$ 可能不在 $RT$ 空间中（当然，除非如果 $\mathbf K$ 是常数乘以身份矩阵）。因此，为了在有限元程序中表示它，我们需要把它投射回我们可以处理的有限维空间。在这里，我们将使用 $L_2$ 投影法将其投影回（破碎的） $RT$ 空间。
+
+我们将每个单元格  $K$  上的投影定义为  $ \mathbf{Q}_h \left( \mathbf{K}\mathbf{v}_j \right) =
+\sum_{k} d_{jk}\mathbf{v}_k$  。对于任何  $j$  ,  $\left( \mathbf{Q}_h \left( \mathbf{Kv}_j \right),\mathbf{v}_k \right)_K =
+\left( \mathbf{Kv}_j,\mathbf{v}_k \right)_K.$  所以，与其说是上面的公式，不如说是  $K$  单元上的数字速度变成了
+
+@f{equation*}
+\mathbf{u}_h = \mathbf{Q}_h \left( -\mathbf{K}\nabla_{w,d}p_h \right) =
+
+
+-\sum_i \sum_j P_i B^K_{ij}\mathbf{Q}_h \left( \mathbf{K}\mathbf{v}_j \right),
+
+
+@f}
+
+我们有以下系统来解决系数问题  $d_{jk}$  。
+
+@f{equation*}
+ \sum_j
+  \left(\mathbf{v}_i,\mathbf{v}_j\right)
+   d_{jk}
+   =
+    \left( \mathbf{Kv}_j,\mathbf{v}_k \right).
+
+
+@f}
+
+在下面的实现中，元素为 $
+   d_{jk}
+$ 的矩阵被称为 <code>cell_matrix_D</code>  ，而元素为 $
+      \left( \mathbf{Kv}_j,\mathbf{v}_k \right)
+$ 的矩阵被称为 <code>cell_matrix_E</code> 。
+
+那么元素速度为
+
+@f{equation*}
+\mathbf{u}_h = -\sum_{i} \sum_{j}P_ic_{ij}\sum_{k}d_{jk}\mathbf{v}_k =
+\sum_{k}- \left(\sum_{j} \sum_{i} P_ic_{ij}d_{jk} \right)\mathbf{v}_k,
+
+
+@f}
+
+其中 $-\sum_{j} \sum_{i} P_ic_{ij}d_{jk}$ 在代码中被称为`细胞速度'。
+
+利用这个通过 "后处理 "得到的速度，我们可以通过以下公式定义压力、速度和通量的 $L_2$ 误差。
+
+@f{align*}{
+\|p-p_h^\circ\|^2
+  &= \sum_{K \in \mathbb{T}} \|p-p_h^\circ\|_{L_2(K)}^2, \\
+ \|\mathbf{u}-\mathbf{u}_h\|^2
+  &= \sum_{K \in \mathbb{T}} \|\mathbf{u}-\mathbf{u}_h\|_{L_2(K)^2}^d,\\
+\|(\mathbf{u}-\mathbf{u}_h) \cdot \mathbf{n}\|^2
+  &= \sum_{K \in \mathbb{T}} \sum_{\gamma \subset \partial K}
+    \frac{|K|}{|\gamma|} \|\mathbf{u} \cdot \mathbf{n} - \mathbf{u}_h \cdot \mathbf{n}\|_{L_2(\gamma)}^2,
+
+
+@f}
+
+其中 $| K |$ 为元素的面积， $\gamma$ 为元素的面， $\mathbf{n}$ 为每个面的单位法向量。这些规范中的最后一条衡量了网格单元之间界面上速度向量的法向分量的精度。缩放因子 $|K|/|\gamma|$ 的选择是为了随着网格大小的变化，缩放出界面集合的长度（或面积）的差异。
+
+上面的第一个错误很容易用 VectorTools::integrate_difference. 计算出来，其他的需要多做一些工作，在下面的代码中实现。
+
+

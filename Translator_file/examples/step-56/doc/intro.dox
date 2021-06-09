@@ -1,0 +1,157 @@
+examples/step-56/doc/intro.dox
+
+<i>This program was contributed by Ryan Grove and Timo Heister.
+
+
+This material is based upon work partially supported by National Science
+Foundation grant DMS1522191 and the Computational Infrastructure in
+Geodynamics initiative (CIG), through the National Science Foundation under
+Award No. EAR-0949446 and The University of California-Davis.
+
+
+The authors would like to thank the Isaac Newton Institute for
+Mathematical Sciences, Cambridge, for support and hospitality during
+the programme Melt in the Mantle where work on this tutorial was
+undertaken. This work was supported by EPSRC grant no EP/K032208/1.
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.400995,https://zenodo.org/badge/DOI/10.5281/zenodo.400995.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+<h3> Stokes Problem </h3>
+
+本教程的目的是为斯托克斯方程创建一个高效的线性求解器，并将其与其他方法进行比较。  在这里，我们将使用带有几何多栅的FGMRES作为预处理速度块，我们将在结果部分显示，这比step-22中使用的线性求解器（包括 "可能的扩展 "中描述的方案）从根本上来说是一种更好的方法。  从根本上说，这是因为只有多网格才有可能得到 $O(n)$ 的求解时间，其中 $n$ 是线性系统的未知数的数量。使用Timer类，我们收集一些统计数据来比较设置时间、求解时间和迭代次数。我们还计算了误差，以确保我们所实现的是正确的。
+
+让  $u \in H_0^1 = \{ u \in H^1(\Omega), u|_{\partial \Omega} = 0 \}$  和  $p \in L_*^2 = \{ p \in L^2(\Omega), \int_\Omega p = 0
+\}$  。斯托克斯方程的非维度形式如下。
+
+@f{eqnarray*}
+
+
+ - 2 \text{div} \frac {1}{2} \left[ (\nabla \textbf{u})
+ + (\nabla \textbf{u})^T\right] + \nabla p & =& f \\
+
+
+ - \nabla \cdot u &=& 0
+
+
+@f}
+
+
+
+请注意，我们使用的是变形张量，而不是 $\Delta u$ （关于两者之间的区别的详细描述可以在步骤22中找到，但总的来说，变形张量的物理性更强，也更昂贵）。
+
+<h3> Linear %Solver and Preconditioning Issues </h3>
+
+离散方程的微弱形式自然导致了以下速度场和压力场的节点值的线性系统。
+
+@f{eqnarray*}
+\left(\begin{array}{cc} A & B^T \\ B & 0
+\end{array}\right) \left(\begin{array}{c} U \\ P \end{array}\right) =
+\left(\begin{array}{c} F \\ 0 \end{array}\right).
+
+
+@f}
+
+
+
+我们的目标是比较几种解决方法。  虽然step-22使用 "Schur补足法 "分两步解决线性系统，但我们本着step-22的 "结果 "部分所概述的方法的精神，使用FMGRES和一个有效的预处理器一次性地攻击块系统。其思路如下：如果我们找到一个块状预处理程序 $P$ ，使矩阵的
+
+@f{eqnarray*}
+\left(\begin{array}{cc} A & B^T \\ B & 0 \end{array}\right) P^{-1}
+
+
+@f}
+
+
+
+是简单的，那么使用该预处理的迭代求解器将在几次迭代后收敛。请注意，我们在这里做的是正确的预处理。  使用舒尔补码 $S=BA^{-1}B^T$ ，我们发现
+
+@f{eqnarray*}
+P^{-1} = \left(\begin{array}{cc} A & B^T \\ 0 &
+ S \end{array}\right)^{-1}
+
+
+@f}
+
+
+
+是一个很好的选择。设 $\widetilde{A^{-1}}$ 是 $A^{-1}$ 的近似值， $\widetilde{S^{-1}}$ 是 $S^{-1}$ 的近似值，我们看到
+
+@f{eqnarray*}
+P^{-1} =
+\left(\begin{array}{cc} A^{-1} & 0 \\ 0 & I \end{array}\right)
+\left(\begin{array}{cc} I & B^T \\ 0 & -I \end{array}\right)
+\left(\begin{array}{cc} I & 0 \\ 0 & S^{-1} \end{array}\right)
+\approx
+\left(\begin{array}{cc} \widetilde{A^{-1}} & 0 \\ 0 & I \end{array}\right)
+\left(\begin{array}{cc} I & B^T \\ 0 & -I \end{array}\right)
+\left(\begin{array}{cc} I & 0 \\ 0 & \widetilde{S^{-1}} \end{array}\right).
+  @f}
+
+
+
+由于 $P$ 的目的只是作为一个预处理程序，我们将在上式中使用右边的近似值。
+
+正如步骤22所讨论的， $-M_p^{-1}=:\widetilde{S^{-1}} \approx
+S^{-1}$ ，其中 $M_p$ 是压力质量矩阵，通过使用CG与ILU作为预处理程序近似求解， $\widetilde{A^{-1}}$ 是通过多种方法之一得到的：使用CG和ILU作为预处理程序求解线性系统，仅仅使用ILU的一次应用，使用CG和GMG（步骤16中描述的几何多网格）作为预处理程序求解线性系统，或者仅仅执行GMG的一个V-循环。
+
+作为比较，我们也在整个系统上使用直接求解器UMFPACK来比较我们的结果，而不是FGMRES。  如果你想使用直接求解器（如UMFPACK），系统需要是可逆的。为了避免恒定压力给定的一维无效空间，我们将第一个压力未知数固定为零。这对迭代求解器来说是没有必要的。
+
+
+
+
+<h3> Reference Solution </h3>
+
+测试问题是一个 "制造的解决方案"（详见步骤7），我们选择  $u=(u_1,u_2,u_3)=(2\sin (\pi x), - \pi y \cos
+(\pi x),- \pi z \cos (\pi x))$  和  $p = \sin (\pi x)\cos (\pi y)\sin
+(\pi z)$  。我们在域的整个边界上对速度应用迪里切特边界条件  $\Omega=[0,1]\times[0,1]\times[0,1]$  。为了执行边界条件，我们可以直接使用我们的参考解。
+
+如果你在deal.II手册中查找创建一个从 <code>Function@<dim@></code> 派生的类所需要的东西，你会发现这个类有许多 @p virtual 函数，包括 Function::value(),   Function::vector_value(),   Function::value_list(),  等，所有这些都可以被重载。  deal.II的不同部分将需要这些特定函数中的不同部分。这在一开始会让人感到困惑，但幸运的是，你真正需要实现的只有 @p value(). 。Function类中的其他虚拟函数在里面有默认的实现，会默认调用你对 @p value 的实现。
+
+注意，我们的参考解满足 $\nabla \cdot u = 0$  。此外，压力被选择为平均值为零。  对于步骤7的 "制造解决方案的方法"，我们需要找到 $\bf
+f$ ，以便。
+
+@f{align*}
+{\bf f} =   - 2 \text{div} \frac {1}{2} \left[ (\nabla \textbf{u}) + (\nabla \textbf{u})^T\right] + \nabla p.
+
+
+@f}
+
+
+
+使用上面的参考解，我们得到。
+
+@f{eqnarray*}
+{\bf f} &=& (2 \pi^2 \sin (\pi x),- \pi^3 y \cos(\pi
+x),- \pi^3 z \cos(\pi x))\\ & & + (\pi \cos(\pi x) \cos(\pi y)
+\sin(\pi z) ,- \pi \sin(\pi y) \sin(\pi x) \sin(\pi z), \pi \cos(\pi
+z) \sin(\pi x) \cos(\pi y)) @f}
+
+
+
+<h3> Computing Errors </h3>
+
+因为我们在线性系统中没有强制要求平均压力为零，所以我们需要在求解后对解决方案进行后处理。为了做到这一点，我们使用 VectorTools::compute_mean_value() 函数来计算压力的平均值，以从压力中减去它。
+
+
+
+
+<h3> DoF Handlers </h3>
+
+我们在这里实现几何多网格的方式只对速度变量（即上面描述的 $A$ 矩阵）进行执行，而不是压力。我们可以用不同的方法来实现这一点，包括将所有的粗网格操作视为作用于 $2\times
+2$ 块系统，我们只考虑左上方的块。另外，我们也可以通过真正只考虑整个有限元离散化的速度部分的线性系统来实现。后者是我们在这里想要使用的方式。
+
+为了实现这一点，我们需要能够提出这样的问题："我可以只拥有一个DoFHandler的一部分吗？"。在编写这个程序的时候，这是不可能的，所以为了满足我们的需求，我们只是为速度创建一个单独的、第二个DoFHandler。然后，我们只基于这个第二DoFHandler为多网格预处理程序建立线性系统，并简单地将第一块（整体）向量转移到整个第二DoFHandler的对应向量中。要做到这一点，我们必须保证两个DoFHandler对象中的（速度）自由度排序的<i>order</i>是相同的。事实上，首先在两个对象上分配自由度，然后在两个对象上使用相同的DoFRenumbering操作序列，就可以做到这一点。
+
+
+
+
+<h3> Differences from the Step 22 tutorial </h3>
+
+第56步和第22步的主要区别是我们使用了块状求解器，而不是第22步中使用的Schur补码方法。这种方法的细节可以在步骤-22的 "可能的扩展 "部分的 "块状Schur补码预处理 "小节中找到。对于速度块的预处理，我们从<a href="https://aspect.geodynamics.org">ASPECT</a>中借用了一个叫做 @p BlockSchurPreconditioner 的类，该类可以选择求解 $A$ 的逆，或者只对其应用一个预处理扫频，这分别为我们提供了一种昂贵和便宜的方法。
+
+

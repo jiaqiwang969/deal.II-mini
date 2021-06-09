@@ -1,0 +1,246 @@
+examples/step-53/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Wolfgang Bangerth and Luca Heltai, using
+data provided by D. Sarah Stamps.</i>
+
+ @note  这个程序阐述了几何学的概念和实现它的类。这些类被归入 @ref
+manifold "三角形的流形描述 "的文档模块。其他信息见那里。
+
+ @note  本教程也可作为Jupyter Python笔记本，使用deal.II python接口。该笔记本与原始的C++程序在同一目录下可用。渲染的笔记本也可以在<a
+href="https://github.com/dealii/dealii/blob/master/example/step-53/step-53.ipynb">github</a>上查看。
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+现实问题的偏微分方程往往是在具有复杂几何形状的域上提出的。为了提供几个例子，请考虑这些情况。
+
+- 在有限元方法的两个可以说是最重要的工业应用中，空气动力学和更普遍的流体动力学是其中之一。今天，计算机模拟被用于每架飞机、汽车、火车和船舶的设计。在这些情况下，提出偏微分方程的领域是飞机周围的空气，包括机翼、襟翼和发动机；汽车周围的空气，包括车轮、轮井、后视镜，在赛车的情况下，还有各种空气动力设备；火车周围的空气，包括车轮和车厢之间的空隙。在船舶的情况下，该领域是指有船舵和螺旋桨的船舶周围的水。
+
+- 有限元方法的两大应用中的另一个是结构工程，其领域是桥梁、飞机机舱和机翼，以及其他通常形状复杂的固体物体。
+
+- 有限元建模也经常被用来描述地震波的产生和传播。在这些情况下，人们需要准确地表示地壳中断层的几何形状。由于断层相交，有一定的倾角，而且往往不完全是直线，所以域经常是非常复杂的。我们可以举出更多复杂几何形状的例子，在这些例子中，我们要提出和解决一个偏微分方程。这表明，"真实 "世界比我们在这之前的几乎所有教程中所展示的要复杂得多。
+
+因此，这个程序致力于展示如何用具体的应用来处理复杂的几何图形。特别是，它所展示的是我们如何使网格符合我们想要解决的领域。另一方面，该程序没有展示的是如何为一个领域创建一个粗的。获得粗网格的过程被称为 "网格生成"，有许多高质量的程序在这方面做得比我们做得更好。然而，deal.II确实有能力读取由网格生成器生成的多种格式的网格，然后使其适合给定的形状，可以通过变形网格或多次细化网格直至适合。从http://www.dealii.org/ 引用的deal.II常见问题页面提供了网格生成器的资源。
+
+
+
+
+<h3>Where geometry and meshes intersect</h3>
+
+让我们假设你有一个复杂的领域，并且你已经有一个粗略的网格，在某种程度上代表了这个领域的一般特征。那么在两种情况下，有必要向deal.II程序描述你的几何形状的细节。
+
+- 网格细化。每当一个单元被细化时，有必要在三角网中引入新的顶点。在最简单的情况下，我们假设构成三角网的对象是直线段、双线性表面或三线性体。然后，下一个顶点被简单地放在旧顶点的中间。然而，对于弯曲的边界，或者如果我们想解决一个嵌入高维空间的弯曲的低维流形上的PDE，这是不充分的，因为它将不尊重实际的几何。因此，我们将不得不告诉Triangulation在哪里放置新的点。
+
+- 积分。当使用高阶有限元方法时，经常需要使用边界的曲线近似来计算积分，即把单元的每个边缘或面描述为曲线，而不是直线段或双线性补丁。当然，在积分边界条款时也是如此（例如，不均匀的诺伊曼边界条件）。为了整合的目的，各种Mapping类提供了从参考单元到实际单元的转换。
+
+在这两种情况下，我们需要一种方法来提供关于单个单元、其面和边的域的几何信息。这就是Manifold类开始发挥作用的地方。Manifold是一个抽象的基类，它只定义了一个接口，Triangulation和Mapping类可以通过这个接口查询领域的几何信息。从概念上讲，Manifold看待世界的方式与数学分支学科几何学看待世界的方式并无二致：域本质上只是一个点的集合，以某种方式配备了点之间的距离概念，这样我们就可以在其他一些点的 "中间 "获得一个点。
+
+deal.II提供了一些实现Manifold所提供的接口的类，用于各种常见的几何形状。另一方面，在这个程序中，我们将只考虑一种非常常见的、简单得多的情况，即我们要解决的域的（一部分）可以通过转换一个简单得多的域（我们将称之为 "参考域"）来描述的情况。在数学语言中，这意味着该（部分）域是一个<a
+href="http://en.wikipedia.org/wiki/Chart_%28topology%29">chart</a>。图表由一个平滑函数描述，该函数从较简单的域映射到图表（"向前推 "函数）及其逆向（"向后拉 "函数）。如果域作为一个整体不是一个图表（例如，球体的表面），那么它通常可以被描述为一个图表的集合（例如，北半球和南半球各自是一个图表），然后域可以被描述为一个<a
+href="http://en.wikipedia.org/wiki/Atlas_%28topology%29">atlas</a>。
+
+如果一个域可以被分解成一个图集，那么我们需要做的就是为每个图集提供回拉和推送函数。在deal.II中，这意味着提供一个从ChartManifold派生的类，而这正是我们在这个程序中要做的。
+
+
+
+
+<h3>The example case</h3>
+
+为了说明如何在deal.II中使用图表描述几何形状，我们将考虑一个源于<a
+href="https://aspect.geodynamics.org">ASPECT mantle convection code</a>的应用的案例，使用D. Sarah Stamps提供的数据集。在具体应用中，我们对描述<a
+href="http://en.wikipedia.org/wiki/East_African_rift">East African Rift</a>下的地幔流动感兴趣，这是一个两个大陆板块漂移的区域。不拐弯抹角，我们想要描述的几何形状看起来是这样的。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-53.topo.png" alt=""> 
+
+特别是，虽然你在这里看不到，但顶部的表面不仅仅是由高程着色，实际上，它是按照正确的地形变形的。虽然实际的应用在这里并不重要，但几何学是相关的。我们感兴趣的领域是地球的一部分，范围从表面到500公里的深度，从格林威治子午线以东26度到35度，从赤道以北5度到南10度。
+
+这种对几何学的描述建议从一个盒子 $\hat U=[26,35]\times[-10,5]\times[-500000,0]$ 开始（以度、度数和米为单位），并提供一个地图 $\varphi$ ，以便 $\varphi^{-1}(\hat U)=\Omega$ 其中 $\Omega$ 是我们寻求的领域。  然后， $(\Omega,\varphi)$ 是一个图表， $\varphi$ 是回拉运算符， $\varphi^{-1}$ 是前推运算符。如果我们需要一个点 $q$ 是其他点 $q_i\in\Omega$ 的 "平均值"，那么ChartManifold类首先应用回拉得到 $\hat q_i=\varphi(q_i)$ ，将其平均到一个点 $\hat p$ ，然后计算出 $p=\varphi^{-1}(\hat p)$ 。
+
+因此，我们这里的目标是实现一个描述 $\varphi$ 和 $\varphi^{-1}$ 的类。如果地球是一个球体，那么这并不困难：如果我们用 $(\hat \phi,\hat \theta,\hat d)$ 表示 $\hat U$ 的点（即经度向东计算，纬度向北计算，海拔相对于零深度），那么
+
+@f[
+  \mathbf x = \varphi^{-1}(\hat \phi,\hat \theta,\hat d)
+  = (R+\hat d) (\cos\hat \phi\cos\hat \theta, \sin\hat \phi\cos\hat \theta, \sin\hat \theta)^T
+
+
+@f]
+
+提供直角坐标系中的坐标，其中 $R$ 是球体的半径。然而，地球不是一个球体。
+
+<ol>  <li> 它在两极是扁平的，在赤道是较大的：半主轴比半副轴长约22公里。我们将使用<a href="http://en.wikipedia.org/wiki/WGS84">WGS 84</a>的地球形状参考标准来说明这一点。在WGS 84中，用于从经度、纬度和海拔获得直角坐标位置的公式是
+
+@f[
+  \mathbf x = \varphi_\text{WGS84}^{-1}(\phi,\theta,d)
+  = \left(
+    \begin{array}{c}
+     (\bar R(\theta)+d) \cos\phi\cos\theta, \\
+     (\bar R(\theta)+d) \sin\phi\cos\theta, \\
+     ((1-e^2)\bar R(\theta)+d) \sin\theta
+    \end{array}
+    \right),
+
+
+@f]
+
+  其中  $\bar R(\theta)=\frac{R}{\sqrt{1-(e \sin\theta)^2}}$  ，而半径和椭圆度由  $R=6378137\text{m}, e=0.081819190842622$  给出。在这个公式中，我们假设正弦和余弦的参数是以度数而不是弧度来计算的（尽管我们将不得不在代码中改变这个假设）。
+
+ <li>  它的地形是山脉和山谷的形式。我们将使用真实的地形数据来说明这一点（见下文对这些数据来源的描述）。使用这个数据集，我们可以在地球表面的经纬度网格上查找高程。从方框 $\hat U=[26,35]\times[-10,5]\times[-500000,0]$ 开始，我们将首先在垂直方向上拉伸它，然后再把它交给WGS 84函数：如果 $h(\hat\phi,\hat\theta)$ 是经度 $\hat\phi$ 和纬度 $\hat\theta$ 的高度，那么我们定义
+
+@f[
+  (\phi,\theta,d) =
+  \varphi_\text{topo}^{-1}(\hat\phi,\hat\theta,\hat d)
+  = \left(
+      \hat\phi,
+      \hat\theta,
+      \hat d + \frac{\hat d+500000}{500000}h(\hat\phi,\hat\theta)
+    \right).
+
+
+@f]
+
+  使用这个函数，盒子 $\hat U$ 的顶面被移到正确的地形上，底面保持原来的位置，中间的点被线性内插。   </ol> 
+
+利用这两个函数，我们就可以将整个推送函数 $\varphi^{-1}: \hat U \rightarrow \Omega$ 定义为
+
+@f[
+  \mathbf x
+  =
+  \varphi^{-1}(\hat\phi,\hat\theta,\hat d)
+  =
+  \varphi_\text{WGS84}^{-1}(\varphi_\text{topo}^{-1}(\hat\phi,\hat\theta,\hat d)).
+
+
+@f]
+
+此外，我们将不得不定义这个函数的逆运算，即回拉运算，我们可以将其写为
+
+@f[
+  (\hat\phi,\hat\theta,\hat d)
+  =
+  \varphi(\mathbf x)
+  =
+  \varphi_\text{topo}(\varphi_\text{WGS84}(\mathbf x)).
+
+
+@f]
+
+我们可以通过倒置上面的公式得到这个函数的一个分量。
+
+@f[
+  (\hat\phi,\hat\theta,\hat d) =
+  \varphi_\text{topo}(\phi,\theta,d)
+  = \left(
+      \phi,
+      \theta,
+      500000\frac{d-h(\phi,\theta)}{500000+h(\phi,\theta)}
+    \right).
+
+
+@f]
+
+计算 $\varphi_\text{WGS84}(\mathbf x)$ 也是可能的，不过要笨拙得多。我们不会在这里展示这个公式，而是只提供程序中的实现。
+
+
+
+
+<h3>Implementation</h3>
+
+在这个程序中，我们需要解决一些问题。在最大范围内，我们需要编写一个实现ChartManifold接口的类。这涉及到一个函数 <code>push_forward()</code> ，该函数在参考域 $\hat U$ 中取一个点，并使用上面概述的函数 $\varphi^{-1}$ 将其转换为实空间，以及实现 <code>pull_back()</code> 的反函数 $\varphi$  。我们将在下面的 <code>AfricaGeometry</code> 类中这样做，该类本质上看起来像这样。
+
+@code
+  class AfricaGeometry : public ChartManifold<3,3>
+  {
+  public:
+    virtual
+    Point<3>
+    pull_back(const Point<3> &space_point) const;
+
+
+    virtual
+    Point<3>
+    push_forward(const Point<3> &chart_point) const;
+
+
+  private:
+    ... some member variables and other member functions...;
+  };
+@endcode
+
+
+
+上述转换有两个部分：WGS 84转换和地形转换。因此， <code>AfricaGeometry</code> 类将有额外的（非虚拟）成员函数 <code>AfricaGeometry::push_forward_wgs84()</code> 和 <code>AfricaGeometry::push_forward_topo()</code> 来实现这两部分，以及相应的回拉函数。
+
+WGS 84的转换函数并不特别有趣（尽管它们实现的公式令人印象深刻）。更有趣的部分是地形变换。回顾一下，为此我们需要评估高程函数 $h(\hat\phi,\hat\theta)$  。当然，这没有公式。地球就是这样，人们能做的最好的事情就是从一些表格中查找海拔高度。事实上，这就是我们要做的。
+
+我们使用的数据最初是由<a
+href="http://en.wikipedia.org/wiki/Shuttle_Radar_Topography_Mission">Shuttle
+Radar Topography Mission</a>创建的，是从美国地质调查局（USGS）下载的，并由D. Sarah Stamps处理，他还编写了WGS 84转换函数的初始版本。这样处理过的地形数据被储存在一个文件 <code>topography.txt.gz</code> 中，解压后看起来是这样的。
+
+@code
+6.983333 25.000000 700
+6.983333 25.016667 692
+6.983333 25.033333 701
+6.983333 25.050000 695
+6.983333 25.066667 710
+6.983333 25.083333 702
+...
+
+
+-11.983333 35.950000 707
+
+
+-11.983333 35.966667 687
+
+
+-11.983333 35.983333 659
+@endcode
+
+数据格式为 <code>latitude longitude elevation</code> ，其中前两栏以赤道以北的度数和格林威治子午线以东的度数提供。最后一列是以WGS84零点以上的米数为单位。
+
+在转换函数中，我们需要对给定的经度 $\hat\phi$ 和纬度 $\hat\theta$ 评估 $h(\hat\phi,\hat\theta)$  。一般来说，这个数据点是不可用的，我们将不得不在相邻的数据点之间进行内插。编写这样一个插值程序并不特别困难，但它有点乏味，而且容易出错。幸运的是，我们可以以某种方式将这个数据集塞进一个现有的类中。   Functions::InterpolatedUniformGridData  .不幸的是，这个类并不完全适合，所以我们需要绕过它。问题来自于我们初始化这个类的方式：在其最简单的形式下，它需要一个数值流，它假设在 $x-y$ 平面（或者，这里是 $\phi-\theta$ 平面）形成一个等距的网格。这就是它们在这里所做的，某种程度上：它们的顺序是纬度第一，经度第二；更尴尬的是，第一列从最大的数值开始往下数，而不是通常的其他方式。
+
+现在，虽然教程程序是为了说明如何用deal.II编码，但它们不一定要满足与生产代码相同的质量标准。在生产代码中，我们会写一个函数来读取数据，并（i）自动确定第一列和第二列的外延，（ii）自动确定每个方向的数据点的数量，（iii）无论数据的排列顺序如何，都要进行插值，如果有必要的话，在读取和呈现给 Functions::InterpolatedUniformGridData 类之间切换顺序。
+
+另一方面，辅导课程最好是短小精悍，展示关键点，而不是纠缠于不重要的方面，从而掩盖了我们真正想要展示的东西。因此，我们将允许自己有一点回旋余地。
+
+- 由于这个程序只针对东非裂谷地区周围的特定几何形状，并且由于这正是数据文件所描述的区域，我们将在程序中硬编码有 $1139\times 660$ 个数据。
+
+- 我们将硬编码数据的边界  $[-11.98333^\circ,6.983333^\circ]\times[25^\circ,35.98333^\circ]$  。
+
+- 我们将对 Functions::InterpolatedUniformGridData 类撒谎：该类将只看到这个数据文件最后一列的数据，我们将假装数据的排列方式是：在第一个坐标方向上有1139个数据点，这些数据点按<i>ascending</i>的顺序排列，但在一个区间 $[-6.983333^\circ,11.98333^\circ]$ （不是否定的边界）。然后，当我们需要查询某个纬度 $\hat\theta$ 的东西时，我们可以向内插表类索取 $-\hat\theta$ 的数值。有了这个小技巧，我们就可以避免在从文件中读取数据的时候切换顺序。
+
+所有这些都需要一个本质上看起来像这样的类。
+
+@code
+  class AfricaTopography
+  {
+  public:
+    AfricaTopography ()
+      :
+      topography_data (...initialize somehow...)
+    {}
+
+
+    double value (const double lon, const double lat) const
+    {
+      return topography_data.value (Point<2>(-lat * 180/numbers::PI,
+                                             lon * 180/numbers::PI));
+    }
+
+
+  private:
+    const Functions::InterpolatedUniformGridData<2> topography_data;
+  };
+@endcode
+
+
+
+注意 <code>value()</code> 函数如何否定了纬度。它还将我们在其他地方使用的格式 $\phi,\theta$ 转换为表格中使用的纬度-经度格式。最后，它的参数以弧度为单位，因为我们在程序中的其他地方也是这样做的，但随后将它们转换为用于表格查询的基于度的系统。正如你在下面的实现中所看到的，该函数还有几个（静态）成员函数，我们将在初始化 <code>topography_data</code> 成员变量时调用：该变量的类类型有一个构造函数，允许我们在构造时正确设置一切，而不是在以后填充数据，但这个构造函数需要一些不能就地构造的对象（至少在C++98中不能）。因此，我们要在初始化中传递的每个对象的构造都发生在一些静态成员函数中。
+
+在讨论了我们要实施的事情的大体轮廓之后，让我们去看程序，并展示它在实践中是如何做的。
+
+

@@ -1,0 +1,84 @@
+examples/step-5/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+下面是控制台的输出。
+
+@code
+Cycle 0:
+   Number of active cells: 20
+   Total number of cells: 20
+   Number of degrees of freedom: 25
+   13 CG iterations needed to obtain convergence.
+Cycle 1:
+   Number of active cells: 80
+   Total number of cells: 100
+   Number of degrees of freedom: 89
+   18 CG iterations needed to obtain convergence.
+Cycle 2:
+   Number of active cells: 320
+   Total number of cells: 420
+   Number of degrees of freedom: 337
+   29 CG iterations needed to obtain convergence.
+Cycle 3:
+   Number of active cells: 1280
+   Total number of cells: 1700
+   Number of degrees of freedom: 1313
+   52 CG iterations needed to obtain convergence.
+Cycle 4:
+   Number of active cells: 5120
+   Total number of cells: 6820
+   Number of degrees of freedom: 5185
+   95 CG iterations needed to obtain convergence.
+Cycle 5:
+   Number of active cells: 20480
+   Total number of cells: 27300
+   Number of degrees of freedom: 20609
+   182 CG iterations needed to obtain convergence.
+@endcode
+
+
+
+
+
+
+在每个周期中，单元格的数量翻了两番，CG迭代的数量大约翻了一番。另外，在每个周期中，程序写出一个VTU格式的输出图形文件。它们被描述为以下内容。
+
+ <table width="100%">
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-5.solution-0-r9.2.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-5.solution-1-r9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-5.solution-2-r9.2.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-5.solution-3-r9.2.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-5.solution-4-r9.2.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-5.solution-5-r9.2.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+
+
+
+由于系数的可变性（那里的曲率减少的程度与系数增加的程度相同），溶液的顶部区域被压扁了。溶液的梯度沿着界面是不连续的，尽管这在上面的图片中不是很明显。我们将在下一个例子中更详细地研究这个问题。
+
+图片还显示，这个程序计算出来的解在非常粗的网格上其实是相当错误的（它的大小是错误的）。这是因为没有任何数值方法能保证粗大网格上的解是特别准确的--但我们知道解<i>converges</i>是精确的解，事实上你可以看到从一个网格到下一个网格的解似乎在最后不再有太大的变化。
+
+

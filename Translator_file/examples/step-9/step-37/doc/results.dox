@@ -1,0 +1,464 @@
+examples/step-37/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Program output</h3>
+
+由于这个例子解决的是与步骤5相同的问题（除了不同的系数），所以对解决方案没有什么可说的。我们还是展示了一张图片，通过等高线和体积渲染来说明解决方案的大小。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-37.solution.png" alt=""> 
+
+更有趣的是评估多网格求解器的某些方面。当我们在二维运行这个程序时，对于二次（ $Q_2$ ）元素，我们得到以下输出（当在一个核心上以释放模式运行时）。
+
+@code
+Vectorization over 2 doubles = 128 bits (SSE2)
+Cycle 0
+Number of degrees of freedom: 81
+Total setup time               (wall) 0.00159788s
+Time solve (6 iterations)  (CPU/wall) 0.000951s/0.000951052s
+
+
+Cycle 1
+Number of degrees of freedom: 289
+Total setup time               (wall) 0.00114608s
+Time solve (6 iterations)  (CPU/wall) 0.000935s/0.000934839s
+
+
+Cycle 2
+Number of degrees of freedom: 1089
+Total setup time               (wall) 0.00244665s
+Time solve (6 iterations)  (CPU/wall) 0.00207s/0.002069s
+
+
+Cycle 3
+Number of degrees of freedom: 4225
+Total setup time               (wall) 0.00678205s
+Time solve (6 iterations)  (CPU/wall) 0.005616s/0.00561595s
+
+
+Cycle 4
+Number of degrees of freedom: 16641
+Total setup time               (wall) 0.0241671s
+Time solve (6 iterations)  (CPU/wall) 0.019543s/0.0195441s
+
+
+Cycle 5
+Number of degrees of freedom: 66049
+Total setup time               (wall) 0.0967851s
+Time solve (6 iterations)  (CPU/wall) 0.07457s/0.0745709s
+
+
+Cycle 6
+Number of degrees of freedom: 263169
+Total setup time               (wall) 0.346374s
+Time solve (6 iterations)  (CPU/wall) 0.260042s/0.265033s
+@endcode
+
+
+
+如同步骤16，我们看到随着自由度的增加，CG的迭代次数保持不变。恒定的迭代次数（加上最佳的计算特性）意味着当问题大小在一个周期内翻两番时，计算时间大约翻了四倍。该代码在存储方面也非常有效。大约200-400万个自由度适合于1GB的内存，也见下面的MPI结果。一个有趣的事实是，尽管没有建立矩阵，但解决一个线性系统比设置要便宜（大约一半的时间花在 DoFHandler::distribute_dofs() 和 DoFHandler::distribute_mg_dofs() 的调用上）。这表明这种方法的效率很高，但也表明deal.II数据结构的设置相当昂贵，设置成本必须在几个系统求解中摊销。
+
+如果我们在三个空间维度上运行程序，就不会有太大变化。由于我们使用了均匀的网格细化，我们得到的元素数量是八倍，每个周期的自由度大约是八倍。
+
+@code
+Vectorization over 2 doubles = 128 bits (SSE2)
+Cycle 0
+Number of degrees of freedom: 125
+Total setup time               (wall) 0.00231099s
+Time solve (6 iterations)  (CPU/wall) 0.000692s/0.000922918s
+
+
+Cycle 1
+Number of degrees of freedom: 729
+Total setup time               (wall) 0.00289083s
+Time solve (6 iterations)  (CPU/wall) 0.001534s/0.0024128s
+
+
+Cycle 2
+Number of degrees of freedom: 4913
+Total setup time               (wall) 0.0143182s
+Time solve (6 iterations)  (CPU/wall) 0.010785s/0.0107841s
+
+
+Cycle 3
+Number of degrees of freedom: 35937
+Total setup time               (wall) 0.087064s
+Time solve (6 iterations)  (CPU/wall) 0.063522s/0.06545s
+
+
+Cycle 4
+Number of degrees of freedom: 274625
+Total setup time               (wall) 0.596306s
+Time solve (6 iterations)  (CPU/wall) 0.427757s/0.431765s
+
+
+Cycle 5
+Number of degrees of freedom: 2146689
+Total setup time               (wall) 4.96491s
+Time solve (6 iterations)  (CPU/wall) 3.53126s/3.56142s
+@endcode
+
+
+
+既然如此简单，我们看看如果我们增加多项式的度数会发生什么。当在三维中选择度数为4，即在 $\mathcal Q_4$ 元素上，通过改变程序顶部的一行<code>const unsigned int degree_finite_element=4;</code>，我们得到以下程序输出。
+
+@code
+Vectorization over 2 doubles = 128 bits (SSE2)
+Cycle 0
+Number of degrees of freedom: 729
+Total setup time               (wall) 0.00633097s
+Time solve (6 iterations)  (CPU/wall) 0.002829s/0.00379395s
+
+
+Cycle 1
+Number of degrees of freedom: 4913
+Total setup time               (wall) 0.0174279s
+Time solve (6 iterations)  (CPU/wall) 0.012255s/0.012254s
+
+
+Cycle 2
+Number of degrees of freedom: 35937
+Total setup time               (wall) 0.082655s
+Time solve (6 iterations)  (CPU/wall) 0.052362s/0.0523629s
+
+
+Cycle 3
+Number of degrees of freedom: 274625
+Total setup time               (wall) 0.507943s
+Time solve (6 iterations)  (CPU/wall) 0.341811s/0.345788s
+
+
+Cycle 4
+Number of degrees of freedom: 2146689
+Total setup time               (wall) 3.46251s
+Time solve (7 iterations)  (CPU/wall) 3.29638s/3.3265s
+
+
+Cycle 5
+Number of degrees of freedom: 16974593
+Total setup time               (wall) 27.8989s
+Time solve (7 iterations)  (CPU/wall) 26.3705s/27.1077s
+@endcode
+
+
+
+由于一定网格上的 $\mathcal Q_4$ 元素对应于一半网格大小的 $\mathcal Q_2$ 元素，我们可以比较第四周期使用四度多项式和第五周期使用二次多项式的运行时间，两者都是210万自由度。令人惊讶的效果是，尽管多用了一次线性迭代， $\mathcal Q_4$ 元素的求解器实际上比四次方的情况略快。高阶多项式的速度与低阶多项式类似，甚至比低阶多项式更快，这是通过和分解进行无矩阵算子评估的主要优势之一，见<a
+href="http://dx.doi.org/10.1016/j.compfluid.2012.04.012">matrix-free
+paper</a>。这与基于矩阵的方法有根本的不同，后者随着多项式度数的增加和耦合的密集，每个未知数的成本会越来越高。
+
+此外，对于更高的订单，设置也变得更便宜，这是因为需要设置的元素更少。
+
+最后，让我们看一下度数为8的时间，这相当于低阶方法的另一轮网格细化。
+
+@code
+Vectorization over 2 doubles = 128 bits (SSE2)
+Cycle 0
+Number of degrees of freedom: 4913
+Total setup time               (wall) 0.0842004s
+Time solve (8 iterations)  (CPU/wall) 0.019296s/0.0192959s
+
+
+Cycle 1
+Number of degrees of freedom: 35937
+Total setup time               (wall) 0.327048s
+Time solve (8 iterations)  (CPU/wall) 0.07517s/0.075999s
+
+
+Cycle 2
+Number of degrees of freedom: 274625
+Total setup time               (wall) 2.12335s
+Time solve (8 iterations)  (CPU/wall) 0.448739s/0.453698s
+
+
+Cycle 3
+Number of degrees of freedom: 2146689
+Total setup time               (wall) 16.1743s
+Time solve (8 iterations)  (CPU/wall) 3.95003s/3.97717s
+
+
+Cycle 4
+Number of degrees of freedom: 16974593
+Total setup time               (wall) 130.8s
+Time solve (8 iterations)  (CPU/wall) 31.0316s/31.767s
+@endcode
+
+
+
+在这里，初始化似乎比以前慢得多，这主要是由于矩阵对角线的计算，它实际上是在每个单元格上计算一个729 x 729的矩阵，扔掉除对角线以外的所有东西。然而，解算时间再次非常接近四次方的情况，这表明理论上预期的随着多项式程度的增加而出现的线性增长几乎完全被更好的计算特性和高阶方法在几个单元上的自由度份额较小而增加了评估的复杂性所抵消。
+
+<h3>Comparison with a sparse matrix</h3>
+
+为了了解无矩阵实现的能力，我们通过测量问题初始化的计算时间（分配DoF、设置和装配矩阵、设置多网格结构）以及无矩阵变体和基于稀疏矩阵的变体的实际求解时间，将上面的3D例子与基于稀疏矩阵的变体的性能进行比较。如上图所示，我们将预处理程序建立在浮点数上，将实际的矩阵和向量建立在双数上。测试在英特尔酷睿i7-5500U笔记本处理器（两个核心，支持<a
+href="http://en.wikipedia.org/wiki/Advanced_Vector_Extensions">AVX</a>，即用一条CPU指令就可以完成对双数的四次操作，这在FEEvaluation中被大量使用）、优化模式和两个MPI行列上运行。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <th>&nbsp;</th>
+    <th colspan="2">Sparse matrix</th>
+    <th colspan="2">Matrix-free implementation</th>
+  </tr>
+  <tr>
+    <th>n_dofs</th>
+    <th>Setup + assemble</th>
+    <th>&nbsp;Solve&nbsp;</th>
+    <th>Setup + assemble</th>
+    <th>&nbsp;Solve&nbsp;</th>
+  </tr>
+  <tr>
+    <td align="right">125</td>
+    <td align="center">0.0042s</td>
+    <td align="center">0.0012s</td>
+    <td align="center">0.0022s</td>
+    <td align="center">0.00095s</td>
+  </tr>
+  <tr>
+    <td align="right">729</td>
+    <td align="center">0.012s</td>
+    <td align="center">0.0040s</td>
+    <td align="center">0.0027s</td>
+    <td align="center">0.0021s</td>
+  </tr>
+  <tr>
+    <td align="right">4,913</td>
+    <td align="center">0.082s</td>
+    <td align="center">0.012s</td>
+    <td align="center">0.011s</td>
+    <td align="center">0.0057s</td>
+  </tr>
+  <tr>
+    <td align="right">35,937</td>
+    <td align="center">0.73s</td>
+    <td align="center">0.13s</td>
+    <td align="center">0.048s</td>
+    <td align="center">0.040s</td>
+  </tr>
+  <tr>
+    <td align="right">274,625</td>
+    <td align="center">5.43s</td>
+    <td align="center">1.01s</td>
+    <td align="center">0.33s</td>
+    <td align="center">0.25s</td>
+  </tr>
+  <tr>
+    <td align="right">2,146,689</td>
+    <td align="center">43.8s</td>
+    <td align="center">8.24s</td>
+    <td align="center">2.42s</td>
+    <td align="center">2.06s</td>
+  </tr>
+</table> 
+
+该表清楚地显示，无矩阵实现的求解速度是两倍以上，而在初始化成本方面，则是六倍以上。随着问题大小被放大8倍，我们注意到，时间通常也会上升8倍（因为求解器的迭代次数恒定为6次）。主要的偏差是在5k到36k自由度的稀疏矩阵中，时间增加了12倍。这是处理器中的（L3）缓存不能再容纳矩阵-向量乘积所需的所有数据的阈值，所有的矩阵元素必须从主内存中获取。
+
+当然，这种情况不一定适用于所有情况，因为在有些问题上，对矩阵项的了解可以使解算器的效果好得多（如当系数的变化比上面的例子更强烈时）。此外，这也取决于计算机系统。目前的系统具有良好的内存性能，因此稀疏矩阵的性能相当好。尽管如此，对于本例中使用的<i>Q</i><sub>2</sub>元素，无矩阵的实现已经给出了一个不错的速度。这一点对于时间依赖性或非线性问题尤其明显，在这些问题中，稀疏矩阵需要一次又一次地被重新组合，有了这个类，这就变得容易多了。当然，由于产品的复杂性更好，当元素的阶数增加时，该方法获得了越来越大的优势（无矩阵实现每个自由度的成本为4<i>d</i><sup>2</sup><i>p</i>，而稀疏矩阵为2<i>p<sup>d</sup></i>，所以无论如何它在4阶以上的3d中会获胜）。
+
+<h3> Results for large-scale parallel computations on SuperMUC</h3>
+
+正如介绍和代码中的注释所解释的，这个程序可以用MPI并行运行。事实证明，几何多栅方案工作得非常好，可以扩展到非常大的机器。据作者所知，这里显示的几何多网格结果是截至2016年底用deal.II完成的最大计算，在<a
+href="https://www.lrz.de/services/compute/supermuc/systemdescription/">complete
+SuperMUC Phase 1</a>的多达147456个核心上运行。超过1000个核心的可扩展性的要素是，没有任何依赖于全局问题大小的数据结构被完整地保存在一个处理器上，并且通信不是太频繁，以避免遇到网络的延迟问题。  对于用迭代求解器求解的PDEs，通信延迟往往是限制因素，而不是网络的吞吐量。以SuperMUC系统为例，两个处理器之间的点对点延迟在1e-6到1e-5秒之间，取决于MPI网络中的距离。这一类的矩阵-向量产品与 @p LaplaceOperator 涉及几个点对点通信步骤，与每个核心上的计算交错进行。由此产生的矩阵-向量乘积的延迟约为1e-4秒。全局通信，例如一个 @p MPI_Allreduce 操作，在MPI网络中的所有等级上累积每个等级的单一数字之和，其延迟为1e-4秒。这个程序中使用的多网格V型循环也是全局通信的一种形式。想一想发生在单个处理器上的粗略网格求解。在开始之前，它积累了来自所有处理器的贡献。当完成后，粗网格解决方案被转移到更细的层次，在那里越来越多的处理器帮助平滑，直到细网格。从本质上讲，这是在网络中的处理器上的一个树状模式，并由网格控制。相对于 @p MPI_Allreduce 的操作，在还原中的树被优化为MPI网络中的实际链接，多网格V-cycle是根据网格的划分来做的。因此，我们不能期望有同样的优化效果。此外，多网格循环并不是简单地在细化树上走来走去，而是在做平滑的时候在每一层上进行通信。换句话说，多网格中的全局通信更具挑战性，与提供较少优化机会的网格有关。测得的V型周期的延迟在6e-3和2e-2秒之间，即与60至200次MPI_Allreduce操作相同。
+
+下图显示了在 $\mathcal Q_3$ 元素上进行的缩放实验。沿着这条线，问题的大小保持不变，因为核的数量在增加。当内核数量增加一倍时，人们期望计算时间减少一半，灰色虚线表示。结果显示，在达到0.1秒左右的绝对时间之前，该实现显示了几乎理想的行为。解算器的公差已经被设定为解算器执行五次迭代。这种绘制数据的方式是该算法的<b>strong scaling</b>。当我们走到非常大的核心数时，曲线会提前变平，这是因为SuperMUC中的通信网络，距离较远的处理器之间的通信会稍慢一些。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-37.scaling_strong.png" alt=""> 
+
+此外，该图还包含了<b>weak scaling</b>的结果，列出了当处理器内核和元素的数量都以相同的速度增加时，算法的表现。在这种情况下，我们期望计算时间保持不变。在算法上，CG的迭代次数恒定在5次，所以我们从这一点来看是好的。图中的线条是这样排列的：每个数据系列中的左上角点代表每个处理器的相同大小，即131,072个元素（或每个核心大约350万个自由度）。表示理想的强缩放的灰色线条相隔8个相同的系数。结果再次表明，缩放比例几乎是理想的。当从288个核到147456个核时，并行效率在75%左右，每个核的局部问题大小为75万自由度，在288个核上需要1.0秒，在2304个核上需要1.03秒，在18000个核上需要1.19秒，在147000个核上需要1.35秒。这些算法对处理器的利用率也达到了很高。在147k核心上最大的计算在SuperMUC上达到约1.7 PFLOPs/s，其中算术峰值为3.2 PFLOPs/s。对于一个迭代式PDE求解器来说，这是一个非常高的数字，而且通常只有密集线性代数才会达到显著的数字。稀疏线性代数被限制在这个数值的十分之一。
+
+正如介绍中提到的，无矩阵方法减少了数据结构的内存消耗。除了由于更少的内存传输而带来的更高的性能外，该算法还允许非常大的问题被装入内存。下图显示了随着我们增加问题的大小，直到计算耗尽内存的上限时的计算时间。我们对1k核、8k核和65k核进行了计算，发现问题的大小几乎可以在两个数量级上进行理想的扩展。这张图中显示的最大的计算涉及2920亿（ $2.92 \cdot 10^{11}$ ）个自由度。在147k核心的DG计算中，上述算法也被运行，涉及多达5490亿（2^39）个自由度。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-37.scaling_size.png" alt=""> 
+
+最后，我们注意到，在对上述大规模系统进行测试的同时，deal.II中的多网格算法也得到了改进。原始版本包含了基于MGSmootherPrecondition的次优代码，其中一些MPI_Allreduce命令（检查所有向量条目是否为零）在每一级的平滑操作上都要进行，这在65k核以上的系统中才变得明显。然而，下面的图片显示，改进已经在较小的规模上得到了回报，这里显示的是对 $\mathcal Q_5$ 元素在多达14336个内核上的计算。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-37.scaling_oldnew.png" alt=""> 
+
+
+
+
+<h3> Adaptivity</h3>
+
+正如代码中所解释的，这里介绍的算法是为运行在自适应细化的网格上准备的。如果只有部分网格被细化，多网格循环将以局部平滑的方式运行，并通过 MatrixFreeOperators::Base 类对细化程度不同的界面施加迪里切条件进行平滑。由于自由度在层次上的分布方式，将层次单元的所有者与第一个下级活动单元的所有者联系起来，在MPI中不同的处理器之间可能存在不平衡，这限制了可扩展性，约为2到5倍。
+
+<h3> Possibilities for extensions</h3>
+
+<h4> Kelly error estimator </h4>
+
+如上所述，代码已经准备好用于局部自适应h-精简。对于泊松方程，可以采用KellyErrorEstimator类中实现的Kelly误差指标。然而，我们需要小心处理平行向量的鬼魂指数。为了评估误差指标中的跳跃项，每个MPI进程需要知道本地相关的DoF。然而 MatrixFree::initialize_dof_vector() 函数只用一些本地相关的DoF来初始化向量。在向量中提供的鬼魂指数是一个严格的集合，只有那些在单元积分（包括约束解决）中被触及的指数。这种选择有性能上的原因，因为与矩阵-向量乘积相比，发送所有本地相关的自由度会过于昂贵。因此，原样的解决方案向量不适合KellyErrorEstimator类。诀窍是改变分区的幽灵部分，例如使用一个临时向量和 LinearAlgebra::distributed::Vector::copy_locally_owned_data_from() ，如下所示。
+
+@code
+IndexSet locally_relevant_dofs;
+DoFTools::extract_locally_relevant_dofs(dof_handler, locally_relevant_dofs);
+LinearAlgebra::distributed::Vector<double> copy_vec(solution);
+solution.reinit(dof_handler.locally_owned_dofs(),
+                locally_relevant_dofs,
+                triangulation.get_communicator());
+solution.copy_locally_owned_data_from(copy_vec);
+constraints.distribute(solution);
+solution.update_ghost_values();
+@endcode
+
+
+
+<h4> Shared-memory parallelization</h4>
+
+这个程序只用MPI来并行化。作为一种选择，MatrixFree循环也可以在混合模式下发出，例如通过在集群的节点上使用MPI并行化，在一个节点的共享内存区域内通过Intel TBB使用线程。要使用这一点，就需要在主函数的MPI_InitFinalize数据结构中同时设置线程数，并将 MatrixFree::AdditionalData::tasks_parallel_scheme 设置为partition_color，以便真正并行地进行循环。这个用例将在步骤-48中讨论。
+
+<h4> Inhomogeneous Dirichlet boundary conditions </h4>
+
+所提出的程序假定了同质的Dirichlet边界条件。当进入非均质条件时，情况就有点复杂了。为了理解如何实现这样的设置，让我们首先回顾一下这些条件是如何在数学公式中出现的，以及它们是如何在基于矩阵的变体中实现的。从本质上讲，非均质Dirichlet条件将解决方案中的一些节点值设定为给定值，而不是通过变分原理来确定它们。
+
+@f{eqnarray*}
+u_h(\mathbf{x}) = \sum_{i\in \mathcal N} \varphi_i(\mathbf{x}) u_i =
+\sum_{i\in \mathcal N \setminus \mathcal N_D} \varphi_i(\mathbf{x}) u_i +
+\sum_{i\in \mathcal N_D} \varphi_i(\mathbf{x}) g_i,
+
+
+@f}
+
+其中 $u_i$ 表示解决方案的节点值， $\mathcal N$ 表示所有节点的集合。集合 $\mathcal N_D\subset \mathcal N$ 是受迪里希特边界条件约束的节点子集，其中解被强制等于 $u_i = g_i = g(\mathbf{x}_i)$ 作为迪里希特约束的节点点上的边界值插值 $i\in \mathcal
+N_D$  。然后我们把这个解的表示插入到弱的形式中，例如上面所示的拉普拉斯，并把已知量移到右边。
+
+@f{eqnarray*}
+(\nabla \varphi_i, \nabla u_h)_\Omega &=& (\varphi_i, f)_\Omega \quad \Rightarrow \\
+\sum_{j\in \mathcal N \setminus \mathcal N_D}(\nabla \varphi_i,\nabla \varphi_j)_\Omega \, u_j &=&
+(\varphi_i, f)_\Omega
+
+
+-\sum_{j\in \mathcal N_D} (\nabla \varphi_i,\nabla\varphi_j)_\Omega\, g_j.
+
+
+@f}
+
+在这个公式中，对所有的基函数 $\varphi_i$ 与 $i\in N \setminus \mathcal N_D$ 进行测试，这些基函数与迪里希特条件约束的节点没有关系。
+
+在deal.II的实现中，右手边的积分 $(\nabla \varphi_i,\nabla \varphi_j)_\Omega$ 已经包含在我们在每个单元格上组装的局部矩阵贡献中。当使用 AffineConstraints::distribute_local_to_global() 时，正如在步骤6和步骤7的教程程序中首次描述的那样，我们可以通过将本地矩阵的列<i>j</i>和行<i>i</i>相乘来说明不均匀约束的贡献<i>j</i> 的局部矩阵根据积分 $(\varphi_i,
+\varphi_j)_\Omega$ 乘以不均匀性，然后从全局右侧向量中的位置<i>i</i>中减去所得，也见 @ref
+constraints  模块。实质上，我们使用一些从方程左侧被消除的积分来最终确定右侧的贡献。当首先将所有条目写进左侧矩阵，然后通过 MatrixTools::apply_boundary_values(). 消除矩阵的行和列时，也会涉及类似的数学。
+
+原则上，属于受限自由度的成分可以从线性系统中剔除，因为它们不携带任何信息。实际上，在deal.II中，我们总是保持线性系统的大小不变，以避免处理两种不同的编号系统，并避免对两种不同的索引集产生混淆。为了确保在不向受限行添加任何东西时，线性系统不会变得奇异，我们再向矩阵对角线添加假条目，否则与真实条目无关。
+
+在无矩阵方法中，我们需要采取不同的方法，因为 @p LaplaceOperator类代表了<b>homogeneous</b>算子的矩阵-向量乘积（最后一个公式的左手边）。  传递给 MatrixFree::reinit() 的AffineConstraints对象是否包含不均匀约束并不重要，只要它代表一个<b>linear</b>算子， MatrixFree::cell_loop() 调用将只解决约束的同质部分。
+
+在我们的无矩阵代码中，非均质条件的贡献最终会在右侧计算中与矩阵算子完全脱钩，并由上述不同的函数处理。因此，我们需要明确地生成进入右手边的数据，而不是使用矩阵装配的副产品。由于我们已经知道如何在一个向量上应用算子，我们可以尝试对一个向量使用这些设施，我们只设置Dirichlet值。
+
+@code
+  // interpolate boundary values on vector solution
+  std::map<types::global_dof_index, double> boundary_values;
+  VectorTools::interpolate_boundary_values(mapping,
+                                           dof_handler,
+                                           0,
+                                           BoundaryValueFunction<dim>(),
+                                           boundary_values);
+  for (const std::pair<const types::global_dof_index, double> &pair : boundary_values)
+    if (solution.locally_owned_elements().is_element(pair.first))
+      solution(pair.first) = pair.second;
+@endcode
+
+或者说，如果我们已经将不均匀约束填充到AffineConstraints对象中。
+
+@code
+  solution = 0;
+  constraints.distribute(solution);
+@endcode
+
+
+
+然后我们可以将向量 @p solution 传递给 @p  LaplaceOperator::vmult_add() 函数，并将新的贡献添加到 @p system_rhs向量中，在 @p LaplaceProblem::assemble_rhs() 函数中被填充。然而，这个想法并不奏效，因为vmult()函数中使用的 FEEvaluation::read_dof_values() 调用假定所有约束条件的值都是同质的（否则运算符就不是线性运算符，而是仿射运算符）。为了同时检索不均匀性的值，我们可以选择以下两种策略中的一种。
+
+<h5> Use FEEvaluation::read_dof_values_plain() to avoid resolving constraints </h5>
+
+FEEvaluation类有一个设施，正是为了解决这个要求。对于非均质的Dirichlet值，我们确实希望在从向量 @p solution. 中读取数据时跳过隐含的均质（Dirichlet）约束。例如，我们可以扩展 @p  LaplaceProblem::assemble_rhs() 函数来处理非均质的Dirichlet值，如下所示，假设Dirichlet值已经被插值到对象 @p constraints:  中
+
+@code
+template <int dim>
+void LaplaceProblem<dim>::assemble_rhs()
+{
+  solution = 0;
+  constraints.distribute(solution);
+  solution.update_ghost_values();
+  system_rhs = 0;
+
+
+  const Table<2, VectorizedArray<double>> &coefficient = system_matrix.get_coefficient();
+  FEEvaluation<dim, degree_finite_element> phi(*system_matrix.get_matrix_free());
+  for (unsigned int cell = 0;
+       cell < system_matrix.get_matrix_free()->n_cell_batches();
+       ++cell)
+    {
+      phi.reinit(cell);
+      phi.read_dof_values_plain(solution);
+      phi.evaluate(EvaluationFlags::gradients);
+      for (unsigned int q = 0; q < phi.n_q_points; ++q)
+        {
+          phi.submit_gradient(-coefficient(cell, q) * phi.get_gradient(q), q);
+          phi.submit_value(make_vectorized_array<double>(1.0), q);
+        }
+      phi.integrate(EvaluationFlags::values|EvaluationFlags::gradients);
+      phi.distribute_local_to_global(system_rhs);
+    }
+  system_rhs.compress(VectorOperation::add);
+}
+@endcode
+
+
+
+在这段代码中，我们用忽略所有约束的 FEEvaluation::read_dof_values_plain() 代替了用于暂定解向量的 FEEvaluation::read_dof_values() 函数。由于这种设置，我们必须确保其他约束条件，例如通过悬挂节点，已经正确地分布到输入向量中，因为它们没有像 FEEvaluation::read_dof_values_plain(). 那样被解决。 在循环内部，我们然后评估拉普拉斯，并用 @p LaplaceOperator 类中的 FEEvaluation::submit_gradient() 重复二次导数调用，但符号调换，因为我们想根据上述公式减去右侧向量的迪里希条件的贡献。当我们调用 FEEvaluation::integrate() 时，我们将关于值槽和第一导数槽的两个参数设置为真，以说明在正交点的循环中加入的两个项。一旦右手边集合完毕，我们就继续求解同质问题的线性系统，比如说涉及到一个变量 @p solution_update. 在求解之后，我们可以将 @p solution_update 加入到包含最终（非同质）解决方案的 @p solution 向量中。
+
+请注意，拉普拉斯的负号与我们需要用来建立右手边的强制力的正号是一个更普遍的概念。我们所实施的只不过是牛顿的非线性方程方法，但应用于线性系统。我们在迪里切特边界条件方面使用了对变量 @p solution 的初始猜测，并计算了残差 $r = f - Au_0$  。然后线性系统被解为  $\Delta u = A^{-1} (f-Au)$  ，我们最后计算出  $u = u_0 + \Delta u$  。对于一个线性系统，我们显然在一次迭代后就能达到精确解。如果我们想将代码扩展到非线性问题，我们会将 @p assemble_rhs() 函数重新命名为一个更具描述性的名字，如 @p  assemble_residual()，计算残差的（弱）形式，而 @p LaplaceOperator::apply_add() 函数将得到残差相对于解变量的线性化。
+
+<h5> Use LaplaceOperator with a second AffineConstraints object without Dirichlet conditions </h5>
+
+获得重新使用 @p  LaplaceOperator::apply_add() 函数的第二个替代方法是添加第二个LaplaceOperator，跳过Dirichlet约束。为了做到这一点，我们初始化第二个MatrixFree对象，它没有任何边界值约束。这个 @p matrix_free 对象然后被传递给一个 @p LaplaceOperator 类实例 @p inhomogeneous_operator，它只用于创建右手边。
+
+@code
+template <int dim>
+void LaplaceProblem<dim>::assemble_rhs()
+{
+  system_rhs = 0;
+  AffineConstraints<double> no_constraints;
+  no_constraints.close();
+  LaplaceOperator<dim, degree_finite_element, double> inhomogeneous_operator;
+
+
+  typename MatrixFree<dim, double>::AdditionalData additional_data;
+  additional_data.mapping_update_flags =
+    (update_gradients | update_JxW_values | update_quadrature_points);
+  std::shared_ptr<MatrixFree<dim, double>> matrix_free(
+    new MatrixFree<dim, double>());
+  matrix_free->reinit(dof_handler,
+                      no_constraints,
+                      QGauss<1>(fe.degree + 1),
+                      additional_data);
+  inhomogeneous_operator.initialize(matrix_free);
+
+
+  solution = 0.0;
+  constraints.distribute(solution);
+  inhomogeneous_operator.evaluate_coefficient(Coefficient<dim>());
+  inhomogeneous_operator.vmult(system_rhs, solution);
+  system_rhs *= -1.0;
+
+
+  FEEvaluation<dim, degree_finite_element> phi(
+    *inhomogeneous_operator.get_matrix_free());
+  for (unsigned int cell = 0;
+       cell < inhomogeneous_operator.get_matrix_free()->n_cell_batches();
+       ++cell)
+    {
+      phi.reinit(cell);
+      for (unsigned int q = 0; q < phi.n_q_points; ++q)
+        phi.submit_value(make_vectorized_array<double>(1.0), q);
+      phi.integrate(EvaluationFlags::values);
+      phi.distribute_local_to_global(system_rhs);
+    }
+  system_rhs.compress(VectorOperation::add);
+}
+@endcode
+
+
+
+这种技术的更复杂的实现可以重新使用原始的MatrixFree对象。这可以通过用多个块初始化MatrixFree对象来实现，其中每个块对应于不同的AffineConstraints对象。这样做需要对LaplaceOperator类进行大量的修改，但是库中的 MatrixFreeOperators::LaplaceOperator 类可以做到这一点。关于如何设置块的更多信息，请参见 MatrixFreeOperators::Base 中关于块的讨论。
+
+

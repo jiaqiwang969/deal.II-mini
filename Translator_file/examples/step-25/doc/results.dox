@@ -1,0 +1,101 @@
+examples/step-25/doc/results.dox
+
+
+
+<h1>Results</h1>显式欧拉时间步长方案（ $\theta=0$ ）对于我们希望解决的问题来说表现得很充分。不幸的是，由于稳定性问题，必须选择一个相当小的时间步长 ----  $k\sim h/10$ 似乎对我们进行的大多数模拟都有效。另一方面，Crank-Nicolson方案（ $\theta=\frac{1}{2}$ ）是无条件稳定的，而且（至少对于一维呼吸器的情况）我们可以选择大到 $25h$ 的时间步长而不对解决方案产生任何不良影响。隐式欧拉方案（ $\theta=1$ ）是 "指数阻尼 "的，所以它不是解决正弦戈登方程的好选择，因为它是保守的。然而， $\theta$ 方法提供的连续体中的一些阻尼方案对于消除边界效应引起的虚假振荡很有用。
+
+在下面的模拟中，我们在一维的区间 $\Omega =
+[-10,10]$ 和二维的正方形 $\Omega = [-10,10]\times [-10,10]$ 上解决正弦-戈登方程。在每种情况下，各自的网格被均匀地细化了6次，即 $h\sim
+2^{-6}$  。
+
+<h3>An (1+1)-d Solution</h3> 我们讨论的第一个例子是正弦-戈登方程的所谓一维（静止的）呼吸器解。正如介绍中提到的，呼吸器有如下闭合形式的表达。
+
+\f[
+u_{\mathrm{breather}}(x,t) = -4\arctan \left(\frac{m}{\sqrt{1-m^2}} \frac{\sin\left(\sqrt{1-m^2}t +c_2\right)}{\cosh(mx+c_1)} \right),
+\f] 其中 $c_1$  ,  $c_2$  和  $m<1$  是常数。在下面的模拟中，我们选择了  $c_1=0$  ,  $c_2=0$  ,  $m=0.5$  。此外，我们知道呼吸器的振荡周期是 $2\pi\sqrt{1-m^2}$ ，因此我们选择 $t_0=-5.4414$ 和 $t_f=2.7207$ ，这样我们可以观察到解决方案的三次振荡。然后，取 $u_0(x) = u_{\mathrm{breather}}(x,t_0)$ 、 $\theta=0$ 和 $k=h/10$ ，程序计算出以下解。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-25.1d-breather.gif" alt="Animation of the 1D stationary breather."> 
+
+虽然程序中没有显示如何做，但另一种可视化(1+1)-d解决方案的方法是使用DataOutStack类产生的输出；它允许 "堆叠 "单个时间步骤的解决方案，因此我们从一维时间相关的解决方案中得到二维时空图。这就产生了下面的时空图，而不是上面的动画。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-25.1d-breather_stp.png" alt="A space-time plot of the 1D stationary breather."> 
+
+此外，由于呼吸器是正弦-戈登方程的分析解，我们可以用它来验证我们的代码，尽管我们必须假设我们选择的诺伊曼边界条件引入的误差与数值误差相比是很小的。在这种假设下，可以使用 VectorTools::integrate_difference 函数来计算数值解和本程序的 <code>ExactSolution</code> 类描述的函数之间的差异。对于上面两幅图所示的模拟，每个时间步长的有限元解的 $L^2$ 误差的规范保持在 $10^{-2}$ 的数量级。因此，我们可以得出结论，数值方法在程序中得到了正确的实现。
+
+
+
+
+<h3>A few (2+1)D Solutions</h3>
+
+在文献中可以找到的正弦戈登方程在(2+1)D中的唯一分析解是所谓的Kink孤波。它有以下的闭合式表达。   @f[
+    u(x,y,t) = 4 \arctan \left[a_0 e^{s\xi}\right]
+  @f]
+
+与@f[
+    \xi = x \cos\vartheta + \sin(\vartheta) (y\cosh\lambda + t\sinh \lambda)
+  @f]
+
+其中 $a_0$ 、 $\vartheta$ 和 $\lambda$ 为常数。在下面的模拟中，我们选择了 $a_0=\lambda=1$  。请注意，如果 $\vartheta=\pi$ 是静止的，那么它将是一个很好的解决方案，我们可以用它来验证二维的程序，因为没有发生域边界的反射。
+
+下面显示的模拟是用 $u_0(x) = u_{\mathrm{kink}}(x,t_0)$ 、 $\theta=\frac{1}{2}$ 、 $k=20h$ 、 $t_0=1$ 和 $t_f=500$ 进行的。每个时间步长的有限元解的误差的 $L^2$ 准则保持在 $10^{-2}$ 的数量级上，表明该程序在二维和一维中都能正常工作。不幸的是，这个解决方案并不十分有趣，不过为了完整起见，我们还是在下面附上了它的快照。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-25.2d-kink.png" alt="Stationary 2D kink."> 
+
+现在我们已经在一维和二维中验证了代码，我们转到一个分析解未知的问题。
+
+为此，我们围绕 $z$ 轴旋转上面讨论的扭结解：我们让 $\vartheta=\frac{\pi}{4}$  .后者的结果是一个不与网格对齐的孤波，所以反射立即发生在域的边界。对于下面所示的模拟，我们采取了 $u_0(x)=u_{\mathrm{kink}}(x,t_0)$ 、 $\theta=\frac{2}{3}$ 、 $k=20h$ 、 $t_0=0$ 和 $t_f=20$  。此外，我们不得不选择 $\theta=\frac{2}{3}$ ，因为对于任何 $\theta\le\frac{1}{2}$ 的边界都会产生振荡，这可能是由于方案而不是方程造成的，因此选择 $\theta$ 的值，在时间步进方案的 "指数阻尼 "频谱中，确保这些振荡不会被产生。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-25.2d-angled_kink.gif" alt="Animation of a moving 2D kink, at 45 degrees to the axes of the grid, showing boundary effects."> 
+
+正弦-戈登方程的另一个有趣的解决方案（不能通过分析获得）可以通过使用两个一维呼吸器来构建以下可分离的二维初始条件来产生。
+
+\f[
+  u_0(x) =
+  u_{\mathrm{pseudobreather}}(x,t_0) =
+  16\arctan \left(
+    \frac{m}{\sqrt{1-m^2}}
+    \frac{\sin\left(\sqrt{1-m^2}t_0\right)}{\cosh(mx_1)} \right)
+  \arctan \left(
+    \frac{m}{\sqrt{1-m^2}}
+    \frac{\sin\left(\sqrt{1-m^2}t_0\right)}{\cosh(mx_2)} \right),
+\f] 其中 $x=(x_1,x_2)\in{R}^2$  ,  $m=0.5<1$  与我们上面讨论的一维情况一样。在下面的模拟中，我们选择了 $\theta=\frac{1}{2}$ 、 $k=10h$ 、 $t_0=-5.4414$ 和 $t_f=2.7207$ 。解决方案是相当有趣的
+
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-25.2d-pseudobreather.gif" alt="Animation of a 2D pseudobreather."> 
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+改变初始条件是有意义的。大多数选择不会导致保持局部的解决方案（在孤子界，这样的解决方案被称为 "静止的"，尽管解决方案确实随时间变化），而是导致方程的波状特征占主导地位的解决方案，并且波从局部初始条件的位置传播出去。例如，值得玩一玩 <code>InitialValues</code> 类，把对 <code>ExactSolution</code> 类的调用换成类似这样的函数。
+
+@f[
+  u_0(x,y) = \cos\left(\frac x2\right)\cos\left(\frac y2\right)
+
+
+@f]
+
+如果 $|x|,|y|\le \frac\pi 2$ ，和 $u_0(x,y)=0$ 在这个区域之外。
+
+第二个方面是研究该方案是否是能量保持的。对于 @ref
+step_23 "step-23 "中讨论的纯波方程，如果我们选择时间步进参数，使我们得到Crank-Nicolson方案，情况就是这样。我们可以在这里做类似的事情，注意到正弦-戈登解中的能量被定义为
+
+@f[
+  E(t) = \frac 12 \int_\Omega \left(\frac{\partial u}{\partial
+  t}\right)^2
+  + \left(\nabla u\right)^2 + 2 (1-\cos u) \; dx.
+
+
+@f]
+
+(我们在公式中使用 $1-\cos u$ 而不是 $-\cos u$ ，以确保对能量的所有贡献都是正的，从而使衰变的解在无界域上具有有限的能量。)
+
+除此以外，还有两个明显的领域。
+
+- 显然，自适应性（即时间自适应网格）会对这样的问题产生兴趣。它们的复杂性导致我们再次将其排除在本方案之外，尽管 @ref step_23 "step-23 "介绍中的一般评论仍然正确。
+
+- 解决这个问题的更快方案。虽然今天的计算机已经足够快，可以在不长的时间内解决二维甚至三维静止的问题，但与时间相关的问题则是完全不同的一类问题。我们在步骤48中讨论了这个问题，我们展示了如何在不组装或倒置任何矩阵的情况下并行解决这个问题。
+
+

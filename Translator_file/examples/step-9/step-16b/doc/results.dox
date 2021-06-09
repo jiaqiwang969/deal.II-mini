@@ -1,0 +1,13 @@
+examples/step-16b/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+如同第16步，在最细的网格上，解决方案看起来是这样的。
+
+<p align="center">  <img src="https://www.dealii.org/images/steps/developer/step-16.solution.png" alt="">   </p>  。
+
+与step-16相比，输出的格式略有不同，但在功能上是一样的，显示了相同的收敛特性。<p>  DEAL::Cycle  0 DEAL:: 活动单元数：20 DEAL:: 自由度数：25（通过级别：8，25）  DEAL:cg::Starting  值 0.510691  DEAL:cg::Convergence  步骤6 值 4.59193e-14  DEAL::Cycle  1 DEAL:: 活动单元数：44 DEAL:: 自由度数：55（按级别：8，25，45）  DEAL:cg::Starting  值 0.440678  DEAL:cg::Convergence  步骤8值 1.99419e-13  DEAL::Cycle  2 DEAL:: 活动单元数：86 DEAL:: 自由度数：105（按级别：8，25，69，49）  DEAL:cg::Starting  值 0.371855  DEAL:cg::Convergence  步骤 9 值 1.13984e-13  DEAL::Cycle 3 DEAL:: 活动单元数：170 DEAL:: 自由度数：200（按级别：8，25，77，174）  DEAL:cg::Starting  值 0.318967  DEAL:cg::Convergence  步骤 9 值 2.62112e-13  DEAL::Cycle  4 DEAL:: 活动单元数：332 DEAL:: 自由度数：388（按级别：8, 25, 86, 231, 204）  DEAL:cg::Starting  值 0.276534  DEAL:cg::Convergence  步骤10值 1.69562e-13  DEAL::Cycle  5 DEAL:: 活动单元数：632 DEAL:: 自由度数：714（按级别：8, 25, 89, 231, 514, 141）  DEAL:cg::Starting  值 0.215300  DEAL:cg::Convergence  步骤10值 6.47463e-13  DEAL::Cycle  6 DEAL:: 活动单元数：1202 DEAL:: 自由度数：1332（按级别：8, 25, 89, 282, 771, 435, 257）  DEAL:cg::Starting  值 0.175848  DEAL:cg::Convergence  第10步值 1.80664e-13  DEAL::Cycle  7 DEAL:: 活动单元数：2288 DEAL:: 自由度数：2511（按级别：8、25、89、318、779、1420、829、30）  DEAL:cg::Starting  值 0.136724  DEAL:cg::Convergence  第11步值 9.73331e-14 </pre>
+
+

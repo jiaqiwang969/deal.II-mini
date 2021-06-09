@@ -1,0 +1,285 @@
+examples/step-20/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Output of the program and graphical visualization</h3>
+
+
+如果我们按原样运行程序，对于我们使用的 $32\times 32$ 网格，我们得到这样的输出（因为我们使用片状常数，所以总共有1024个单元，1024个压力自由度，2112个速度，因为Raviart-Thomas元素定义了每个面的一个自由度，有 $1024 + 32 = 1056$ 个面与 $x$  -轴平行，有同样数量的面与 $y$  -轴平行）。
+
+@verbatim
+\$ make run
+[ 66%] Built target \step-20
+Scanning dependencies of target run
+[100%] Run \step-20 with Release configuration
+Number of active cells: 1024
+Total number of cells: 1365
+Number of degrees of freedom: 3136 (2112+1024)
+24 CG Schur complement iterations to obtain convergence.
+Errors: ||e_p||_L2 = 0.0445032,   ||e_u||_L2 = 0.010826
+[100%] Built target run
+@endverbatim
+
+
+
+当然，迭代次数如此之少的事实是由于我们开发的良好（但昂贵！）的预处理程序。为了获得对解决方案的信心，让我们看一下它。下面三张图片显示了（从左到右）X-速度、Y-速度和压力。
+
+ <table style="width:60%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.u_new.jpg" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.v_new.jpg" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.p_new.jpg" width="400" alt=""></td>
+  </tr>
+</table> 
+
+
+
+
+让我们从压力开始：它在左边是最高的，在右边是最低的，所以流动将是从左到右。此外，虽然在图中几乎看不出来，但我们选择的压力场是这样的：从左到右的流动首先是向中心流动，然后再向外流动。因此，X-速度必须增加以使流动通过狭窄的部分，这一点在左图中很容易看到。中间的图像表示在域的左端有Y方向的内流，而在域的右端有Y方向的外流。
+
+
+
+
+作为补充说明，请注意左图中的x-速度在x方向上是连续的，而y-速度在y方向上是连续的。其他方向上的流场是不连续的。这非常明显地反映了Raviart-Thomas元素的连续性特性，事实上，它只在空间H(div)而不是在空间 $H^1$ 。最后，压力场是完全不连续的，但鉴于我们选择了 <code>FE_DGQ(0)</code> 作为该解分量的有限元，这不应该令人惊讶。
+
+
+
+
+<h3>Convergence</h3>
+
+
+该程序提供了两个明显的玩耍和观察收敛的地方：使用的有限元的程度（传递给 <code>MixedLaplaceProblem</code> class from <code>main()</code> 的构造器），和细化水平（在 <code>MixedLaplaceProblem::make_grid_and_dofs</code> 中确定）。人们可以做的是改变这些值，观察后来在程序运行过程中计算出的误差。
+
+
+
+
+如果这样做，就会发现压力变量中 $L_2$ 的错误有如下模式。   <table align="center" class="doxtable">
+  <tr>
+    <th></th>
+    <th colspan="3" align="center">Finite element order</th>
+  </tr>
+  <tr>
+    <th>Refinement level</th>
+    <th>0</th>
+    <th>1</th>
+    <th>2</th>
+  </tr>
+  <tr>
+    <th>0</th>  <td>1.45344</td>  <td>0.0831743</td>  <td>0.0235186</td>
+  </tr>
+  <tr>
+    <th>1</th>  <td>0.715099</td>  <td>0.0245341</td>  <td>0.00293983</td>
+  </tr>
+  <tr>
+    <th>2</th>  <td>0.356383</td>  <td>0.0063458</td>  <td>0.000367478</td>
+  </tr>
+  <tr>
+    <th>3</th>  <td>0.178055</td>  <td>0.00159944</td>  <td>4.59349e-05</td>
+  </tr>
+  <tr>
+    <th>4</th>  <td>0.0890105</td>  <td>0.000400669</td>  <td>5.74184e-06</td>
+  </tr>
+  <tr>
+    <th>5</th>  <td>0.0445032</td>  <td>0.000100218</td>  <td>7.17799e-07</td>
+  </tr>
+  <tr>
+    <th>6</th>  <td>0.0222513</td>  <td>2.50576e-05</td>  <td>9.0164e-08</td>
+  </tr>
+  <tr>
+    <th></th>  <th>$O(h)$</th>  <th>$O(h^2)$</th>  <th>$O(h^3)$</th>
+  </tr>
+</table> 
+
+理论上预期的收敛顺序很好地反映在表中最后一行所显示的实验观察结果中。
+
+
+
+
+我们可以用速度变量的 $L_2$ 误差做同样的实验。   <table align="center" class="doxtable">
+  <tr>
+    <th></th>
+    <th colspan="3" align="center">Finite element order</th>
+  </tr>
+  <tr>
+    <th>Refinement level</th>
+    <th>0</th>
+    <th>1</th>
+    <th>2</th>
+  </tr>
+  <tr>
+    <th>0</th> <td>0.367423</td> <td>0.127657</td> <td>5.10388e-14</td>
+  </tr>
+  <tr>
+    <th>1</th> <td>0.175891</td> <td>0.0319142</td> <td>9.04414e-15</td>
+  </tr>
+  <tr>
+    <th>2</th> <td>0.0869402</td> <td>0.00797856</td> <td>1.23723e-14</td>
+  </tr>
+  <tr>
+    <th>3</th> <td>0.0433435</td> <td>0.00199464</td> <td>1.86345e-07</td>
+  </tr>
+  <tr>
+    <th>4</th> <td>0.0216559</td> <td>0.00049866</td> <td>2.72566e-07</td>
+  </tr>
+  <tr>
+    <th>5</th> <td>0.010826</td> <td>0.000124664</td> <td>3.57141e-07</td>
+  </tr>
+  <tr>
+    <th>6</th> <td>0.00541274</td> <td>3.1166e-05</td> <td>4.46124e-07</td>
+  </tr>
+  <tr>
+    <th></th>  <td>$O(h)$</td>  <td>$O(h^2)$</td>  <td>$O(h^3)$</td>
+  </tr>
+</table>  这里关于收敛顺序的结果是一样的。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>More realistic permeability fields</h4>
+
+用于地下水或油藏模拟的现实流动计算不会使用恒定的渗透率。下面是改变这种情况的第一个相当简单的方法：我们使用一个渗透率，它在远离中心流线的地方迅速衰减，直到达到一个背景值0.001。这是为了模仿流体在砂岩中的行为：在大部分领域中，砂岩是均匀的，虽然对流体有渗透性，但不是过分的渗透；在另一块石头上，石头沿着一条线裂开了，或者说断层了，流体沿着这条大裂缝更容易流动。下面是我们如何实现这样的东西。
+
+@code
+template <int dim>
+void
+KInverse<dim>::value_list (const std::vector<Point<dim> > &points,
+                           std::vector<Tensor<2,dim> >    &values) const
+{
+  Assert (points.size() == values.size(),
+	  ExcDimensionMismatch (points.size(), values.size()));
+
+
+  for (unsigned int p=0; p<points.size(); ++p)
+    {
+      values[p].clear ();
+
+
+      const double distance_to_flowline
+        = std::fabs(points[p][1]-0.2*std::sin(10*points[p][0]));
+
+
+      const double permeability = std::max(std::exp(-(distance_to_flowline*
+                                                      distance_to_flowline)
+                                                    / (0.1 * 0.1)),
+                                           0.001);
+
+
+      for (unsigned int d=0; d<dim; ++d)
+	values[p][d][d] = 1./permeability;
+    }
+}
+@endcode
+
+记住，该函数返回渗透率张量的逆值。
+
+
+
+
+通过一个明显更高的网格分辨率，我们可以直观地看到这一点，这里有x-和y-速度。
+
+ <table style="width:60%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.u-wiggle.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.v-wiggle.png" alt=""></td>
+  </tr>
+</table> 
+
+很明显，流体基本上只沿着中线流动，而不是其他地方。
+
+
+
+
+另一种可能性是使用一个随机的渗透率场。实现这一点的一个简单方法是在领域周围分散一些中心，然后使用一个渗透率场，这个渗透率场是这些中心的（负）指数之和。然后，流动将试图从一个高渗透率的中心跳到下一个中心。这是描述随机介质的一种完全不科学的尝试，但实现这种行为的一种可能性是这样的。
+
+@code
+template <int dim>
+class KInverse : public TensorFunction<2,dim>
+{
+  public:
+    KInverse ();
+
+
+    virtual void value_list (const std::vector<Point<dim> > &points,
+			     std::vector<Tensor<2,dim> >    &values) const;
+
+
+  private:
+    std::vector<Point<dim> > centers;
+};
+
+
+
+template <int dim>
+KInverse<dim>::KInverse ()
+{
+  const unsigned int N = 40;
+  centers.resize (N);
+  for (unsigned int i=0; i<N; ++i)
+    for (unsigned int d=0; d<dim; ++d)
+      centers[i][d] = 2.*rand()/RAND_MAX-1;
+}
+
+
+
+template <int dim>
+void
+KInverse<dim>::value_list (const std::vector<Point<dim> > &points,
+                           std::vector<Tensor<2,dim> >    &values) const
+{
+  Assert (points.size() == values.size(),
+	  ExcDimensionMismatch (points.size(), values.size()));
+
+
+  for (unsigned int p=0; p<points.size(); ++p)
+    {
+      values[p].clear ();
+
+
+      double permeability = 0;
+      for (unsigned int i=0; i<centers.size(); ++i)
+        permeability += std::exp(-(points[p] - centers[i]).norm_square() / (0.1 * 0.1));
+
+
+      const double normalized_permeability
+        = std::max(permeability, 0.005);
+
+
+      for (unsigned int d=0; d<dim; ++d)
+	values[p][d][d] = 1./normalized_permeability;
+    }
+}
+@endcode
+
+
+
+这个张量的对角线元素的片状常数插值（即 <code>normalized_permeability</code> ）看起来如下。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-20.k-random.png" alt=""> 
+
+
+有了这样一个渗透率场，我们将得到如下的x-velocities和压力。
+
+ <table style="width:60%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.u-random.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-20.p-random.png" alt=""></td>
+  </tr>
+</table> 
+
+我们将在步骤21和步骤43中再次使用这些渗透率场。
+
+
+
+
+<h4>Better linear solvers</h4>
+
+正如介绍中提到的，这里使用的Schur补码求解器并不是可以想象的最好的（也不打算成为一个特别好的）。更好的解算器可以在文献中找到，并且可以使用这里介绍的相同的块矩阵技术来构建。我们将在第22步中再次讨论这个主题，在这里我们首先为斯托克斯方程建立一个Schur补数求解器，然后在<a
+href="step_22.html#improved-solver">Improved Solvers</a>部分讨论基于整体求解系统但基于单个块的预处理的更好方法。我们还将在第43步中再来讨论这个问题。
+
+

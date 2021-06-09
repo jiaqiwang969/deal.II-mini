@@ -1,0 +1,717 @@
+examples/step-31/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Martin Kronbichler and Wolfgang
+Bangerth.
+<br>
+This material is based upon work partly supported by the National
+Science Foundation under Award No. EAR-0426271 and The California Institute of
+Technology. Any opinions, findings, and conclusions or recommendations
+expressed in this publication are those of the author and do not
+necessarily reflect the views of the National Science Foundation or of The
+California Institute of Technology.
+</i>
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+<h3>The Boussinesq equations</h3>
+
+这个程序涉及一个有趣的物理问题：如果流体（即液体或气体）遇到由温度差异引起的浮力差异，它是如何表现的？很明显，流体中温度较高（因此较轻）的部分会上升，温度较低（密度较大）的部分会在重力作用下下沉。
+
+在流体运动速度足够慢，以至于惯性效应可以被忽略的情况下，描述这种行为的方程是布西尼斯克方程，其内容如下。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=&
+
+
+  -\rho\; \beta \; T\; \mathbf{g},
+  \\
+  \nabla \cdot {\mathbf u} &=& 0,
+  \\
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot \kappa \nabla T &=& \gamma.
+
+
+@f}
+
+这些方程属于矢量值问题的范畴（这个主题的顶层概述可以在 @ref vector_valued 模块中找到）。这里， $\mathbf u$ 是速度场， $p$ 是压力， $T$ 是流体的温度。   $\varepsilon ({\mathbf u}) = \frac 12
+[(\nabla{\mathbf u}) + (\nabla {\mathbf u})^T]$ 是速度的对称梯度。可以看出，速度和压力解决了描述不可压缩流体运动的斯托克斯方程，这个方程我们以前在步骤22中考虑过；我们将广泛借鉴在该程序中获得的经验，特别是关于高效线性斯托克斯求解器的经验。
+
+流体运动的强制项是流体的浮力，表示为密度 $\rho$ 、热膨胀系数 $\beta$ 、温度 $T$ 和指向下方的重力矢量 $\mathbf{g}$ 的积。在第32步的介绍中给出了为什么右手边看起来像它的推导）。前两个方程描述了流体如何通过移动对温差做出反应，第三个方程说明了流体运动如何影响温度场：它是一个平流扩散方程，即温度附着在流体颗粒上，并在流场中平流，还有一个额外的扩散（热传导）项。在许多应用中，扩散系数相当小，温度方程实际上是传输的，而不是扩散主导的，因此其特征是双曲而不是椭圆；我们在开发一个稳定的离散化时必须考虑到这一点。
+
+在上述方程中，右侧的 $\gamma$ 项表示热源，可能是一个空间和时间上的变化函数。   $\eta$ 和 $\kappa$ 表示粘度和扩散系数，在本教程程序中我们假定这两个系数为常数。当 $\eta$ 取决于温度时，更普遍的情况是物理应用中的一个重要因素。大多数材料随着温度的升高而变得更加流动（即 $\eta$ 随着 $T$ 的降低而降低）；有时，如在温度接近熔点的岩石矿物的情况下， $\eta$ 可能在典型的温度范围内发生数量级的变化。
+
+我们注意到，上述斯托克斯方程可以通过引入<a target="_top"
+href="http://en.wikipedia.org/wiki/Rayleigh_number">Rayleigh
+number</a>  $\mathrm{Ra}=\frac{\|\mathbf{g}\| \beta \rho}{\eta \kappa} \delta T L^3$ 来实现非维度化，使用的是典型长度尺度 $L$ 、典型温差 $\delta T$ 、密度 $\rho$ 、热扩散率 $\eta$ 和热导率 $\kappa$  。   $\mathrm{Ra}$ 是一个无尺寸的数字，它描述了由温差引起的浮力变化导致的热传输和热扩散导致的热传输的比率。一个小的瑞利数意味着浮力相对于粘度来说并不强，流体运动 $\mathbf{u}$ 足够慢，因此热扩散 $\kappa\nabla T$ 是主要的热传输项。另一方面，高瑞利数的流体将显示出主导热传导的强烈对流。
+
+对于我们感兴趣的计算热对流的大多数流体，瑞利数是非常大的，通常是 $10^6$ 或更大。从方程的结构中，我们看到这将导致大的压力差和大的速度。因此， $T$ 的对流-扩散方程中的对流项也将非常大，这个方程的精确解将要求我们选择小的时间步长。因此，具有大雷利数的问题很难用数值来解决，其原因与<a
+href="http://en.wikipedia.org/wiki/Navier-stokes_equations">Navier-Stokes
+equations</a>大时难以解决<a
+href="http://en.wikipedia.org/wiki/Reynolds_number">Reynolds number
+$\mathrm{Re}$</a>的问题相似。
+
+请注意，大的瑞利数不一定涉及大的绝对速度。例如，地幔中的瑞利数大于 $10^6$  。然而，速度却很小：该材料实际上是固体岩石，但它是如此之热，而且处于压力之下，它可以非常缓慢地流动，每年最多只有几厘米的速度。然而，这可以导致在数百万年的时间尺度上的混合，这个时间尺度比相同数量的热量通过热传导分布要短得多，而且这个时间尺度与影响地球内部和表面结构的演变有关。
+
+ @note 如果你对使用该程序作为你自己实验的基础感兴趣，你也会想看看它在step-32中的延续。此外，step-32后来被发展成更大的开放源代码ASPECT（见https://aspect.geodynamics.org/），它可以解决现实的问题，在试图将step-31变形为可以解决任何你想解决的问题之前，你可能想研究一下它。
+
+
+
+
+<h3>Boundary and initial conditions</h3>
+
+由于Boussinesq方程是在流体运动的惯性不起作用的假设下推导出来的，所以流场在每个时间段完全由该时间段的浮力差决定，而不是由以前的流场决定。这反映在上面的前两个方程是不包含时间导数的稳态斯托克斯方程的事实。因此，我们不需要速度或压力的初始条件。另一方面，温度场确实满足一个有时间导数的方程，所以我们需要初始条件 $T$  。
+
+至于边界条件：如果 $\kappa>0$ ，那么温度满足一个二阶微分方程，需要边界周围所有时间的边界数据。这些数据可以是规定的边界温度 $T|_{\partial\Omega}=T_b$ （Dirichlet边界条件），也可以是规定的热通量 $\mathbf{n}\cdot\kappa\nabla
+T|_{\partial\Omega}=\phi$ ；在这个程序中，我们将使用一个绝缘的边界条件，即规定没有热通量。   $\phi=0$  .
+
+同样地，速度场要求我们提出边界条件。这些条件可以是 $\mathbf{u}=0$ 上的无滑移无通量条件 $\partial\Omega$ ，如果流体粘在边界上，或者无正常通量条件 $\mathbf n \cdot \mathbf
+u = 0$ ，如果流体可以沿边界流动但不能穿过边界，或者任何数量的其他物理上合理的条件。在这个程序中，我们将使用无正常通量条件。
+
+
+
+
+<h3>Solution approach</h3>
+
+与步骤21中解决的方程一样，我们这里有一个微分代数方程（DAE）系统：就时间变量而言，只有温度方程是微分方程，而 $\mathbf{u}$ 和 $p$ 的斯托克斯系统没有时间导数，因此属于必须在每个时间瞬间保持的那种代数约束。与第21步的主要区别是，那里的代数约束是一个混合拉普拉斯系统，其形式为
+
+@f{eqnarray*}
+  \mathbf u + {\mathbf K}\lambda \nabla p &=& 0, \\
+  \nabla\cdot \mathbf u &=& f,
+
+
+@f}
+
+现在我们有一个斯托克斯系统
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2 \eta \varepsilon ({\mathbf u})) + \nabla p &=& f, \\
+  \nabla\cdot \mathbf u &=& 0,
+
+
+@f}
+
+其中 $\nabla \cdot \eta \varepsilon (\cdot)$ 是一个类似于拉普拉斯 $\Delta$ 的算子，适用于一个矢量场。
+
+鉴于与我们在步骤21中所做的相似，我们选择类似的方法可能并不令人惊讶，尽管我们将不得不对微分算子左上角的算子变化进行调整。
+
+
+
+
+<h4>Time stepping</h4>
+
+作为DAE的问题结构允许我们使用与我们在步骤21中已经使用的相同的策略，即我们使用一个时间滞后方案：我们首先解决温度方程（使用外推的速度场），然后将新的温度解插入速度方程的右侧。不过，我们在代码中实现这一方案的方式是从一个稍微不同的角度来看问题。我们首先使用前一个时间步长的温度场来求解速度和压力的斯托克斯方程，这意味着我们得到前一个时间步长的速度。换句话说，我们首先求解时间步长 $n - 1$ 的斯托克斯系统，即
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot (2\eta \varepsilon ({\mathbf u}^{n-1})) + \nabla p^{n-1} &=&
+
+
+  -\rho\; \beta \; T^{n-1} \mathbf{g},
+  \\
+  \nabla \cdot {\mathbf u}^{n-1} &=& 0,
+
+
+@f}
+
+然后用外推速度场的温度方程到时间  $n$  。
+
+与第21步相比，我们在这里将使用一个高阶时间步进方案，即用（单边）差分商 $\frac{\frac 32 T^{n}-2T^{n-1}+\frac 12 T^{n-2}}{k}$ 取代时间导数 $\frac{\partial T}{\partial t}$ ， $k$ 为时间步长。这就得到了离散化的时间温度方程
+
+@f{eqnarray*}
+  \frac 32 T^n
+
+
+  -
+  k\nabla \cdot \kappa \nabla T^n
+  &=&
+  2 T^{n-1}
+
+
+  -
+  \frac 12 T^{n-2}
+
+
+  -
+  k(2{\mathbf u}^{n-1} - {\mathbf u}^{n-2} ) \cdot \nabla (2T^{n-1}-T^{n-2})
+  +
+  k\gamma.
+
+
+@f}
+
+请注意温度方程是如何被半显式解决的：扩散被隐式处理，而平流被显式处理，使用温度和速度的外推法（或前推法），包括刚刚计算的速度  ${\mathbf u}^{n-1}$  。对当前时间水平的正向投影  $n$  是由泰勒扩展得出的，  $T^n
+\approx T^{n-1} + k_n \frac{\partial T}{\partial t} \approx T^{n-1} + k_n
+\frac{T^{n-1}-T^{n-2}}{k_n} = 2T^{n-1}-T^{n-2}$  。我们需要这个投影来保持BDF-2方案的精度。换句话说，我们在显式右手边使用的温度场是当前温度场的二阶近似值&mdash；不完全是显式时间步进方案，但从特征上看也不会太远。
+
+温度外推的引入将时间步长限制在<a href="http://en.wikipedia.org/wiki/Courant–Friedrichs–Lewy_condition">
+Courant-Friedrichs-Lewy (CFL) condition</a>，就像在 @ref step_21 "步骤-21 "中一样。(如果我们隐含地处理平流项，我们就不会有这个稳定条件，因为BDF-2方案是A级稳定的，代价是我们需要在每个时间步长建立一个新的温度矩阵。)我们将在<a href="#Results">results
+section</a>中讨论时间步长的确切选择，但目前重要的是，这个CFL条件意味着时间步长 $k$ 可能在不同的时间步长中发生变化，我们必须稍微修改上述公式。如果 $k_n,k_{n-1}$ 是当前和前一个时间步长的时间步长，那么我们使用近似值
+
+@f{align*}{
+\frac{\partial T}{\partial t} \approx
+ \frac 1{k_n}
+ \left(
+       \frac{2k_n+k_{n-1}}{k_n+k_{n-1}} T^{n}
+
+
+       -
+       \frac{k_n+k_{n-1}}{k_{n-1}}T^{n-1}
+       +
+       \frac{k_n^2}{k_{n-1}(k_n+k_{n-1})} T^{n-2}
+ \right)
+ @f}
+
+和
+
+@f{align*}{
+T^n \approx
+   T^{n-1} + k_n \frac{\partial T}{\partial t}
+   \approx
+   T^{n-1} + k_n
+   \frac{T^{n-1}-T^{n-2}}{k_{n-1}}
+   =
+   \left(1+\frac{k_n}{k_{n-1}}\right)T^{n-1}-\frac{k_n}{k_{n-1}}T^{n-2},
+
+
+@f}
+
+并将上述方程概括如下。
+
+@f{eqnarray*}
+  \frac{2k_n+k_{n-1}}{k_n+k_{n-1}} T^n
+
+
+  -
+  k_n\nabla \cdot \kappa \nabla T^n
+  &=&
+  \frac{k_n+k_{n-1}}{k_{n-1}} T^{n-1}
+
+
+  -
+  \frac{k_n^2}{k_{n-1}(k_n+k_{n-1})} T^{n-2}
+
+
+  -
+  k_n{\mathbf u}^{*,n} \cdot \nabla T^{*,n}
+  +
+  k_n\gamma,
+
+
+@f}
+
+
+
+其中 ${(\cdot)}^{*,n} = \left(1+\frac{k_n}{k_{n-1}}\right)(\cdot)^{n-1} -
+\frac{k_n}{k_{n-1}}(\cdot)^{n-2}$ 表示速度 $\mathbf u$ 和温度 $T$ 外推到时间级别 $n$ ，使用前两个时间步骤的数值。这不是一个容易读懂的方程，但会为我们提供所需的高阶精度。作为一致性检查，很容易验证，如果 $k_n=k_{n-1}$  ，它可以还原成与上面相同的方程。
+
+最后我们注意到，选择高阶时间步进方案当然会迫使我们在内存中保留更多的时间步进；特别是，我们在这里需要保留 $T^{n-2}$ ，这是一个我们以前可以抛弃的向量。这似乎是一个麻烦，我们以前可以通过使用一阶时间步进方案来避免，但是正如我们在下面讨论稳定化问题时看到的那样，我们无论如何都需要这个向量，因此在时间离散化中保留它基本上是免费的，并给我们提供了使用高阶方案的机会。
+
+
+
+
+<h4>Weak form and space discretization for the Stokes part</h4>
+
+像解决混合拉普拉斯方程一样，解决斯托克斯方程需要我们为速度和压力变量选择特定的有限元对。因为这在步骤22中已经讨论过了，所以我们只简单介绍一下这个话题。这里，我们使用稳定对 $Q_{p+1}^d \times Q_p, p\ge 1$  。这些都是连续元素，所以我们可以通过部分积分和用离散函数替代连续函数来形成斯托克斯方程的弱形式，没有问题。
+
+@f{eqnarray*}
+  (\nabla {\mathbf v}_h, 2\eta \varepsilon ({\mathbf u}^{n-1}_h))
+
+
+  -
+  (\nabla \cdot {\mathbf v}_h, p^{n-1}_h)
+  &=&
+
+
+  -({\mathbf v}_h, \rho\; \beta \; T^{n-1}_h \mathbf{g}),
+  \\
+  (q_h, \nabla \cdot {\mathbf u}^{n-1}_h) &=& 0,
+
+
+@f}
+
+为所有测试函数  $\mathbf v_h, q_h$  。第一个方程的第一项被认为是张量之间的内积，即 $(\nabla {\mathbf v}_h, \eta \varepsilon ({\mathbf u}^{n-1}_h))_\Omega
+ = \int_\Omega \sum_{i,j=1}^d [\nabla {\mathbf v}_h]_{ij}
+           \eta [\varepsilon ({\mathbf u}^{n-1}_h)]_{ij}\, dx$  。因为这个乘积中的第二个张量是对称的，所以 $\nabla {\mathbf v}_h$ 的反对称分量不起作用，如果我们用 $\mathbf v_h$ 的对称梯度代替，会导致完全一样的形式。因此，我们考虑并实施的表述是
+
+@f{eqnarray*}
+  (\varepsilon({\mathbf v}_h), 2\eta \varepsilon ({\mathbf u}^{n-1}_h))
+
+
+  -
+  (\nabla \cdot {\mathbf v}_h, p^{n-1}_h)
+  &=&
+
+
+  -({\mathbf v}_h, \rho\; \beta \; T^{n-1}_h \mathbf{g}),
+  \\
+  (q_h, \nabla \cdot {\mathbf u}^{n-1}_h) &=& 0.
+
+
+@f}
+
+
+
+这与我们在第22步中已经讨论过的完全一样，这里就不多说了。
+
+
+
+
+<h4>Stabilization, weak form and space discretization for the temperature equation</h4>
+
+更有趣的问题是如何处理温度平流-扩散方程。默认情况下，并不是所有这个方程的离散化都是同样稳定的，除非我们要么做一些像上卷、稳定化，或者所有这些的事情。实现这一点的方法之一是使用不连续元素（即我们在步骤12中离散传输方程或在步骤20和步骤21中离散压力时使用的FE_DGQ类），并在单元间的界面上定义一个考虑到上卷的流量。如果我们有一个纯粹的平流问题，这可能是最简单的方法。然而，这里我们也有一些扩散，用不连续元素对拉普拉斯算子进行离散化是很麻烦的，因为有大量的附加项需要在单元间的每个面上进行积分。不连续元素还有一个缺点，即使用数值通量会带来额外的数值扩散，这种扩散无处不在，而我们真的希望将数值扩散的影响降到最低，只在需要稳定方案的地方应用它。
+
+因此，一个更好的选择是在模型中加入一些非线性粘度。从本质上讲，这样做的目的是将温度方程的形式从
+
+@f{eqnarray*}
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot \kappa \nabla T &=& \gamma
+
+
+@f}
+
+到类似于
+
+@f{eqnarray*}
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot (\kappa+\nu(T)) \nabla T &=& \gamma,
+
+
+@f}
+
+其中 $\nu(T)$ 是一个额外的粘度（扩散）项，只在冲击和其他不连续点附近发挥作用。   $\nu(T)$ 的选择方式是，如果 $T$ 满足原始方程，则额外的粘性为零。
+
+为了实现这一点，文献中包含了许多方法。我们在这里将遵循Guermond和Popov开发的一种方法，它建立在一个适当定义的残差和一个额外粘度的极限程序之上。为此，让我们定义一个残差 $R_\alpha(T)$ 如下。
+
+@f{eqnarray*}
+  R_\alpha(T)
+  =
+  \left(
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot \kappa \nabla T - \gamma
+  \right)
+  T^{\alpha-1}
+
+
+@f}
+
+其中，我们以后将从 $[1,2]$ 范围内选择稳定指数 $\alpha$ 。请注意，如果 $T$ 满足温度方程， $R_\alpha(T)$ 将为零，因为此时括号内的项将为零。将条款相乘，我们得到以下完全等同的形式。
+
+@f{eqnarray*}
+  R_\alpha(T)
+  =
+  \frac 1\alpha
+  \frac{\partial (T^\alpha)}{\partial t}
+  +
+  \frac 1\alpha
+  {\mathbf u} \cdot \nabla (T^\alpha)
+
+
+  -
+  \frac 1\alpha
+  \nabla \cdot \kappa \nabla (T^\alpha)
+  +
+  \kappa(\alpha-1)
+  T^{\alpha-2} |\nabla T|^2
+
+
+  -
+  \gamma
+  T^{\alpha-1}
+
+
+@f}
+
+
+
+有了这个残差，我们现在可以把人工黏度定义为一个片状常数函数，在直径为 $K$ 的每个单元上分别定义如下。
+
+@f{eqnarray*}
+  \nu_\alpha(T)|_K
+  =
+  \beta
+  \|\mathbf{u}\|_{L^\infty(K)}
+  \min\left\{
+    h_K,
+    h_K^\alpha
+    \frac{\|R_\alpha(T)\|_{L^\infty(K)}}{c(\mathbf{u},T)}
+  \right\}
+
+
+@f}
+
+
+
+这里， $\beta$ 是一个稳定常数（通过维度分析发现它是无单位的，因此与比例无关；我们将在<a href="#Results">results section</a>中讨论其选择）， $c(\mathbf{u},T)$ 是一个归一化常数，其单位必须是 $\frac{m^{\alpha-1}K^\alpha}{s}$  。我们将选择它作为 $c(\mathbf{u},T) =
+ c_R\ \|\mathbf{u}\|_{L^\infty(\Omega)} \ \mathrm{var}(T)
+ \ |\mathrm{diam}(\Omega)|^{\alpha-2}$  ，其中 $\mathrm{var}(T)=\max_\Omega T - \min_\Omega T$ 是目前温度值的范围（记住，浮力是由温度变化驱动的，而不是绝对温度）， $c_R$ 是一个无尺寸常数。为了理解这个方法为什么有效，请考虑这个问题。如果在一个特定的单元 $K$ 上，温度场是平滑的，那么我们希望那里的残差很小（事实上是在 ${\cal O}(h_K)$ 的数量级上），注入人工扩散的稳定项在那里的大小将是 $h_K^{\alpha+1}$ &mdash；也就是说，相当小，就像我们希望它在没有必要进行额外扩散时那样。另一方面，如果我们处于或接近温度场的不连续性，那么残差将很大； $\nu_\alpha(T)$ 定义中的最小操作将确保稳定项的大小为 $h_K$ &mdash；这是确保方案稳定的最佳人工粘性量。
+
+这种方案是否真的有效是个好问题。Guermond和Popov的计算表明，这种形式的稳定方案实际上比其他大多数稳定方案（例如流线扩散，仅举最简单的一种）表现得更好。此外，对于 $\alpha\in
+[1,2)$ ，他们甚至可以证明，对于线性传输方程，它比流线扩散产生更好的收敛阶数。对于 $\alpha=2$ ，目前还没有理论结果，但数值测试表明，其结果比 $\alpha=1$ 好得多。
+
+一个更实际的问题是如何将这种人工扩散引入我们想要解决的方程。请注意，数值粘度 $\nu(T)$ 是随温度变化的，所以我们要解决的方程在 $T$ 中是非线性的&mdash；这不是人们对稳定方程的简单方法的期望，如果我们意识到 $\nu(T)$ 在 $T$ 中是不可分的，那就更不可能了。然而，我们没有理由绝望：我们仍然要在时间上进行离散，我们可以明确地处理这个术语。
+
+在稳定参数的定义中，我们用  $\frac{\partial T}{\partial t} \approx
+\frac{T^{n-1}-T^{n-2}}{k^{n-1}}$  对时间导数进行近似。这种近似只利用了可用的时间数据，这就是我们需要存储前两个时间步骤的数据的原因（这使我们能够使用BDF-2方案而不需要额外的存储成本）。我们现在可以简单地在 $t_{n-1}$ 处评估其余的项，但这样一来，离散残差无非是一个向后的欧拉近似，它只有一阶精度。因此，在平滑解的情况下，尽管外部BDF-2方案和空间FE离散化的时间精度为二阶，但残差仍为 $h$ 阶。这当然不是我们想要的（事实上，我们希望在解决方案表现良好的区域有较小的残差），所以需要更谨慎一些。这个问题的关键是观察我们构造的第一导数实际上是以 $t_{n-\frac{3}{2}}$ 为中心的。如果我们通过使用近似值 $\frac 12 T^{n-1}+\frac 12 T^{n-2}$ 来评估 $t_{n-\frac{3}{2}}$ 处的所有空间项，我们就可以得到所需的二阶精确残差计算，这意味着我们将非线性粘度计算为这个中间温度的函数， $\nu_\alpha =
+\nu_\alpha\left(\frac 12 T^{n-1}+\frac 12 T^{n-2}\right)$  。请注意，这种对残差的评估无非是一个Crank-Nicholson方案，所以我们可以肯定，现在一切正常了。人们可能会想，现在的数值粘度没有在时间 $n$ 进行评估（相对于方程的其余部分），这是否是一个问题。然而，这种偏移是不严谨的。对于平滑解， $\nu_\alpha$ 将连续变化，所以时间偏移的误差比非线性粘度本身要小 $k$ 倍，也就是说，它是被遗漏的一个小的高阶贡献。这很好，因为该项本身已经达到了光滑区域的离散化误差水平。
+
+使用上面介绍的BDF-2方案，这就得到了更简单的大小为 $k$ 的均匀时间步长的情况。
+
+@f{eqnarray*}
+  \frac 32 T^n
+
+
+  -
+  k\nabla \cdot \kappa \nabla T^n
+  &=&
+  2 T^{n-1}
+
+
+  -
+  \frac 12 T^{n-2}
+  \\
+  &&
+  +
+  k\nabla \cdot
+  \left[
+    \nu_\alpha\left(\frac 12 T^{n-1}+\frac 12 T^{n-2}\right)
+    \ \nabla (2T^{n-1}-T^{n-2})
+  \right]
+  \\
+  &&
+
+
+  -
+  k(2{\mathbf u}^{n-1}-{\mathbf u}^{n-2}) \cdot \nabla (2T^{n-1}-T^{n-2})
+  \\
+  &&
+  +
+  k\gamma.
+
+
+@f}
+
+在这个方程的左侧仍然是来自时间导数的项和我们隐含处理的原始（物理）扩散（这实际上是一个很好的项：从左侧产生的矩阵是质量矩阵和拉普拉斯矩阵的倍数&mdash；两者都是正定的，如果时间步长 $k$ 很小，和很容易反转）。在右侧，第一行的条款是时间导数的结果；第二行是时间 $t_{n-\frac
+32}$ 的人工扩散；第三行包含平流条款，第四行是来源。请注意，人工扩散对当前时间的外推温度的作用，与我们在时间步进一节中讨论的平流作用相同。
+
+我们在现实中必须使用的非均匀时间步长的形式要复杂一些（这就是为什么我们先展示了上面的简单形式），其内容为：。
+
+@f{eqnarray*}
+  \frac{2k_n+k_{n-1}}{k_n+k_{n-1}} T^n
+
+
+  -
+  k_n\nabla \cdot \kappa \nabla T^n
+  &=&
+  \frac{k_n+k_{n-1}}{k_{n-1}} T^{n-1}
+
+
+  -
+  \frac{k_n^2}{k_{n-1}(k_n+k_{n-1})} T^{n-2}
+  \\
+  &&
+  +
+  k_n\nabla \cdot
+  \left[
+    \nu_\alpha\left(\frac 12 T^{n-1}+\frac 12 T^{n-2}\right)
+    \ \nabla  \left[
+    \left(1+\frac{k_n}{k_{n-1}}\right)T^{n-1}-\frac{k_n}{k_{n-1}}T^{n-2}
+  \right]
+  \right]
+  \\
+  &&
+
+
+  -
+  k_n
+  \left[
+    \left(1+\frac{k_n}{k_{n-1}}\right){\mathbf u}^{n-1} -
+    \frac{k_n}{k_{n-1}}{\mathbf u}^{n-2}
+  \right]
+  \cdot \nabla
+  \left[
+    \left(1+\frac{k_n}{k_{n-1}}\right)T^{n-1}-\frac{k_n}{k_{n-1}}T^{n-2}
+  \right]
+  \\
+  &&
+  +
+  k_n\gamma.
+
+
+@f}
+
+
+
+在解决了所有这些问题之后，弱形式自然而然地从最后一个方程中显示的强形式中产生，我们立即得出了离散化方程的弱形式。
+
+@f{eqnarray*}
+  \frac{2k_n+k_{n-1}}{k_n+k_{n-1}} (\tau_h,T_h^n)
+  +
+  k_n (\nabla \tau_h, \kappa \nabla T_h^n)
+  &=&
+  \biggl(\tau_h,
+  \frac{k_n+k_{n-1}}{k_{n-1}} T_h^{n-1}
+
+
+  -
+  \frac{k_n^2}{k_{n-1}(k_n+k_{n-1})} T_h^{n-2}
+  \\
+  &&\qquad
+
+
+  -
+  k_n
+  \left[
+    \left(1+\frac{k_n}{k_{n-1}}\right){\mathbf u}^{n-1} -
+    \frac{k_n}{k_{n-1}}{\mathbf u}^{n-2}
+  \right]
+  \cdot \nabla
+  \left[
+    \left(1+\frac{k_n}{k_{n-1}}\right)T^{n-1}-\frac{k_n}{k_{n-1}}T^{n-2}
+  \right]
+  +
+  k_n\gamma \biggr)
+  \\
+  &&
+
+
+  -
+  k_n \left(\nabla \tau_h,
+    \nu_\alpha\left(\frac 12 T_h^{n-1}+\frac 12 T_h^{n-2}\right)
+    \ \nabla \left[
+    \left(1+\frac{k_n}{k_{n-1}}\right)T^{n-1}-\frac{k_n}{k_{n-1}}T^{n-2}
+  \right]
+  \right)
+
+
+@f}
+
+为所有离散测试函数  $\tau_h$  。在这里，扩散项已经被部分整合，我们已经使用，我们将施加没有热通量，  $\mathbf{n}\cdot\kappa\nabla T|_{\partial\Omega}=0$  。
+
+这就产生了一个矩阵方程，其形式为
+
+@f{eqnarray*}
+  \left( \frac{2k_n+k_{n-1}}{k_n+k_{n-1}} M+k_n A_T\right) T_h^n
+  = F(U_h^{n-1}, U_h^{n-2},T_h^{n-1},T_h^{n-2}),
+
+
+@f}
+
+考虑到左边的矩阵结构（两个正定矩阵之和），使用共轭梯度法很容易解决这个问题。
+
+
+
+
+<h4>Linear solvers</h4>
+
+如上所述，我们解决速度/压力和温度的联合系统的方法是使用算子分割，我们首先用旧的温度场解决速度和压力的斯托克斯系统，然后用刚刚计算的速度场解决新的温度场。关于算子分割方法的更广泛的讨论可以在步骤58中找到）。
+
+
+
+
+<h5>Linear solvers for the Stokes problem</h5>
+
+解决来自斯托克斯系统的线性方程已经在步骤22中进行了详细的讨论。特别是在该程序的结果部分，我们讨论了一些替代的线性求解器策略，结果发现这些策略比原来的方法更有效。在那里确定的最佳替代方案是使用一个由涉及舒尔补码的块状矩阵预处理的GMRES求解器。具体来说，斯托克斯算子导致了一个块状结构的矩阵
+
+@f{eqnarray*}
+  \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+
+
+@f}
+
+正如那里所讨论的，一个好的预处理程序是
+
+@f{eqnarray*}
+  P
+  =
+  \left(\begin{array}{cc}
+    A & 0 \\ B & -S
+  \end{array}\right),
+  \qquad
+  \text{or equivalently}
+  \qquad
+  P^{-1}
+  =
+  \left(\begin{array}{cc}
+    A^{-1} & 0 \\ S^{-1} B A^{-1} & -S^{-1}
+  \end{array}\right)
+
+
+@f}
+
+其中 $S$ 是斯托克斯算子的舒尔补 $S=B^TA^{-1}B$  。当然，这个预处理程序是没有用的，因为我们不能形成矩阵的各种倒数，但我们可以用下面的方法作为预处理程序。
+
+@f{eqnarray*}
+  \tilde P^{-1}
+  =
+  \left(\begin{array}{cc}
+    \tilde A^{-1} & 0 \\ \tilde S^{-1} B \tilde A^{-1} & -\tilde S^{-1}
+  \end{array}\right)
+
+
+@f}
+
+其中 $\tilde A^{-1},\tilde S^{-1}$ 是反矩阵的近似值。特别是，事实证明 $S$ 在光谱上等同于质量矩阵，因此，用适用于压力空间上的质量矩阵的CG求解器取代 $\tilde
+S^{-1}$ 是一个不错的选择。与步骤22稍有不同的是，我们在这里的动量方程中有一个系数 $\eta$ ，通过与那里相同的推导，我们应该得出结论，我们应该使用的是具有条目 $\tilde S_{ij}=(\eta^{-1}\varphi_i,\varphi_j)$ 的加权质量矩阵。
+
+想出一个好的替代方案 $\tilde
+A^{-1}$ 更为复杂，它对应于矢量值速度场的离散化对称拉普拉斯，即 $A_{ij} = (\varepsilon {\mathbf v}_i, 2\eta \varepsilon ({\mathbf
+v}_j))$  。在步骤22中，我们用 $A$ 的稀疏LU分解（使用SparseDirectUMFPACK类）来代替 $\tilde A^{-1}$ &mdash; 完美的前置条件&mdash; 在2D中，但对于3D来说，内存和计算时间通常不足以实际计算这个分解；因此，我们在3D中只使用不完全LU分解（ILU，使用稀疏ILU类）。
+
+对于这个项目，我们想走得更远一点。为此，请注意，矢量场上的对称化双线性形式 $(\varepsilon {\mathbf v}_i, 2 \eta \varepsilon ({\mathbf v}_j))$ 与非对称化版本 $(\nabla {\mathbf v}_i, \eta \nabla {\mathbf v}_j)
+= \sum_{k,l=1}^d
+  (\partial_k ({\mathbf v}_i)_l, \eta \partial_k ({\mathbf v}_j)_l)
+$ 相差不大（请注意，在这个形式中因子2已经消失了）。然而，后者的优点是测试函数的 <code>dim</code> 矢量分量不是耦合的（好吧，几乎是，见下文），也就是说，得到的矩阵是块对角线的：每个矢量分量有一个块，这些块中的每个都等于这个矢量分量的拉普拉斯矩阵。因此，假设我们以这样的方式排列自由度，即首先对速度的所有 $x$ 分量进行编号，然后是 $y$ 分量，然后是 $z$ 分量，那么与这种稍有不同的双线性形式相关的矩阵 $\hat A$ 具有如下形式
+
+@f{eqnarray*}
+  \hat A =
+  \left(\begin{array}{ccc}
+    A_s & 0 & 0 \\ 0 & A_s & 0 \\ 0 & 0 & A_s
+  \end{array}\right)
+
+
+@f}
+
+其中 $A_s$ 是一个拉普拉斯矩阵，其大小等于与矢量值速度的每个分量相关的形状函数数量。有了这个矩阵，我们就可以对速度矩阵 $A$ 的预处理进行如下定义。
+
+@f{eqnarray*}
+  \tilde A^{-1} =
+  \left(\begin{array}{ccc}
+    \tilde A_s^{-1} & 0 & 0 \\
+    0 & \tilde A_s^{-1} & 0 \\
+    0 & 0 & \tilde A_s^{-1}
+  \end{array}\right),
+
+
+@f}
+
+其中 $\tilde A_s^{-1}$ 是拉普拉斯矩阵的预处理程序&mdash;我们非常清楚如何建立良好的预处理程序!
+
+在现实中，故事并不那么简单。为了使矩阵 $\tilde A$ 确定，我们需要通过应用边界条件使各个块 $\tilde
+A_s$ 确定。我们可以尝试通过在边界周围应用狄氏边界条件来做到这一点，然后，如果后者的矩阵是由斯托克斯问题产生的，我们在领域周围的速度分量上也有狄氏边界条件，即如果我们执行 $\mathbf{u} =
+0$ ，那么如此定义的前置条件 $\tilde A^{-1}$ 就变成了 $A$ 的良好前置条件。
+
+不幸的是，这个 "如果 "是 "如果且仅是如果"：在下面的程序中，我们将希望使用 $\mathbf u
+\cdot \mathbf n = 0$ 形式的无流量边界条件（即允许与边界平行的流量%，但没有通过边界的流量）。在这种情况下，事实证明，上面定义的块状对角线矩阵不是一个好的预处理程序，因为它忽略了边界上的成分耦合。因此，更好的方法是如果我们将矩阵 $\hat A$ 建立为矢量拉普拉斯矩阵 $\hat A_{ij} = (\nabla {\mathbf v}_i,
+\eta \nabla {\mathbf v}_j)$ ，然后应用与我们应用于 $A$ 相同的边界条件。如果这是一个围绕域的迪里希特边界条件， $\hat A$ 将像上面那样解耦为三个对角线块，如果边界条件是 $\mathbf u
+\cdot \mathbf n = 0$ 的形式，那么这将在边界引入自由度的耦合，但只在那里。事实上，这被证明是一个比上面介绍的更好的预处理程序，而且几乎具有我们希望得到的所有好处。
+
+
+总结这整个故事，我们可以看到。   <ul>   <li>  与我们在步骤22中从对称梯度产生的原始矩阵 $A$ 建立一个预处理程序相比，我们不得不期待基于拉普拉斯双线性形式的预处理程序表现得更差，因为它没有考虑到向量分量之间的耦合。
+
+    <li> 另一方面，拉普拉斯矩阵的预处理程序通常比矢量问题的预处理程序更成熟，性能更好。例如，在写这篇文章的时候，代数%多重网格（AMG）算法对于标量问题已经非常成熟，但对于矢量问题却不是如此。
+
+    <li> 在建立这个预处理程序时，我们将不得不建立矩阵 $\hat A$ 及其预处理程序。虽然这意味着我们必须存储一个之前不需要的额外矩阵，但与存储耦合矩阵 $A$ 的预处理程序相比，预处理程序 $\tilde A_s^{-1}$ 可能需要的内存要少得多。这是因为矩阵 $A_s$ 每行只有三分之一的条目对应于内部自由度，并且只在边界条件引入耦合的部分包含向量分量之间的耦合。因此，存储该矩阵是比较便宜的，我们可以预期，计算和存储预处理程序 $\tilde A_s$ 也将比为完全耦合的矩阵做这些事情便宜得多。   </ul> 
+
+
+
+
+<h5>Linear solvers for the temperature equation</h5>
+
+这是最容易的部分。温度方程的矩阵具有 $\alpha M + \beta A$ 的形式，其中 $M,A$ 是温度空间上的质量和刚度矩阵， $\alpha,\beta$ 是与时间步进方案以及当前和前一个时间步进有关的常数。这是一个对称正定和一个对称正半定矩阵之和，其结果也是对称正定的。此外， $\frac\beta\alpha$ 是一个与时间步长成正比的数字，因此只要网格很细就会变小，从而阻尼当时条件不好的刚度矩阵的影响。
+
+因此，用共轭梯度算法反转这个矩阵，使用一个简单的预处理程序，与反转斯托克斯矩阵相比是微不足道和非常便宜的。
+
+
+
+
+<h3>Implementation details</h3>
+
+<h4>Using different DoFHandler objects</h4>
+
+关于下面的程序，值得事先解释的一件事是使用了两个不同的DoFHandler对象。如果看一下上述方程的结构和它们的求解方案，就会发现几乎没有什么共同点能使斯托克斯部分和温度部分保持一致。在我们以前讨论 @ref
+vector_valued "矢量值问题 "的所有教程程序中，我们总是只使用一个具有几个矢量分量的单一有限元，以及一个DoFHandler对象。有时，我们将得到的矩阵分解成若干块，以方便特定的求解器方案；例如，在目前程序所依据的斯托克斯方程的第22步程序中就是如此。
+
+当然，我们在这里也可以这样做。我们将得到的线性系统看起来像这样。
+
+@f{eqnarray*}
+  \left(\begin{array}{ccc}
+    A & B^T & 0 \\ B & 0 &0 \\ C & 0 & K
+  \end{array}\right)
+  \left(\begin{array}{ccc}
+    U^{n-1} \\ P^{n-1} \\ T^n
+  \end{array}\right)
+  =
+  \left(\begin{array}{ccc}
+    F_U(T^{n-1}) \\ 0 \\ F_T(U^{n-1},U^{n-2},T^{n-1},T^{n-2})
+  \end{array}\right).
+
+
+@f}
+
+这方面的问题是。我们从未同时使用整个矩阵。事实上，它从未真正同时存在。如上所述， $K$ 和 $F_T$ 依赖于已经计算出的解 $U^n$ ，在第一种情况下，通过时间步长（这依赖于 $U^n$ ，因为它必须满足CFL条件）。所以我们只有在已经解决了左上角 $2\times 2$ 块斯托克斯系统后才能组装它，一旦我们转向温度方程，我们就不再需要斯托克斯部分了；我们为一个在任何时候都不会以整体存在于内存中的矩阵建立一个对象，这导致我们在步骤21中跳了一些圈套，所以我们不要重复这类错误。此外，我们实际上并没有建立矩阵 $C$ ：因为当我们进入温度方程时，我们已经知道了 $U^n$ ，而且因为我们必须在这个时候组装右手边的 $F_T$ ，我们只是将项 $CU^n$ 移到右手边，并将其与所有其他项组装在一起。这意味着矩阵中不存在温度变量和斯托克斯变量耦合的部分，因此所有自由度的全局列举不再重要：如果我们有所有斯托克斯自由度的列举，以及所有温度自由度的独立列举就足够了。
+
+从本质上讲，将<i>everything</i>放入一个块状矩阵中并没有什么用处（当然，对于 $2\times 2$ 斯托克斯部分，也有同样好的理由这样做），或者，就这一点而言，将所有东西放入同一个DoFHandler对象。
+
+但这样做是否有<i>downsides</i>的好处？这些问题是存在的，尽管它们一开始可能并不明显。主要问题是，如果我们需要创建一个包含速度、压力和温度形状函数的全局有限元，并使用它来初始化DoFHandler。但是我们也用这个有限元对象来初始化我们使用的所有FEValues或FEFaceValues对象。这可能看起来不是什么大问题，但是想象一下，例如，当我们评估我们需要计算人工粘度 $
+  R_\alpha(T)
+  =
+  \left(
+  \frac{\partial T}{\partial t}
+  +
+  {\mathbf u} \cdot \nabla T
+
+
+  -
+  \nabla \cdot \kappa \nabla T - \gamma
+  \right)
+  T^{\alpha-1}
+$ 的残差 $\nu_\alpha(T)|_K$ 时会发生什么。  为此，我们需要温度的拉普拉斯，我们使用形状函数的二阶导数（Hessians）张量来计算（为此我们必须给FEValues对象加上 <code>update_hessians</code> 标志）。现在，如果我们有一个包含速度、压力和温度的形状函数的有限性，这意味着我们必须计算<i>all</i>形状函数的Hessians，包括速度的许多高阶形状函数。这是很多我们不需要的计算，事实上，如果一个人要这样做（就像我们在程序的早期版本中那样），组装右手边需要大约四分之一的整体计算时间。
+
+所以我们要做的是使用两个不同的有限元对象，一个用于斯托克斯成分，一个用于温度。这样就有两个不同的DoFHandlers，两个稀疏模式和两个用于斯托克斯和温度部分的矩阵，等等。每当我们要组装包含温度和斯托克斯形状函数的东西时（特别是斯托克斯和温度方程的右侧），我们就使用两个FEValues对象，用两个单元格迭代器进行初始化，通过与同一三角化对象相关的两个DoFHandler对象进行平行行走。对于这两个FEValues对象，我们当然使用相同的正交对象，这样我们就可以在同一组正交点上进行迭代，但是每个FEValues对象将只根据它实际需要计算的内容来获得更新标志。特别是，当我们像上面那样计算残差时，我们只要求得到斯托克斯形状函数的值，但也要求得到温度形状函数的Hessians &mdash；确实便宜得多，而且事实证明：组装温度方程的右手边现在是程序中几乎无法测量的一个组成部分。
+
+有了这些变化，对程序进行计时，可以得出只有以下操作与整个运行时间有关。   <ul>   <li>  解决斯托克斯系统：72%的运行时间。     <li>  组装斯托克斯预处理程序，并使用Trilinos ML包计算代数多网格层次结构：占运行时间的11%。     <li>  函数  <code>BoussinesqFlowProblem::setup_dofs</code>  : 占整体运行时间的7%。     <li>  组装斯托克斯和温度右侧向量以及组装矩阵。7%.   </ul>  实质上这意味着除了代数多重网格之外，所有的瓶颈都已经被移除。
+
+
+
+
+<h4>Using Trilinos</h4>
+
+与我们在第17步和第18步中使用PETSc来支持我们的线性代数需求一样，我们在这个程序中使用了<a
+href="http://trilinos.org">Trilinos</a>库的接口（安装说明见deal.II README文件）。Trilinos是一个非常大的集合，包括与线性和非线性代数有关的所有东西，以及围绕这些东西的各种工具（看起来它在未来也会向许多其他方向发展）。
+
+使用Trilinos的主要原因，类似于我们探索的PETSc，是它是一个非常强大的库，比deal.II自己的线性代数库提供了很多工具。这尤其包括在集群上以%parallel方式工作的能力，使用MPI，以及更多种类的前置条件器。在后一类中，最有趣的能力之一是Trilinos ML包的存在，它实现了代数多栅（AMG）方法。我们将使用这个预处理程序对动量方程的二阶算子部分进行预处理。在步骤32中，我们将使用与这里讨论的相同的问题，探索以%并行方式解决问题的能力。
+
+我们在第17步和第18步中使用的PETSc无疑是一个强大的库，它提供了大量处理矩阵、向量、迭代求解器和预处理器的函数，还有很多其他的东西，其中大部分在%parallel中运行得相当好。然而，它比Trilinos早了几年，是用C语言编写的，而且一般来说不像其他一些库那样容易使用。因此，deal.II也获得了与Trilinos的接口，Trilinos与PETSc有很多相同的功能。然而，它是一个年轻了好几年的项目，是用C++编写的，其作者一般都非常重视软件设计。
+
+
+
+
+<h3>The testcase</h3>
+
+我们在这里要解决的情况如下：我们用 $\kappa=10^{-6}, \eta=1, \rho=1, \beta=10$ 来解决上述的Boussinesq方程，即一个相对缓慢运动的流体，它几乎没有热扩散传导性，主要通过对流来传输热量。在边界上，我们将要求速度（ $\mathrm{n}\cdot\mathrm{u}=0$ ）和温度（ $\mathrm{n}\cdot\nabla T=0$ ）没有正态流量。这是在步骤22的介绍中讨论的情况之一，它固定了速度的一个分量，同时允许流动与边界%平行。还有 <code>dim-1</code> 分量需要固定，即法向应力的切向分量；对于这些分量，我们选择同质条件，这意味着我们不需要任何特殊条件。初始条件只对温度场是必要的，我们选择它为恒定的零。
+
+然后，问题的演变完全由温度方程的右手边 $\gamma(\mathrm{x},t)$ 驱动，即由热源和汇驱动。在这里，我们选择了一个在圣诞讲座前发明的设置：美国的教室里当然禁止使用真实的蜡烛，但允许使用虚拟的蜡烛。因此，我们选择了三个球形的热源，不等距地靠近领域的底部，模仿三个蜡烛的样子。位于这些热源处的流体，最初处于静止状态，然后被加热，随着温度的升高，获得浮力，上升；更多的流体被拖上来，穿过热源，导致三个热羽上升，直到它们被外面下沉的流体循环所捕获，取代了因加热而上升的空气。
+
+

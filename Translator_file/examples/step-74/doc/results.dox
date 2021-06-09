@@ -1,0 +1,148 @@
+examples/step-74/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+该程序的输出包括控制台输出和vtu格式的解决方案。
+
+在第一个测试案例中，当你运行程序时，屏幕输出应该如下。
+
+@code
+Cycle 0
+  Number of active cells       : 16
+  Number of degrees of freedom : 256
+  Error in the L2 norm         : 0.00193285
+  Error in the H1 seminorm     : 0.106087
+  Error in the energy norm     : 0.150625
+
+
+Cycle 1
+  Number of active cells       : 64
+  Number of degrees of freedom : 1024
+  Error in the L2 norm         : 9.60497e-05
+  Error in the H1 seminorm     : 0.0089954
+  Error in the energy norm     : 0.0113265
+
+
+Cycle 2
+.
+.
+.
+@endcode
+
+
+
+当使用多项式度数为3的光滑情况时，收敛表会是这样的。   <table align="center" class="doxtable">
+  <tr>
+    <th>cycle</th>
+    <th>n_cellss</th>
+    <th>n_dofs</th>
+    <th>L2 </th>
+    <th>rate</th>
+    <th>H1</th>
+    <th>rate</th>
+    <th>Energy</th>
+  </tr>
+  <tr>
+    <td align="center">0</td>
+    <td align="right">16</td>
+    <td align="right">256</td>
+    <td align="center">1.933e-03</td>
+    <td>&nbsp;</td>
+    <td align="center">1.061e-01</td>
+    <td>&nbsp;</td>
+    <td align="center">1.506e-01</td>
+  </tr>
+  <tr>
+    <td align="center">1</td>
+    <td align="right">64</td>
+    <td align="right">1024</td>
+    <td align="center">9.605e-05</td>
+    <td align="center">4.33</td>
+    <td align="center">8.995e-03</td>
+    <td align="center">3.56</td>
+    <td align="center">1.133e-02</td>
+  </tr>
+  <tr>
+    <td align="center">2</td>
+    <td align="right">256</td>
+    <td align="right">4096</td>
+    <td align="center">5.606e-06</td>
+    <td align="center">4.10</td>
+    <td align="center">9.018e-04</td>
+    <td align="center">3.32</td>
+    <td align="center">9.736e-04</td>
+  </tr>
+  <tr>
+    <td align="center">3</td>
+    <td align="right">1024</td>
+    <td align="right">16384</td>
+    <td align="center">3.484e-07</td>
+    <td align="center">4.01</td>
+    <td align="center">1.071e-04</td>
+    <td align="center">3.07</td>
+    <td align="center">1.088e-04</td>
+  </tr>
+  <tr>
+    <td align="center">4</td>
+    <td align="right">4096</td>
+    <td align="right">65536</td>
+    <td align="center">2.179e-08</td>
+    <td align="center">4.00</td>
+    <td align="center">1.327e-05</td>
+    <td align="center">3.01</td>
+    <td align="center">1.331e-05</td>
+  </tr>
+  <tr>
+    <td align="center">5</td>
+    <td align="right">16384</td>
+    <td align="right">262144</td>
+    <td align="center">1.363e-09</td>
+    <td align="center">4.00</td>
+    <td align="center">1.656e-06</td>
+    <td align="center">3.00</td>
+    <td align="center">1.657e-06</td>
+  </tr>
+</table> 
+
+理论上，对于多项式度数 $p$ ， $L_2$ 规范和 $H^1$ 半规范的收敛顺序应该是 $p+1$ 和 $p$ ，分别。我们的数值结果与理论有很好的一致性。
+
+在第二个测试案例中，当你运行该程序时，屏幕输出应该如下。
+
+@code
+Cycle 0
+  Number of active cells       : 192
+  Number of degrees of freedom : 3072
+  Error in the L2 norm         : 0.000323585
+  Error in the H1 seminorm     : 0.0296202
+  Error in the energy norm     : 0.0420478
+  Estimated error              : 0.136067
+
+
+Cycle 1
+  Number of active cells       : 249
+  Number of degrees of freedom : 3984
+  Error in the L2 norm         : 0.000114739
+  Error in the H1 seminorm     : 0.0186571
+  Error in the energy norm     : 0.0264879
+  Estimated error              : 0.0857186
+
+
+Cycle 2
+.
+.
+.
+@endcode
+
+
+
+下图提供了L型域上该测试案例的误差与自由度数的对数图。为了解释它，让 $n$ 为自由度数，那么在均匀细化的网格上， $h$ 在二维中为 $1/\sqrt{n}$ 阶。结合前面的理论结果，我们可以看到，如果解足够光滑，我们可以预期 $L_2$ 准则的误差为 $O(n^{-\frac{p+1}{2}})$ 阶， $H^1$ 半准则的误差为 $O(n^{-\frac{p}{2}})$  。先验地，我们并不清楚在像我们用于第二个测试案例的自适应细化网格上是否会得到与 $n$ 的函数相同的行为，但我们当然可以希望。事实上，从图中我们看到，带有自适应网格细化的SIPG产生了渐进式的希望的结果。
+
+ <img width="600px" src="https://www.dealii.org/images/steps/developer/step-74.log-log-plot.png" alt=""> 
+
+此外，我们观察到误差估计器的下降速度几乎与能量准则和 $H^1$ 半准则的误差相同，并且比 $L_2$ 的误差低一阶。这表明它有能力预测具有较大误差的区域。
+
+虽然本教程侧重于实现，但step-59教程程序在计算时间上用无矩阵求解技术实现了一个高效的大规模求解器。需要注意的是，step-59教程目前不能用于包含悬空节点的网格，因为多网格界面矩阵不那么容易确定，但这仅仅是deal.II中一些界面的缺乏，没有什么根本性的问题。
+
+

@@ -1,0 +1,263 @@
+examples/step-7/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+该程序产生了两种输出。第一种是输出文件  <code>solution-adaptive-q1.vtk</code>  ,  <code>solution-global-q1.vtk</code>  , 和  <code>solution-global-q2.vtk</code>  。我们在此展示后者的三维视图。
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-7.solution.png" alt=""> 
+
+
+
+
+
+其次，该程序不仅将表格写入磁盘，而且在运行时也写入屏幕。输出结果如下（记得标为" <code>H1</code> "的列实际上显示的是错误的 $H^1$ <i>semi-</i>规范，而不是完整的 $H^1$ 规范）。
+
+
+
+
+@code
+examples/\step-7> make run
+Solving with Q1 elements, adaptive refinement
+=============================================
+
+
+Cycle 0:
+   Number of active cells:       64
+   Number of degrees of freedom: 81
+Cycle 1:
+   Number of active cells:       124
+   Number of degrees of freedom: 157
+Cycle 2:
+   Number of active cells:       280
+   Number of degrees of freedom: 341
+Cycle 3:
+   Number of active cells:       577
+   Number of degrees of freedom: 690
+Cycle 4:
+   Number of active cells:       1099
+   Number of degrees of freedom: 1264
+Cycle 5:
+   Number of active cells:       2191
+   Number of degrees of freedom: 2452
+Cycle 6:
+   Number of active cells:       4165
+   Number of degrees of freedom: 4510
+Cycle 7:
+   Number of active cells:       7915
+   Number of degrees of freedom: 8440
+Cycle 8:
+   Number of active cells:       15196
+   Number of degrees of freedom: 15912
+
+
+cycle cells dofs     L2        H1      Linfty
+    0    64    81 1.840e+00 2.858e+00 1.835e+00
+    1   124   157 5.190e-02 1.200e+00 1.344e-01
+    2   280   341 1.439e-02 7.892e-01 7.554e-02
+    3   577   690 8.627e-03 5.061e-01 2.805e-02
+    4  1099  1264 3.217e-03 3.030e-01 1.073e-02
+    5  2191  2452 1.445e-03 2.097e-01 5.073e-03
+    6  4165  4510 8.387e-04 1.460e-01 2.013e-03
+    7  7915  8440 7.051e-04 1.053e-01 1.804e-03
+    8 15196 15912 2.774e-04 7.463e-02 6.911e-04
+
+
+Solving with Q1 elements, global refinement
+===========================================
+
+
+Cycle 0:
+   Number of active cells:       64
+   Number of degrees of freedom: 81
+Cycle 1:
+   Number of active cells:       256
+   Number of degrees of freedom: 289
+Cycle 2:
+   Number of active cells:       1024
+   Number of degrees of freedom: 1089
+Cycle 3:
+   Number of active cells:       4096
+   Number of degrees of freedom: 4225
+Cycle 4:
+   Number of active cells:       16384
+   Number of degrees of freedom: 16641
+
+
+cycle cells dofs     L2        H1      Linfty
+    0    64    81 1.840e+00 2.858e+00 1.835e+00
+    1   256   289 3.570e-02 1.199e+00 1.307e-01
+    2  1024  1089 1.192e-02 7.565e-01 7.168e-02
+    3  4096  4225 3.047e-03 3.823e-01 2.128e-02
+    4 16384 16641 7.660e-04 1.917e-01 5.554e-03
+
+
+n cells         H1                   L2
+0    64 2.858e+00    -    - 1.840e+00     -    -
+1   256 1.199e+00 2.38 1.25 3.570e-02 51.54 5.69
+2  1024 7.565e-01 1.58 0.66 1.192e-02  2.99 1.58
+3  4096 3.823e-01 1.98 0.98 3.047e-03  3.91 1.97
+4 16384 1.917e-01 1.99 1.00 7.660e-04  3.98 1.99
+
+
+Solving with Q2 elements, global refinement
+===========================================
+
+
+Cycle 0:
+   Number of active cells:       64
+   Number of degrees of freedom: 289
+Cycle 1:
+   Number of active cells:       256
+   Number of degrees of freedom: 1089
+Cycle 2:
+   Number of active cells:       1024
+   Number of degrees of freedom: 4225
+Cycle 3:
+   Number of active cells:       4096
+   Number of degrees of freedom: 16641
+Cycle 4:
+   Number of active cells:       16384
+   Number of degrees of freedom: 66049
+
+
+cycle cells dofs     L2        H1      Linfty
+    0    64   289 1.606e-01 1.278e+00 3.029e-01
+    1   256  1089 7.638e-03 5.248e-01 4.816e-02
+    2  1024  4225 8.601e-04 1.086e-01 4.827e-03
+    3  4096 16641 1.107e-04 2.756e-02 7.802e-04
+    4 16384 66049 1.393e-05 6.915e-03 9.971e-05
+
+
+n cells         H1                   L2
+0    64 1.278e+00    -    - 1.606e-01     -    -
+1   256 5.248e-01 2.43 1.28 7.638e-03 21.03 4.39
+2  1024 1.086e-01 4.83 2.27 8.601e-04  8.88 3.15
+3  4096 2.756e-02 3.94 1.98 1.107e-04  7.77 2.96
+4 16384 6.915e-03 3.99 1.99 1.393e-05  7.94 2.99
+
+
+Solving with Q2 elements, adaptive refinement
+===========================================
+
+
+Cycle 0:
+   Number of active cells:       64
+   Number of degrees of freedom: 289
+Cycle 1:
+   Number of active cells:       124
+   Number of degrees of freedom: 577
+Cycle 2:
+   Number of active cells:       289
+   Number of degrees of freedom: 1353
+Cycle 3:
+   Number of active cells:       547
+   Number of degrees of freedom: 2531
+Cycle 4:
+   Number of active cells:       1057
+   Number of degrees of freedom: 4919
+Cycle 5:
+   Number of active cells:       2059
+   Number of degrees of freedom: 9223
+Cycle 6:
+   Number of active cells:       3913
+   Number of degrees of freedom: 17887
+Cycle 7:
+   Number of active cells:       7441
+   Number of degrees of freedom: 33807
+Cycle 8:
+   Number of active cells:       14212
+   Number of degrees of freedom: 64731
+
+
+cycle cells dofs     L2        H1      Linfty
+    0    64   289 1.606e-01 1.278e+00 3.029e-01
+    1   124   577 7.891e-03 5.256e-01 4.852e-02
+    2   289  1353 1.070e-03 1.155e-01 4.868e-03
+    3   547  2531 5.962e-04 5.101e-02 1.876e-03
+    4  1057  4919 1.977e-04 3.094e-02 7.923e-04
+    5  2059  9223 7.738e-05 1.974e-02 7.270e-04
+    6  3913 17887 2.925e-05 8.772e-03 1.463e-04
+    7  7441 33807 1.024e-05 4.121e-03 8.567e-05
+    8 14212 64731 3.761e-06 2.108e-03 2.167e-05
+@endcode
+
+
+
+
+我们可以看到网格细化后的误差减少，对于进行全局细化的情况，也可以看到收敛率。可以清楚地看到Q1和Q2元素在 $H^1$ 半规范下的线性和二次收敛率，以及 $L_2$ 规范下的二次和三次收敛率。
+
+
+
+
+
+最后，该程序还生成了LaTeX版本的表格（此处未显示），这些表格被写入一个文件中，以便可以复制粘贴到LaTeX文件中。
+
+
+
+
+<h4> When is the error "small"? </h4>
+
+我们上面展示的是如何在一些不同的规范中确定误差 $\|u-u_h\|$ 的大小。我们这样做主要是因为我们对测试我们的解决方案是否*融合感兴趣。但是从工程的角度来看，这个问题往往更实际：我的网格要做得多细才能使误差 "足够小"？换句话说，如果在上表中， $H^1$ 的半规范已经减少到`4.121e-03`，这是否足以让我在蓝图上签字，宣布我们的数值模拟显示桥梁足够坚固？
+
+在实践中，我们很少遇到这种情况，因为我通常不能在重要的情况下将数值解 $u_h$ 与精确解 $u$ 进行比较--如果我知道 $u$ ，我就不必计算 $u_h$  。但即使我可以，一般情况下要问的问题是。`4.121e-03`是什么？解决方案将有物理单位，例如公斤-米-平方，我在域上积分一个单位为上述平方的函数，然后取其平方根。因此，如果域是二维的， $\|u-u_h\|_{L_2}$ 的单位是公斤-米-立方。那么问题来了。 $4.121\times 10^{-3}$ 的单位是kg-times-mubed小吗？这取决于你要模拟的是什么。如果你是一个天文学家，习惯于以太阳质量为单位的质量和以光年为单位的距离，那么是的，这是一个小得惊人的数字。但是如果你是做原子物理的，那就不是：这并不小，而且你的误差肯定也不够小；你需要一个更细的网格。
+
+换句话说，当我们看这些数字的时候，我们通常需要与一个 "尺度 "进行比较。做到这一点的一个方法是，不看任何规范中的*绝对*误差 $\|u-u_h\|$ ，而是看*相对*误差 $\|u-u_h\|/\|u\|$  。如果这个比率是 $10^{-5}$ ，那么你就知道，*平均而言， $u$ 和 $u_h$ 之间的差异是0.001%--对于工程而言可能足够小。
+
+我们如何计算 $\|u\|$ ？我们只需要在所有的单元格上做一个积分循环，在这些单元格上做正交点，然后把东西加起来，最后取平方根。但有一个更简单的方法经常使用。你可以调用
+
+@code
+    Vector<double> zero_vector (dof_handler.n_dofs());
+    Vector<float> norm_per_cell(triangulation.n_active_cells());
+    VectorTools::integrate_difference(dof_handler,
+                                      zero_vector,
+                                      Solution<dim>(),
+                                      norm_per_cell,
+                                      QGauss<dim>(fe->degree + 1),
+                                      VectorTools::L2_norm);
+@endcode
+
+来计算  $\|u-0\|_{L_2}$  。另外，如果你特别懒，不喜欢创建`零_向量'，你可以使用，如果网格不是太粗，那么 $\|u\| \approx \|u_h\|$  ，我们可以通过调用 $\|u\| \approx \|u_h\|=\|0-u_h\|$ 来计算。
+
+@code
+    Vector<float> norm_per_cell(triangulation.n_active_cells());
+    VectorTools::integrate_difference(dof_handler,
+                                      solution,
+                                      ZeroFunction<dim>(),
+                                      norm_per_cell,
+                                      QGauss<dim>(fe->degree + 1),
+                                      VectorTools::L2_norm);
+@endcode
+
+在这两种情况下，我们只需要像在程序中一样，通过调用以下命令将单元格准则的向量合并为一个全局准则
+
+@code
+    const double L2_norm =
+      VectorTools::compute_global_error(triangulation,
+                                        norm_per_cell,
+                                        VectorTools::L2_norm);
+@endcode
+
+
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+<h4> Higher Order Elements </h4>
+
+继续运行具有高阶元素的程序（ $Q_3$  ,  $Q_4$  , ...）。你会注意到，代码的几个部分的断言将被触发（例如，在为数据输出生成文件名时）。你可能必须解决这些问题，但要使程序正常工作应该不是很难
+
+<h4> Convergence Comparison </h4>
+
+Q1或Q2更好吗？自适应细化与全局细化又如何呢？比较它们的一个（有些不公平，但很典型）指标是看误差与未知数的关系。
+
+要看到这一点，以对数风格创建一个图，未知数在 $x$ 轴上， $L_2$ 误差在 $y$ 轴上。你可以为 $h^2=N^{-1}$ 和 $h^3=N^{-3/2}$ 添加参考线，并检查全局和适应性细化是否遵循这些。如果我们做一个（并非完全不合理的）假设，即对于一个好的线性求解器，计算工作量与未知数 $N$ 成正比，那么很明显， ${\cal O}(N^{-3/2})$ 的误差减少比 ${\cal O}(N^{-1})$ 形式的减少要好得多：也就是说，与使用全局细化相比，自适应细化以更少的计算工作量给我们带来了期望的误差等级。这并不是一个特别令人惊讶的结论，但是值得在实践中检查这类假设。
+
+当然，更公平的比较是在 $x$ 轴上绘制运行时间（先切换到发布模式！）而不是未知数的数量。如果你通过对每个细化步骤进行计时（例如，使用Timer类）来绘制运行时间与未知数数量的关系，你会发现线性求解器并不完美--其运行时间的增长速度超过了与线性系统大小成正比的速度--挑选一个更好的线性求解器可能适合这种比较。
+
+

@@ -1,0 +1,461 @@
+examples/step-21/doc/intro.dox
+
+［<a name="Intro"></a>］ ［<h1>Introduction</h1>］
+
+这个项目是由德克萨斯A&amp;M大学的李艳的一个学生项目发展而来的。这个项目的大部分工作都是由她完成的。
+
+在这个项目中，我们提出了一个针对多孔介质中两相流动问题的数值模拟。这个问题包括一个椭圆方程和一个非线性的、随时间变化的传输方程。因此，这也是第一个时间相关的教程程序（除了有点奇怪的时间相关的 @ref step_18 "step-18"）。
+
+这里涉及的方程是步骤20中已经涉及的材料的延伸。特别是，它们属于矢量值问题的范畴。这个主题的顶层概述可以在 @ref vector_valued 模块中找到。
+
+
+
+
+<h3>The two phase flow problem</h3>
+
+多孔介质中两相流动的建模对于环境修复和石油及地下水库的管理都很重要。涉及两相流动的实际情况包括非水相液体在含水层中的分散，或混合液体（如油和水）在储层中的联合运动。仿真模型如果要提供真实的预测，就必须准确地考虑到这些影响。
+
+为了推导出管理方程，考虑储层中的两相流动 $\Omega$ ，假设流体的运动由粘性效应主导；即我们忽略了重力、压缩性和毛细压力的影响。孔隙率将被认为是恒定的。我们将使用下标 $w$ 和 $o$ 来表示两相中的任何一个变量，即水和油的简称。然而，方程的推导对其他流体对也是适用的。
+
+两相中每一相的分子移动的速度由达西定律决定，该定律指出速度与压力梯度成正比。
+
+@f{eqnarray*}
+  \mathbf{u}_{j}
+  =
+
+
+  -\frac{k_{rj}(S)}{\mu_{j}} \mathbf{K} \cdot \nabla p
+
+
+@f}
+
+其中 $\mathbf{u}_{j}$ 是相 $j=o,w$ 的速度， $K$ 是渗透率张量， $k_{rj}$ 是相 $j$ 的相对渗透率， $p$ 是压力， $\mu_{j}$ 是相 $j$ 的粘性。最后， $S$ 是饱和度（体积分数），即一个数值在0和1之间的函数，表示流体混合物的组成。一般来说，系数 $K, k_{rj}, \mu$ 可能是空间上的变量，在下文中我们将始终把它们作为非常数函数。
+
+我们将达西定律与各相的质量守恒声明结合起来。
+
+@f[
+  \textrm{div}\ \mathbf{u}_{j} = q_j,
+
+
+@f]
+
+每个相都有一个源项。通过对两相求和，我们可以用所谓的压力方程来表达治理方程。
+
+@f{eqnarray*}
+
+
+- \nabla \cdot (\mathbf{K}\lambda(S) \nabla p)= q.
+
+
+@f}
+
+这里， $q$ 是和源项，而
+
+@f[
+  \lambda(S) = \frac{k_{rw}(S)}{\mu_{w}}+\frac{k_{ro}(S)}{\mu_{o}}
+
+
+@f]
+
+是总的流动性。
+
+到目前为止，这看起来是一个普通的静止的、类似泊松的方程，我们可以用前几个教程的技术马上解决（例如，看一下步骤6，非常类似的东西）。然而，我们还没有说到饱和度，这当然会随着流体的移动而改变。
+
+方程的第二部分是对饱和度的动态描述，即两种流体的相对浓度如何随时间变化。置换流体（水）的饱和度方程由以下守恒定律给出。
+
+@f{eqnarray*}
+  S_{t} + \nabla \cdot (F(S) \mathbf{u}) = q_{w},
+
+
+@f}
+
+这可以通过使用前一个方程中发散算子的乘积规则来重写。
+
+@f{eqnarray*}
+  S_{t} + F(S) \left[\nabla \cdot \mathbf{u}\right]
+        + \mathbf{u} \cdot \left[ \nabla F(S)\right]
+  = S_{t} + F(S) q + \mathbf{u} \cdot \nabla F(S) = q_{w}.
+
+
+@f}
+
+这里， $q=\nabla\cdot \mathbf{u}$ 是上面介绍的总流入量， $q_{w}$ 是置换流体（水）的流速。这两者与分流量 $F(S)$ 的关系如下。
+
+@f[
+  q_{w} = F(S) q,
+
+
+@f]
+
+其中分数流通常通过（启发式）表达式进行参数化
+
+@f[
+  F(S)
+  =
+  \frac{k_{rw}(S)/\mu_{w}}{k_{rw}(S)/\mu_{w} + k_{ro}(S)/\mu_{o}}.
+
+
+@f]
+
+将所有这些放在一起，可以得到以下形式的饱和度方程，即平流式。
+
+@f{eqnarray*}
+  S_{t} + \mathbf{u} \cdot \nabla F(S) = 0,
+
+
+@f}
+
+其中 $\mathbf u$ 是总速度
+
+@f[
+  \mathbf{u} =
+  \mathbf{u}_{o} + \mathbf{u}_{w} = -\lambda(S) \mathbf{K}\cdot\nabla p.
+
+
+@f]
+
+注意，平流方程包含术语 $\mathbf{u} \cdot \nabla
+F(S)$ 而不是 $\mathbf{u} \cdot \nabla S$ ，以表明饱和度不是简单地沿途传送；相反，由于两相以不同的速度移动，即使在平流坐标系中，饱和度实际上也可以改变。为了看到这一点，重写 $\mathbf{u} \cdot \nabla F(S)
+= \mathbf{u} F'(S) \cdot \nabla S$ ，观察到具有饱和度 $S$ 的相的<i>actual</i>传输速度是 $\mathbf u F'(S)$ ，而另一相的传输速度是 $\mathbf u (1-F'(S))$  。  因此， $F(S)$ 通常被称为<i>fractional flow</i>。
+
+综上所述，我们得到的是以下两个方程式。
+
+@f{eqnarray*}
+
+
+  - \nabla \cdot (\mathbf{K}\lambda(S) \nabla p) &=& q
+  \qquad \textrm{in}\ \Omega\times[0,T],
+  \\
+  S_{t} + \mathbf{u} \cdot \nabla F(S) &=& 0
+  \qquad \textrm{in}\ \Omega\times[0,T].
+
+
+@f}
+
+这里， $p=p(\mathbf x, t), S=S(\mathbf x, t)$ 现在是随时间变化的函数：虽然在每个时间瞬间，流场与压力处于平衡状态（即我们忽略了动态加速），但饱和度随着流动而运输，因此随时间变化，反过来又通过第一个方程对 $S$ 的依赖性影响流场。
+
+这组方程有一个奇特的特点：两个方程中的一个有时间导数，另一个没有。这与压力和速度通过瞬时约束耦合的特点相对应，而饱和度在有限的时间尺度上演变。
+
+这样的方程组被称为微分代数方程（DAE），因为其中一个方程是微分方程，另一个不是（至少不是相对于时间变量），因此是一个 "代数 "方程。这个符号来自常微分方程领域，在这个领域中，所有没有关于时间变量的导数的东西都必然是一个代数方程）。这类方程包含相当知名的情况：例如，与时间相关的斯托克斯和纳维-斯托克斯方程（其中代数约束是流场的发散， $\textrm{div}\ \mathbf u$ ，必须为零）以及与时间相关的麦克斯韦方程（这里，代数约束是电位移场的发散等于电荷密度， $\textrm{div}\ \mathbf D = \rho$  ，磁通密度的发散为零。   $\textrm{div}\ \mathbf
+B = 0$ ）；即使是Step-18的准静态模型也属于这个类别。我们将看到，这两个方程的不同特征将告知我们这两个方程的离散化策略。
+
+
+
+
+<h3>Time discretization</h3>
+
+在储层模拟界，通常是通过回到一阶混合公式来解决上面得出的方程。为此，我们重新引入总速度 $\mathbf u$ ，并将方程写成以下形式。
+
+@f{eqnarray*}
+  \mathbf{u}+\mathbf{K}\lambda(S) \nabla p&=&0 \\
+  \nabla \cdot\mathbf{u} &=& q \\
+  S_{t} + \mathbf{u} \cdot \nabla F(S) &=& 0.
+
+
+@f}
+
+这种表述方式还有一个好处，即我们不必将出现在传输方程中的总速度 $\mathbf u$ 表示为压力的函数，而是可以将其作为主变量。鉴于前两个方程的鞍点结构以及它们与我们在第20步中介绍的混合拉普拉斯公式的相似性，我们将再次使用混合离散化，这并不奇怪。
+
+但是，让我们先把这个问题推迟一下。我们处理这些方程的第一件事是考虑时间离散化。在储层模拟中，有一个相当标准的算法，我们将在这里使用。它首先使用隐式方程解决压力问题，然后使用显式时间步进方案解决饱和问题。该算法被称为IMplicit Pressure Explicit Saturation（隐式压力显式饱和），很早以前就被提出：Sheldon等人在1959年提出，Stone和Gardner在1961年提出（J.W.Sheldon, B. Zondek and W. T. Cardwell:<i>One-dimensional, incompressible, non-capillary, two-phase
+fluid flow in a porous medium</i>, Trans.SPE AIME, 216 (1959), pp. 290-296; H. L. Stone and A. O. Gardner Jr: <i>Analysis of gas-cap or dissolved-gas
+reservoirs</i>, Trans.SPE AIME, 222 (1961), pp. 92-104)。在一个稍加修改的形式中，这个算法可以写成如下：对于每一个时间步长，解决
+
+@f{eqnarray*}
+  \mathbf{u}^{n+1}+\mathbf{K}\lambda(S^n) \nabla p^{n+1}&=&0 \\
+  \nabla \cdot\mathbf{u}^{n+1} &=& q^{n+1} \\
+  \frac {S^{n+1}-S^n}{\triangle t} + \mathbf{u}^{n+1} \cdot \nabla F(S^n) &=& 0,
+
+
+@f}
+
+其中 $\triangle t$ 是一个时间步长。请注意我们是如何解决隐式压力-速度系统的，它只取决于先前计算的饱和度 $S^n$ ，然后对 $S^{n+1}$ 做一个显式时间步长，它只取决于先前已知的 $S^n$ 和刚刚计算的 $\mathbf{u}^{n+1}$ 。这样一来，我们就不必像使用全隐式方法那样，对系统的非线性进行迭代。从更现代的角度来看，这应该被看作是一种 "算子分割 "方法。
+
+然后我们可以将问题以弱的形式陈述如下，用测试函数 $\mathbf v$ 、 $\phi$ 和 $\sigma$ 乘以每个方程，并通过部分整合条款。
+
+@f{eqnarray*}
+  \left((\mathbf{K}\lambda(S^n))^{-1} \mathbf{u}^{n+1},\mathbf v\right)_\Omega -
+  (p^{n+1}, \nabla\cdot\mathbf v)_\Omega &=&
+
+
+  - (p^{n+1}, \mathbf v)_{\partial\Omega}
+  \\
+  (\nabla \cdot\mathbf{u}^{n+1}, \phi)_\Omega &=& (q^{n+1},\phi)_\Omega
+
+
+@f}
+
+注意，在第一项中，我们必须规定边界 $p^{n+1}$ 上的压力 $\partial\Omega$ 作为我们问题的边界值。   $\mathbf n$ 表示对 $\partial K$ 的单位外向法向量，如常。
+
+对于饱和度方程，我们通过部分积分后得到
+
+@f{eqnarray*}
+  (S^{n+1}, \sigma)_\Omega
+
+
+  -
+  \triangle t
+  \sum_K
+  \left\{
+  \left(F(S^n), \nabla \cdot (\mathbf{u}^{n+1} \sigma)\right)_K
+
+
+  -
+  \left(F(S^n) (\mathbf n \cdot \mathbf{u}^{n+1}, \sigma\right)_{\partial K}
+  \right\}
+  &=&
+  (S^n,\sigma)_\Omega.
+
+
+@f}
+
+利用 $\nabla \cdot \mathbf{u}^{n+1}=q^{n+1}$ 这一事实，我们可以重写细胞项，得到如下方程。
+
+@f{eqnarray*}
+  (S^{n+1}, \sigma)_\Omega
+
+
+  -
+  \triangle t
+  \sum_K
+  \left\{
+  \left(F(S^n) \mathbf{u}^{n+1}, \nabla \sigma\right)_K
+
+
+  -
+  \left(F(S^n) (\mathbf n \cdot \mathbf{u}^{n+1}), \sigma\right)_{\partial K}
+  \right\}
+  &=&
+  (S^n,\sigma)_\Omega +
+  \triangle t \sum_K  \left(F(S^n) q^{n+1}, \sigma\right)_K.
+
+
+@f}
+
+我们引入了一个DiscreteTime类型的对象，以便在代码中保持对时间和时间步长的当前值的跟踪。这个类封装了许多关于调整时间步长和在指定的最终时间停止的复杂情况。
+
+
+
+
+<h3>Space discretization</h3>
+
+在每个时间步长中，我们再对速度和压力应用 @ref step_20 "step-20 "的混合有限方法。为了得到良好的解决，我们对 $\mathbf{u}$ 选择Raviart-Thomas空间 $RT_{k}$ ，对 $p$ 选择 $DGQ_{k}$ 类的不连续元素。对于饱和度，我们也将选择 $DGQ_{k}$ 空间。
+
+由于我们有不连续的空间，我们必须考虑如何评估细胞之间界面上的项，因为不连续的函数在那里没有真正定义。特别是，我们必须给饱和度方程左边的最后一个项赋予一个意义。为此，让我们定义，我们要在以下意义上评估它。
+
+@f{eqnarray*}
+  &&\left(F(S^n) (\mathbf n \cdot \mathbf{u}^{n+1}), \sigma\right)_{\partial K}
+  \\
+  &&\qquad =
+  \left(F(S^n_+) (\mathbf n \cdot \mathbf{u}^{n+1}_+), \sigma\right)_{\partial K_+}
+  +
+  \left(F(S^n_-) (\mathbf n \cdot \mathbf{u}^{n+1}_-), \sigma\right)_{\partial K_-},
+
+
+@f}
+
+其中 $\partial K_{-} \dealcoloneq \{x\in \partial K, \mathbf{u}(x) \cdot \mathbf{n}<0\}$ 表示流入边界， $\partial K_{+} \dealcoloneq \{\partial K \setminus
+\partial K_{-}\}$ 是边界的流出部分。数量 $S_+,\mathbf{u}_+$ 对应于当前单元上的这些变量值，而 $S_-,\mathbf{u}_-$ （需要在 $K$ 边界的流入部分）是取自邻近单元的数量。关于非连续元素技术和通量评估的更多背景，也可以在步骤12和步骤12b中找到。
+
+
+
+
+<h3>Linear solvers</h3>
+
+这个程序中使用的线性求解器是对步骤20中使用的线性求解器的直接扩展（但没有LinearOperator）。从本质上讲，我们只需将一切从两个解元扩展到三个解元。如果我们使用上面提到的离散空间，并将形状函数放入双线性形式中，我们得出以下线性系统，以解决时间步长 $n+1$  。
+
+@f[
+\left(
+\begin{array}{ccc}
+M^u(S^{n}) & B^{T}& 0\\
+B &    0 & 0\\
+\triangle t\; H &    0& M^S
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+\mathbf{U}^{n+1} \\ P^{n+1} \\ S^{n+1}
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+0 \\ F_2 \\ F_3
+\end{array}
+\right)
+
+
+@f]
+
+其中各个矩阵和向量的定义如下：使用形状函数 $\mathbf v_i$ （类型为Raviart Thomas $RT_k$ ）定义速度，使用 $\phi_i$ （类型为 $DGQ_k$  ）定义压力和饱和度。
+
+@f{eqnarray*}
+M^u(S^n)_{ij} &=&
+\left((\mathbf{K}\lambda(S^n))^{-1} \mathbf{v}_i,\mathbf
+v_j\right)_\Omega,
+\\
+B_{ij} &=&
+
+
+-(\nabla \cdot \mathbf v_j, \phi_i)_\Omega,
+\\
+H_{ij} &=&
+
+
+  -
+  \sum_K
+  \left\{
+  \left(F(S^n) \mathbf v_i, \nabla \phi_j)\right)_K
+
+
+  -
+  \left(F(S^n_+) (\mathbf n \cdot (\mathbf v_i)_+), \phi_j\right)_{\partial K_+}
+
+
+  -
+  \left(F(S^n_-) (\mathbf n \cdot (\mathbf v_i)_-), \phi_j\right)_{\partial K_-},
+  \right\}
+\\
+M^S_{ij} &=&
+(\phi_i, \phi_j)_\Omega,
+\\
+(F_2)_i &=&
+
+
+-(q^{n+1},\phi_i)_\Omega,
+\\
+(F_3)_i &=&
+(S^n,\phi_i)_\Omega +\triangle t \sum_K  \left(F(S^n) q^{n+1}, \phi_i\right)_K.
+
+
+@f}
+
+
+
+ @note  由于历史原因，与第20步相比，矩阵 $B$ 和 $B^T$ 的作用在本程序中被还原了。换句话说，这里 $B$ 指的是发散， $B^T$ 指的是梯度算子，而在第20步中则是相反。
+
+上面的系统出现了一个复杂的问题。由于矩阵 $H_{ij}$ 隐含地依赖于 $\mathbf u^{n+1}$ （需要速度来确定细胞边界 $\partial K$ 的哪些部分是流入或流出的部分），我们只能在解决了速度问题之后才能组装这个矩阵。
+
+然后，求解方案包括以下步骤。<ol>  <li>  使用步骤20中介绍的Schur补足技术求解压力 $p^{n+1}$ 。
+
+    <li>  求解速度 $\mathbf u^{n+1}$ ，也是在步骤20中讨论的。
+
+    <li>  计算项 $F_3-\triangle t\; H \mathbf u^{n+1}$  ，使用刚刚计算的速度。
+
+    <li>  求解饱和度  $S^{n+1}$  。   </ol> 
+
+在这个方案中，我们实际上从未建立过矩阵 $H$ ，而是在我们准备好后生成第三个方程的右手边。
+
+在程序中，我们使用一个变量 <code>solution</code> 来存储当前时间步骤的解决方案。在每一步结束时，我们将其内容，即其所有的三个块状成分，复制到变量 <code>old_solution</code> 中，以便在下一个时间步骤中使用。
+
+
+
+
+<h3>Choosing a time step</h3>
+
+在双曲输运方程中，像我们要解决的饱和方程的一般经验法则是，如果我们使用显式时间步长方案，那么我们应该使用一个时间步长，使粒子在一个时间步长内所能走的距离不大于一个细胞的直径。换句话说，在这里，我们应该选择
+
+@f[
+  \triangle t_{n+1} \le \frac h{|\mathbf{u}^{n+1}(\mathbf{x})|}.
+
+
+@f]
+
+幸运的是，我们处在一个可以做到这一点的位置：我们只需要当我们想集合饱和方程的右边时的时间步长，也就是在我们已经解出 $\mathbf{u}^{n+1}$ 之后。因此，在求解速度之后，我们要做的就是在域中的所有正交点上循环，确定速度的最大幅度。然后我们可以将饱和方程的时间步长设定为
+
+@f[
+  \triangle t_{n+1} = \frac {\min_K h_K}{\max_{\mathbf{x}}|\mathbf{u}^{n+1}(\mathbf{x})|}.
+
+
+@f]
+
+
+
+为什么要这样做呢？如果我们不这样做，那么我们就会发现很多地方的饱和度大于1或小于0，这一点很容易得到验证。请记住，饱和度对应于流体混合物中的水比例，因此在物理上必须在0和1之间）。另一方面，如果我们根据上面列出的标准选择时间步长，这种情况只会非常非常少地发生，事实上在整个程序运行中只有一次。然而，为了安全起见，我们在每个时间步长结束时运行一个函数 <code>project_back_saturation</code> ，如果饱和度已经超出了物理范围，则简单地将其投射回区间 $[0,1]$ 。这很有用，因为函数 $\lambda(S)$ 和 $F(S)$ 并不代表这个范围之外的任何物理现象，而且一旦我们有负的饱和度或大于1的饱和度，我们不应该期望程序做任何有用的事情。
+
+请注意，我们在第23步和第24步中也会对时间步长有类似的限制，在这两步中我们要解决与时间有关的波浪方程，即另一个双曲问题。我们还将在下面的<a href="#extensions">possible
+extensions to this program</a>一节中再来讨论时间步长的选择问题。
+
+
+
+
+<h3>The test case</h3>
+
+为了简单起见，本程序假定没有源头，  $q=0$  ，并且异质多孔介质是各向同性的  $\mathbf{K}(\mathbf{x}) =
+k(\mathbf{x}) \mathbf{I}$  。其中第一个假设在油藏中是一个现实的假设：除了注水井和生产井之外，通常没有液体突然出现或消失的机制。第二个假设更难证明：在微观层面上，大多数岩石是各向同性的，因为它们是由相互连接的孔隙网络组成的。然而，这种微观尺度超出了今天计算机模拟的范围，我们不得不满足于模拟米级的东西。然而，在这个尺度上，流体运输通常是通过岩石中的裂缝网络，而不是通过孔隙发生的。然而，裂缝通常是由岩层中的外部应力场造成的（例如由构造断层造成的），因此裂缝是大致排列的。这就导致了这样一种情况：在平行于裂缝的方向上，渗透率往往比垂直于裂缝的方向大几个数量级。然而，在储层模拟中通常面临的一个问题是，建模者不知道裂缝的方向，因为油藏不容易被检查到。在这种情况下，唯一的解决办法是假设有效的、各向同性的渗透率。
+
+无论怎样，这两个限制，即无源和各向同性，只要在程序中写上几行代码就能轻松解除。
+
+接下来，为了简单起见，我们的数值模拟将在 $\Omega = [0,1]\times [0,1]$ 的单元格上进行，即 $t\in [0,T]$ 。我们的初始条件是 $S(\mathbf{x},0)=0$ ；在油藏图片中， $S$ 将表示水的饱和度，这意味着油藏一开始就含有纯油。请注意，我们不需要任何压力或速度的初始条件，因为这些方程不包含这些变量的时间导数。最后，我们施加以下压力边界条件。
+
+@f[
+  p(\mathbf{x},t)=1-x_1 \qquad \textrm{on}\ \partial\Omega.
+
+
+@f]
+
+由于压力和速度求解的是混合形式的泊松方程，所以施加的压力导致了速度的流场。另一方面，这个流场决定了边界的某一部分是流入还是流出，这很重要，因为我们必须在边界的流入部分施加饱和度的边界条件。
+
+@f[
+  \Gamma_{in}(t) = \{\mathbf{x}\in\partial\Omega:
+                     \mathbf{n} \cdot \mathbf{u}(\mathbf{x},t) < 0\}.
+
+
+@f]
+
+在这个流入的边界上，我们施加以下的饱和值。
+
+@f{eqnarray}
+  S(\mathbf{x},t) = 1 & \textrm{on}\ \Gamma_{in}\cap\{x_1=0\},
+  \\
+  S(\mathbf{x},t) = 0 & \textrm{on}\ \Gamma_{in}\backslash \{x_1=0\}.
+
+
+@f}
+
+换句话说，我们有纯水在左边进入储层，而边界的其他部分与储层的未受干扰部分接触，只要这些边界上发生流入，纯油就会进入。
+
+在我们的模拟中，我们选择总流动性为
+
+@f[
+  \lambda (S) = \frac{1.0}{\mu} S^2 +(1-S)^2
+
+
+@f]
+
+其中我们用 $\mu=0.2$ 表示粘度。此外，水的分流量由以下公式给出
+
+@f[
+  F(S)=\frac{S^2}{S^2+\mu (1-S)^2}
+
+
+@f]
+
+
+
+ @note  几年后在step-43中再来看这个测试案例，发现这个测试案例的设置有一个奇怪之处。为此，考虑我们可以将饱和度的平流方程改写为  $S_{t} + (\mathbf{u}
+F'(S)) \cdot \nabla S = 0$  。现在，在初始时间，我们有 $S=0$ ，在给定的函数 $F(S)$ 的选择下，我们正好有 $F'(0)=0$ 。换句话说，在 $t=0$ 处，方程对所有 $\mathbf x$ 都还原为 $S_t=0$ ，所以饱和度在任何地方都是零，而且在任何地方都会保持零！这就是为什么在 $\mathbf x$ 处的饱和度为零。尽管 $\mathbf u$ 不一定是零：组合流体在移动，但我们选择的部分通量 $F(S)$ 是这样的：无穷小量的润湿流体也只以无穷小的速度移动（也就是说，它们粘附在介质上的程度比它们所嵌入的非润湿相要大）。也就是说，我们如何将这一点与润湿性液体从左边侵入，导致<a href="#Results">results section</a>中看到的流动模式的知识联系起来？这就是我们进入数学的地方。像我们在这里考虑的传输方程有无限多的解决方案，但其中只有一个是物理的：由所谓的粘性极限产生的解决方案，称为<a
+href="http://en.wikipedia.org/wiki/Viscosity_solution">viscosity
+solution</a>。事情是这样的，用不连续的元素，我们到达了这个粘性极限，因为使用数值通量在数值方案中引入了有限量的人工粘性。另一方面，在step-43中，我们在每个单元上使用与 $\|\mathbf u F'(S)\|$ 成比例的人工粘度，在初始时间是零。因此，那里的饱和度为零，并保持为零；然后我们得到的解是<i>one</i>的平流方程解，但如果不进一步改变，该方法不会收敛到粘性解。因此，我们将在该程序中使用一个不同的初始条件。
+
+
+最后，回到测试案例的描述，我们将展示用 @ref step_20  "step-20 "的结果部分末尾介绍的两个渗透率函数计算的结果。   <ul>   <li>  一个函数，模拟一个蜿蜒穿过领域的单一裂缝。与step-20相类似，但考虑到我们这里的几何形状略有不同，我们用以下函数来描述。   @f[
+    k(\mathbf x)
+    =
+    \max \left\{ e^{-\left(\frac{x_2-\frac 12 - 0.1\sin(10x_1)}{0.1}\right)^2}, 0.01 \right\}.
+  @f]
+
+  取最大值是必要的，以确保最大和最小渗透率之间的比率保持有界。如果我们不这样做，渗透率将跨越许多数量级。另一方面，最大和最小渗透率之间的比率是舒尔补矩阵的条件数的一个因素，如果太大，会导致我们的线性求解器不再正常收敛的问题。
+
+    <li>  一个模拟某种随机介质的函数。在这里，我们选择@f{eqnarray*}
+    k(\mathbf x)
+    &=&
+    \min \left\{ \max \left\{ \sum_{i=1}^N \sigma_i(\mathbf{x}), 0.01 \right\}, 4\right\},
+    \\
+    \sigma_i(\mathbf x)
+    &=&
+    e^{-\left(\frac{|\mathbf{x}-\mathbf{x}_i|}{0.05}\right)^2},
+  @f}。
+
+  其中中心 $\mathbf{x}_i$ 是域内 $N$ 随机选择的位置。这个函数模拟了一个领域，其中有 $N$ 个渗透率较高的中心（例如，岩石已经开裂）嵌入到一个更原始的、未受干扰的背景岩石矩阵中。请注意，在这里我们切断了上方和下方的渗透率函数，以确保有界的条件数。   </ul> 
+
+

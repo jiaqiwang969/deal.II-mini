@@ -1,0 +1,155 @@
+examples/step-74/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Timo Heister and Jiaqi Zhang.
+<br>
+This material is based upon work partly supported by the National
+Science Foundation Award DMS-2028346, OAC-2015848, EAR-1925575, by the Computational
+Infrastructure in Geodynamics initiative (CIG), through the NSF under Award
+EAR-0949446 and EAR-1550901 and The University of California -- Davis.
+</i>
+
+
+<a name="Intro"></a>
+
+<h1><em>Symmetric interior penalty Galerkin</em> (SIPG) method for Poisson's equation</h1>
+
+<h3>Overview</h3> 在本教程中，我们展示了FEInterfaceValues类的用法，该类是为组装由不连续加尔金（DG）方法产生的面项而设计的。FEInterfaceValues类提供了一种简单的方法来获得形状函数的跳变和平均值以及跨单元面的解。本教程包括以下内容。<ol>  <li>  泊松方程的SIPG方法，在步骤39和步骤59中已经使用过。     <li>  使用FEInterfaceValues组装面项，使用 MeshWorker::mesh_loop(), 组装系统矩阵，这与步骤12类似。     <li>  使用误差估计器进行自适应网格细化。     <li>  两个测试案例：平滑函数的收敛测试和奇异解的适应性网格细化测试。   </ol> 
+
+<h3>The equation</h3> 在这个例子中，我们考虑泊松方程
+
+@f[
+
+
+- \nabla \cdot \left( \nu  \nabla u\right) = f  \qquad   \mbox{in } \Omega,
+
+
+@f]
+
+受制于边界条件
+
+@f[
+u = g_D \qquad \mbox{on } \partial \Omega.
+
+
+@f]
+
+为了简单起见，我们假设扩散系数 $\nu$ 在这里是常数。注意，如果 $\nu$ 是不连续的，我们在计算单元面的跳跃项时需要考虑到这一点。
+
+我们用 ${\mathbb T}_h$ 表示网格， $K\in{\mathbb T}_h$ 是一个网格单元。内部和边界面的集合分别用  ${\mathbb F}^i_h$  和  ${\mathbb F}^b_h$  表示。让 $K^0$ 和 $K^1$ 是共享一个面 $f\in F_h^i$ 的两个单元， $\mathbf n$ 是 $K^0$ 的外法向量。那么跳跃算子由 "这里减去那里 "公式给出。
+
+@f[
+\jump{v} = v^0 - v^1
+
+
+@f]
+
+和平均运算符为
+
+@f[
+\average{v} = \frac{v^0 + v^1}{2}
+
+
+@f]
+
+分别。请注意，当 $f\subset \partial \Omega$ 时，我们定义 $\jump{v} = v$ 和 $\average{v}=v$  。使用SIPG的离散化由以下弱式给出（更多细节可以在 @cite di2011mathematical 和其中的参考文献中找到）。
+
+@f{align*}
+&\sum_{K\in {\mathbb T}_h} (\nabla v_h, \nu \nabla u_h)_K\\
+&-\sum_{F \in F_h^i} \left\{
+    \left< \jump{v_h}, \nu\average{ \nabla u_h} \cdot  \mathbf n \right>_F
+   +\left<\average{ \nabla v_h }\cdot \mathbf n,\nu\jump{u_h}\right>_F
+
+
+   -\left<\jump{v_h},\nu \sigma \jump{u_h} \right>_F
+  \right\}\\
+&-\sum_{F \in F_h^b} \left\{
+    \left<v_h, \nu  \nabla u_h\cdot \mathbf n \right>_F
+  + \left< \nabla v_h \cdot \mathbf n , \nu u_h\right>_F
+
+
+  - \left< v_h,\nu \sigma u_h\right>_F
+  \right\}\\
+&=(v_h, f)_\Omega
+
+
+  - \sum_{F \in F_h^b} \left\{
+    \left< \nabla v_h \cdot \mathbf n, \nu g_D\right>_F - \left<v_h,\nu \sigma g_D\right>_F
+  \right\}.
+
+
+@f}
+
+
+
+
+
+
+<h3>The penalty parameter</h3> 惩罚参数定义为  $\sigma = \gamma/h_f$  ，其中  $h_f$  是与细胞面相关的局部长度尺度；这里我们选择细胞在面的法线方向的长度近似值。   $\frac 1{h_f} = \frac 12 \left(\frac 1{h_K} + \frac 1{h_{K'}}\right)$  ，其中 $K,K'$ 是与面相邻的两个单元 $f$ ，我们我们计算 $h_K = \frac{|K|}{|f|}$  。
+
+在上述公式中， $\gamma$  是惩罚常数。为了确保离散矫捷性，惩罚常数必须足够大  @cite ainsworth2007posteriori  。对于文献中提出的哪些公式应该被使用，人们并没有真正达成共识。这与第47步的 "结果 "部分讨论的情况类似）。人们可以直接挑选一个大的常数，而其他选择可以是 $(p+1)^2$ 或 $p(p+1)$ 的倍数。在这段代码中，我们遵循步骤39，使用 $\gamma = p(p+1)$  。
+
+
+
+
+<h3>A posteriori error estimator</h3> 在这个例子中，稍作修改，我们使用Karakashian和Pascal的误差估计器 @cite karakashian2003posteriori  。
+
+@f[
+\eta^2 = \sum_{K \in {\mathbb T}_h} \eta^2_{K} +  \sum_{f_i \in {\mathbb F}^i_h}  \eta^2_{f_i} + \sum_{f_b \in F^i_b}\eta^2_{f_b}
+
+
+@f]
+
+其中
+
+@f{align*}{
+\eta^2_{K} &= h_K^2 \left\| f + \nu \Delta u_h \right\|_K^2,
+\\
+\eta^2_{f_i} &= \sigma \left\| \jump{u_h}  \right\|_f^2   +  h_f \left\|  \jump{\nu \nabla u_h} \cdot \mathbf n   \right\|_f^2,
+\\
+\eta_{f_b}^2 &=  \sigma \left\| u_h-g_D \right\|_f^2.
+
+
+@f}
+
+这里我们用 $\sigma = \gamma/h_f$ 代替 $\gamma^2/h_f$ 来表示 $u_h$ 的跳跃项（ $\eta^2_{f_i}$ 和 $\eta_{f_b}^2$ 的第一个项）。
+
+为了计算这个估计值，在每个单元格 $K$ 中，我们计算出
+
+@f{align*}{
+\eta_{c}^2 &= h_K^2 \left\| f + \nu \Delta u_h \right\|_K^2,
+\\
+\eta_{f}^2 &= \sum_{f\in \partial K}\lbrace \sigma \left\| \jump{u_h}  \right\|_f^2   +  h_f \left\|  \jump{\nu \nabla u_h} \cdot \mathbf n  \right\|_f^2 \rbrace,
+\\
+\eta_{b}^2 &= \sum_{f\in \partial K \cap \partial \Omega}  \sigma \left\| (u_h -g_D)  \right\|_f^2.
+
+
+@f}
+
+那么每个单元的误差估计的平方是
+
+@f[
+\eta_\text{local}^2 =\eta_{c}^2+0.5\eta_{f}^2+\eta_{b}^2.
+
+
+@f]
+
+ $0.5$ 的系数是由于整体误差估计器只包括每个内部面一次，所以每个单元的估计器对它的计算是相邻两个单元的一半系数。注意，我们计算 $\eta_\text{local}^2$ 而不是 $\eta_\text{local}$ 以简化实现。然后，每个单元的误差估计方被存储在一个全局向量中，其 $l_1$ 准则等于 $\eta^2$  。
+
+<h3>The test case</h3> 在第一个测试问题中，我们使用二维的 $\nu =1$ 平滑制造的解决方案来进行收敛测试
+
+@f{align*}{
+u&=\sin(2\pi x)\sin(2\pi y), &\qquad\qquad &(x,y)\in\Omega=(0,1)\times (0,1),
+\\
+u&=0,                        &\qquad\qquad &\text{on } \partial \Omega,
+
+
+@f}
+
+和 $f= 8\pi^2 u$  。我们针对制造的解决方案计算误差并评估收敛率。
+
+在第二个测试中，我们在二维的L形域 Functions::LSingularityFunction 上选择 (GridGenerator::hyper_L) 。该解在极坐标中由 $u(r,\phi) = r^{\frac{2}{3}}\sin \left(\frac{2}{3}\phi \right)$ 给出，它在原点有一个奇点。构建了一个误差估计器来检测有大误差的区域，根据这个估计器来自适应地细化网格。
+
+

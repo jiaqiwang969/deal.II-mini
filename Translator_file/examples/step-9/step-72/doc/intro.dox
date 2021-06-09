@@ -1,0 +1,184 @@
+examples/step-72/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Jean-Paul Pelteret and Wolfgang Bangerth.
+
+
+Wolfgang Bangerth's work is partially supported by National Science
+Foundation grants OCI-1148116, OAC-1835673, DMS-1821210, and EAR-1925595;
+and by the Computational Infrastructure in
+Geodynamics initiative (CIG), through the National Science Foundation under
+Award No. EAR-1550901 and The University of California-Davis.
+</i>
+
+
+
+
+<h1>Introduction</h1>
+
+<h3>Motivation</h3>
+
+这个程序解决的问题与步骤15相同，即求解[最小表面方程](https://en.wikipedia.org/wiki/Minimal_surface) @f{align*}
+    F(u) \dealcoloneq -\nabla \cdot \left( \frac{1}{\sqrt{1+|\nabla u|^{2}}}\nabla u \right) &= 0 \qquad
+    \qquad &&\textrm{in} ~ \Omega
+    \\
+    u&=g \qquad\qquad &&\textrm{on} ~ \partial \Omega.
+  @f}
+
+
+
+我们在那里发现的问题（见<a href="step_15#extensions">Possibilities for extensions</a>部分）是，当想要使用牛顿迭代时，我们需要计算方程残差对解的导数 $u$ （这里，因为右手边是零，残差只是左手边）。对于我们这里的方程来说，这很麻烦，但并非不可能 -- 但我们很容易想象出更复杂的方程，仅仅正确实现残差本身就是一个挑战，更不用说为计算雅各布矩阵所需的导数而这样做。我们将在这个程序中解决这个问题。使用在步骤-71中详细讨论的自动微分技术，我们将想出一个办法，我们只需要实现残差，就可以免费得到雅各布矩阵。
+
+事实上，我们甚至可以更进一步。虽然在第15步中，我们只是把方程作为一个给定值，但最小表面方程实际上是最小化一个能量的产物。具体来说，最小曲面方程是对应于最小化能量的欧拉-拉格朗日方程@f[
+    E(u) = \int_\Omega \Psi \left( u \right)
+  @f]
+
+其中*能量密度*由@f[
+    \Psi \left( u \right) = \sqrt{1+|\nabla u|^{2}}.
+  @f]给出。
+
+这等于说，我们寻求找到能量函数变化的静止点@f[
+    \min\limits_{u} E \left( u \right)
+      \quad \rightarrow \quad
+      \delta E \left( u, \varphi \right) \dealcoloneq
+      \left(\varphi, F(u)\right) = 0
+      \qquad
+      \forall \varphi,
+  @f] 。
+
+因为这是边界值问题的平衡解所在。
+
+那么关键的一点是，也许，我们甚至不需要实现残差，但实现更简单的能量密度 $\Psi(u)$ 可能实际上已经足够了。
+
+那么我们的目标是这样的。当使用牛顿迭代时，我们需要反复解决线性偏微分方程@f{align*}
+    F'(u^{n},\delta u^{n}) &=- F(u^{n})
+  @f}。
+
+这样我们就可以计算出更新@f{align*}
+    u^{n+1}&=u^{n}+\alpha^n \delta u^{n}
+  @f}。
+
+与牛顿步骤的解 $\delta u^{n}$ 。正如步骤15所讨论的，我们可以用手计算导数 $F'(u,\delta u)$ ，得到@f[
+  F'(u,\delta u)
+  =
+
+
+  - \nabla \cdot \left( \frac{1}{\left(1+|\nabla u|^{2}\right)^{\frac{1}{2}}}\nabla
+  \delta u \right) +
+  \nabla \cdot \left( \frac{\nabla u \cdot
+  \nabla \delta u}{\left(1+|\nabla u|^{2}\right)^{\frac{3}{2}}} \nabla u
+  \right).
+  @f]。
+
+
+
+那么，这里就是这个计划的内容。它是关于可以帮助我们计算 $F'(u,\delta u)$ 的技术，而不必明确地实现它，要么提供 $F(u)$ 的实现，要么提供 $E(u)$  的实现。更确切地说，我们将实现三种不同的方法，并在运行时间方面进行比较，但同时--也许更重要的是--实现这些方法需要多少人力。
+
+- 第15步中使用的方法，形成雅各布矩阵。
+
+- 从残差 $F(u)$ 的实现中计算雅各布矩阵，使用自动微分法。
+
+- 从能量函数 $E(u)$ 的实现中计算残差和雅各布矩阵，也使用自动微分法。
+
+对于这些方法中的第一个，与步骤15相比，没有任何概念上的变化。
+
+
+
+
+<h3> Computing the Jacobian from the residual </h3>
+
+对于第二种方法，让我们概述一下我们将如何利用自动微分来计算残差向量的线性化。为此，让我们暂时改变一下符号，用 $F(U)$ 表示的不是微分方程的残差，而实际上是*残差向量*，即*离散残差。我们这样做是因为当我们在给定的网格上对问题进行离散时，这就是我们*实际*做的事情。我们解决 $F(U)=0$ 问题，其中 $U$ 是未知数的矢量。
+
+更准确地说，残差的 $i$ th分量由以下公式给出
+
+@f[
+  F(U)_i \dealcoloneq
+  \int\limits_{\Omega}\nabla \varphi_i \cdot \left[ \frac{1}{\sqrt{1+|\nabla
+  u|^{2}}} \nabla u \right] \, dV ,
+
+
+@f]
+
+其中 $u(\mathbf x)=\sum_j U_j \varphi_j(\mathbf x)$  。鉴于此，单元格 $K$ 的贡献是
+
+@f[
+  F(U)_i^K \dealcoloneq
+  \int\limits_K\nabla \varphi_i \cdot \left[ \frac{1}{\sqrt{1+|\nabla
+  u|^{2}}} \nabla u \right] \, dV ,
+
+
+@f]
+
+它的一阶泰勒展开为
+
+@f[
+  F(U + \delta U)_i^K
+  \approx F(U)_i^K
+  + \sum_{j}^{n_{\textrm{dofs}}} \left[ \frac{\partial F(U)_i^K}{\partial
+  U_j} \delta U_j \right],
+
+
+@f]
+
+因此我们可以计算出 $K$ 单元格对雅各布矩阵 $J$ 的贡献为 $J(U)_{ij}^K = \frac{\partial F(U)_i^K}{\partial U_j}$  。这里重要的一点是，在单元格 $K$ 上，我们可以表示为
+
+@f[
+  F(U)_i^K \dealcoloneq
+  \int\limits_K\nabla \varphi_i \cdot \left[ \frac{1}{\sqrt{1+\left|
+  \sum_{j'}^{n_\textrm{dofs}} U_{j'} \nabla \varphi_{j'}\right|^{2}}}
+  \left(\sum_{j''}^{n_\textrm{dofs}} U_{j''} \nabla \varphi_{j''}\right)\right] \, dV.
+
+
+@f]
+
+为了清楚起见，我们用 $j'$ 和 $j''$ 作为计数索引，以明确它们彼此之间以及与上述 $j$ 的区别。因为在这个公式中， $F(U)$ 只取决于系数 $U_j$ ，我们可以通过自动微分 $F(U)_i^K$ 来计算导数 $J(U)_{ij}^K$ 作为一个矩阵。通过我们一直使用的相同论证，很明显 $F(U)^K$ 实际上并不依赖于*所有*未知数 $U_j$ ，而只是依赖于 $j$ 是住在单元格 $K$ 的形状函数的那些未知数。] ，因此在实践中，我们将 $F(U)^K$ 和 $J(U)^K$ 限制为矢量和矩阵中对应于*本地*DoF指数的部分，然后从本地单元 $K$ 分布到全球对象。
+
+使用所有这些实现，然后的方法将是在程序中实现 $F(U)^K$ ，并让自动微分机械从中计算导数 $J(U)^K$ 。
+
+
+
+
+<h3> Computing the Jacobian and the residual from the energy functional </h3>
+
+对于装配过程的最终实现，我们将比残差高一个层次：我们的整个线性系统将直接由支配这个边界值问题的物理学的能量函数决定。我们可以利用这样一个事实：我们可以直接从局部贡献中计算出域中的总能量，即。
+
+@f[
+  E \left( U \right) \dealcoloneq \int\limits_{\Omega} \Psi \left( u
+  \right) \, dV .
+
+
+@f]
+
+在离散设置中，这意味着在每个有限元上我们有
+
+@f[
+   E \left( U \right)^K
+    \dealcoloneq \int\limits_{K} \Psi \left( u \right) \, dV
+    \approx \sum\limits_{q}^{n_{\textrm{q-points}}} \Psi \left( u \left(
+    \mathbf{x}_{q} \right) \right) \underbrace{\vert J_{q} \vert \times W_{q}}_{\text{JxW(q)}} .
+
+
+@f]
+
+如果我们实现细胞能量，它取决于场解，我们可以计算它的第一个（离散）变化
+
+@f[
+  F(U)^K_i
+    = \frac{\partial E(U)^K}{\partial U_i}
+
+
+@f]
+
+此后，它的第二个（离散）变化
+
+@f[
+  J(U)^K_{ij}
+    = \frac{\partial^{2}  E(U)^K}{\partial U_i \partial U_j}.
+
+
+@f]
+
+因此，从单元格对总能量函数的贡献来看，只要我们能够提供局部能量的实现，我们就可以期望为我们生成近似的残差和正切贡献  $E(U)^K$  。同样，由于本教程中使用的自动微分变量的设计，在实践中，这些对残差向量和正切矩阵贡献的近似值实际上是精确到机器精度的。
+
+

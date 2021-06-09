@@ -1,0 +1,77 @@
+examples/step-54/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+程序的执行会产生一系列的网格文件 <code>3d_mesh_*.vtk</code> ，我们可以用任何可以读取VTK文件格式的常用可视化程序来进行可视化。
+
+下表说明了采用正常投影策略得到的结果。表中的前两行显示的是逐步细化的网格的侧视图，覆盖在精确几何体的非常精细的渲染上。深红色和浅红色的区域只是表示当前的网格或精细的几何体更接近观察者；这种区别没有任何特别深刻的意义。最后一排图片描述了第二排中相同网格的正视图（镜像到几何体的两边）。
+
+
+ <table style="width:90%">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.common_0.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_1.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_2.png" alt="" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_3.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_4.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_5.png" alt="" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_front_3.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_front_4.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_front_5.png" alt="" width="400"></td>
+  </tr>
+</table> 
+
+从图片中可以看出，正如我们所预料的那样，当应用于具有明显曲率变化的表面时，正常的细化策略无法产生良好的形状的元素。这在船体的球体上尤其明显，所有的新点都被放置在球体的上部，而下部则完全没有被解决。
+
+下表的排列方式与上表相同，说明了采用方向性投影方法获得的结果，其中选择的投影方向是Y轴（在每幅图像的左下方用一个小的黄色箭头表示）。
+
+
+ <table style="width:90%">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.common_0.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_1.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_2.png" alt="" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_3.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_4.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_5.png" alt="" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_front_3.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_front_4.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.directional_front_5.png" alt="" width="400"></td>
+  </tr>
+</table> 
+
+这些图像证实，用定向投影得到的网格质量明显高于沿表面法线投影得到的网格。然而，在球体底部观察到一些在Y方向上拉长的元素，那里的表面几乎与选择的投影方向平行。
+
+最后的测试显示了使用面的法线投影的结果。
+
+ <table style="width:90%">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.common_0.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_1.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_2.png" alt="" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_3.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_4.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_5.png" alt="" width="400"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_front_3.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_front_4.png" alt="" width="400"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-54.normal_to_mesh_front_5.png" alt="" width="400"></td>
+  </tr>
+</table> 
+
+图片证实了法线投影的方法导致网格在整个细化步骤中保持均匀的间隔。同时，这些网格很好地表现了原始的几何形状，甚至在灯泡的底部区域也是如此，这一点在使用定向投影仪或法线投影仪时并没有得到很好的恢复。
+
+

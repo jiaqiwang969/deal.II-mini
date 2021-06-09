@@ -1,0 +1,83 @@
+examples/step-65/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Program output</h3>
+
+如果我们用三度的多项式运行这个程序的三维版本，我们会得到以下程序输出。
+
+@code
+> make run
+Scanning dependencies of target \step-65
+[ 33%] Building CXX object CMakeFiles/\step-65.dir/\step-65.cc.o
+[ 66%] Linking CXX executable \step-65
+[ 66%] Built target \step-65
+[100%] Run \step-65 with Release configuration
+
+
+====== Running with the basic MappingQGeneric class ======
+
+
+   Number of active cells:       6656
+   Number of degrees of freedom: 181609
+   Number of solver iterations:  285
+   L2 error vs exact solution:   8.99339e-08
+   H1 error vs exact solution:   6.45341e-06
+   Max cell-wise error estimate: 0.00743406
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |      49.4s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble linear system          |         1 |       5.8s |        12% |
+| Compute constraints             |         1 |     0.109s |      0.22% |
+| Compute error estimator         |         1 |      16.5s |        33% |
+| Compute error norms             |         1 |      9.11s |        18% |
+| Solve linear system             |         1 |      9.92s |        20% |
+| Write output                    |         1 |      4.85s |       9.8% |
++---------------------------------+-----------+------------+------------+
+
+
+====== Running with the optimized MappingQCache class ======
+
+
+   Memory consumption cache:     22.9981 MB
+   Number of active cells:       6656
+   Number of degrees of freedom: 181609
+   Number of solver iterations:  285
+   L2 error vs exact solution:   8.99339e-08
+   H1 error vs exact solution:   6.45341e-06
+   Max cell-wise error estimate: 0.00743406
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |      18.4s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble linear system          |         1 |      1.44s |       7.8% |
+| Compute constraints             |         1 |   0.00336s |         0% |
+| Compute error estimator         |         1 |     0.476s |       2.6% |
+| Compute error norms             |         1 |     0.505s |       2.7% |
+| Initialize mapping cache        |         1 |      4.96s |        27% |
+| Solve linear system             |         1 |      9.95s |        54% |
+| Write output                    |         1 |     0.875s |       4.8% |
++---------------------------------+-----------+------------+------------+
+
+
+[100%] Built target run
+@endcode
+
+
+
+在讨论时序之前，我们看一下MappingQCache对象的内存消耗。我们的程序打印出它占用了23MB的内存。如果我们把这个数字与单个（解或右侧）向量的内存消耗联系起来，即1.5MB（即181,609个元素乘以每条8字节的双精度），或者与系统矩阵和稀疏模式所消耗的内存联系起来（274MB），我们就会发现，考虑到它的好处，这并不是一个过于沉重的数据结构。
+
+在计时器方面，我们看到程序的整体运行时间明显改善了2.7倍。如果我们不考虑迭代求解器，它在两种情况下都是一样的（考虑到我们使用的简单预处理程序，以及稀疏矩阵-向量乘积对立方多项式的操作浪费的事实，它并不是最佳的），优势是几乎5倍。这对于一个线性静止问题来说是相当令人印象深刻的，而对于时间依赖性和非线性问题来说，成本的节省确实要突出得多，因为在这些问题上，会多次调用装配。如果我们研究一下各个组件，我们就会更清楚地了解发生了什么，以及为什么缓存会如此高效。在MappingQGeneric的情况下，基本上每一个涉及到映射的操作都需要至少5秒的时间来运行。规范的计算运行了两个 VectorTools::integrate_difference() 函数，每个都需要5秒。(约束条件的计算比较便宜，因为它只在边界的单元格中评估映射，用于边界条件的插值)。如果我们将这5秒与填充MappingQCache的时间相比较，即5.2秒（对于所有单元，而不仅仅是活动单元），很明显，在MappingQGeneric的情况下，映射支持点的计算比其他一切都重要。也许最引人注目的结果是误差估计器的时间，标记为 "计算误差估计器"，其中MappingQGeneric的实现需要17.3秒，而MappingQCache的变体不到0.5秒。前者如此昂贵的原因（比如说，比装配贵三倍）是误差估计涉及到对面的量的评估，其中网格中的每个面都要求映射的额外点，而这些点又要经过非常昂贵的TransfiniteInterpolationManifold类。由于每个单元有六个面，这种情况比在装配中发生得更频繁。同样，MappingQCache很好地消除了重复评估，将所有涉及流形的昂贵步骤汇总到一个被重复使用的初始化调用中。
+
+

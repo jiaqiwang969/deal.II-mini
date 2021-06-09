@@ -1,0 +1,223 @@
+examples/step-44/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+首先，我们提出了一系列3维结果与文献中的结果的比较（见Reese等人(2000)），以证明该程序按预期工作。
+
+我们首先比较了 $Q_1-DGPM_0-DGPM_0$ 和 $Q_2-DGPM_1-DGPM_1$ 公式的网格细化的收敛性，如下图所总结的。块的上表面的中点的垂直位移被用来评估收敛性。对于不同的载荷参数 $p/p_0$ 值，两种方案都表现出良好的收敛特性。这些结果与文献中的结果一致。低阶公式通常高估了低层次细化的位移，而高阶插值方案则低估了位移，但程度较轻。这个基准，以及其他一系列没有在这里显示的基准，使我们相信代码在正常工作。
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+     <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q1-P0_convergence.png" alt="">
+	<p align="center">
+        Convergence of the $Q_1-DGPM_0-DGPM_0$ formulation in 3-d.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q2-P1_convergence.png" alt="">
+	<p align="center">
+        Convergence of the $Q_2-DGPM_1-DGPM_1$ formulation in 3-d.
+	</p>
+    </td>
+  </tr>
+</table> 
+
+
+下面是运行该问题产生的典型屏幕输出。所展示的特殊情况是 $Q_2-DGPM_1-DGPM_1$ 公式的情况。很明显，使用Newton-Raphson方法，可以得到二次收敛的解决方案。在所有的时间步长中，解的收敛是在5个牛顿增量内实现的。收敛后的位移的 $L_2$ -norm比几何尺度小几个数量级。
+
+@code
+Grid:
+	 Reference volume: 1e-09
+Triangulation:
+	 Number of active cells: 64
+	 Number of degrees of freedom: 2699
+    Setting up quadrature point data...
+
+
+Timestep 1 @ 0.1s
+___________________________________________________________________________________________________________________________________________________________
+                 SOLVER STEP                   |  LIN_IT   LIN_RES    RES_NORM     RES_U     RES_P      RES_J     NU_NORM      NU_U       NU_P       NU_J
+___________________________________________________________________________________________________________________________________________________________
+  0  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     786  2.118e-06  1.000e+00  1.000e+00  0.000e+00  0.000e+00  1.000e+00  1.000e+00  1.000e+00  1.000e+00
+  1  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     552  1.031e-03  8.563e-02  8.563e-02  9.200e-13  3.929e-08  1.060e-01  3.816e-02  1.060e-01  1.060e-01
+  2  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     667  5.602e-06  2.482e-03  2.482e-03  3.373e-15  2.982e-10  2.936e-03  2.053e-04  2.936e-03  2.936e-03
+  3  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     856  6.469e-10  2.129e-06  2.129e-06  2.245e-19  1.244e-13  1.887e-06  7.289e-07  1.887e-06  1.887e-06
+  4  ASM_R  CONVERGED!
+___________________________________________________________________________________________________________________________________________________________
+Relative errors:
+Displacement:	7.289e-07
+Force: 		2.451e-10
+Dilatation:	1.353e-07
+v / V_0:	1.000e-09 / 1.000e-09 = 1.000e+00
+
+
+
+[...]
+
+
+Timestep 10 @ 1.000e+00s
+___________________________________________________________________________________________________________________________________________________________
+                 SOLVER STEP                   |  LIN_IT   LIN_RES    RES_NORM     RES_U     RES_P      RES_J     NU_NORM      NU_U       NU_P       NU_J
+___________________________________________________________________________________________________________________________________________________________
+  0  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     874  2.358e-06  1.000e+00  1.000e+00  1.000e+00  1.000e+00  1.000e+00  1.000e+00  1.000e+00  1.000e+00
+  1  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     658  2.942e-04  1.544e-01  1.544e-01  1.208e+13  1.855e+06  6.014e-02  7.398e-02  6.014e-02  6.014e-02
+  2  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     790  2.206e-06  2.908e-03  2.908e-03  7.302e+10  2.067e+03  2.716e-03  1.433e-03  2.716e-03  2.717e-03
+  3  ASM_R  ASM_K  CST  ASM_SC  SLV  PP  UQPH  |     893  2.374e-09  1.919e-06  1.919e-06  4.527e+07  4.100e+00  1.672e-06  6.842e-07  1.672e-06  1.672e-06
+  4  ASM_R  CONVERGED!
+___________________________________________________________________________________________________________________________________________________________
+Relative errors:
+Displacement:	6.842e-07
+Force: 		8.995e-10
+Dilatation:	1.528e-06
+v / V_0:	1.000e-09 / 1.000e-09 = 1.000e+00
+@endcode
+
+
+
+
+
+
+使用定时器类，我们可以分辨出代码的哪些部分需要最高的计算费用。对于一个有大量自由度的案例（即高度精细化），下面给出了定时器的典型输出。本教程中的大部分代码都是基于Step-18和其他文章中描述、讨论和演示的优化而开发的。超过93%的时间花在线性求解器上，很明显，对于大型三维问题，可能有必要投资一个更好的求解器。SSOR预处理程序不是多线程的，但对于这类实体问题是有效的。研究使用另一种求解器，如通过Trilinos库提供的求解器，可能是有益的。
+
+
+
+
+@code
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    | 9.874e+02s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble system right-hand side |        53 | 1.727e+00s |  1.75e-01% |
+| Assemble tangent matrix         |        43 | 2.707e+01s |  2.74e+00% |
+| Linear solver                   |        43 | 9.248e+02s |  9.37e+01% |
+| Linear solver postprocessing    |        43 | 2.743e-02s |  2.78e-03% |
+| Perform static condensation     |        43 | 1.437e+01s |  1.46e+00% |
+| Setup system                    |         1 | 3.897e-01s |  3.95e-02% |
+| Update QPH data                 |        43 | 5.770e-01s |  5.84e-02% |
++---------------------------------+-----------+------------+------------+
+@endcode
+
+
+
+
+然后我们用ParaView对两种情况的结果进行了可视化。第一个是最粗的网格和最低阶插值方法。   $Q_1-DGPM_0-DGPM_0$  .第二种是在细化网格上使用 $Q_2-DGPM_1-DGPM_1$ 公式。位移的垂直分量、压力 $\widetilde{p}$ 和扩张 $\widetilde{J}$ 场显示如下。
+
+
+对于第一种情况，很明显，粗略的空间离散化加上大位移导致了低质量的解决方案（加载比为 $p/p_0=80$ ）。此外，元素之间的压力差非常大。元素上的恒定压力场意味着大的压力梯度没有被捕获。然而，应该注意的是，即使在这种离散性差的情况下，在标准 $Q_1$ 位移公式中会出现的锁定现象也不会出现。块体顶面的跟踪节点的最终垂直位移仍在收敛解的12.5%以内。压力解决方案是非常粗略的，在相邻的单元之间有很大的跳跃。很明显，离施加的牵引力最近的体积经历了压缩，而域的外延则处于膨胀状态。膨胀解场和压力场明显相关，正的膨胀表示正压区域，负的表示压缩区域。正如介绍中所讨论的，压缩性压力有一个负号，而扩张性压力有一个正号。这源于体积应变能量函数的定义，与压力的物理现实的解释相反。
+
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q1-P0_gr_1_p_ratio_80-displacement.png" alt="">
+	<p align="center">
+        Z-displacement solution for the 3-d problem.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q1-P0_gr_1_p_ratio_80-pressure.png" alt="">
+	<p align="center">
+        Discontinuous piece-wise constant pressure field.
+	</p>
+    </td>
+     <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q1-P0_gr_1_p_ratio_80-dilatation.png" alt="">
+	<p align="center">
+        Discontinuous piece-wise constant dilatation field.
+	</p>
+    </td>
+  </tr>
+</table> 
+
+结合空间细化和高阶插值方案，产生了高质量的解决方案。三个网格细化加上 $Q_2-DGPM_1-DGPM_1$ 公式产生的结果清楚地抓住了问题的力学原理。牵引面的变形得到了很好的解决。我们现在可以观察到所施加的牵引力的实际范围，最大的力被施加在表面的中心点，导致最大的压缩。尽管领域中出现了很高的应变，特别是在施加牵引力的区域的边界，但解决方案仍然是准确的。压力场被捕捉到的细节比以前多得多。压缩和膨胀区域之间有明显的区别和过渡，压力场的线性近似允许在子元素尺度上对压力进行精细的可视化。然而，应该注意的是，压力场仍然是不连续的，可以在一个连续的网格上进行平滑处理，以达到后期处理的目的。
+
+
+
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q2-P1_gr_3_p_ratio_80-displacement.png" alt="">
+	<p align="center">
+        Z-displacement solution for the 3-d problem.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q2-P1_gr_3_p_ratio_80-pressure.png" alt="">
+	<p align="center">
+        Discontinuous linear pressure field.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Q2-P1_gr_3_p_ratio_80-dilatation.png" alt="">
+	<p align="center">
+        Discontinuous linear dilatation field.
+	</p>
+    </td>
+  </tr>
+</table> 
+
+这一简要的分析结果表明，三场公式能够有效地规避高度不可压缩介质的体积锁定。混合配方能够准确模拟近乎不可压缩的块体在压缩状态下的位移。命令行输出显示，在极度压缩下的体积变化导致泊松比为0.4999的体积变化小于0.01%。
+
+在运行时间方面，对于类似的自由度数量， $Q_2-DGPM_1-DGPM_1$ 公式往往比 $Q_1-DGPM_0-DGPM_0$ 的计算成本更高（通过为低阶插值增加一个额外的网格细化级别产生）。下图显示了在一台4核（8线程）机器上连续运行的一批测试的情况。高阶方法计算时间的增加可能是由于高阶元素所需的带宽增加。如前所述，使用更好的求解器和预处理程序可以减轻使用高阶公式的费用。据观察，对于给定的问题，与单线程的SSOR预处理程序相比，使用多线程的Jacobi预处理程序可以减少72%的计算运行时间（在最坏的情况下是具有大量自由度的高阶公式）。然而，根据作者的经验，雅可比预处理方法可能不适合某些涉及替代构成模型的有限应变问题。
+
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+     <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.Normalised_runtime.png" alt="">
+	<p align="center">
+        Runtime on a 4-core machine, normalised against the lowest grid resolution $Q_1-DGPM_0-DGPM_0$ solution that utilised a SSOR preconditioner.
+	</p>
+    </td>
+  </tr>
+</table> 
+
+
+最后，下面展示了两个不同级别的网格细化的2维问题的位移解决方案的结果。很明显，由于二维模拟的额外约束，所产生的位移场虽然在质量上相似，但与三维模拟的情况不同。
+
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.2d-gr_2.png" alt="">
+	<p align="center">
+        Y-displacement solution in 2-d for 2 global grid refinement levels.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-44.2d-gr_5.png" alt="">
+	<p align="center">
+        Y-displacement solution in 2-d for 5 global grid refinement levels.
+	</p>
+    </td>
+  </tr>
+</table> 
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+这项工作有许多明显的延伸。
+
+- 首先，可以在自由能函数中加入一个额外的约束条件，以便在材料中强制执行高度的不可压缩性。一个额外的拉格朗日乘数将被引入，但这可以最容易地使用增强的拉格朗日乘数的原则来处理。这在  <em>  Simo和Taylor (1991)  </em>  中得到了证明。
+
+- 这个模型中使用的构成关系是比较基本的。将材料类分成两个独立的类，一个处理体积响应，另一个处理等温线响应，并产生一个通用的材料类（即具有抽象的虚拟函数，派生类必须实现），允许增加更复杂的材料模型，这可能是有益的。这些模型可以包括其他超弹性材料、塑性和粘弹性材料以及其他材料。
+
+- 该程序是为解决单节点多核机器上的问题而开发的。只要稍加努力，该程序就可以通过使用Petsc或Trilinos扩展到大规模的计算环境，使用的技术与step-40中演示的类似。这主要涉及对设置、装配、 <code>PointHistory</code> 和线性求解器例程的修改。
+
+- 由于该程序假定为准静态平衡，为了研究惯性效应很重要的问题，例如涉及冲击的问题，有必要进行扩展以包括动态效应。
+
+- 对于高度非线性问题，负载和解的限制程序可能是必要的。可以增加一个线搜索算法，将步长限制在牛顿增量内，以确保最佳收敛性。也可能需要使用负载限制方法，如Riks方法，来解决涉及几何不稳定性的不稳定问题，如屈曲和快穿。
+
+- 许多物理问题涉及接触。有可能将物体间的摩擦或无摩擦接触的影响纳入这个程序。这将涉及到在自由能函数中增加一个额外的项，因此需要增加装配程序。我们还需要管理接触问题（检测和应力计算）本身。在自由能函数中增加惩罚项的一个替代方法是使用主动集方法，如步骤41中使用的方法。
+
+- 使用LinearOperators的完整缩减程序已经被编码到线性求解器例程中。这也可以通过应用schur_complement()操作符来实现，以更自动化的方式缩减一个或多个字段。
+
+- 最后，自适应网格细化，如步骤6和步骤18所示，可以提供额外的求解精度。
+
+

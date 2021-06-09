@@ -1,0 +1,83 @@
+examples/step-24/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+该程序将每个时间步骤的图形数据以及每个探测器位置的评估值都写入磁盘。然后我们将它们绘制成图。还收集了实验数据进行比较。目前，我们的实验只在二维空间通过圆形扫描单个探测器进行。这里的组织样本是 $X-Y$ 平面的薄片（ $Z=0$ ），我们假设其他 $Z$ 方向的信号不会对数据产生影响。因此，我们只需要将我们的实验数据与二维模拟数据进行比较。
+
+<h3> One absorber </h3>
+
+这部电影显示了由单个小吸收器产生的热声波在介质中传播（在我们的模拟中，我们假设介质是矿物油，其声速为1.437  $\frac{mm}{\mu s}$  ）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-24.one_movie.gif" alt=""> 
+
+对于单个吸收器，我们当然要相应地改变 <code>InitialValuesP</code> 类。
+
+接下来，让我们比较一下实验和计算的结果。可视化使用了一种在地震学中长期使用的技术，即把每个探测器的数据全部绘制在一张图上。这样做的方法是将每个探测器的信号与前一个探测器相比偏移一点。例如，这里是前四个探测器的图（从下到上，时间从左到右为微秒），使用程序中使用的源设置，与目前只有一个源的情况相比，使事情更有趣。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-24.traces.png" alt=""> 
+
+例如，可以看到的一点是，第二和第四个信号的到达时间在探测器数量较多的情况下（即最上面的探测器）会转移到较早的时间，但第一和第三信号则不然；这可以解释为这些信号的起源必须比前者更接近后一个探测器。
+
+如果我们不仅将4个，而是将所有160个探测器堆叠在一张图中，单个线条就会变得模糊，但在它们运行在一起的地方，就会形成一种较深或较浅的灰度模式。  下面两张图显示了在以这种方式堆叠的探测器位置获得的结果。左图是由实验得到的，右图是模拟数据。在实验中，一个小的强吸收器被嵌入到较弱的吸收组织中。
+
+ <table width="100%">
+<tr>
+<td>
+<img src="https://www.dealii.org/images/steps/developer/step-24.one.png" alt="">
+</td>
+<td>
+<img src="https://www.dealii.org/images/steps/developer/step-24.one_s.png" alt="">
+</td>
+</tr>
+</table> 
+
+很明显，在角度 $180^\circ$ 处，源的位置离探测器更近。在实验数据中可以看到的所有其他信号都是由于组织的其他部分也有弱的吸收体，这些吸收体环绕着中心的小强吸收体产生的信号。另一方面，在模拟数据中，我们只模拟了小的强吸收体。
+
+在现实中，探测器的带宽有限。因此，通过探测器的热声波将被过滤掉。通过使用高通滤波器（在MATLAB中实现并针对本程序产生的数据文件运行），可以使模拟结果看起来更接近于实验数据。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-24.one_sf.png" alt=""> 
+
+在我们的模拟中，我们看到主波后面的假信号是由数值伪影造成的。这个问题可以通过使用更细的网格来缓解，从而得到下面的图。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-24.one_s2.png" alt=""> 
+
+
+
+
+<h3>Multiple absorbers</h3>
+
+为了进一步验证该程序，我们还将展示多个吸收器的模拟结果。这与程序中实际实现的情况相对应。下面的影片显示了由多个吸收器产生的热声波在介质中的传播情况。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-24.multi_movie.gif" alt=""> 
+
+实验数据和我们的模拟数据在以下两个图中进行了比较。   <table width="100%">
+<tr>
+<td>
+<img src="https://www.dealii.org/images/steps/developer/step-24.multi.png" alt="">
+</td>
+<td>
+<img src="https://www.dealii.org/images/steps/developer/step-24.multi_s.png" alt="">
+</td>
+</tr>
+</table> 
+
+请注意，在实验数据中，第一个信号（即最左边的暗线）来自于组织边界的吸收，因此首先到达检测器，比来自内部的任何信号都要早。这个信号在痕迹的末端也是微弱可见的，大约在30 $\mu s$ ，这表明信号穿过整个组织到达另一侧的探测器，在所有来自内部的信号到达它们之后。
+
+和以前一样，通过应用符合探测器实际行为的带宽滤波器（左）和选择更细的网格（右），数值结果与实验结果更加匹配。
+
+ <table width="100%">
+<tr>
+<td>
+<img src="https://www.dealii.org/images/steps/developer/step-24.multi_sf.png" alt="">
+</td>
+<td>
+<img src="https://www.dealii.org/images/steps/developer/step-24.multi_s2.png" alt="">
+</td>
+</tr>
+</table> 
+
+左图和右图的一个重要区别是，右图的曲线看起来没有那么多 "棱角"。角度来自于这样一个事实：虽然连续方程中的波在各个方向上的移动速度相同，但离散化后的情况并非如此：在那里，对角线上的波与平行于网格线的波的移动速度略有不同。这种各向异性导致波前不是完全的圆形（在堆积图中会产生正弦信号），而是在某些方向上凸出。更糟糕的是，我们使用的圆形网格（例如，见步骤6的粗略网格图）也不是各向同性的。最终的结果是，除非网格足够细，否则信号锋面不是正弦波的。右图在这方面要好得多，尽管仍然可以看到拖尾假波形式的伪影。
+
+

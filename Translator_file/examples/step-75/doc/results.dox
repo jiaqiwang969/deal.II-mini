@@ -1,0 +1,140 @@
+examples/step-75/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当你在释放模式下，在四个进程上用给定的参数运行该程序时，你的终端输出应该是这样的。
+
+@code
+Running with Trilinos on 4 MPI rank(s)...
+Calculating transformation matrices...
+Cycle 0:
+   Number of active cells:       3072
+     by partition:               768 768 768 768
+   Number of degrees of freedom: 12545
+     by partition:               3201 3104 3136 3104
+   Number of constraints:        542
+     by partition:               165 74 138 165
+   Frequencies of poly. degrees: 2:3072
+   Solved in 7 iterations.
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |     0.598s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| calculate transformation        |         1 |    0.0533s |       8.9% |
+| compute indicators              |         1 |    0.0177s |         3% |
+| initialize grid                 |         1 |    0.0397s |       6.6% |
+| output results                  |         1 |    0.0844s |        14% |
+| setup system                    |         1 |    0.0351s |       5.9% |
+| solve system                    |         1 |     0.362s |        61% |
++---------------------------------+-----------+------------+------------+
+
+
+
+Cycle 1:
+   Number of active cells:       3351
+     by partition:               875 761 843 872
+   Number of degrees of freedom: 18223
+     by partition:               4535 4735 4543 4410
+   Number of constraints:        1202
+     by partition:               303 290 326 283
+   Frequencies of poly. degrees: 2:2523 3:828
+   Solved in 7 iterations.
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |     0.442s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| adapt resolution                |         1 |    0.0189s |       4.3% |
+| compute indicators              |         1 |    0.0135s |         3% |
+| output results                  |         1 |     0.064s |        14% |
+| setup system                    |         1 |    0.0232s |       5.2% |
+| solve system                    |         1 |     0.322s |        73% |
++---------------------------------+-----------+------------+------------+
+
+
+
+...
+
+
+
+Cycle 7:
+   Number of active cells:       5610
+     by partition:               1324 1483 1482 1321
+   Number of degrees of freedom: 82062
+     by partition:               21116 19951 20113 20882
+   Number of constraints:        14383
+     by partition:               3825 3225 3557 3776
+   Frequencies of poly. degrees: 2:1130 3:1283 4:2727 5:465 6:5
+   Solved in 7 iterations.
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |     0.932s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| adapt resolution                |         1 |    0.0182s |       1.9% |
+| compute indicators              |         1 |    0.0173s |       1.9% |
+| output results                  |         1 |    0.0572s |       6.1% |
+| setup system                    |         1 |    0.0252s |       2.7% |
+| solve system                    |         1 |     0.813s |        87% |
++---------------------------------+-----------+------------+------------+
+@endcode
+
+
+
+当用更多的进程运行代码时，你会注意到活动单元和自由度的数量有轻微的差异。这是由于求解器和预处理程序取决于问题的分区，这可能会导致最后一位数的解决方案的微小差异，并最终产生不同的适应行为。
+
+此外，尽管有hp-adaptation，求解器的迭代次数在所有周期中都保持不变，这表明所提出的算法的稳健性，并有望在更大的问题规模和更多的进程中具有良好的可扩展性。
+
+让我们看一下程序的图形输出。在给定参数配置的所有细化循环之后，实际离散的函数空间看起来如下，左边是其在12个进程上的分区，右边是有限元的多项式程度。在左图中，每种颜色代表一个独特的子域。在右图中，最浅的颜色对应于多项式的2度，最深的对应于6度。
+
+<div class="twocolumn" style="width: 80%; text-align: center;"> <div> <img src="https://www.dealii.org/images/steps/developer/step-75.subdomains-07.svg" alt="七次细化后的分区。"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-75.fedegrees-07.svg" alt="七次细化后的局部近似度。"> </div> <div>
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Different hp-decision strategies</h4>
+
+deal.II库提供了多种策略来决定对单元格施加哪种类型的适应：要么调整网格分辨率，要么改变多项式程度。我们在本教程中只介绍了<i>Legendre
+coefficient decay</i>策略，而Step-27则演示了相同想法的<i>Fourier</i>等值。
+
+有关这些策略的概述，请参见步骤27的 "扩展的可能性 "部分，或相应的文件的详细描述。
+
+在这里，提到了另一个迄今为止还没有在任何教程中展示过的策略：基于<i>refinement history</i>的策略。这种方法在并行分布式应用中的使用比其他方法更棘手，所以我们将强调随之而来的挑战。我们需要有关细化标志的最终状态的信息，并且我们需要在细化的网格之间转移解决方案。对于前者，我们需要将 hp::Refinement::predict_error() 函数附加到 Triangulation::Signals::post_p4est_refinement 信号上，其方式是将<i>after</i>的 hp::Refinement::limit_p_level_difference() 函数调用。在这个阶段，所有的细化标志和未来的FE指数都被终止设置，并且可以对误差进行可靠预测。然后，预测的误差需要借助于 parallel::distributed::CellDataTransfer. 在细化网格之间进行转移。
+
+试着在本教程中实现这些策略之一，并观察结果的微妙变化。你会注意到，所有的策略都能够识别出重心角附近的奇点，并且会在这些区域进行 $h$ -精化，而在体域中更倾向于 $p$ -精化。这些策略的详细比较见于  @cite fehling2020  。
+
+
+
+
+<h4>Solve with matrix-based methods</h4>
+
+本教程只关注无矩阵策略。然而，所有的hp自适应算法在并行分布式背景下也可以使用基于矩阵的方法。
+
+为了创建一个系统矩阵，你可以使用 LaplaceOperator::get_system_matrix() 函数，或者使用类似于步骤27的 <code>assemble_system()</code> 函数。然后你可以像往常一样将系统矩阵传递给求解器。
+
+你可以对基于矩阵和无矩阵的实现结果进行计时，量化速度提升，并说服自己哪种变体更快。
+
+
+
+
+<h4>Multigrid variants</h4>
+
+为了简单起见，我们将自己限制在单一类型的粗网格求解器（带AMG的CG）、平滑器（带点Jacobi预处理的Chebyshev平滑器）以及多网格算法中的几何粗化方案（全局粗化）。请自由尝试替代方案并调查其性能和稳健性。
+
+

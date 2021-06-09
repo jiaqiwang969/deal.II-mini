@@ -1,0 +1,65 @@
+examples/step-54/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Andrea Mola and Luca Heltai.</i>
+
+ @note  这个程序阐述了工业几何的概念，使用与OpenCASCADE库（http://www.opencascade.org）接口的工具，允许指定任意的IGES文件来描述你的几何形状的边界。
+
+ @dealiiTutorialDOI{10.5281/zenodo.546220,https://zenodo.org/badge/DOI/10.5281/zenodo.546220.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+
+在之前的一些教程中（第1步、第3步、第5步、第6步和第49步等），我们已经学会了如何使用deal.II中提供的网格细化方法。这些教程展示了如何利用这些工具为一次模拟产生一个精细的网格，如步骤3；或者从一个粗大的网格开始，在自适应细化的网格上进行一系列模拟，如步骤6的情况。无论采取哪种方法，网格细化都需要对计算域边界进行适当的几何描述，以便在每次细化时将新的网格节点放到边界面上。例如，第5步显示了如何创建一个圆形网格，将一个圆形流形对象自动附加到计算域上，从而使位于边界上的面被细化到圆形上。第53步显示了如何用一个由实验获得的数据定义的流形来做这件事。但是，至少就基本边界形状而言，deal.II实际上只提供了圆、球、盒和其他基本组合。在本教程中，我们将展示如何使用一组开发的类来导入任意的CAD几何图形，将它们分配到计算域的所需边界，并在这种复杂的形状上细化计算网格。
+
+
+
+
+<h3> CAD surfaces </h3>
+
+在最常见的工业实践中，任意形状的物体的几何模型是通过计算机辅助设计（CAD）工具实现的。在过去的几十年里，CAD建模器的使用已经普及，因为它们可以为每个设计对象生成一个完整的虚拟模型，通过计算机可以在实物制作之前对其最精细的细节进行可视化、检查和分析。  从数学的角度来看，CAD建模人员的引擎是由分析几何学来代表的，特别是由参数化的曲线和曲面，如B-splines和NURBS，它们足够丰富，可以代表大多数的实际利益的表面。  一旦一个虚拟模型准备好了，所需物体的所有几何特征都被存储在文件中，这些文件实质上包含了构成该物体的参数化曲面和曲线的系数。根据用于定义几何模型的具体CAD工具，当然有几种不同的文件格式，可以组织CAD模型的信息。为了提供一个跨CAD工具交换数据的共同基础，美国国家标准局在1980年发布了初始图形交换代表（IGES）中性文件格式，在本例中使用。
+
+<h3> The CAD boundary projector classes </h3>
+
+为了导入和查询CAD模型，deal.II库为CAD建模的OpenCASCADE开源库实现了一系列的包装函数。这些函数允许将IGES文件导入OpenCASCADE本地对象，并将其包裹在一系列Manifold类中。
+
+一旦从IGES文件导入，模型就被存储在一个 <code>TopoDS_Shape</code> 中，这是OpenCASCADE框架中定义的通用拓扑实体。从 <code>TopoDS_Shape</code> 中，就可以访问构成它的所有子形状（如顶点、边和面），以及它们的几何描述。在deal.II框架中，组成一个形状的拓扑实体被用来创建一个相应的Manifold表示。在步骤6中，我们看到了如何使用 GridGenerator::hyper_sphere() 来创建一个超球体，它自动将一个SphericalManifold附加到所有边界面。这保证了边界面在网格细化过程中保持在球体或圆上。CAD建模界面的功能被设计为保留相同的结构，允许用户使用导入的CAD形状建立一个投影仪对象，保持我们在其他教程程序中使用的相同程序，即把这种投影仪对象分配给粗略网格的单元、面或边。在每个细化周期，新的网格节点将通过将现有对象的中点投影到指定的几何体上而自动生成。
+
+与球形或圆形边界不同，具有复杂几何形状的边界带来的问题是，在规定形状上细化后创建的新节点最好放在哪里。例如，PolarManifold将周围的点转换为极坐标，计算该坐标系中的平均值（对每个坐标单独计算），最后将点转换回直角坐标。
+
+不过，在一个任意的复杂形状的情况下，一个合适的新节点的位置选择不可能那么容易确定。deal.II中的OpenCASCADE封装器提供了几个采用不同投影策略的投影仪类。第一个投影仪，在 OpenCASCADE::ArclengthProjectionLineManifold 类中实现，只用于边缘细化。它的建立是给它分配一个维度为1的拓扑形状，或者是一个 <code>TopoDS_Edge</code> or a <code>TopoDS_Wire</code> （这是一个复合形状，由几个连接的 <code>TopoDS_Edge</code> 组成），并细化网格边缘，找到新的顶点作为点，将CAD曲线部分的曲线长度分成两个偶数部分，位于原始边缘的顶点之间。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-54.CurveSplit.png" alt="" width="500"> 
+
+
+在 OpenCASCADE::NormalProjectionBoundary 类中实现了一个不同的投影策略。在构造时分配的 <code>TopoDS_Shape</code> 可以是任意的（图形、面、边的集合或单个面或边都可以）。新的单元格节点首先通过对周围的点进行平均计算，方法与FlatManifold相同。在第二步中，所有的新节点将沿着形状的法线方向被投射到 <code>TopoDS_Shape</code> 。如果没有法线投影，则选择最接近形状的点--通常位于形状的边界上--。  如果形状是由几个子形状组成的，则投影到每个子形状上，并选择最近的投影点。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-54.NormalProjectionEdge.png" alt="" width="500">  <img src="https://www.dealii.org/images/steps/developer/step-54.NormalProjection.png" alt="" width="500">  。
+
+正如我们即将体验到的，对于某些形状，将投影方向设置为CAD表面的法线，将不会导致合适质量的表面网格元素。这是因为CAD表面的法线方向原则上与网格需要新节点所在的方向无关。在这种情况下， OpenCASCADE::DirectionalProjectionBoundary 类可以提供帮助。这个类的构造是指定一个 <code>TopoDS_Shape</code> （至少包含一个面）和一个方向，所有的投影将沿着这个方向进行。新的点将被计算出来，首先对周围的点进行平均化（就像FlatManifold的情况一样），然后沿着构造时使用的方向，在拓扑形状和通过所得到的点的线之间取得最近的交点。  这样一来，用户就可以对投影方向有更高的控制，以确保良好的网格质量。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-54.DirectionalProjection.png" alt="" width="500"> 
+
+
+当然，后一种方法只有在表面的方向相当统一时才有效，这样就可以确定一个单一的投影方向。在表面方向接近投影方向的情况下，甚至有可能找不到方向性的投影。为了克服这些问题， OpenCASCADE::NormalToMeshProjectionBoundary 类实现了第三个投影算法。 OpenCASCADE::NormalToMeshProjectionBoundary 类的建立是将一个 <code>TopoDS_Shape</code> （至少包含一个面）分配给构造函数，其工作方式与 OpenCASCADE::DirectionalProjection. 完全一样。但是，正如该类的名字所暗示的， OpenCASCADE::NormalToMeshProjectionBoundary 试图想出一个合适的对要精化的网格元素的法线方向的估计，并将其用于新节点在CAD面上的投影。如果我们考虑二维空间中的网格边缘，其轴线方向是一个方向，沿着这个方向分割，以产生两个相同长度的新单元。我们在此将这一概念扩展到三维空间，并将所有新节点的投影方向近似于单元格的法线。
+
+在下图中，受本教程中考虑的几何图形的启发，我们尝试比较所考虑的三种投影仪的行为。从左边可以看出，给定原始单元（蓝色），用法线投影找到的新点的位置不允许生成均匀的新元素（红色）。这种情况在进一步的细化步骤中会变得更糟。  由于我们考虑的几何体在某种程度上垂直于水平方向，以水平方向为投影方向的方向性投影（中心图像）在获得新的网格点方面做得相当好。然而，由于图片底部的表面几乎是水平的，我们可以预期在这些区域进行进一步细化步骤时，会出现问题。最后，右边的图片显示，位于单元轴上的节点将导致两个新单元具有相同的长度。当然，三维的情况会比这个简单的二维案例中描述的情况更复杂一些。然而，这个测试的结果证实，当考虑到任意形状的表面时，除非你有一个已知的更具体的方法，否则在测试的三种方法中，法线方向是最佳方法。
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-54.ProjectionComparisons.png" alt="" width="700"> 
+
+
+
+
+<h3> The testcase </h3>
+
+在这个程序中，我们将考虑为一个描述船头的真实几何体创建一个表面网格（这个几何体经常被用于CAD和网格生成的比较中，并且可以免费获得）。我们得到的表面网格可以用来解决边界元素方程，以模拟水在船舶周围的流动（类似于step-34的方式），但我们不会在这里尝试这样做。为了让你了解我们所考虑的几何形状，这里有一张图片。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-54.bare.png" alt="" width="500"> 
+
+在程序中，我们从文件中读取几何体和粗略的网格，然后采用上面讨论的几个选项来放置新的顶点，进行一系列的网格细化步骤。
+
+

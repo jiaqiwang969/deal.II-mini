@@ -1,0 +1,26 @@
+{
+    "cmake.buildDirectory": "${workspaceFolder}/build${env:BUILD_POSTFIX}",
+    "cmake.defaultVariants": {
+        "buildType": {
+            "default": "dealii",
+            "description": "The build type",
+            "choices": {
+                "dealii": {
+                    "short": "DebugRelease",
+                    "long": "Build both Release and Debug",
+                    "buildType": "DebugRelease"
+                }
+            }
+        }
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "files.associations": {
+        "*.inst": "cpp",
+        "*.inst.in": "cpp",
+        "*.h": "cpp",
+        "*.ipp": "cpp",
+        "typeindex": "cpp",
+        "typeinfo": "cpp",
+        "functional": "cpp"
+    }
+}

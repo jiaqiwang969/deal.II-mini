@@ -1,0 +1,269 @@
+examples/step-33/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was written for fun by David Neckels (NCAR) while working
+at Sandia (on the Wyoming Express bus to and from Corrales each day).
+The main purpose was to better understand Euler flow.
+The code solves the basic Euler equations of gas dynamics, by using a
+fully implicit Newton iteration (inspired by Sandia's Aria code).  The
+code may be configured by an input file to run different simulations
+on different meshes, with differing boundary conditions.
+<br>
+The original code and documentation was later slightly modified by Wolfgang
+Bangerth to make it more modular and allow replacing the parts that are
+specific to the Euler equations by other hyperbolic conservation laws without
+too much trouble.
+</i>
+
+ @note  程序使用<a
+href="http://trilinos.org">Trilinos</a>线性求解器（这些可以在Trilinos的Aztec/Amesos包中找到）和一个自动微分包，Sacado，也是Trilinos的一部分。deal.II必须被配置为使用Trilinos。请参考<a
+href="../../readme.html#trilinos">ReadMe</a>文件以了解如何做到这一点。
+
+ @note  虽然这个程序很好地展示了自动微分的使用，但它并没有表达欧拉方程求解器的技术水平。对于这个方程有更快、更准确的方法，你应该看看步骤67和步骤69，看看这个方程如何更有效地得到解决。
+
+
+
+
+<a name="Intro"></a><h1>Introduction</h1> 。
+
+<h3>Euler flow</h3>
+
+描述可压缩、无粘性气体运动的方程（所谓的气体动力学欧拉方程）是一个基本的守恒定律系统。在空间维度 $d$ 中，其内容为
+
+@f[
+\partial_t \mathbf{w} + \nabla \cdot \mathbf{F}(\mathbf{w}) =
+\mathbf{G}(\mathbf w),
+
+
+@f]
+
+解 $\mathbf{w}=(\rho v_1,\ldots,\rho v_d,\rho,
+E)^{\top}$ 包括 $\rho$ 流体密度， ${\mathbf v}=(v_1,\ldots v_d)^T$ 流速（因此 $\rho\mathbf v$ 是线性动量密度），和 $E$ 气体的能量密度。我们将上述方程式解释为  $\partial_t \mathbf{w}_i + \nabla \cdot \mathbf{F}_i(\mathbf{w}) = \mathbf
+G_i(\mathbf w)$  ,  $i=1,\ldots,dim+2$  。
+
+对于欧拉方程，通量矩阵 $\mathbf F$ （或通量函数系统）被定义为（这里显示的是情况 $d=3$ ）。
+
+@f{eqnarray*}
+  \mathbf F(\mathbf w)
+  =
+  \left(
+  \begin{array}{ccc}
+    \rho v_1^2+p & \rho v_2v_1  & \rho v_3v_1 \\
+    \rho v_1v_2  & \rho v_2^2+p & \rho v_3v_2 \\
+    \rho v_1v_3  & \rho v_2v_3  & \rho v_3^2+p \\
+    \rho v_1 & \rho v_2 & \rho v_3 \\
+    (E+p) v_1 & (E+p) v_2 & (E+p) v_3
+  \end{array}
+  \right),
+
+
+@f}
+
+我们将只选择重力的影响作为特定的右手边强制力，用以下方式描述
+
+@f{eqnarray*}
+  \mathbf G(\mathbf w)
+  =
+  \left(
+  \begin{array}{c}
+    g_1\rho \\
+    g_2\rho \\
+    g_3\rho \\
+    0 \\
+    \rho \mathbf g \cdot \mathbf v
+  \end{array}
+  \right),
+
+
+@f}
+
+其中 $\mathbf g=(g_1,g_2,g_3)^T$ 表示重力矢量。有了这个，整个方程组就变成了：
+
+@f{eqnarray*}
+  \partial_t (\rho v_i) + \sum_{s=1}^d \frac{\partial(\rho v_i v_s +
+  \delta_{is} p)}{\partial x_s} &=& g_i \rho, \qquad i=1,\dots,d, \\
+  \partial_t \rho + \sum_{s=1}^d \frac{\partial(\rho v_s)}{\partial x_s} &=& 0,  \\
+  \partial_t E + \sum_{s=1}^d \frac{\partial((E+p)v_s)}{\partial x_s} &=&
+  \rho \mathbf g \cdot \mathbf v.
+
+
+@f}
+
+这些方程分别描述了动量、质量和能量的守恒。该系统被一个定义压力的关系所封闭。   $p =
+(\gamma -1)(E-\frac{1}{2} \rho |\mathbf v|^2)$  .对于空气（主要是氮气和氧气）和其他双原子气体的成分，其比热比为  $\gamma=1.4$  。
+
+这个问题显然属于矢量值问题的范畴。关于如何在deal.II中处理这些问题的一般概述可以在 @ref vector_valued 模块中找到。
+
+<h3>Discretization</h3>
+
+考虑到这是一个双曲问题，与步骤12中讨论的简单问题的风格相同，以通常的方式进行微调：我们选择一个有限元空间 $V_h$ ，并针对我们的（矢量值）测试函数 $\mathbf{z} \in V_h$ 积分我们的守恒法。  然后我们通过部分积分，用<i> numerical </i>通量 $\mathbf{H}$ 来近似边界通量。
+
+@f{eqnarray*}
+&&\int_{\Omega} (\partial_t \mathbf{w}, \mathbf{z}) + (\nabla \cdot \mathbf{F}(\mathbf{w}), \mathbf{z}) \\
+&\approx &\int_{\Omega} (\partial_t \mathbf{w}, \mathbf{z}) - (\mathbf{F}(\mathbf{w}), \nabla \mathbf{z}) + h^{\eta}(\nabla \mathbf{w} , \nabla \mathbf{z}) + \int_{\partial \Omega} (\mathbf{H}(\mathbf{w}^+, \mathbf{w}^-, \mathbf{n}), \mathbf{z}^+),
+
+
+@f}
+
+其中上标 $+$ 表示一个函数的内部轨迹， $-$ 表示外部轨迹。扩散项 $h^{\eta}(\nabla \mathbf{w} , \nabla \mathbf{z})$ 是严格为了稳定而引入的，其中 $h$ 是网格大小， $\eta$ 是一个参数，规定要增加多少扩散。
+
+在边界上，我们必须说清楚外痕 $\mathbf{w}^-$ 是什么。根据边界条件，我们规定以下两种情况。   <ul>   <li>  流入边界： $\mathbf{w}^-$ 被规定为理想值。   <li>  超音速流出边界： $\mathbf{w}^- = \mathbf{w}^+$   <li>  亚音速流出边界： $\mathbf{w}^- = \mathbf{w}^+$  除了能量变量被修改为支持规定的压力 $p_o$  ，即 $\mathbf{w}^- =(\rho^+, \rho v_1^+, \dots, \rho v_d^+, p_o/(\gamma -1) + 0.5 \rho |\mathbf{v}^+|^2)$   <li>  反射边界：我们设定 $\mathbf{w}^-$  ，使 $(\mathbf{v}^+ + \mathbf{v}^-) \cdot \mathbf{n} = 0$  和 $\rho^- = \rho^+,E^-=E^+$  。   </ul> 
+
+关于这些问题的更多信息可以在Ralf Hartmann的博士论文中找到（"Adaptive Finite Element Methods for the Compressible Euler Equations"，博士论文，海德堡大学，2002）。
+
+我们使用时间步长方案来替代上述方程中的时间导数。为了简单起见，我们将 $ \mathbf{B}({\mathbf{w}_{n}})(\mathbf z) $ 定义为时间步长 $n$ 的空间残差。
+
+@f{eqnarray*}
+ \mathbf{B}(\mathbf{w}_{n})(\mathbf z)  &=&
+
+
+- \int_{\Omega} \left(\mathbf{F}(\mathbf{w}_n),
+\nabla\mathbf{z}\right) +  h^{\eta}(\nabla \mathbf{w}_n , \nabla \mathbf{z}) \\
+&& +
+\int_{\partial \Omega} \left(\mathbf{H}(\mathbf{w}_n^+,
+\mathbf{w}^-(\mathbf{w}_n^+), \mathbf{n}), \mathbf{z}\right)
+
+
+-
+\int_{\Omega} \left(\mathbf{G}(\mathbf{w}_n),
+\mathbf{z}\right) .
+
+
+@f}
+
+
+
+因此，在每个时间步骤，我们的完全离散化是，应用于任何测试函数 $\mathbf z$ 的残差等于零。
+
+@f{eqnarray*}
+R(\mathbf{W}_{n+1})(\mathbf z) &=&
+\int_{\Omega} \left(\frac{{\mathbf w}_{n+1} - \mathbf{w}_n}{\delta t},
+\mathbf{z}\right)+
+\theta \mathbf{B}({\mathbf{w}}_{n+1}) +  (1-\theta) \mathbf{B}({\mathbf w}_{n}) \\
+&=& 0
+
+
+@f}
+
+其中 $ \theta \in [0,1] $ 和 $\mathbf{w}_i = \sum_k \mathbf{W}_i^k \mathbf{\phi}_k$  。选择 $\theta=0$ 的结果是显式（正向）欧拉方案， $\theta=1$ 是稳定的隐式（反向）欧拉方案，而 $\theta=\frac 12$ 是克拉克-尼克尔森方案。
+
+在下面的实现中，我们选择Lax-Friedrichs通量的函数 $\mathbf H$ ，即 $\mathbf{H}(\mathbf{a},\mathbf{b},\mathbf{n}) =
+\frac{1}{2}(\mathbf{F}(\mathbf{a})\cdot \mathbf{n} +
+\mathbf{F}(\mathbf{b})\cdot \mathbf{n} + \alpha (\mathbf{a} - \mathbf{b}))$ ，其中 $\alpha$ 是输入文件中指定的一个固定数字，或者 $\alpha$ 是一个与网格有关的值。在后一种情况下，它被选为 $\frac{h}{2\delta T}$ ， $h$ 是施加磁通量的面的直径，而 $\delta T$ 是当前的时间步长。
+
+有了这些选择，将残差等同于零就会产生一个非线性方程组  $R(\mathbf{W}_{n+1})=0$  。我们通过牛顿迭代来解决这个非线性系统（与步骤15中解释的方法相同），即通过迭代
+
+@f{eqnarray*}
+R'(\mathbf{W}^k_{n+1},\delta \mathbf{W}_{n+1}^k)(\mathbf z) & = & -
+R(\mathbf{W}^{k}_{n+1})(\mathbf z) \qquad \qquad \forall \mathbf z\in V_h \\
+\mathbf{W}^{k+1}_{n+1} &=& \mathbf{W}^k_{n+1} + \delta \mathbf{W}^k_{n+1},
+
+
+@f}
+
+直到 $|R(\mathbf{W}^k_{n+1})|$ （残差）足够小。通过用有限元空间的节点基础而不是所有的 $\mathbf z$ 进行测试，我们得出了一个 $\delta \mathbf W$ 的线性系统。
+
+@f{eqnarray*}
+\mathbf R'(\mathbf{W}^k_{n+1})\delta \mathbf{W}^k_{n+1} & = & -
+\mathbf R(\mathbf{W}^{k}_{n+1}).
+
+
+@f}
+
+一般来说，这个线性系统既不是对称的，也没有任何特定的确定性属性。我们将使用直接求解器或Trilinos的GMRES实现来解决它。从<a href="#Results">results shown below</a>中可以看出，这种全隐式迭代收敛速度非常快（通常为3步），并具有牛顿方法所期望的二次收敛顺序。
+
+
+
+
+<h3> Automatic differentiation </h3>
+
+由于计算雅各布矩阵 $\mathbf R'(\mathbf W^k)$ 是一个可怕的野兽，我们使用一个自动微分包，Sacado，来做这个。  Sacado是<a
+href="http://trilinos.org" target="_top">Trilinos</a>框架内的一个包，提供了一个C++模板类 <code>Sacado::Fad::DFad</code> （ <code>Fad</code> 代表 "前向自动微分"），支持基本算术运算符和函数，如 <code> sqrt, sin, cos, pow, </code> 等。为了使用这个功能，人们声明一个这种类型的变量集合，然后将这个集合中的一些变量表示为自由度，其余的变量是独立变量的函数。  这些变量在算法中被使用，随着变量的使用，它们对自由度的敏感度被持续更新。
+
+可以想象，对于整个雅各布矩阵来说，这可能是非常昂贵的：自变量的数量是 $\mathbf W^k$ ，因变量是向量 $\mathbf
+R(\mathbf W^k)$ 的元素。这两个向量很容易有几万个元素或更多。  然而，需要注意的是，并非 $\mathbf R$ 的所有元素都依赖于 $\mathbf W^k$ 的所有元素：事实上， $\mathbf R$ 中的一个条目只依赖于 $\mathbf W^k$ 的一个元素，如果两个相应的形状函数重叠并以弱形式耦合。
+
+具体来说，定义当前单元上的残差可能依赖的最小独立AD变量集是明智的：在每个元素上，我们定义那些对应于定义在这个单元上的自由度的独立变量（或者，如果我们必须计算单元之间的跳转项，则对应于定义在两个相邻单元上的自由度），而因变量是本地残差向量的元素。如果不这样做，即把<i>all</i>和 $\mathbf W^k$ 的元素定义为独立的，将导致大量零的计算非常昂贵：局部残差向量的元素几乎独立于解向量的所有元素，因此它们的导数为零；然而，试图计算这些零可以轻易地占用整个程序90%甚至更多的计算时间，正如这个程序首次编写几年后，一个学生无意中做的实验所示。
+
+
+回到自动计算雅各布系数的问题上。作者将这种方法与手工编码的雅各布式并列使用，用于不可压缩的Navier-Stokes问题，发现Sacado方法与使用手工编码的雅各布式一样快，但无限简单，而且不容易出错。由于使用自动差分只需要编码残差 $R(\mathbf{W})$ ，确保代码的正确性和维护代码变得非常简单--雅各布矩阵 $\mathbf R'$ 基本上是由计算残差 $\mathbf
+R$ 的同一代码计算的。
+
+说了这么多，这里有一个非常简单的例子，显示Sacado如何被使用。
+
+@code
+#include <Sacado.hpp>
+#include <iostream>
+
+
+using fad_double = Sacado::Fad::DFad<double>;
+
+
+main() {
+
+
+  fad_double a,b,c;
+
+
+  a = 1; b = 2;
+
+
+  a.diff(0,2);  // Set a to be dof 0, in a 2-dof system.
+
+
+  b.diff(1,2);  // Set b to be dof 1, in a 2-dof system.
+
+
+  c = 2*a+cos(a*b);
+
+
+  double *derivs = &c.fastAccessDx(0); // Access derivatives
+
+
+  std::cout << "dc/da = " << derivs[0] << ", dc/db=" << derivs[1] << std::endl;
+
+
+}
+@endcode
+
+
+
+输出的是 $c(a,b)=2a+\cos(ab)$ 在 $a=1,b=2$ 的导数 $\frac{\partial c(a,b)}{\partial a},
+\frac{\partial c(a,b)}{\partial b}$  。
+
+应该注意的是，Sacado提供了更多的自动差分功能，而不是本程序中使用的小子集。  然而，理解上面的例子就足以理解Sacado在这个欧拉流程序中的使用。
+
+<h3> Trilinos solvers </h3> 该程序使用Aztec迭代求解器或Amesos稀疏直接求解器，两者均由Trilinos包提供。  这个软件包本身就是为了用于并行程序而设计的，然而，它也可以像这里一样，轻松地用于串行程序。  Epetra软件包是基本的矢量/矩阵库，解算器是在此基础上建立的。  这个非常强大的包可以用来描述矢量的平行分布，并定义对这些矢量进行操作的稀疏矩阵。  请查看注释代码，了解更多关于这些求解器在例子中的使用细节。
+
+<h3> Adaptivity </h3> 这个例子使用了一个特别的细化指标，该指标在冲击类问题中显示出一定的作用，在包括下坡流的例子中也是如此。  我们根据密度的平方梯度进行细化。悬空节点的处理是通过计算不同细化水平的单元的数值通量来实现的，而不是像迄今为止的所有其他教程程序那样使用AffineConstraints类。  通过这种方式，这个例子结合了连续和DG的方法论。它还简化了Jacobian的生成，因为我们不必通过用于计算自由度的自动微分来跟踪受限自由度。
+
+ @note  而这个程序是在2008年写的，我们不知道有什么出版物会真正使用这种方法。然而，A. Dedner、R. Kl&ouml;fkorn和M. Kr&auml;nkel最近的一篇论文（"Continuous Finite-Elements on Non-Conforming Grids Using Discontinuous Galerkin Stabilization", Proceedings of Finite Volumes for Complex Applications VII - Methods and Theoretical Aspects, Springer, 2014）接近。
+
+此外，我们强制规定了细化水平的最大数量，以控制细化的程度。  根据作者的经验，对于与时间有关的问题的适应性，如果不注意的话，细化很容易导致仿真戛然而止，因为时间步长的限制，如果网格在领域的任何部分变得太细的话。  在这个例子中，细化的数量被限制，让用户指定在网格的任何地方出现的最大细化水平。  这样一来，细化就不会使模拟速度减慢到停滞不前。  当然，这纯粹是一种启发式的策略，如果作者的顾问听说了，作者可能会被永远放逐出有限元误差估计界。
+
+<h3>Input deck, initial and boundary conditions</h3>
+
+我们使用一个输入文件平台来驱动仿真。  通过这种方式，我们可以改变边界条件和其他重要的模拟属性，而不必重新编译。  关于格式的更多信息，请看<a href="#Results">results section</a>，在那里我们更详细地描述了一个输入文件的例子。
+
+在以前的例子程序中，我们通常对初始和边界条件进行硬编码。在这个程序中，我们改用表达式解析器类FunctionParser，这样我们就可以在输入文件中指定一个通用表达式，并在运行时对其进行解析&mdash；这样，我们就可以改变初始条件而不需要重新编译程序。因此，在下面的程序中不会声明名为InitialConditions或BoundaryConditions的类。
+
+
+
+
+<h3>Implementation</h3>
+
+这个程序的实现被分成三个基本部分。   <ul>   <li>   <code>EulerEquations</code> 类，封装了完全描述欧拉方程具体内容的一切。这包括通量矩阵 $\mathbf F(\mathbf W)$ 、数值通量 $\mathbf F(\mathbf
+  W^+,\mathbf W^-,\mathbf n)$ 、右手边 $\mathbf G(\mathbf W)$ 、边界条件、细化指标、输出的后处理，以及需要了解解向量和方程的各个组成部分的含义的类似事情。
+
+    <li>  一个命名空间，处理与运行时参数有关的一切。
+
+    <li>   <code>ConservationLaw</code>  处理时间步进、外部非线性和内部线性求解、组装线性系统以及驱动所有这些的顶层逻辑的类。   </ul> 
+
+这种方法的原因是它将程序中的各种问题分开： <code>ConservationLaw</code> 是以这样一种方式编写的，即相对简单地将其适用于不同的方程组。人们只需为其他双曲方程重新实现 <code>EulerEquations</code> 类的成员，或者用额外的方程来增加现有的方程（例如通过添加额外的变量，或者通过添加化学成分等）。然而，这种修改不会影响到时间步进，或者非线性求解器，如果正确的话，因此 <code>ConservationLaw</code> 中的任何内容都不必修改。
+
+同样，如果我们想改进线性或非线性求解器，或者改进时间步进方案（正如在<a
+href="#Results">results section</a>的末尾所暗示的），那么这根本不需要对 <code>EulerEquations</code> 进行修改。
+
+

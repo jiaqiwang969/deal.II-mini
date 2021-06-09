@@ -1,0 +1,577 @@
+examples/step-34/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Luca Heltai (thanks to Michael
+Gratton for pointing out what the exact solution should have been in
+the three dimensional case).  </i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.495473,https://zenodo.org/badge/DOI/10.5281/zenodo.495473.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+<h3> Irrotational flow </h3> 无粘性流体经过一个物体（例如空气经过飞机机翼，或空气或水经过螺旋桨）的不可压缩运动，通常由流体力学的欧拉方程来模拟。
+
+\f{align*}
+  \frac{\partial }{\partial t}\mathbf{v} + (\mathbf{v}\cdot\nabla)\mathbf{v}
+  &=
+
+
+  -\frac{1}{\rho}\nabla p + \mathbf{g}
+  \qquad &\text{in } \mathbb{R}^n \backslash \Omega
+  \\
+  \nabla \cdot \mathbf{v}&=0
+  &\text{in } \mathbb{R}^n\backslash\Omega
+\f}其中流体密度 $\rho$ 和由外力引起的加速度 $\mathbf{g}$ 是给定的，速度 $\mathbf{v}$ 和压力 $p$ 是未知数。这里 $\Omega$ 是一个封闭的有界区域，代表流体在其周围运动的体。
+
+上述方程可以从纳维-斯托克斯方程推导出来，假设与压力梯度、惯性力和外力的影响相比，粘度造成的影响可以忽略不计。这是步骤22中讨论的斯托克斯方程的相反情况，斯托克斯方程是主导粘度的极限情况，即速度非常小，惯性力可以被忽略掉。另一方面，由于假定的不可压缩性，该方程不适合于非常高速的气体流动，在那里必须考虑到压缩性和气体的状态方程，导致气体动力学的欧拉方程，一个双曲系统。
+
+在本教程程序中，我们将只考虑没有外力的静止流动。
+
+\f{align*}
+  (\mathbf{v}\cdot\nabla)\mathbf{v}
+  &=
+
+
+  -\frac{1}{\rho}\nabla p
+  \qquad &\text{in } \mathbb{R}^n \backslash \Omega
+  \\
+  \nabla \cdot \mathbf{v}&=0
+  &\text{in } \mathbb{R}^n\backslash\Omega
+\f}
+
+
+欧拉方程的解的唯一性通过添加边界条件得到保证
+
+\f[
+  \label{eq:boundary-conditions}
+  \begin{aligned}
+    \mathbf{n}\cdot\mathbf{v}& = 0 \qquad && \text{ on } \partial\Omega \\
+    \mathbf{v}& = \mathbf{v}_\infty && \text{ when } |\mathbf{x}| \to \infty,
+  \end{aligned}
+\f]
+
+这就是说，身体在我们的坐标系中是静止的，不具有渗透性，而流体在无限远处具有（恒定）速度 $\mathbf{v}_\infty$ 。另一种观点是，我们的坐标系随着身体移动，而背景流体在无限远处处于静止状态。注意，我们将法线 $\mathbf{n}$ 定义为域 $\Omega$ 的<i>outer</i>法线，它与积分域的外法线相反。
+
+对于静止和非静止的流动，求解过程从求解第二个方程中的速度开始，然后代入第一个方程，以找到压力。静止欧拉方程的求解通常是为了了解给定的（可能是复杂的）几何形状在系统上强制执行规定运动时的行为。
+
+这个过程的第一步是将参照系从一个与身体一起运动的坐标系改变为一个身体在一个无限大的静止流体中运动的坐标系。这可以通过引入一个新的速度 $\mathbf{\tilde{v}}=\mathbf{v}-\mathbf{v}_\infty$ 来表示，对于这个速度，我们发现同样的方程成立（因为 $\nabla\cdot
+\mathbf{v}_\infty=0$ ），我们有边界条件
+
+\f[
+  \label{eq:boundary-conditions-tilde}
+  \begin{aligned}
+    \mathbf{n}\cdot\mathbf{\tilde{v}}& = -\mathbf{n}\cdot\mathbf{v}_\infty \qquad && \text{ on } \partial\Omega \\
+    \mathbf{\tilde{v}}& = 0 && \text{ when } |\mathbf{x}| \to \infty,
+  \end{aligned}
+\f]
+
+如果我们假设流体是无旋转的，即 $\nabla \times
+\mathbf{v}=0$ 中的 $\mathbb{R}^n\backslash\Omega$ ，我们可以用标量函数的梯度来表示速度，从而也可以表示扰动速度。
+
+\f[
+  \mathbf{\tilde{v}}=\nabla\phi,
+\f] ，因此上述欧拉方程的第二部分可以改写为未知数的同质拉普拉斯方程  $\phi$  。
+
+\f{align*}
+\label{laplace}
+\Delta\phi &= 0 \qquad &&\text{in}\ \mathbb{R}^n\backslash\Omega,
+	   \\
+	   \mathbf{n}\cdot\nabla\phi &= -\mathbf{n}\cdot\mathbf{v}_\infty
+	   && \text{on}\ \partial\Omega
+\f}而动量方程还原为伯努利方程，该方程将压力  $p$  表示为势的函数  $\phi$  。
+
+\f[
+\frac{p}{\rho} +\frac{1}{2} | \nabla \phi |^2 = 0 \in \Omega.
+\f]
+
+因此，我们可以通过解决势的拉普拉斯方程来解决这个问题。  我们回顾一下，下列函数，称为拉普拉斯方程的基本解。
+
+\f[ \begin{aligned}
+\label{eq:3} G(\mathbf{y}-\mathbf{x}) = &
+
+
+-\frac{1}{2\pi}\ln|\mathbf{y}-\mathbf{x}| \qquad && \text{for } n=2 \\
+G(\mathbf{y}-\mathbf{x}) = &
+\frac{1}{4\pi}\frac{1}{|\mathbf{y}-\mathbf{x}|}&& \text{for } n=3,
+\end{aligned}
+\f]
+
+在分布意义上满足方程的要求。
+
+\f[
+
+
+-\Delta_y G(\mathbf{y}-\mathbf{x}) = \delta(\mathbf{y}-\mathbf{x}),
+\f]
+
+其中导数是在变量 $\mathbf{y}$ 中完成的。通过使用通常的格林同一性，我们的问题可以只写在边界上  $\partial\Omega = \Gamma$  。我们回顾一下第二个格林同位数的一般定义。
+
+\f[\label{green}
+  \int_{\omega}
+  (-\Delta u)v\,dx + \int_{\partial\omega} \frac{\partial u}{\partial \tilde{\mathbf{n}} }v \,ds
+  =
+  \int_{\omega}
+  (-\Delta v)u\,dx + \int_{\partial\omega} u\frac{\partial v}{\partial \tilde{\mathbf{n}}} \,ds,
+\f]
+
+其中 $\tilde{\mathbf{n}}$ 是 $\omega$ 的表面的法线，从积分域 $\omega$ 向外指向。
+
+在我们的例子中，积分域是 $\mathbb{R}^n\backslash\Omega$ ，其边界是 $ \Gamma_\infty \cup
+\Gamma$ ，其中无穷大的 "边界 "被定义为
+
+\f[
+\Gamma_\infty \dealcoloneq \lim_{r\to\infty} \partial B_r(0).
+\f]
+
+在我们的程序中，法线被定义为<i>outer</i>到域 $\Omega$ ，也就是说，它们实际上是<i>inner</i>到积分域，在定义各种积分时，需要注意法线的正确符号，即用 $-\mathbf{n}$ 代替 $\tilde{\mathbf{n}}$ 。
+
+如果我们把 $u$ 和 $v$ 分别与 $\phi$ 的解和拉普拉斯方程的基本解代入格林%同，只要 $\mathbf{x}$ 被选在 $\mathbb{R}^n\backslash\Omega$ 区域，就可以得到。
+
+\f[
+  \phi(\mathbf{x}) -
+  \int_{\Gamma\cup\Gamma_\infty}\frac{\partial G(\mathbf{y}-\mathbf{x})}{\partial \mathbf{n}_y}\phi(\mathbf{y})\,ds_y
+  =
+
+
+  -\int_{\Gamma\cup\Gamma_\infty}G(\mathbf{y}-\mathbf{x})\frac{\partial \phi}{\partial \mathbf{n}_y}(\mathbf{y})\,ds_y
+  \qquad \forall\mathbf{x}\in \mathbb{R}^n\backslash\Omega
+\f]
+
+其中法线现在指向<i>inward</i>的积分域。
+
+请注意，在上述方程中，我们也有 $\Gamma_\infty$ 处的边界部分的积分。利用我们问题的边界条件，我们有 $\nabla \phi$ 在无限远处为零（这简化了右侧 $\Gamma_\infty$ 上的积分）。
+
+左手边出现的 $\Gamma_\infty$ 上的积分可以通过观察 $\nabla\phi=0$ 来处理，这意味着 $\phi$ 在无穷远处必然是常数。我们把它的值定义为 $\phi_\infty$  。  要证明这一点是很容易的
+
+\f[
+
+
+-\int_{\Gamma_\infty} \frac{\partial G(\mathbf{y}-\mathbf{x})}
+{\partial \mathbf{n}_y}\phi_\infty \,ds_y =
+\lim_{r\to\infty} \int_{\partial B_r(0)} \frac{\mathbf{r}}{r} \cdot \nabla G(\mathbf{y}-\mathbf{x})
+\phi_\infty \,ds_y = -\phi_\infty.
+\f]
+
+利用这一结果，我们可以利用所谓的单层和双层势能算子，只在边界上 $\Gamma$ 还原上述方程。
+
+\f[\label{integral}
+  \phi(\mathbf{x}) - (D\phi)(\mathbf{x}) = \phi_\infty
+
+
+  -\left(S \frac{\partial \phi}{\partial n_y}\right)(\mathbf{x})
+  \qquad \forall\mathbf{x}\in \mathbb{R}^n\backslash\Omega.
+\f]
+
+(这些算子的名称来自于它们分别描述了 $\mathbb{R}^n$ 中由于沿表面的单一薄片电荷和由于沿表面的双片电荷和反电荷而产生的电动势)。
+
+在我们的例子中，我们知道边界上 $\phi$ 的纽曼值： $\mathbf{n}\cdot\nabla\phi = -\mathbf{n}\cdot\mathbf{v}_\infty$  。因此。
+
+\f[
+  \phi(\mathbf{x}) - (D\phi)(\mathbf{x}) = \phi_\infty +
+   \left(S[\mathbf{n}\cdot\mathbf{v}_\infty]\right)(\mathbf{x})
+   \qquad \forall\mathbf{x} \in \mathbb{R}^n\backslash\Omega.
+\f] 如果我们对上述方程的 $\mathbf{x}$ 采取趋向于 $\Gamma$ 的极限，利用众所周知的单层和双层算子的特性，我们得到一个正好在 $\Omega$ 的边界 $\Gamma$ 的方程。
+
+\f[\label{SD}
+  \alpha(\mathbf{x})\phi(\mathbf{x}) - (D\phi)(\mathbf{x}) = \phi_\infty +
+  \left(S [\mathbf{n}\cdot\mathbf{v}_\infty]\right)(\mathbf{x})
+  \quad \mathbf{x}\in \partial\Omega,
+\f]
+
+这就是我们要找的边界积分方程（BIE），其中量 $\alpha(\mathbf{x})$ 是点 $\mathbf{x}$ 看到积分域 $\mathbb{R}^n\backslash\Omega$ 的角度或实体角的分数。
+
+特别是，在边界 $\mathbf{x}$ 是可微的（即光滑）的点上，我们有 $\alpha(\mathbf{x})=\frac 12$ ，但在边界有角或边的点上，数值可能会更小或更大。
+
+代入单层和双层运算符，我们得到。
+
+\f[
+  \alpha(\mathbf{x}) \phi(\mathbf{x})
+  + \frac{1}{2\pi}\int_{\partial \Omega}  \frac{
+  (\mathbf{y}-\mathbf{x})\cdot\mathbf{n}_y  }{ |\mathbf{y}-\mathbf{x}|^2 }
+  \phi(\mathbf{y}) \,ds_y
+  = \phi_\infty
+
+
+    -\frac{1}{2\pi}\int_{\partial \Omega}  \ln|\mathbf{y}-\mathbf{x}| \, \mathbf{n}\cdot\mathbf{v_\infty}\,ds_y
+\f]为二维流动和
+
+\f[
+  \alpha(\mathbf{x}) \phi(\mathbf{x})
+   + \frac{1}{4\pi}\int_{\partial \Omega} \frac{ (\mathbf{y}-\mathbf{x})\cdot\mathbf{n}_y  }{ |\mathbf{y}-\mathbf{x}|^3 }\phi(\mathbf{y})\,ds_y
+  = \phi_\infty +
+  \frac{1}{4\pi}\int_{\partial \Omega} \frac{1}{|\mathbf{y}-\mathbf{x}|} \, \mathbf{n}\cdot\mathbf{v_\infty}\,ds_y
+\f]适用于三维流动，其中基本解的法向导数被写成了便于计算的形式。在任何一种情况下， $\phi$ 都是完全在边界上提出的积分方程的解，因为 $\mathbf{x},\mathbf{y}\in\partial\Omega$  。
+
+注意，点 $\mathbf{x}$ 看到域 $\Omega$ 的角度（在2D中）或实体角（在3D中） $\alpha(\mathbf{x})$ 的分数可以用双层势本身定义。
+
+\f[
+\alpha(\mathbf{x}) \dealcoloneq 1 -
+\frac{1}{2(n-1)\pi}\int_{\partial \Omega} \frac{ (\mathbf{y}-\mathbf{x})\cdot\mathbf{n}_y  }
+{ |\mathbf{y}-\mathbf{x}|^{n} }\phi(\mathbf{y})\,ds_y = 1+
+\int_{\partial \Omega} \frac{ \partial G(\mathbf{y}-\mathbf{x}) }{\partial \mathbf{n}_y} \, ds_y.
+\f]
+
+如果我们考虑到这样一个事实，即纯诺伊曼问题的解在一个任意常数 $c$ 以内都是已知的，这意味着，如果我们将诺伊曼数据设为零，那么任何常数 $\phi = \phi_\infty$ 都将是一个解。在边界积分方程中插入常数解和诺伊曼边界条件，我们有
+
+@f{align*}
+\alpha\left(\mathbf{x}\right)\phi\left(\mathbf{x}\right)
+&=\int_{\Omega}\phi\left(\mathbf{y}\right)\delta\left(\mathbf{y}-\mathbf{x}\right)\, dy\\
+\Rightarrow
+\alpha\left(\mathbf{x}\right)\phi_\infty
+&=\phi_\infty\int_{\Gamma\cup\Gamma_\infty}\frac{ \partial G(\mathbf{y}-\mathbf{x}) }{\partial \mathbf{n}_y} \, ds_y
+=\phi_\infty\left[\int_{\Gamma_\infty}\frac{ \partial G(\mathbf{y}-\mathbf{x}) }{\partial \mathbf{n}_y} \, ds_y
++\int_{\Gamma}\frac{ \partial G(\mathbf{y}-\mathbf{x}) }{\partial \mathbf{n}_y} \, ds_y
+\right]
+
+
+@f}
+
+在 $\Gamma_\infty$ 上的积分是统一的，见上文，所以除以常数 $\phi_\infty$ 就得到了上面 $\alpha(\mathbf{x})$ 的明确表达。
+
+虽然这个示例程序实际上只关注边界积分方程的求解，但在一个现实的设置中，我们仍然需要对速度进行求解。为此，请注意，我们刚刚计算了 $\phi(\mathbf{x})$ 的所有 $\mathbf{x}\in\partial\Omega$ 。在下一步中，我们可以计算（如果我们愿意，可以分析）所有 $\mathbb{R}^n\backslash\Omega$ 中的解 $\phi(\mathbf{x})$  。为此，回顾一下，我们有
+
+\f[
+  \phi(\mathbf{x})
+  =
+  \phi_\infty +
+  (D\phi)(\mathbf{x})
+  +
+  \left(S[\mathbf{n}\cdot\mathbf{v}_\infty]\right)(\mathbf{x})
+  \qquad \forall\mathbf{x}\in \mathbb{R}^n\backslash\Omega.
+\f]，现在我们有了右手边的所有东西（ $S$ 和 $D$ 是我们可以评估的积分，边界上的法线速度已经给出，边界上的 $\phi$ 我们刚刚计算了）。最后，我们就可以恢复速度为  $\mathbf{\tilde v}=\nabla \phi$  。
+
+注意，对 $\mathbf{x} \in
+\Omega$ 的上述公式的评估结果应该是零，因为狄拉克三角 $\delta(\mathbf{x})$ 在域 $\mathbb{R}^n\backslash\Omega$ 的积分根据定义总是零。
+
+作为最后的测试，让我们验证这个速度是否确实满足静止流场的动量平衡方程，即对于某个（未知）压力 $p$ 和一个给定的常数 $\rho$ ， $\mathbf{v}\cdot\nabla\mathbf{v} = -\frac 1\rho \nabla p$ 中是否 $\mathbf{v}=\mathbf{\tilde
+v}+\mathbf{v}_\infty=\nabla\phi+\mathbf{v}_\infty$ 。换句话说，我们想验证上面所说的伯努利定律确实成立。为了证明这一点，我们用这个方程的左手边等同于
+
+@f{align*}
+  \mathbf{v}\cdot\nabla\mathbf{v}
+  &=
+  [(\nabla\phi+\mathbf{v}_\infty)\cdot\nabla] (\nabla\phi+\mathbf{v}_\infty)
+  \\
+  &=
+  [(\nabla\phi+\mathbf{v}_\infty)\cdot\nabla] (\nabla\phi)
+
+
+@f}
+
+其中我们使用了 $\mathbf{v}_\infty$ 是常数。我们想把这个表达式写成某个东西的梯度（记住 $\rho$ 是一个常数）。如果我们单独考虑方程的组成部分，下一步会更方便（对出现两次的指数求和是隐含的）。
+
+@f{align*}
+  [\mathbf{v}\cdot\nabla\mathbf{v}]_i
+  &=
+  (\partial_j\phi+v_{\infty,j}) \partial_j \partial_i\phi
+  \\
+  &=
+  \partial_j [(\partial_j\phi+v_{\infty,j}) \partial_i\phi]
+
+
+  -
+  \partial_j [(\partial_j\phi+v_{\infty,j})] \partial_i\phi
+  \\
+  &=
+  \partial_j [(\partial_j\phi+v_{\infty,j}) \partial_i\phi]
+
+
+@f}
+
+因为  $\partial_j \partial_j\phi = \Delta \phi = 0$  和  $\textrm{div}
+\ \mathbf{v}_\infty=0$  。下一个。
+
+@f{align*}
+  [\mathbf{v}\cdot\nabla\mathbf{v}]_i
+  &=
+  \partial_j [(\partial_j\phi+v_{\infty,j}) \partial_i\phi]
+  \\
+  &=
+  \partial_j [(\partial_j\phi) (\partial_i\phi)]
+  +
+  \partial_j [v_{\infty,j} \partial_i\phi]
+  \\
+  &=
+  \partial_j [(\partial_j\phi) (\partial_i\phi)]
+  +
+  \partial_j [v_{\infty,j}] \partial_i\phi
+  +
+  v_{\infty,j} \partial_j \partial_i\phi
+  \\
+  &=
+  \partial_j [(\partial_j\phi) (\partial_i\phi)]
+  +
+  v_{\infty,j} \partial_j \partial_i\phi
+  \\
+  &=
+  \partial_i \partial_j [(\partial_j\phi) \phi]
+
+
+  -
+  \partial_j [\partial_i (\partial_j\phi) \phi]
+  +
+  \partial_i [v_{\infty,j} \partial_j \phi]
+
+
+  -
+  \partial_i [v_{\infty,j}] \partial_j \phi
+
+
+@f}
+
+同样，最后一项消失了，因为 $\mathbf{v}_\infty$ 是常数，我们可以将第一项和第三项合并为一项。
+
+@f{align*}
+  [\mathbf{v}\cdot\nabla\mathbf{v}]_i
+  &=
+  \partial_i (\partial_j [(\partial_j\phi) \phi + v_{\infty,j} \partial_j \phi])
+
+
+  -
+  \partial_j [\partial_i (\partial_j\phi) \phi]
+  \\
+  &=
+  \partial_i [(\partial_j\phi)(\partial_j \phi) + v_{\infty,j} \partial_j \phi]
+
+
+  -
+  \partial_j [\partial_i (\partial_j\phi) \phi]
+
+
+@f}
+
+
+
+我们现在只需要对最后一项再做一下按摩。使用乘积规则，我们得到
+
+@f{align*}
+  \partial_j [\partial_i (\partial_j\phi) \phi]
+  &=
+  \partial_i [\partial_j \partial_j\phi] \phi
+  +
+  \partial_i [\partial_j \phi] (\partial_j \phi).
+
+
+@f}
+
+这些项中的第一个是零（因为，同样，对 $j$ 的求和得到 $\Delta\phi$ ，它是零）。最后一项可以写成 $\frac 12
+\partial_i [(\partial_j\phi)(\partial_j\phi)]$ ，它是理想的梯度形式。因此，我们现在可以最终说明
+
+@f{align*}
+  [\mathbf{v}\cdot\nabla\mathbf{v}]_i
+  &=
+  \partial_i (\partial_j [(\partial_j\phi) \phi + v_{\infty,j} \partial_j \phi])
+
+
+  -
+  \partial_j [\partial_i (\partial_j\phi) \phi]
+  \\
+  &=
+  \partial_i
+  \left[
+    (\partial_j\phi)(\partial_j \phi) + v_{\infty,j} \partial_j \phi
+
+
+    -
+    \frac 12 (\partial_j\phi)(\partial_j\phi)
+  \right],
+  \\
+  &=
+  \partial_i
+  \left[
+    \frac 12 (\partial_j\phi)(\partial_j \phi) + v_{\infty,j} \partial_j \phi
+  \right],
+
+
+@f}
+
+或以矢量形式。
+
+@f[
+  \mathbf{v}\cdot\nabla\mathbf{v}
+  =
+  \nabla
+  \left[
+    \frac 12 \mathbf{\tilde v}^2
+    + \mathbf{v}_{\infty} \cdot \mathbf{\tilde v}
+  \right],
+
+
+@f]
+
+或者换句话说。
+
+@f[
+  p
+  =
+
+
+  -\rho
+  \left[
+    \frac 12 \mathbf{\tilde v}^2
+    + \mathbf{v}_{\infty} \cdot \mathbf{\tilde v}
+  \right]
+  =
+
+
+  -\rho
+  \left[
+    \frac 12 \mathbf{v}^2
+
+
+    -
+    \frac 12 \mathbf{v}_{\infty}^2
+  \right]
+  .
+
+
+@f]
+
+因为压力只确定到一个常数（它只在方程中出现一个梯度），一个同样有效的定义是
+
+@f[
+  p
+  =
+
+
+  -\frac 12 \rho \mathbf{v}^2
+  .
+
+
+@f]
+
+这正是上面提到的伯努利定律。
+
+
+
+
+<h3>The numerical approximation</h3>
+
+边界积分方程（BIE）的数值近似通常被称为边界元素法或面板法（后者主要用于计算流体力学界）。以下测试问题的目的是解决具有诺伊曼边界条件的拉普拉斯方程的积分表述，分别使用二维和三维空间的圆和球体，沿途说明了允许人们使用deal.II库处理边界元素问题几乎与有限元问题一样容易的特点。
+
+为此，让 $\mathcal{T}_h = \bigcup_i K_i$ 成为流形 $\Gamma = \partial \Omega$ 的一个细分，如果 $n=2$ 则为 $M$ 线段，如果 $n=3$ 则为 $M$  四边形。我们将称每个单独的线段或四边形为<i>element</i>或<i>cell</i>，与周围空间的维度 $n$ 无关。我们将有限维空间 $V_h$ 定义为
+
+\f[
+  \label{eq:definition-Vh}
+  V_h \dealcoloneq \{ v \in C^0(\Gamma) \text{ s.t. } v|_{K_i} \in \mathcal{Q}^1(K_i),
+  \forall i\},
+\f]的基函数 $\psi_i(\mathbf{x})$ ，我们将使用通常的FE_Q有限元，但这次它被定义在一个一维的流形上（我们通过使用第二个模板参数，通常默认为等于第一个；这里，我们将在一个 <code>dim</code> 维的空间中创建对象 <code>FE_Q@<dim-1,dim@></code> to indicate that we have <code>dim-1</code> 维单元）。一个 $\phi_h$ 的元素 $V_h$ 是由其系数的向量 $\boldsymbol{\phi}$ 唯一识别的，也就是说。
+
+\f[
+  \label{eq:definition-of-element}
+  \phi_h(\mathbf{x}) \dealcoloneq \phi_i \psi_i(\mathbf{x}), \qquad
+  \boldsymbol{\phi} \dealcoloneq \{ \phi_i \},
+\f]，其中求和隐含在重复索引上。请注意，我们可以在这里使用不连续的元素&mdash；事实上，没有真正的理由使用连续的元素，因为积分表述并不意味着我们的试验函数有任何导数，所以连续性是不必要的，而且在文献中经常只使用片断常数元素。
+
+<h3> Collocation boundary element method </h3>
+
+到目前为止，最常见的边界积分方程的近似方法是使用基于碰撞的边界元素方法。
+
+这种方法要求在一些与系统未知数数量相等的定位点上评估边界积分方程。这些点的选择是一个微妙的问题，需要仔细研究。假设这些点暂时是已知的，并称它们为 $\mathbf x_i$ 和 $i=0...n\_dofs$  。
+
+那么问题就变成了。给定基准点 $\mathbf{v}_\infty$ ，在 $V_h$ 中找到一个函数 $\phi_h$ ，使得以下 $n\_dofs$ 方程得到满足。
+
+\f{align*}
+    \alpha(\mathbf{x}_i) \phi_h(\mathbf{x}_i)
+
+
+    - \int_{\Gamma_y} \frac{ \partial G(\mathbf{y}-\mathbf{x}_i)}{\partial\mathbf{n}_y }
+    \phi_h(\mathbf{y}) \,ds_y =
+    \int_{\Gamma_y} G(\mathbf{y}-\mathbf{x}_i) \,
+    \mathbf{n}_y\cdot\mathbf{v_\infty} \,ds_y
+    ,
+\f}
+
+其中数量 $\alpha(\mathbf{x}_i)$ 是点 $\mathbf{x}_i$ 看到域 $\Omega$ 的（实体）角度的分数，如上所述，我们设定 $\phi_\infty$ 为零。  如果支持点 $\mathbf{x}_i$ 选择得当，那么问题可以写成以下线性系统。
+
+\f[
+\label{eq:linear-system}
+(\mathbf{A}+\mathbf{N})\boldsymbol\phi = \mathbf{b},
+\f]
+
+其中
+
+\f[
+\begin{aligned}
+\mathbf{A}_{ij}&=
+\alpha(\mathbf{x}_i) \psi_j(\mathbf{x}_i)
+= 1+\int_\Gamma
+\frac{\partial G(\mathbf{y}-\mathbf{x}_i)}{\partial \mathbf{n}_y}\,ds_y
+\psi_j(\mathbf{x}_i)
+\\
+\mathbf{N}_{ij}&= - \int_\Gamma
+  \frac{\partial G(\mathbf{y}-\mathbf{x}_i)}{\partial \mathbf{n}_y}
+  \psi_j(\mathbf{y}) \,ds_y
+\\
+\mathbf{b}_i&= \int_\Gamma
+   G(\mathbf{y}-\mathbf{x}_i)  \, \mathbf{n}_y\cdot\mathbf{v_\infty}
+   ds_y.
+\end{aligned}
+\f]
+
+从线性代数的角度来看，可能的最佳选择是使矩阵 $\mathbf{A}+\mathbf{N}$ 成为最对角线的主导。一个自然的选择是选择 $\mathbf{x}_i$ 搭配点作为节点基函数 $\psi_i(\mathbf{x})$ 的支持点。在这种情况下， $\psi_j(\mathbf{x}_i)=\delta_{ij}$  ，因此，矩阵 $\mathbf{A}$ 是对角线，其条目为
+
+\f[
+  \mathbf{A}_{ii}
+  =
+  1+\int_\Gamma
+  \frac{\partial G(\mathbf{y}-\mathbf{x}_i)}{\partial \mathbf{n}_y}\,ds_y
+  =
+  1-\sum_j N_{ij},
+\f]，其中我们使用了 $\sum_j \psi_j(\mathbf{y})=1$ 作为通常的拉格朗日元素。有了这样的选择，矩阵 $\mathbf{A}$ 、 $\mathbf{N}$ 和右手边 $\mathbf{b}$ 的条目的计算需要对三角形 $\mathcal{T}_h$ 元素的奇异积分进行评估。在这些情况下，所有的积分都是在参考简单域上进行的，也就是说，我们假设 $\mathcal{T}_h$ 的每个元素 $K_i$ 可以表示为参考边界元素 $\hat K \dealcoloneq [0,1]^{n-1}$ 的线性（二维）或双线性（三维）变换，并且我们在从实数元素 $K_i$ 到参考元素 $\hat K$ 的变量改变后执行积分。
+
+<h3> Treating the singular integrals. </h3>
+
+在二维空间，没有必要计算系统矩阵的对角线元素 $\mathbf{N}_{ii}$ ，因为即使分母在 $\mathbf{x}=\mathbf{y}$ 时归零，分子也总是零，因为 $\mathbf{n}_y$ 和 $(\mathbf{y}-\mathbf{x})$ 是正交的。]和 $(\mathbf{y}-\mathbf{x})$ 是正交的（在我们对 $\Omega$ 边界的多边形近似上），唯一的奇异积分出现在对 $\mathbf{b}_i$ 的第i个元素的计算上。
+
+\f[
+  \frac{1}{\pi}
+  \int_{K_i}
+  \ln|\mathbf{y}-\mathbf{x}_i| \, \mathbf{n}_y\cdot\mathbf{v_\infty} \,ds_y.
+\f]
+
+这可以通过QGaussLogR正交公式轻松处理。
+
+同样，也可以使用QGaussOneOverR正交公式来进行三维空间的奇异积分。有兴趣的读者可以在其文档中找到关于这些正交规则如何工作的详细解释。
+
+得到的矩阵 $\mathbf{A}+\mathbf{N}$ 是完整的。根据其大小，使用直接求解器或迭代求解器可能会很方便。为了这个例子代码的目的，我们选择只使用一个迭代求解器，而不提供任何预处理程序。
+
+如果这是一个生产代码，而不是一个原理演示，有一些技术可以用来不存储完整的矩阵，而只存储那些大的和/或相关的条目。在边界元素方法的文献中，有大量的方法可以确定哪些元素是重要的，哪些是不重要的，从而使这些矩阵的表示方法明显稀疏，也有利于快速评估向量和矩阵之间的标量积。这不是本程序的目标，我们把它留给更复杂的实现。
+
+
+
+
+<h3>Implementation</h3>
+
+实现起来相当直接。在以前的教程程序中都没有用到的主要一点是，deal.II中的大多数类不仅在维度上有模板，而且实际上在我们提出微分方程的流形的维度以及这个流形嵌入的空间的维度上也有模板。默认情况下，第二个模板参数等于第一个，这意味着我们要在二维空间的一个二维区域上求解。在这种情况下，要使用的三角化类是 <code>Triangulation@<2@></code> ，这相当于写成 <code>Triangulation@<2,2@></code> 的方式。
+
+然而，事实并非如此：在目前的例子中，我们想在球体表面求解，这是一个嵌入三维空间的二维流形。因此，正确的类将是 <code>Triangulation@<2,3@></code> ，相应地，我们将使用 <code>DoFHandler@<2,3@></code> 作为DoF处理类， <code>FE_Q@<2,3@></code> 作为有限元。
+
+关于如何处理生活在弯曲流形上的事物的一些进一步细节，可以在报告<a target="_top"
+href="http://www.dealii.org/reports/codimension-one/desimone-heltai-manigrasso.pdf"><i>Tools
+for the Solution of PDEs Defined on Curved Manifolds with the deal.II
+Library</i><i>Tools
+for the Solution of PDEs Defined on Curved Manifolds with the deal.II
+Library</i> by A. DeSimone, L. Heltai, C. Manigrasso</a>中找到。此外，Step-38教程程序将我们在这里展示的内容扩展到了流形上提出的方程不是积分算子而实际上涉及导数的情况。
+
+
+
+
+<h3>Testcase</h3>
+
+我们要解决的测试案例是一个圆形（2D）或球形（3D）的障碍物。这些几何体的网格将从当前目录下的文件中读入，然后一个SphericalManifold类型的对象将被附加到三角形上，以允许网格细化，尊重离散的初始网格背后的连续几何。
+
+对于一个半径为 $a$ 的球体，以 $U$ 的速度在 $x$ 方向平移，势为
+
+@f{align*}
+\phi = -\frac{1}{2}U \left(\frac{a}{r}\right)3 r \cos\theta
+
+
+@f}
+
+例如，见J. N. Newman, <i>Marine Hydrodynamics</i>, 1977, pp.对于单位速度和半径，并限制 $(x,y,z)$ 位于球体表面， $\phi = -x/2$  。在测试问题中，流量为 $(1,1,1)$  ，因此在球体表面上适当的精确解是上述解与沿 $y$ 和 $z$ 轴的类似解的叠加，即 $\phi =
+\frac{1}{2}(x + y + z)$  。
+
+

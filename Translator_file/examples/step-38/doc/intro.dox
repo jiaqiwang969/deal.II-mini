@@ -1,0 +1,206 @@
+examples/step-38/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Andrea Bonito and M. Sebastian Pauletti,
+with editing and writing by Wolfgang Bangerth.
+<br>
+This material is based upon work supported by the National Science
+Foundation under Grant No. DMS-0914977. Any opinions, findings and conclusions
+or recommendations expressed in this material are those of the author(s) and
+do not necessarily reflect the views of the National Science Foundation
+(NSF).
+</i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+在这个例子中，我们展示了如何解决由四边形组成的一维曲面 $\Gamma \subset \mathbb R^3$ 上的偏微分方程（PDE），即在三维的曲面或二维的直线上。我们重点讨论以下的椭圆二阶PDE
+
+@f{align*}
+
+
+-\Delta_\Gamma u &= f \qquad \text{on } \qquad \Gamma,\\
+u  &= g \qquad \text{on} \qquad \partial \Gamma,
+
+
+@f}
+
+它概括了我们以前在几个早期教程程序中解决的拉普拉斯方程。我们的实现是基于step-4的。step-34也可以解决低维曲面上的问题；但是，在那里我们只考虑不涉及解变量导数的积分方程，而在这里我们实际上要研究只在一个（可能是弯曲的）曲面上定义的函数的导数是什么意思。
+
+为了定义上述算子，我们首先要介绍一些符号。让 $\mathbf x_S:\hat S \rightarrow S$ 是一个由参考元素 $\hat S \subset \mathbb R^2$ 构成的曲面 $S$ 的参数化，即每个点 $\hat{\mathbf x}\in\hat S$ 诱导出一个点 ${\mathbf
+  x}_S(\hat{\mathbf x}) \in S$  。那么让
+
+@f[
+G_S\dealcoloneq (D \mathbf{x}_S)^T \ D \mathbf{x}_S
+
+
+@f]
+
+表示相应的第一基本形式，其中 $D
+\mathbf{x}_S=\left(\frac{\partial x_{S,i}(\hat{\mathbf x})}{\partial \hat x_j}\right)_{ij}$ 是映射的导数（雅各布）。在下文中， $S$ 将是整个表面 $\Gamma$ ，或者对有限元方法更方便的是任何面 $S \in
+{\mathbb T}$ ，其中 ${\mathbb T}$ 是由四边形构成的 $\Gamma$ 的分区（三角化）。我们现在可以定义一个函数 $v : S \rightarrow \mathbb
+R$ 的切向梯度，即
+
+@f[
+(\nabla_S v)\circ \mathbf x_S \dealcoloneq  D \mathbf x_S \ G_S^{-1} \ \nabla (v \circ \mathbf x_S).
+
+
+@f]
+
+表面拉普拉斯(也叫拉普拉斯-贝特拉米算子)的定义是  $\Delta_S \dealcoloneq \nabla_S \cdot \nabla_S$  。请注意，在光滑表面上计算表面梯度的另一种方法  $\Gamma$  是
+
+@f[
+\nabla_S v = \nabla \tilde v - \mathbf n (\mathbf n \cdot \nabla \tilde v),
+
+
+@f]
+
+其中 $\tilde v$ 是 $v$ 在 $\Gamma$ 的管状邻域的 "平滑 "扩展， $\mathbf n$ 是 $\Gamma$ 的法线。由于 $\Delta_S = \nabla_S \cdot \nabla_S$ ，我们推导出
+
+@f[
+\Delta_S v = \Delta \tilde v - \mathbf n^T \ D^2 \tilde v \ \mathbf n - (\mathbf n \cdot \nabla \tilde v) (\nabla \cdot \mathbf n - \mathbf n^T \ D \mathbf n \ \mathbf n ).
+
+
+@f]
+
+值得一提的是，上述表达式中出现的术语 $\nabla \cdot \mathbf n - \mathbf n \ D \mathbf n \ \mathbf n$ 是曲面的总曲率（主曲率之和）。
+
+像往常一样，我们只对弱解感兴趣，为此我们可以使用 $C^0$ 有限元（而不是像强解那样要求 $C^1$ 的连续性）。因此，我们求助于弱的表述
+
+@f[
+\int_\Gamma \nabla_\Gamma u \cdot
+\nabla_\Gamma v = \int_\Gamma f \ v  \qquad \forall v \in H^1_0(\Gamma)
+
+
+@f]
+
+并利用分区 ${\mathbb T}$ 的优势，进一步编写
+
+@f[
+\sum_{K\in  {\mathbb T}}\int_K \nabla_{K} u \cdot \nabla_{K} v = \sum_{K\in
+  {\mathbb T}} \int_K f \ v  \qquad \forall v \in H^1_0(\Gamma).
+
+
+@f]
+
+此外，上述表达式中的每个积分都是在参考元素 $\hat K \dealcoloneq [0,1]^2$ 中计算的，因此
+
+@f{align*}
+\int_{K} \nabla_{K} u \cdot \nabla_{K} v
+&=
+\int_{\hat K} \nabla (u \circ \mathbf x_K)^T G_K^{-1} (D \mathbf
+  x_K)^T D \mathbf x_K G_K^{-1} \nabla (v \circ \mathbf x_K) \sqrt{\det
+    (G_K)}
+\\
+&=
+\int_{\hat K} \nabla (u \circ \mathbf x_K)^T G_K^{-1} \nabla (v \circ \mathbf x_K) \sqrt{\det
+    (G_K)}
+
+
+@f}
+
+和
+
+@f[
+\int_{K} f \ v = \int_{\hat K} (f \circ \mathbf x_K) (v \circ \mathbf
+x_K)  \sqrt{\det
+    (G_K)}.
+
+
+@f]
+
+最后，我们使用由点 $\{p_l\}_{l=1}^N\subset
+\hat K$ 和权重 $\{w_l\}_{l=1}^N \subset \mathbb R^+_*$ 定义的正交公式来评估上述积分，得到
+
+@f[\int_{K} \nabla_{K} u \cdot \nabla_{K} v \approx \sum_{l=1}^N
+ (\nabla (u \circ \mathbf x_K)(p_l))^T G^{-1}(p_l)  \nabla (v \circ \mathbf x_K)
+(p_l) \sqrt{\det (G(p_l))} \ w_l
+
+
+@f]
+
+和
+
+@f[
+\int_{K} f \ v \approx \sum_{l=1}^N (f \circ \mathbf x_K)(p_l) \ (v \circ \mathbf x_K)(p_l) \sqrt{\det (G(p_l))} \ w_l.
+
+
+@f]
+
+
+
+
+幸运的是，deal.II已经有了所有的工具来计算上述表达式。事实上，它们与我们求解通常的拉普拉斯的方法几乎没有区别，只需要在FEValues类的构造函数中提供表面坐标映射。这个曲面描述给定，在二维曲面的情况下，两个例程 FEValues::shape_grad 和 FEValues::JxW 会返回
+
+@f{align*}
+\text{FEValues::shape\_grad}(i,l)&=D \mathbf x_K(p_l) G^{-1}(p_l)D(\varphi_i \circ \mathbf x_K)
+  (p_l)
+\\
+\text{FEValues::JxW}(l) &=  \sqrt{\det (G(p_l))} \ w_l.
+
+
+@f}
+
+这正好提供了我们的计算所需的术语。
+
+在更广泛的意义上，表面有限元逼近的细节可以在[Dziuk, in Partial differential equations and calculus of variations 1357, Lecture Notes in Math., 1988], [Demlow, SIAM J. Numer. Anal. 47(2), 2009] 和 [Bonito, Nochetto, and Pauletti, SIAM J. Numer. Anal. 48(5), 2010] 中找到。
+
+
+
+
+<h3>Testcase</h3>
+
+一般来说，当你想在数值上测试一个算法的准确性和/或收敛性，你需要提供一个精确的解决方案。通常的技巧是选择一个我们希望成为解决方案的函数，然后对其应用微分算子，为右侧定义一个强制项。这就是我们在这个例子中所做的。在当前情况下，域的形式显然也是至关重要的。
+
+我们为二维问题制作一个测试案例，为三维问题制作另一个测试案例。
+
+ <ul>   <li>  在2d中，让我们选择一个半圆作为域。在这个域上，我们选择函数 $u(\mathbf x)=-2x_1x_2$ 作为解决方案。为了计算右手边，我们必须计算解函数的表面拉普拉斯。有（至少）两种方法可以做到这一点。第一种是使用 $u(\mathbf x)$ 的自然延伸（仍然用 $u$ 表示）在 $\mathbb R^d$ 上投影掉上面描述的法向导数，即计算@f[
+
+
+    -\Delta_\Gamma u =  \Delta u - \mathbf n^T \ D^2 u \ \mathbf n - (\mathbf n \cdot \nabla u)\ \kappa,
+  @f] 。
+
+  其中  $\kappa$  是  $\Gamma$  的总曲率。   由于我们在单位圆上， $\mathbf n=\mathbf x$ 和 $\kappa = 1$ 所以@f[
+
+
+    -\Delta_\Gamma u = -8 x_1x_2.
+  @f]
+
+
+
+  一个更简单的方法，至少对于目前二维空间的曲线的情况，是注意到我们可以用变换 $t \in
+  [0,\pi]$ 将区间 $\Omega$ 映射到域 $\mathbf x(t)= \left(\begin{array}{c} \cos t \\ \sin t \end{array}\right)$ 。   在位置  $\mathbf x=\mathbf x(t)$  上，解的值是  $u(\mathbf x(t)) = -2\cos t \sin t$  。   考虑到转换是保长的，即长度为 $dt$ 的线段被映射到完全相同长度的曲线上，那么切向拉普拉斯就满足@f{align*}
+    \Delta_\Gamma u
+    &= \frac{d^2}{dt^2}(-2\cos t \sin t)
+    = -2 \frac{d}{dt}(-\sin^2 t + \cos^2 t)
+    = -2 (-2 \sin t \cos t - 2 \cos t \sin t)
+    \\
+    &= 8 \sin t \cos t
+    \\
+    &= 8 x_1x_2,
+  @f} 。
+
+  这当然和我们上面的结果是一样的。   </li>   <li>  在三维中，域又是单位球表面的一半，即半球或圆顶。我们选择 $u(\mathbf x)=-2\sin(\pi x_1)\cos(\pi x_2)e^z$ 作为解决方案。我们可以用上面的方法计算方程的右边， $f=-\Delta_\Gamma u$ ，（用 $\kappa = 2$ ），得到一个笨拙而冗长的表达。你可以在源代码中找到完整的表达式。   </li>   </ul> 。
+
+在程序中，我们还将计算出解的 $H^1$ 半规范误差。由于解函数及其数值近似只在流形上定义，这个误差函数的明显定义是 $| e |_{H^1(\Gamma)}
+  = | \nabla_\Gamma e |_{L_2(\Gamma)}
+  = \left( \int_\Gamma | \nabla_\Gamma (u-u_h) |^2 \right)^{1/2}$  。这就要求我们为函数 VectorTools::integrate_difference （在步骤7中首次引入）提供<i>tangential</i>梯度 $\nabla_\Gamma u$ ，我们将通过在下面的程序中实现函数 <code>Solution::gradient</code> 来实现。
+
+
+
+
+<h3>Implementation</h3>
+
+如果你已经读完了第4步，并且理解了上面关于解和右边如何对应的讨论，你也会立即熟悉这个程序。事实上，只有两件事是有意义的。
+
+- 我们生成三角计算域的网格的方式。
+
+- 我们使用映射对象的方式来描述，我们解决偏微分方程的领域不是平面的，实际上是弯曲的。
+
+在第10步和第11步中已经介绍了映射对象，正如那里所解释的，只要你对边界的样子有一个有效的描述，你通常不需要知道它们是如何工作的。从本质上讲，我们将简单地声明一个适当的MappingQ类型的对象，它将自动从三角图中获得边界描述。然后，该映射对象将被传递给适当的函数，我们将得到库中预定义的半圆或半球形的边界描述。
+
+该程序的其余部分紧跟步骤4，至于计算误差，则是步骤7。这个程序的某些方面，特别是在Triangulation、DoFHandler和类似的类上使用两个模板参数，已经在步骤34中作了详细描述；你不妨也读一读这个教程程序。
+
+
