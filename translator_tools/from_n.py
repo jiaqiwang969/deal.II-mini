@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 #-*- coding: UTF-8 -*- 
 # -----------------------------------------
 # deal.ii translator for doxygen documents

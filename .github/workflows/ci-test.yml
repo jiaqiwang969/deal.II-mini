@@ -26,8 +26,9 @@ jobs:
         ./contrib/utilities/download_clang_format
     - name: change to transltator file
       run: |
+        mkdir Origin_file
         mv dealii/examples Origin_file
-        cp -rf Translator_file/examples dealiicdcd
+        cp -rf Translator_file/examples dealii
         mv dealii/include/deal.II Origin_file
         cp -rf Translator_file/deal.II dealii/include/
         mv dealii/doc/doxygen/headers Origin_file

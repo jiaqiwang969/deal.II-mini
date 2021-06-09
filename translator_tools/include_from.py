@@ -103,7 +103,7 @@ trtext = newtext
 regex = r"\/\*\。$|\/\*$|^\*\/"
 subst = ""
 trtext = re.sub(regex, subst, trtext, 0, re.MULTILINE)
-trtext = '//'+trtext
+# trtext = '//'+trtext
 
 
 # Save the processed output to .tex file
