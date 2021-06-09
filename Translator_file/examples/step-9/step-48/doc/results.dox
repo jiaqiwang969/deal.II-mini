@@ -1,0 +1,204 @@
+examples/step-48/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Comparison with a sparse matrix</h3>
+
+为了证明使用MatrixFree类而不是标准的 <code>deal.II</code> 汇编例程来评估旧时间步长的信息的好处，我们研究了代码在非自适应网格上的一个简单串行运行。由于很多时间花在评估正弦函数上，我们不仅显示了完整的正弦-戈登方程的数字，还显示了波浪方程（正弦-戈登方程中跳过的正弦项）的数字。我们同时使用二阶和四阶元素。结果总结在下表中。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <th>&nbsp;</th>
+    <th colspan="3">wave equation</th>
+    <th colspan="2">sine-Gordon</th>
+  </tr>
+  <tr>
+    <th>&nbsp;</th>
+    <th>MF</th>
+    <th>SpMV</th>
+    <th>dealii</th>
+    <th>MF</th>
+    <th>dealii</th>
+  </tr>
+  <tr>
+    <td>2D, $\mathcal{Q}_2$</td>
+    <td align="right"> 0.0106</td>
+    <td align="right"> 0.00971</td>
+    <td align="right"> 0.109</td>
+    <td align="right"> 0.0243</td>
+    <td align="right"> 0.124</td>
+  </tr>
+  <tr>
+    <td>2D, $\mathcal{Q}_4$</td>
+    <td align="right"> 0.0328</td>
+    <td align="right"> 0.0706</td>
+    <td align="right"> 0.528</td>
+    <td align="right"> 0.0714</td>
+    <td align="right"> 0.502</td>
+   </tr>
+   <tr>
+    <td>3D, $\mathcal{Q}_2$</td>
+    <td align="right"> 0.0151</td>
+    <td align="right"> 0.0320</td>
+    <td align="right"> 0.331</td>
+    <td align="right"> 0.0376</td>
+    <td align="right"> 0.364</td>
+   </tr>
+   <tr>
+    <td>3D, $\mathcal{Q}_4$</td>
+    <td align="right"> 0.0918</td>
+    <td align="right"> 0.844</td>
+    <td align="right"> 6.83</td>
+    <td align="right"> 0.194</td>
+    <td align="right"> 6.95</td>
+   </tr>
+</table> 
+
+很明显，无矩阵代码远远超过了deal.II中的标准汇编程序。在三维和四阶元素中，一个运算符的评估速度也几乎是稀疏矩阵-向量乘积的十倍。
+
+<h3>Parallel run in 2D and 3D</h3>
+
+我们从一个具有12个核心/24个线程的工作站（一个英特尔至强E5-2687W v4 CPU运行在3.2 GHz，启用了超线程）上获得的程序输出开始，以发布模式运行程序。
+
+@code
+\$ make run
+Number of MPI ranks:            1
+Number of threads on each rank: 24
+Vectorization over 4 doubles = 256 bits (AVX)
+
+
+   Number of global active cells: 15412
+   Number of degrees of freedom: 249065
+   Time step size: 0.00292997, finest cell: 0.117188
+
+
+   Time:     -10, solution norm:  9.5599
+   Time:   -9.41, solution norm:  17.678
+   Time:   -8.83, solution norm:  23.504
+   Time:   -8.24, solution norm:    27.5
+   Time:   -7.66, solution norm:  29.513
+   Time:   -7.07, solution norm:  29.364
+   Time:   -6.48, solution norm:   27.23
+   Time:    -5.9, solution norm:  23.527
+   Time:   -5.31, solution norm:  18.439
+   Time:   -4.73, solution norm:  11.935
+   Time:   -4.14, solution norm:  5.5284
+   Time:   -3.55, solution norm:  8.0354
+   Time:   -2.97, solution norm:  14.707
+   Time:   -2.38, solution norm:      20
+   Time:    -1.8, solution norm:  22.834
+   Time:   -1.21, solution norm:  22.771
+   Time:  -0.624, solution norm:  20.488
+   Time: -0.0381, solution norm:  16.697
+   Time:   0.548, solution norm:  11.221
+   Time:    1.13, solution norm:  5.3912
+   Time:    1.72, solution norm:  8.4528
+   Time:    2.31, solution norm:  14.335
+   Time:    2.89, solution norm:  18.555
+   Time:    3.48, solution norm:  20.894
+   Time:    4.06, solution norm:  21.305
+   Time:    4.65, solution norm:  19.903
+   Time:    5.24, solution norm:  16.864
+   Time:    5.82, solution norm:  12.223
+   Time:    6.41, solution norm:   6.758
+   Time:    6.99, solution norm:  7.2423
+   Time:    7.58, solution norm:  12.888
+   Time:    8.17, solution norm:  17.273
+   Time:    8.75, solution norm:  19.654
+   Time:    9.34, solution norm:  19.838
+   Time:    9.92, solution norm:  17.964
+   Time:      10, solution norm:  17.595
+
+
+   Performed 6826 time steps.
+   Average wallclock time per time step: 0.0013453s
+   Spent 14.976s on output and 9.1831s on computations.
+@endcode
+
+
+
+在3D中，各自的输出看起来像
+
+@code
+\$ make run
+Number of MPI ranks:            1
+Number of threads on each rank: 24
+Vectorization over 4 doubles = 256 bits (AVX)
+
+
+   Number of global active cells: 17592
+   Number of degrees of freedom: 1193881
+   Time step size: 0.0117233, finest cell: 0.46875
+
+
+   Time:     -10, solution norm:  29.558
+   Time:   -7.66, solution norm:  129.13
+   Time:   -5.31, solution norm:  67.753
+   Time:   -2.97, solution norm:  79.245
+   Time:  -0.621, solution norm:  123.52
+   Time:    1.72, solution norm:  43.525
+   Time:    4.07, solution norm:  93.285
+   Time:    6.41, solution norm:  97.722
+   Time:    8.76, solution norm:  36.734
+   Time:      10, solution norm:  94.115
+
+
+   Performed 1706 time steps.
+   Average wallclock time per time step: 0.0084542s
+   Spent 16.766s on output and 14.423s on computations.
+@endcode
+
+
+
+一个自由度超过一百万的时间步长需要0.008秒（注意，在求解线性系统时，我们需要许多处理器来达到这样的数字）。
+
+如果我们用一个纯粹的MPI并行化取代线程并行化，时间就会变成。
+
+@code
+\$ mpirun -n 24 ./step-48
+Number of MPI ranks:            24
+Number of threads on each rank: 1
+Vectorization over 4 doubles = 256 bits (AVX)
+...
+   Performed 1706 time steps.
+   Average wallclock time per time step: 0.0051747s
+   Spent 2.0535s on output and 8.828s on computations.
+@endcode
+
+
+
+我们观察到输出的急剧加速（这是有道理的，因为输出的大部分代码没有通过线程并行化，而对于MPI则是如此），但低于我们从并行性中期望的12的理论系数。更有趣的是，当从纯线程变量切换到纯MPI变量时，计算也变得更快。这是MatrixFree框架的一个一般观察结果（截至2019年更新此数据）。主要原因是，为实现并行执行而做出的关于冲突单元批处理工作的决定过于悲观：虽然它们确保在不同的线程上不会同时进行相邻单元的工作，但这种保守的设置意味着在相邻单元被触及时，相邻单元的数据也会从缓存中被驱逐。此外，对于给定的具有17592个单元的网格，目前的方案无法为所有24个线程提供一个恒定的负载。
+
+目前的程序还允许将MPI并行化与线程并行化混合起来。在有多个节点的集群上运行程序时，这是最有利的，使用MPI进行节点间并行化，使用线程进行节点内并行化。在上面使用的工作站上，我们可以在超线程区域运行线程（即为12个MPI行列中的每一个使用2个线程）。将MPI与线程混合的一个重要设置是确保将任务适当地分到CPU上。在许多集群上，放置是通过`mpirun/mpiexec`环境自动进行的，或者可以有手动设置。在这里，我们简单地报告了程序的普通版本的运行时间（注意到当适当的分档完成后，事情可以向仅有MPI的程序的时间改进）。
+
+@code
+\$ mpirun -n 12 ./step-48
+Number of MPI ranks:            12
+Number of threads on each rank: 2
+Vectorization over 4 doubles = 256 bits (AVX)
+...
+   Performed 1706 time steps.
+   Average wallclock time per time step: 0.0056651s
+   Spent 2.5175s on output and 9.6646s on computations.
+@endcode
+
+
+
+
+
+
+<h3>Possibilities for extensions</h3>
+
+这个程序中有几处可以改进，使其更加有效（除了步骤25中讨论的改进边界条件和物理东西）。
+
+ <ul>   <li>  <b>Faster evaluation of sine terms:</b> 从上面平波方程和正弦-戈登方程的比较中可以明显看出，正弦项的评估在有限元算子应用的总时间中占主导地位。这有几个原因。首先，VectorizedArray场的deal.II正弦计算没有被矢量化（与算子应用的其他部分相反）。这可以通过将正弦计算交给一个具有矢量化正弦计算的库来解决，比如英特尔的数学内核库（MKL）。通过使用MKL中的函数 <code>vdSin</code> ，该程序在二维中使用了一半的计算时间，在三维中使用了40%的时间。另一方面，正弦计算在结构上要比其他本地操作中的加法和乘法等简单算术操作复杂得多。
+
+    <li>  <b>Higher order time stepping:</b> 虽然该实现允许空间部分的任意顺序（通过调整有限元的程度），但时间步进方案是一个标准的二阶跃迁方案。由于波的传播问题的解通常是非常平滑的，所以误差很可能被时间步进部分所支配。当然，这可以通过使用较小的时间步长（在固定的空间分辨率下）来解决，但如果使用高阶时间步长也会更有效率。虽然对于一阶系统来说，这样做是很简单的（使用一些高阶的Runge&ndash;Kutta方案，可能结合像<a
+  href="http://en.wikipedia.org/wiki/Dormand%E2%80%93Prince_method">Dormand&ndash;Prince
+  method</a>那样的自适应时间步长选择），但对于二阶公式来说，这更具挑战性。至少在有限差分社区，人们通常使用PDE来寻找改善时间误差的空间修正项。
+
+ </ul> 
+
+

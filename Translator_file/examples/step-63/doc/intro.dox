@@ -1,0 +1,227 @@
+examples/step-63/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Thomas C. Clevenger and Timo Heister.
+
+
+The creation of this tutorial was partially supported by NSF Award
+DMS-1522191, DMS-1901529, OAC-1835452, by the Computational
+Infrastructure in Geodynamics initiative (CIG), through the NSF under
+Award EAR-0949446 and EAR-1550901 and The University of California -
+Davis.
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.3382899,https://zenodo.org/badge/DOI/10.5281/zenodo.3382899.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+该程序使用几何多网格（GMG）预处理程序来解决一个平流-扩散问题。在步骤16中讨论了该预处理程序的基本原理；这里我们讨论了非对称PDE所需的必要变化。此外，我们还介绍了块平滑的概念（与步骤16中的点平滑相比），并检查了加法和乘法平滑器的DoF重新编号的效果。
+
+<h3>Equation</h3> 平流-扩散方程由以下公式给出
+
+@f{align*}{
+
+
+-\varepsilon \Delta u + \boldsymbol{\beta}\cdot \nabla u & = f &
+\text{ in } \Omega\\
+u &= g & \text{ on } \partial\Omega
+
+
+@f}
+
+其中 $\varepsilon>0$  ， $\boldsymbol{\beta}$ 是<i>advection
+direction</i>，而 $f$ 是一个来源。有几个注意事项。
+
+1.如果 $\boldsymbol{\beta}=\boldsymbol{0}$ ，这就是在步骤16（以及其他许多地方）解决的拉普拉斯方程。
+
+2.如果 $\varepsilon=0$ ，那么这就是步骤9中解决的静止平流方程。
+
+3.人们可以为这个问题定义一个无尺寸的数字，称为<i>Peclet number</i>。   $\mathcal{P} \dealcoloneq \frac{\|\boldsymbol{\beta}\|
+L}{\varepsilon}$  ，其中 $L$  是领域的长度尺度。它描述了我们所考虑的那种方程的特点。如果 $\mathcal{P}>1$ ，我们说问题是<i>advection-dominated</i>，否则如果 $\mathcal{P}<1$ 我们将说问题是<i>diffusion-dominated</i>。
+
+在本教程的讨论中，我们将关注以对流为主的流动。这是很复杂的情况。我们知道，对于扩散主导的问题，标准的Galerkin方法可以很好地工作，我们也知道简单的多网格方法，如步骤16中定义的方法是非常有效的。另一方面，对于平流主导的问题，标准Galerkin方法会导致振荡和不稳定的离散，而简单的求解器往往不是很有效。因此，本教程程序旨在解决这两个问题。
+
+
+
+
+<h4>Streamline diffusion</h4>
+
+使用标准的Galerkin有限元方法，对于合适的测试函数 $v_h$ ，PDE的离散弱形式将为
+
+@f{align*}{
+a(u_h,v_h) = F(v_h)
+
+
+@f}
+
+其中
+
+@f{align*}{
+a(u_h,v_h) &= (\varepsilon \nabla v_h,\, \nabla u_h) +
+(v_h,\,\boldsymbol{\beta}\cdot \nabla u_h),\\
+F(v_h) &= (v_h,\,f).
+
+
+@f}
+
+
+
+不幸的是，用这种方法通常会得到震荡解。事实上，对于这种表述，可以显示出以下误差估计。
+
+@f{align*}{
+\|\nabla (u-u_h)\| \leq (1+\mathcal{P}) \inf_{v_h} \|\nabla (u-v_h)\|.
+
+
+@f}
+
+如果精确解足够平滑，右边的下限可以按如下方式估计。
+
+@f{align*}{
+  \inf_{v_h} \|\nabla (u-v_h)\|.
+  \le
+  \|\nabla (u-I_h u)\|
+  \le
+  h^k
+  C
+  \|\nabla^k u)\|
+
+
+@f}
+
+其中 $k$ 是所用有限元的多项式程度。因此，我们得到的估计是
+
+@f{align*}{
+\|\nabla (u-u_h)\|
+\leq (1+\mathcal{P}) C h^k
+  \|\nabla^k u)\|.
+
+
+@f}
+
+换句话说，数值解会收敛。另一方面，鉴于上述 $\mathcal{P}$ 的定义，我们不得不期待当 $\varepsilon \ll
+\|\boldsymbol{\beta}\| L$ 时，即如果问题只有少量的扩散时，数值解会很差，而且误差很大。
+
+为了解决这个问题，我们将考虑新的弱形式
+
+@f{align*}{
+a(u_h,\,v_h) + \sum_K (-\varepsilon \Delta u_h +
+\boldsymbol{\beta}\cdot \nabla u_h-f,\,\delta_K
+\boldsymbol{\beta}\cdot \nabla v_h)_K = F(v_h)
+
+
+@f}
+
+其中，对所有单元进行求和  $K$  ，对每个单元进行内积， $\delta_K$  是定义在  @cite john2006discontinuity  中的逐个单元的常数稳定参数。
+
+从本质上讲，加入离散的强形式残差会增强双线性形式 $a(\cdot,\cdot)$ 的矫捷性，从而增加离散解的稳定性。这种方法通常被称为<i>streamline
+diffusion</i>或<i>SUPG</i>（流线上风/Petrov-Galerkin）。
+
+
+
+
+<h3>Smoothers</h3>
+
+本教程的目标之一是从使用一个简单的（point-wise）高斯-赛德尔（SOR）平滑器开始扩展，该平滑器在步骤16（类PreconditionSOR）中用于多网格层次结构的每一层。术语 "point-wise "传统上用于求解器，表示每次在一个 "网格点 "求解；对于标量问题，这意味着使用一个求解器，每次更新线性系统的一个未知数，保持所有其他未知数固定不变；然后在问题中的所有未知数上进行迭代，一旦完成，从第一个未知数开始重新进行，直到这些 "扫频 "收敛。雅可比、高斯-赛德尔和SOR迭代都可以用这种方式解释。在多网格的背景下，人们不认为这些方法是 "求解器"，而是 "平滑器"。因此，人们对实际解决线性系统不感兴趣。为了使多网格方法发挥作用，只需去除残差的高频部分即可，因为这样可以将解限制在更粗的网格中。  因此，我们只需对所有未知数进行少量的、固定数量的 "扫频"。在本教程的代码中，这是由 "平滑步骤 "参数控制的。
+
+但众所周知，这些方法在作为求解器时收敛得相当慢。虽然作为多网格平滑器，它们出乎意料地好，但它们也可以被改进。特别是，我们在这里也考虑 "基于单元的 "平滑器。这些方法一次解决一个单元上的所有未知数，保持所有其他未知数的固定；然后它们转到下一个单元，如此反复。我们可以把它们看作是雅可比（Jacobi）、高斯-赛德尔（Gauss-Seidel）或SOR的 "区块 "版本，但由于自由度是在多个单元中共享的，这些区块是重叠的，实际上这些方法最好在加法和乘法施瓦兹方法的框架内解释。
+
+与step-16相比，我们的测试问题包含一个平流项。特别是在小的扩散常数 $\varepsilon$ 下，信息会沿着给定的平流方向的流线进行传输。这意味着，如果平滑器允许信息在单一平滑器应用中沿下游方向传播，那么平滑器可能会更有效。如果我们想按照这些未知数（或未知数块）的列举顺序一次解决一个未知数（或未知数块），那么这个信息传播特性需要相应地重新排列自由度或单元（对于基于单元的平滑器），以便更上游的自由度被提前处理（指数较低），更下游的自由度被推迟处理（指数较大）。排序的影响将在结果部分可见。
+
+现在让我们简单地定义一下本教程中使用的平滑器。关于更详细的介绍，我们参考  @cite KanschatNotesIterative  和书籍  @cite smith2004domain  和  @cite toselli2006domain  。施瓦兹预处理器需要一个分解
+
+@f{align*}{
+V = \sum_{j=1}^J V_j
+
+
+@f}
+
+的有限元空间  $V$  。每个子问题  $V_j$  也有一个基于双线性形式  $a(\cdot,\cdot)$  的 Ritz 投影  $P_j: V \rightarrow V_j$  。这个投影对每个子问题 $A_j$ 诱导出一个局部算子 $V_j$  。如果 $\Pi_j:V\rightarrow V_j$ 是对 $V_j$ 的正交投影，可以证明 $A_jP_j=\Pi_j^TA$  。
+
+有了这个，我们可以为算子 $A$ 定义一个<i>additive Schwarz preconditioner</i>为
+
+@f{align*}{
+ B^{-1} = \sum_{j=1}^J P_j A^{-1} = \sum_{j=1}^J A_j^{-1} \Pi_j^T.
+
+
+@f}
+
+换句话说，我们将我们的解决方案投射到每个子问题中，应用子问题的逆向 $A_j$ ，并将所有 $j$ 的贡献加起来。
+
+请注意，我们可以通过为每个自由度定义一个子问题 $V_j$ ，将逐点（一次一个未知数）的雅可比方法解释为加性施瓦兹方法。然后， $A_j^{-1}$ 成为与 $A$ 的对角线项的逆数相乘的方法。
+
+对于本教程中使用的 "块状雅可比 "方法，我们为当前层次上的网格的每个单元定义一个子问题 $V_j$ 。注意，我们使用的是连续有限元，所以这些块是重叠的，因为两个单元之间的界面上的自由度都属于两个子问题。对子问题（在deal.II中它们被称为 "块"）进行操作的施瓦茨算子的逻辑在RelaxationBlock类中实现。块状雅可比 "方法是在RelaxationBlockJacobi类中实现的。该类的许多方面（例如如何定义块以及如何反转局部子问题 $A_j$ ）可以在平滑器数据中配置，详见 RelaxationBlock::AdditionalData 和 DoFTools::make_cell_patches() 。
+
+到目前为止，我们讨论了加法平滑器，其中更新可以独立应用，并且在单个平滑器应用中没有信息流动。A<i>multiplicative Schwarz preconditioner</i>解决了这个问题，其定义为
+
+@f{align*}{
+ B^{-1} = \left( I- \prod_{j=1}^J \left(I-P_j\right) \right) A^{-1}.
+
+
+@f}
+
+与上面不同的是，对子问题 $V_j$ 的更新是按顺序应用的。这意味着在颠倒子问题 $A_j$ 时得到的更新立即被用于 $A_{j+1}$ 。这在写出项目的时候就可以看到。
+
+@f{align*}{
+ B^{-1}
+ =
+ \left(
+   I
+
+
+   -
+   \left(I-P_1\right)\left(I-P_2\right)\cdots\left(I-P_J\right)
+ \right)
+ A^{-1}
+ =
+   A^{-1}
+
+
+   -
+   \left[ \left(I-P_1\right)
+   \left[ \left(I-P_2\right)\cdots
+     \left[\left(I-P_J\right) A^{-1}\right] \cdots \right] \right]
+
+
+@f}
+
+
+
+当把子空间 $V_j$ 定义为整个自由度块时，这个方法在RelaxationBlockSOR类中实现，当你在本教程中选择 "块SOR "时使用。RelaxationBlockSOR类也是从RelaxationBlock派生的。因此，加法和乘法的施瓦兹方法都在一个统一的框架内实现。
+
+最后，让我们注意到，标准的高斯-赛德尔（或SOR）方法可以被看作是一个乘法施瓦茨方法，每个DoF都有一个子问题。
+
+
+
+
+<h3>Test problem</h3>
+
+我们将考虑以下测试问题： $\Omega =
+[-1,\,1]\times[-1,\,1]\backslash B_{0.3}(0)$  ，即一个以原点为圆心的半径为0.3的正方形被移除。此外，我们使用 $\varepsilon=0.005$ ,  $\boldsymbol{\beta} =
+[-\sin(\pi/6),\,\cos(\pi/6)]$ ,  $f=0$ , 和迪里希特边界值
+
+@f{align*}{
+g = \left\{\begin{array}{ll} 1 & \text{if } x=-1 \text{ or } y=-1,\,x\geq 0.5 \\
+0 & \text{otherwise} \end{array}\right.
+
+
+@f}
+
+
+
+下面的数字描述了有（左）和无（右）流线扩散的解决方案。在没有流线扩散的情况下，我们看到边界层周围有很大的振荡，这表明标准的Galerkin有限元方法对这个问题的不稳定性。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-63-solution.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-63-solution-no-sd.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+

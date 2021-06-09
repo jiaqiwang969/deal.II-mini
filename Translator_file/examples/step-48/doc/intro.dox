@@ -1,0 +1,82 @@
+examples/step-48/doc/intro.dox
+
+
+
+<i>
+This program was contributed by Katharina Kormann and Martin
+Kronbichler.
+
+
+The algorithm for the matrix-vector product is based on the article <a
+href="http://dx.doi.org/10.1016/j.compfluid.2012.04.012">A generic
+interface for parallel cell-based finite element operator
+application</a><a
+href="http://dx.doi.org/10.1016/j.compfluid.2012.04.012">A generic
+interface for parallel cell-based finite element operator
+application</a> by Martin Kronbichler and Katharina Kormann, Computers
+and Fluids 63:135&ndash;147, 2012, and the paper &quot;Parallel finite element operator
+application: Graph partitioning and coloring&quot; by Katharina
+Kormann and Martin Kronbichler in: Proceedings of the 7th IEEE
+International Conference on e-Science, 2011.  </i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这个程序演示了如何使用基于单元的有限元算子与MatrixFree类的实现，这是在step-37中首次介绍的，用于解决非线性偏微分方程。此外，我们再看一下无矩阵框架内对约束条件的处理。最后，我们将使用显式时间步进方法来解决问题，并介绍高斯-洛巴托有限元，在这种情况下非常方便，因为它们的质量矩阵可以准确地被对角线矩阵所接近，因此是可逆的。这一特性的两个成分是：首先，根据Gauss-Lobatto正交规则的点分布，对Lagrange多项式的结点进行分布。其次，正交是用同样的Gauss-Lobatto正交规则完成的。在这个公式中，只要 $\int_K \varphi_i \varphi_j
+dx\approx \sum_q \varphi_i \varphi_j \mathrm{det}(J) \big |_{x_q}$ ，积分 $i\neq j$ 就会变成零，因为在定义拉格朗日多项式的点中，正好有一个函数 $\varphi_j$ 是一，其他都是零。此外，拉格朗日多项式的节点的Gauss-Lobatto分布将节点向元素边界聚集。这就为高阶离散化方法提供了条件良好的多项式基础。事实上，具有等距节点的FE_Q元素的条件数随着度数的增加而呈指数级增长，这破坏了约5级以上的任何好处。由于这个原因，高斯-洛巴托点是FE_Q元素的默认分布（但在度数为1和2时，这些点相当于等距点）。
+
+<h3> Problem statement and discretization </h3>
+
+作为一个例子，我们选择解决正弦-戈登孤子方程
+
+\f{eqnarray*}
+u_{tt} &=& \Delta u -\sin(u) \quad\mbox{for}\quad (x,t) \in
+\Omega \times (t_0,t_f],\\
+{\mathbf n} \cdot \nabla u &=& 0
+\quad\mbox{for}\quad (x,t) \in \partial\Omega \times (t_0,t_f],\\
+u(x,t_0) &=& u_0(x).
+\f}
+
+在步骤25中已经介绍过。作为一种简单的显式时间积分方法，我们选择使用方程的二阶表述的跃迁蛙方案。通过这个时间步长，该方案以弱的形式读取
+
+\f{eqnarray*}
+(v,u^{n+1}) = (v,2 u^n-u^{n-1} -
+(\Delta t)^2 \sin(u^n)) - (\nabla v, (\Delta t)^2 \nabla u^n),
+\f}其中<i> v</i>表示一个测试函数，索引<i>n</i>代表时间步数。
+
+对于空间离散化，我们选择FE_Q元素，其基函数定义为插值高斯-洛巴托正交规则的支持点。此外，当我们计算基函数的积分以形成质量矩阵和上述方程右边的算子时，我们使用高斯-洛巴托正交规则，其支持点与有限元的节点点相同，以评估积分。由于有限元是拉格朗日的，这将产生方程左侧的对角线质量矩阵，使每个时间步长的线性系统的解变得微不足道。
+
+使用这个正交规则，对于<i>p</i>th阶有限元，我们使用<i>(2p-1)</i>th阶精确公式来评估积分。由于在计算质量矩阵时，两个<i>p</i>阶基函数的乘积在每个方向上给出了一个具有多项式程度<i>2p</i>的函数，所以积分的计算并不精确。  然而，在具有仿生元素形状的网格上，整体收敛特性不受正交误差的干扰，L2误差与<i>h<sup>p+1</sup></i>成正比。但是请注意，当积分不再是多项式时，一些三维设置的L2误差<i>O(h<sup>p</sup>)</i>甚至<i>O(h<sup>p-1</sup>)</i>的次优收敛率的阶次减少已被报道<a href="https://dx.doi.org/10.1002/num.20353">in
+literature</a>在变形（非affine）元素形状的波方程上。
+
+除了在使用显式时间步进时我们可以避免用这种类型的元素来解决线性系统外，它们还具有另外两个优点。当我们使用和-因子化方法来评估有限元算子时（参见步骤37），我们必须在正交点评估函数。在Gauss-Lobatto元素的情况下，正交点和有限元的节点点重合，这种操作是微不足道的，因为正交点的函数值是由其一维系数给出的。这样一来，与一般的高斯正交相比，有限元算子评估的算术工作减少了大约两倍。
+
+总结一下讨论，通过使用正确的有限元和正交规则组合，我们最终得到一个方案，我们只需要计算对应于上述公式的右手边向量，然后在每个时间步骤中乘以对角线质量矩阵的逆。当然，在实践中，我们提取对角线元素，只在程序开始时反转一次。
+
+<h3>Implementation of constraints</h3>
+
+在 <code>deal.II</code> 中处理约束的通常方法是使用AffineConstraints类，该类建立了一个稀疏矩阵，存储关于哪些自由度（DoF）被约束以及如何被约束的信息。这种格式使用了不必要的大量内存，因为没有那么多不同类型的约束：例如，在每个单元上使用线性有限元时，悬挂节点的情况下，大多数约束具有 $x_k = \frac 12 x_i + \frac 12 x_j$ 的形式，其中系数 $\frac 12$ 总是相同，只有 $i,j,k$ 不同。虽然存储这些多余的信息在一般情况下不是问题，因为在矩阵和右手边的装配过程中只需要一次，但在无矩阵的方法中，它成为一个瓶颈，因为在那里，每次我们应用算子时都要访问这些信息，而算子评估的其余部分是如此之快。因此，MatrixFree使用一个我们称为 <code>constraint_pool</code> 的变量来收集不同约束的权重，而不是AffineConstraints对象。然后，只需要存储网格中每个约束的标识符而不是所有的权重。此外，约束不是在前后处理步骤中应用的，而是在我们评估有限元算子时应用的。因此，约束信息被嵌入到变量 <code>indices_local_to_global</code> 中，用于从全局矢量中提取单元信息。如果一个DoF被约束， <code>indices_local_to_global</code> 变量包含它被约束的DoF的全局索引。然后，我们手头还有另一个变量 <code>constraint_indicator</code> ，对于每个单元，持有被约束的DoF的局部指数以及约束类型的标识符。幸运的是，你不会在示例程序中看到这些数据结构，因为类 <code>FEEvaluation</code> 会在没有用户互动的情况下处理这些约束。
+
+在存在悬空节点的情况下，通过Gauss-Lobatto正交/节点点程序在元素层面获得的对角线质量矩阵并不能直接转化为对角线全局质量矩阵，因为遵循行和列的约束也会增加非对角线的条目。正如在<a href="https://dx.doi.org/10.4208/cicp.101214.021015a">Kormann
+(2016)</a>中所解释的，在一个矢量上插值约束，保持质量矩阵的对角线形状，与方程一致，直到与正交误差相同大小的误差。在下面的程序中，我们将简单地组装质量矩阵的对角线，就像它是一个矢量一样，以实现这种近似。
+
+
+
+
+<h3> Parallelization </h3>
+
+MatrixFree类可以在三个层次上进行并行化。分布式节点集群上的MPI并行化，由线程积木库安排的线程并行化，以及最后通过SIMD数据类型在两个（或更多）单元的批次上工作的矢量化（有时称为跨元素或外部矢量化）。正如我们在第37步中已经讨论过的，通过使用特定于你的系统的指令集，你将得到最好的性能，例如，使用cmake变量<tt>-DCMAKE_CXX_FLAGS="-march=native"</tt>。MPI并行化已经在步骤37中被利用了。这里，我们额外考虑用TBB进行线程并行化。这相当简单，因为我们需要做的就是告诉MatrixFree对象的初始化，我们想通过变量 MatrixFree::AdditionalData::thread_parallel_scheme. 来使用线程并行方案。 在设置过程中，建立了一个类似于 @ref workstream_paper 中描述的依赖图，这允许安排 @p local_apply 函数在单元块上的工作，而没有几个线程访问同一个向量索引。相对于WorkStream循环，还应用了一些额外的巧妙技巧来避免<a
+href="https://dx.doi.org/10.1109/eScience.2011.53">Kormann and Kronbichler
+(2011)</a>中描述的全局同步。
+
+请注意，这个程序是为分布式三角测量 (parallel::distributed::Triangulation), 而设计的，它要求deal.II配置<a href="http://www.p4est.org/">p4est</a>，如<a href="../../readme.html">deal.II ReadMe</a>文件中所述。然而，也支持非分布式三角法，在这种情况下，计算将以串行方式运行。
+
+<h3> The test case </h3>
+
+在我们的例子中，我们选择初始值为\f{eqnarray*} u(x,t) =
+\prod_{i=1}^{d} -4 \arctan \left(
+\frac{m}{\sqrt{1-m^2}}\frac{\sin\left(\sqrt{1-m^2} t +c_2\right)}{\cosh(mx_i+c_1)}\right)
+\f}，并在时间区间[-10,10]内解决方程。常数被选择为 $c_1=c_1=0$ 和<i> m=0.5</i>。如步骤25所述，在一维中<i>u</i>作为<i>t</i>的函数是正弦-戈登方程的精确解。然而，对于更高的维度，情况并非如此。
+
+

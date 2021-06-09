@@ -1,0 +1,236 @@
+examples/step-47/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+我们用介绍中讨论的右手边和边界值运行程序。这些将产生域 $\Omega = (0,1)^2$ 上的解 $u = \sin(\pi x) \sin(\pi y)$ 。我们用 $Q_2$ 、 $Q_3$ 和 $Q_4$ 元素来测试这个设置，我们可以通过`main()`函数中的`fe_degree`变量来改变。通过网格细化， $L_2$ 的收敛率、 $H^1$ 的近似值率和 $H^2$ 的近似值收敛率对于 $u$ 应该分别为2、2、1（如介绍中所述， $L_2$ 的规范为次优）；对于 $Q_3$ 为4、3、2；而对于 $Q_4$ 为5、4、3。
+
+从文献来看，并不立即清楚惩罚参数 $\gamma$ 应该是什么。例如， @cite Brenner2009 指出它需要大于1，并选择 $\gamma=5$  。FEniCS/Dolphin教程选择它为 $\gamma=8$  ，见https://fenicsproject.org/docs/dolfin/1.6.0/python/demo/documented/biharmonic/python/documentation.html 。   @cite Wells2007 使用的 $\gamma$ 值大于Kirchhoff板的元素所属的边数（见他们的第4.2节）。这表明也许 $\gamma = 1$ ,  $2$ , 太小了；另一方面， $p(p+1)$ 的值也是合理的，其中 $p$ 是多项式的度数。通过与拉普拉斯方程的不连续Galerkin公式相比较，人们期望最后一个选择是可行的（例如，见步骤39和步骤74的讨论），而且它在这里也将证明是可行的。但是我们应该检查 $\gamma$ 的哪个值是正确的，下面我们将这样做；改变 $\gamma$ 在`assemble_system()`中定义的两个`face_worker`和`boundary_worker`函数中很容易。
+
+
+
+
+<h3>Test results on <i>Q<sub>2</sub></i><i>Q<sub>2</sub></i> with <i>&gamma; = p(p+1)</i><i>&gamma; = p(p+1)</i> </h3>
+
+我们用不同的细化网格运行代码，得到以下收敛率。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>Number of refinements </th><th>  $\|u-u_h^\circ\|_{L_2}$ </th><th>  Conv. rates  </th><th>  $|u-u_h|_{H^1}$ </th><th> Conv. rates </th><th> $|u-u_h|_{H^2}$ </th><th> Conv. rates </th>
+  </tr>
+  <tr>
+   <td>   2                  </td><td>   8.780e-03 </td><td>       </td><td>  7.095e-02   </td><td>           </td><td>  1.645 </td><td>   </td>
+  </tr>
+  <tr>
+   <td>   3                  </td><td>   3.515e-03   </td><td>  1.32 </td><td> 2.174e-02  </td><td>     1.70     </td><td> 8.121e-01  </td><td>  1.018  </td>
+  </tr>
+  <tr>
+   <td>   4                  </td><td>   1.103e-03   </td><td>  1.67   </td><td> 6.106e-03    </td><td>  1.83        </td><td>   4.015e-01 </td><td> 1.016  </td>
+  </tr>
+  <tr>
+   <td>   5                  </td><td>  3.084e-04  </td><td>  1.83   </td><td>  1.622e-03   </td><td>    1.91        </td><td> 1.993e-01 </td><td>  1.010   </td>
+  </tr>
+</table>  我们可以看到， $L_2$ 的收敛率在2左右， $H^1$  -seminorm收敛率在2左右， $H^2$  -seminorm收敛率在1左右。后两者与理论上的预期收敛率相符；对于前者，我们没有定理，但鉴于介绍中的评论，对于它是次优的也不奇怪。
+
+
+
+
+<h3>Test results on <i>Q<sub>3</sub></i><i>Q<sub>3</sub></i> with <i>&gamma; = p(p+1)</i><i>&gamma; = p(p+1)</i> </h3>
+
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>Number of refinements </th><th>  $\|u-u_h^\circ\|_{L_2}$ </th><th>  Conv. rates  </th><th>  $|u-u_h|_{H^1}$ </th><th> Conv. rates </th><th> $|u-u_h|_{H^2}$ </th><th> Conv. rates </th>
+  </tr>
+  <tr>
+   <td>   2                  </td><td>    2.045e-04 </td><td>       </td><td>   4.402e-03   </td><td>           </td><td> 1.641e-01 </td><td>   </td>
+  </tr>
+  <tr>
+   <td>   3                  </td><td>   1.312e-05   </td><td> 3.96  </td><td>  5.537e-04  </td><td>   2.99     </td><td> 4.096e-02 </td><td>  2.00  </td>
+  </tr>
+  <tr>
+   <td>   4                  </td><td>   8.239e-07 </td><td>  3.99  </td><td> 6.904e-05   </td><td> 3.00     </td><td> 1.023e-02 </td><td> 2.00 </td>
+  </tr>
+  <tr>
+   <td>   5                  </td><td>   5.158e-08  </td><td>  3.99 </td><td> 8.621e-06 </td><td>  3.00      </td><td> 2.558e-03  </td><td>  2.00  </td>
+  </tr>
+</table>  我们可以看到， $L_2$  收敛率在4左右， $H^1$  -seminorm 收敛率在3左右， $H^2$  -seminorm 收敛率在2左右。当然，这符合我们的理论预期。
+
+
+
+
+<h3>Test results on <i>Q<sub>4</sub></i><i>Q<sub>4</sub></i> with <i>&gamma; = p(p+1)</i><i>&gamma; = p(p+1)</i> </h3>
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>Number of refinements </th><th>  $\|u-u_h^\circ\|_{L_2}$ </th><th>  Conv. rates  </th><th>  $|u-u_h|_{H^1}$ </th><th> Conv. rates </th><th> $|u-u_h|_{H^2}$ </th><th> Conv. rates </th>
+  </tr>
+  <tr>
+   <td>   2                  </td><td>    6.510e-06 </td><td>       </td><td> 2.215e-04   </td><td>           </td><td>  1.275e-02 </td><td>   </td>
+  </tr>
+  <tr>
+   <td>   3                  </td><td>   2.679e-07  </td><td>  4.60  </td><td> 1.569e-05  </td><td>   3.81    </td><td> 1.496e-03 </td><td>  3.09  </td>
+  </tr>
+  <tr>
+   <td>   4                  </td><td>   9.404e-09  </td><td> 4.83   </td><td> 1.040e-06    </td><td> 3.91       </td><td> 1.774e-04 </td><td> 3.07 </td>
+  </tr>
+  <tr>
+   <td>   5                  </td><td>   7.943e-10 </td><td>  3.56  </td><td>   6.693e-08 </td><td> 3.95     </td><td> 2.150e-05  </td><td> 3.04    </td>
+  </tr>
+</table>  我们可以看到， $L_2$  norm收敛率在5左右， $H^1$  -seminorm收敛率在4左右，而 $H^2$  -seminorm收敛率在3左右。在最细的网格上， $L_2$ 规范收敛率比我们的理论预期小得多，因为线性求解器由于舍入而成为限制因素。当然在这种情况下， $L_2$ 误差也已经非常小了。
+
+
+
+
+<h3>Test results on <i>Q<sub>2</sub></i><i>Q<sub>2</sub></i> with <i>&gamma; = 1</i><i>&gamma; = 1</i> </h3>
+
+为了与上述结果进行比较，现在让我们也考虑一下我们简单地选择 $\gamma=1$ 的情况。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>Number of refinements </th><th>  $\|u-u_h^\circ\|_{L_2}$ </th><th>  Conv. rates  </th><th>  $|u-u_h|_{H^1}$ </th><th> Conv. rates </th><th> $|u-u_h|_{H^2}$ </th><th> Conv. rates </th>
+  </tr>
+  <tr>
+   <td>   2                  </td><td>   7.350e-02 </td><td>       </td><td>   7.323e-01   </td><td>           </td><td> 10.343 </td><td>   </td>
+  </tr>
+  <tr>
+   <td>   3                  </td><td>   6.798e-03   </td><td> 3.43  </td><td> 1.716e-01   </td><td>   2.09    </td><td>4.836 </td><td>  1.09 </td>
+  </tr>
+  <tr>
+   <td>   4                  </td><td>  9.669e-04   </td><td> 2.81   </td><td> 6.436e-02    </td><td> 1.41      </td><td>  3.590 </td><td> 0.430 </td>
+  </tr>
+  <tr>
+   <td>   5                  </td><td>   1.755e-04 </td><td> 2.46 </td><td>  2.831e-02  </td><td>    1.18      </td><td>3.144  </td><td>  0.19  </td>
+  </tr>
+</table>  虽然 $L_2$ 规范的收敛率 $u$ 或多或少符合理论预期，但 $H^1$  -seminorm和 $H^2$  -seminorm似乎并没有像预期那样收敛。比较 $\gamma = 1$ 和 $\gamma = p(p+1)$ 的结果，很明显， $\gamma = p(p+1)$ 是一个更好的惩罚。鉴于 $\gamma=1$ 对于 $Q_2$ 元素来说已经太小了，如果用 $Q_3$ 元素重复实验，结果更加令人失望，这可能就不奇怪了。我们再次只得到2、1、0的收敛率--也就是说，不比 $Q_2$ 元素好（尽管误差的大小更小）。然而，也许令人惊讶的是，当使用 $Q_4$ 元素时，人们获得了或多或少的预期收敛顺序。无论如何，这种不确定性表明， $\gamma=1$ 充其量是一个有风险的选择，最坏的情况是一个不可靠的选择，我们应该选择 $\gamma$ 更大。
+
+
+
+
+<h3>Test results on <i>Q<sub>2</sub></i><i>Q<sub>2</sub></i> with <i>&gamma; = 2</i><i>&gamma; = 2</i> </h3>
+
+由于 $\gamma=1$ 显然太小了，人们可能猜想 $\gamma=2$ 实际上可能效果更好。下面是在这种情况下得到的结果。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>Number of refinements </th><th>  $\|u-u_h^\circ\|_{L_2}$ </th><th>  Conv. rates  </th><th>  $|u-u_h|_{H^1}$ </th><th> Conv. rates </th><th> $|u-u_h|_{H^2}$ </th><th> Conv. rates </th>
+  </tr>
+  <tr>
+   <td>   2                  </td><td>   4.133e-02 </td><td>       </td><td>  2.517e-01   </td><td>           </td><td> 3.056 </td><td>   </td>
+  </tr>
+  <tr>
+   <td>   3                  </td><td>  6.500e-03   </td><td>2.66  </td><td> 5.916e-02  </td><td>  2.08    </td><td>1.444 </td><td>  1.08 </td>
+  </tr>
+  <tr>
+   <td>   4                  </td><td> 6.780e-04   </td><td> 3.26  </td><td> 1.203e-02    </td><td> 2.296      </td><td> 6.151e-01 </td><td> 1.231 </td>
+  </tr>
+  <tr>
+   <td>   5                  </td><td> 1.622e-04 </td><td> 2.06 </td><td>  2.448e-03  </td><td>   2.297     </td><td> 2.618e-01  </td><td> 1.232  </td>
+  </tr>
+</table>  在这种情况下，收敛率或多或少符合理论预期，但与 $\gamma =
+p(p+1)$ 的结果相比，变化更大。同样，我们可以对 $Q_3$ 和 $Q_4$ 元素重复这种实验。在这两种情况下，我们会发现我们获得了大致的预期收敛率。那么，更感兴趣的可能是比较误差的绝对大小。在上表中，对于 $Q_2$ 情况，最细网格上的误差在 $\gamma=p(p+1)$ 和 $\gamma=2$ 情况下是相当的，而对于 $Q_3$ ， $\gamma=2$ 的误差要比 $\gamma=p(p+1)$ 的大很多。对于 $Q_4$ 的情况也是如此。
+
+
+
+
+<h3> Conclusions for the choice of the penalty parameter </h3>
+
+关于应该使用哪种 "合理 "的惩罚参数的结论是， $\gamma=p(p+1)$ 产生了预期的结果。因此，它是目前编写的代码所使用的。
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+这个方案有一些明显的扩展，会有意义。
+
+- 该程序使用一个正方形域和一个均匀的网格。真正的问题不是这样的，我们应该验证在其他形状的域上的收敛性，特别是在弯曲的边界上。人们也可能对使用自适应网格细化来解决规则性较差的区域感兴趣。
+
+- 从更多的理论角度来看，上面的收敛结果只使用了 "破损的" $H^2$ 半规范 $|\cdot|^\circ_{H^2}$ ，而不是 "等同的 "规范 $|\cdot|_h$  。这足以让我们相信，这个程序并没有从根本上被破坏。然而，测量我们有理论结果的实际规范的误差可能是有趣的。例如，使用FEInterfaceValues类与 MeshWorker::mesh_loop() 结合，实现这一补充应该不会太困难，其精神与我们用于组装线性系统的精神相同。
+
+
+  <h4> Derivation for the simply supported plates </h4>
+
+  类似于实施中所涉及的 "夹持 "边界条件，我们将推导出 $C^0$ IP有限元方案，用于简单支撑板。   @f{align*}{
+    \Delta^2 u(\mathbf x) &= f(\mathbf x)
+    \qquad \qquad &&\forall \mathbf x \in \Omega,
+    u(\mathbf x) &= g(\mathbf x) \qquad \qquad
+    &&\forall \mathbf x \in \partial\Omega, \\
+    \Delta u(\mathbf x) &= h(\mathbf x) \qquad \qquad
+    &&\forall \mathbf x \in \partial\Omega.
+  @f}
+
+  我们用测试函数 $v_h$ 乘以双调方程，并对 $ K $ 进行积分，得到。   @f{align*}{
+    \int_K v_h (\Delta^2 u_h)
+     &= \int_K (D^2 v_h) : (D^2 u_h)
+       + \int_{\partial K} v_h \frac{\partial (\Delta u_h)}{\partial \mathbf{n}}
+
+
+       -\int_{\partial K} (\nabla v_h) \cdot (\frac{\partial \nabla u_h}{\partial \mathbf{n}}).
+  @f}
+
+
+
+  将所有单元格 $K \in  \mathbb{T}$ 相加，因为 $\Delta u_h$ 的法线方向在两条单元格共享的每条内边上指向相反的方向， $v_h = 0$ 在 $\partial \Omega$ 上，@f{align*}{
+  \sum_{K \in \mathbb{T}} \int_{\partial K} v_h \frac{\partial (\Delta u_h)}{\partial \mathbf{n}} = 0,
+  @f}
+
+  并通过细胞界面上的跳跃定义，@f{align*}{
+
+
+  -\sum_{K \in \mathbb{T}} \int_{\partial K} (\nabla v_h) \cdot (\frac{\partial \nabla u_h}{\partial \mathbf{n}}) = -\sum_{e \in \mathbb{F}} \int_{e} \jump{\frac{\partial v_h}{\partial \mathbf{n}}} (\frac{\partial^2 u_h}{\partial \mathbf{n^2}}).
+  @f} 。
+
+  我们将域的内部面和边界面分开，@f{align*}{
+
+
+  -\sum_{K \in \mathbb{T}} \int_{\partial K} (\nabla v_h) \cdot (\frac{\partial \nabla u_h}{\partial \mathbf{n}}) = -\sum_{e \in \mathbb{F}^i} \int_{e} \jump{\frac{\partial v_h}{\partial \mathbf{n}}} (\frac{\partial^2 u_h}{\partial \mathbf{n^2}})
+
+
+  - \sum_{e \in \partial \Omega} \int_{e} \jump{\frac{\partial v_h}{\partial \mathbf{n}}} h,
+  @f} 。
+
+  其中 $\mathbb{F}^i$ 是内部面的集合。   这使我们得出@f{align*}{
+  \sum_{K \in \mathbb{T}} \int_K (D^2 v_h) : (D^2 u_h) \ dx - \sum_{e \in \mathbb{F}^i} \int_{e} \jump{\frac{\partial v_h}{\partial \mathbf{n}}} (\frac{\partial^2 u_h}{\partial \mathbf{n^2}}) \ ds
+  = \sum_{K \in \mathbb{T}}\int_{K} v_h f  \ dx + \sum_{e\subset\partial\Omega} \int_{e} \jump{\frac{\partial v_h}{\partial \mathbf{n}}} h \ ds.
+  @f}。
+
+
+
+  为了使离散问题对称化和稳定化，我们加入了对称化和稳定化项。   我们最终得到双调方程的 $C^0$ IP有限元方案：找到 $u_h$ ，使 $u_h =g$ 上的 $\partial \Omega$ 和@f{align*}{
+  \mathcal{A}(v_h,u_h)&=\mathcal{F}(v_h) \quad \text{holds for all test functions } v_h,
+  @f}
+
+  其中@f{align*}{
+  \mathcal{A}(v_h,u_h):=&\sum_{K \in \mathbb{T}}\int_K D^2v_h:D^2u_h \ dx
+  \\
+  &
+
+
+   -\sum_{e \in \mathbb{F}^i} \int_{e}
+    \jump{\frac{\partial v_h}{\partial \mathbf n}}
+    \average{\frac{\partial^2 u_h}{\partial \mathbf n^2}} \ ds
+
+
+   -\sum_{e \in \mathbb{F}^i} \int_{e}
+   \average{\frac{\partial^2 v_h}{\partial \mathbf n^2}}
+   \jump{\frac{\partial u_h}{\partial \mathbf n}} \ ds
+  \\
+  &+ \sum_{e \in \mathbb{F}^i}
+   \frac{\gamma}{h_e}
+   \int_e
+   \jump{\frac{\partial v_h}{\partial \mathbf n}}
+   \jump{\frac{\partial u_h}{\partial \mathbf n}} \ ds,
+  @f}
+
+  和@f{align*}{
+  \mathcal{F}(v_h)&:=\sum_{K \in \mathbb{T}}\int_{K} v_h f \ dx
+  +
+  \sum_{e\subset\partial\Omega}
+  \int_e \jump{\frac{\partial v_h}{\partial \mathbf n}} h \ ds.
+  @f}
+
+  这个边界案例的实现与 "钳制 "版本类似，只是在系统组装时不再需要`边界_工人'，并且根据配方改变右手边。
+
+

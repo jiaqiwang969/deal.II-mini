@@ -1,0 +1,71 @@
+examples/step-1/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行该程序会产生两个网格的图形（grid-1.svg和grid-2.svg）。你可以用大多数网络浏览器打开它们--在最简单的情况下，只要在文件系统资源管理器中打开当前目录，然后点击文件。如果你喜欢在命令行上工作，你可以用该文件调用你的网络浏览器。`firefox grid-1.svg`，`google-chrome grid-1.svg`，或者任何你的浏览器的名字。如果你这样做，这两个网格应该是这样的。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-1.grid-1-r9.2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-1.grid-2-r9.2.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+左边那个，嗯，不是很刺激。右边的是&mdash；至少是&mdash；非传统的。这些图片对每个单元的 "细化水平 "进行了颜色编码。一个粗略的网格单元要被细分多少次才能得到给定的单元。在左图中，这是无聊的，因为网格被全局细化了若干次，也就是说，<i>every</i>单元被细化的次数相同。
+
+(虽然第二个网状结构完全是人为捏造的，当然在应用中也不太实用，但令大家惊讶的是，它已经进入了文献：见  @cite Mu05  。显然，它至少对某些事情是有好处的）。)
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+<h4> Different adaptive refinement strategies </h4>
+
+这个程序显然没有太多的功能，但特别是 <code>second_grid</code> 函数有一堆你可以玩弄它的地方。例如，你可以修改我们决定细化哪些单元格的标准。一个例子是把条件改成这样。
+
+@code
+      for (auto &cell: triangulation.active_cell_iterators())
+        if (cell->center()[1] > 0)
+          cell->set_refine_flag ();
+@endcode
+
+这将细化所有单元中心的 $y$ 坐标大于零的单元（我们通过解除引用 <code>cell</code> 迭代器调用的 <code>TriaAccessor::center</code> 函数返回一个Point<2>对象；下标 <code>[0]</code> 将得到 $x$ 坐标，下标 <code>[1]</code> 得到 $y$  坐标）。通过查看TriaAccessor提供的函数，你也可以使用更复杂的标准进行细化。
+
+一般来说，你能用`cell->something()`形式的操作做什么，在文档中有点困难，因为`cell`不是一个指针，而是一个迭代器。你可以在单元格上调用的函数可以在`TriaAccessor'类的文档中找到（它的函数也可以在单元格的面或更普遍的、出现在三角形中的各种几何对象上调用），以及`CellAccessor'（它增加了一些专门针对*单元格的函数）。
+
+对整个迭代器概念的更彻底的描述可以在 @ref Iterators 文档模块中找到。
+
+
+
+
+<h4> Different geometries </h4>
+
+另一种可能性是生成完全不同几何形状的网格。虽然对于复杂的几何体来说，使用网格生成器获得的网格是没有办法的，但是有大量的几何体，deal.II可以使用GridGenerator命名空间的函数来创建网格。许多这样的几何体（如本例程序中使用的几何体）包含有弯曲面的单元：换句话说，我们希望放置在边界上的新顶点位于一个圆上。deal.II通过Manifold类（以及从它继承的类）处理复杂的几何体；尤其是GridGenerator中对应于非笛卡尔网格的函数（如 GridGenerator::hyper_shell 或 GridGenerator::truncated_cone) 将一个Manifold对象附加到三角网格中应该是曲线的部分（分别为SphericalManifold和CylindricalManifold），并在应该是平面的部分使用另一个Manifold（FlatManifold）。关于这些类的设计理念和接口的描述，请参见Manifold的文档或 @ref manifold "manifold模块"。看看它们提供了什么，看看如何在这样的程序中使用它们。
+
+我们还在第49步中讨论了其他各种创建和操作网格的方法（并描述了附加Manifolds的过程）。
+
+
+
+
+<h4> Comments about programming and debugging </h4>
+
+最后，我们对用deal.II修改或编写程序做一个总体的评论。当你开始使用教程程序或你自己的应用程序时，你会发现错误会发生：你的程序会包含一些代码，这些代码要么是立即中止程序，要么是一些简单地导致错误结果的bug。无论哪种情况，你都会发现知道如何使用调试器是非常有帮助的：你可能会通过把调试输出放到你的程序中，编译它，然后运行它来应付一段时间，但最终用调试器寻找错误会更快，更方便，更可靠，因为你不必总是重新编译程序，而且你可以检查变量的值和它们的变化。
+
+与其推迟学习如何使用调试器，直到你真的看不到任何其他方法来发现一个错误，这里是我们将在这个项目中提供的一个建议：尽快学习如何使用调试器。这将是很好的时间投资。( 从顶层的<a
+href="http://www.dealii.org/">deal.II webpage</a>链接到的 @dealiiVideoLectureSeeAlso{25}) The deal.II Frequently Asked 问题（FAQ）页面也提供了大量关于调试deal.II程序的提示。
+
+
+
+
+<h4> More about graphical output </h4>
+
+在你的论文或出版物中包含网格往往是有用的。为此，按细化级别对单元格进行颜色编码，并在每个单元格上打印单元格号，可能不是很有用。但这并不意味着一定要这样做 -- GridOut类允许为每种可能的输出格式设置标志（参见GridOutFlags命名空间中的类），以控制网格的具体绘制方式。当然，你也可以选择其他的输出文件格式，如VTK或VTU；这对三维网格特别有用，因为二维格式如SVG并不特别有用，因为它固定了三维物体的特定视角。因此，你可能想探索GridOut类中的其他选项。
+
+

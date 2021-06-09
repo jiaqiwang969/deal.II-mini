@@ -1,0 +1,211 @@
+examples/step-41/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行该程序会产生这样的输出。
+
+@code
+Number of active cells: 16384
+Total number of cells: 21845
+Number of degrees of freedom: 16641
+
+
+Newton iteration 0
+   Assembling system...
+   Solving system...
+      Error: 0.310059 -> 5.16619e-05 in 5 CG iterations.
+   Updating active set...
+      Size of active set: 13164
+   Residual of the non-contact part of the system: 1.61863e-05
+   Writing graphical output...
+
+
+Newton iteration 1
+   Assembling system...
+   Solving system...
+      Error: 1.11987 -> 0.00109377 in 6 CG iterations.
+   Updating active set...
+      Size of active set: 12363
+   Residual of the non-contact part of the system: 3.9373
+   Writing graphical output...
+
+
+...
+
+
+Newton iteration 17
+   Assembling system...
+   Solving system...
+      Error: 0.00713308 -> 2.29249e-06 in 4 CG iterations.
+   Updating active set...
+      Size of active set: 5399
+   Residual of the non-contact part of the system: 0.000957525
+   Writing graphical output...
+
+
+Newton iteration 18
+   Assembling system...
+   Solving system...
+      Error: 0.000957525 -> 2.8033e-07 in 4 CG iterations.
+   Updating active set...
+      Size of active set: 5399
+   Residual of the non-contact part of the system: 2.8033e-07
+   Writing graphical output...
+@endcode
+
+
+
+一旦活动集不再变化，迭代就会结束（此时它有5399个受限自由度）。代数前提条件显然工作得很好，因为我们只需要4-6次CG迭代来解决线性系统（尽管这也与我们对线性求解器的精度要求不高有很大关系）。
+
+更具启示性的是看一连串的图形输出文件（每三步显示一次，最左边一栏是迭代的编号）。
+
+ <table align="center">
+  <tr>
+    <td valign="top">
+      0 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.00.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.00.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.00.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      3 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.03.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.03.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.03.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      6 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.06.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.06.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.06.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      9 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.09.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.09.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.09.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      12 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.12.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.12.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.12.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      15 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.15.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.15.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.15.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      18 &nbsp;
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.18.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.active-set.18.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.displacement.3d.18.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+图片显示，在第一步中，解决方案（在没有任何约束条件的情况下被计算出来的）是如此的弯曲，以至于几乎每一个内部点都必须被反弹到阶梯函数上，产生一个不连续的解决方案。在活动集迭代的过程中，这种不切实际的膜的形状被平滑掉了，与最下层阶梯的接触消失了，解决方案也稳定下来。
+
+除此以外，程序还输出拉格朗日乘数的值。请记住，这些是接触力，所以在接触集上只应该是正的，而在接触集之外是零。另一方面，如果一个拉格朗日乘数在活动集上是负的，那么这个自由度必须从活动集上删除。下面的图片显示了迭代1、9和18中的乘数，我们用红色和棕色表示正值，蓝色表示负值。
+
+ <table align="center">
+  <tr>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.forces.01.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.forces.09.png" alt="">
+    </td>
+    <td valign="top">
+      <img src="https://www.dealii.org/images/steps/developer/step-41.forces.18.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      Iteration 1
+    </td>
+    <td align="center">
+      Iteration 9
+    </td>
+    <td align="center">
+      Iteration 18
+    </td>
+  </tr>
+</table> 
+
+很容易看出，正值在接触集的内部很好地收敛为适度的值，在台阶的边缘有很大的向上的力，正如人们所期望的那样（以支持那里的膜的大曲率）；在活动集的边缘，乘数最初是负的，导致集合缩小，直到在迭代18，不再有负的乘数，算法已经收敛了。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+与本教程的任何程序一样，有许多明显的扩展和实验的可能性。第一个很清楚：引入自适应性。接触问题是自适应网格的主要候选者，因为解决方案有沿着它不太规则的线（膜和障碍物之间建立接触的地方）和解决方案非常光滑的其他区域（或者，在目前的情况下，在它与障碍物接触的地方是恒定的）。在目前的程序中加入这一点应该不会造成太多困难，但要为此找到一个好的误差估计器并非易事。
+
+一个更具挑战性的任务是扩展到3D。这里的问题不是简单地让一切都在三维中运行。相反，当一个三维物体变形并与一个障碍物接触时，障碍物并不像这里的情况那样在域内作为一个约束体的力量发挥作用。相反，接触力只作用于物体的边界。那么不等式就不在微分方程中，而实际上在（诺伊曼型）边界条件中，尽管这导致了一种类似的变分不等式。在数学上，这意味着拉格朗日乘数只存在于表面，当然，如果方便的话，它也可以通过零扩展到域中。在目前的程序中，人们不需要明确地形成和存储这个拉格朗日乘数。
+
+对于三维案例来说，另一个有趣的问题是考虑有摩擦的接触问题。在几乎每个机械过程中，摩擦都有很大的影响。为了建模，我们必须考虑到接触面的切向应力。我们还必须注意到，摩擦给我们的问题增加了另一个非线性。
+
+另一个不简单的修改是实现一个更复杂的构成法则，如非线性弹性或弹塑性材料行为。这里的困难在于如何处理通过非线性构成法产生的额外非线性。
+
+

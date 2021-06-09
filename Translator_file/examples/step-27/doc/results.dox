@@ -1,0 +1,101 @@
+examples/step-27/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+在这一节中，我们讨论了运行当前教程程序所产生的一些结果。更多的结果，特别是对三维计算的扩展和确定程序的各个部分需要多少计算时间，在 @ref hp_paper "hp-paper "中给出。
+
+当运行时，这是该程序产生的结果。
+
+@code
+> make run
+[ 66%] Built target step-27
+[100%] Run step-27 with Release configuration
+Cycle 0:
+   Number of active cells      : 768
+   Number of degrees of freedom: 3264
+   Number of constraints       : 384
+Cycle 1:
+   Number of active cells      : 807
+   Number of degrees of freedom: 4764
+   Number of constraints       : 756
+Cycle 2:
+   Number of active cells      : 927
+   Number of degrees of freedom: 8226
+   Number of constraints       : 1856
+Cycle 3:
+   Number of active cells      : 978
+   Number of degrees of freedom: 12146
+   Number of constraints       : 2944
+Cycle 4:
+   Number of active cells      : 1104
+   Number of degrees of freedom: 16892
+   Number of constraints       : 3998
+Cycle 5:
+   Number of active cells      : 1149
+   Number of degrees of freedom: 22078
+   Number of constraints       : 5230
+@endcode
+
+
+
+我们从中了解到的第一件事是，受限自由度的数量是总自由度的20-25%，至少在后来的网格上，当我们有相对高阶的元素时（在三维中，受限自由度的比例可以达到30%）。事实上，这与非 $hp$ 分化的数量级相同。例如，在第6步程序的最后一步，我们有18353个自由度，其中4432个是受约束的。不同的是，在后一个程序中，每个受约束的悬挂节点只对相邻的两个自由度进行约束，而在 $hp$ -案例中，受约束的节点对许多自由度进行约束。还要注意的是，目前的程序在约束列表中还包括受迪里希特边界条件约束的节点。在第0周期中，所有的约束实际上都是因为边界条件。
+
+也许更感兴趣的是看一下图形输出。首先，这是该问题的解决方案。
+
+<img src="https://www.dealii.org/images/steps/developer/step-27-solution.png" alt="解决方案的立面图，显示出在内部（再入）角落附近缺乏规则性。" width="200" height="200">
+
+其次，让我们看看生成网格的顺序。
+
+<div class="threecolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.mesh-00.svg" alt="包含无适应性细化的再入角的三角图。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.mesh-01.svg" alt="包含有一级细化的再入角的三角图。新的单元格被放置在角落附近。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.mesh-02.svg" alt="包含具有两级细化的重入角的三角图。新的单元格被放置在角落附近。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.mesh-03.svg" alt="包含三层细化的重入角的三角图。新的单元格被放置在角落附近。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.mesh-04.svg" alt="含有四级细化的重入角的三角图。新的单元格被放置在角落附近。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.mesh-05.svg" alt="包含有五级细化的重入角的三角图。新的单元被放置在角附近。" width="200" height="200"> </div> </div> </div>
+
+我们可以清楚地看到，在角部奇点附近的网格是如何被细化的，正如我们所期望的那样。更有趣的是，我们应该好奇地看看这些网格单元的有限元多项式的度数分布，其中最浅的颜色对应于度数2，最深的对应于度数7。
+
+<div class="threecolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.fe_degree-00.svg" alt="初始网格，所有单元格只包含双二次函数。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.fe_degree-01.svg" alt="一次细化后的局部近似度描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.fe_degree-02.svg" alt="两次细化后的局部近似度描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.fe_degree-03.svg" alt="三次细化后的局部近似度描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.fe_degree-04.svg" alt="四次细化后的局部近似度描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.fe_degree-05.svg" alt="五次细化后的局部近似度描述。" width="200" height="200"> </div> </div>
+
+虽然这肯定不是一个完美的安排，但它确实有一定的意义：我们在靠近边界和角落的地方使用低阶元素，那里的规则性很低。另一方面，在以下情况下使用高阶元素：(i) 误差一度相当大，即主要在角部奇点周围的一般区域和右上角解大的地方；(ii) 解是平滑的，即远离边界的地方。
+
+这种多项式程度的安排当然是由我们的平滑度估计器得出的。这里是对解决方案的平滑度的估计，深色表示最不平滑，浅色表示最平滑的区域。
+
+<div class="threecolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.smoothness-00.svg" alt="初始网格上每个单元的估计规则性。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.smoothness-01.svg" alt="经过一次细化后每个单元的估计规则性的描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.smoothness-02.svg" alt="经过两次细化后每个单元估计规则性的描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.smoothness-03.svg" alt="经过三次细化后每个单元格的估计规则性的描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.smoothness-04.svg" alt="经过四次细化后每个单元格的估计规则性的描述。" width="200" height="200"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-27.smoothness-05.svg" alt="经过五次细化后每个单元格的估计规则性的描述。" width="200" height="200"> </div> </div>
+
+从这里可以得出的主要结论是，内角的规则性损失是一个高度局部的现象；它似乎只影响到与角本身相邻的单元，所以当我们细化网格时，黑色的颜色不再可见。除了角部，这一连串的图示意味着平滑度估计在某种程度上与网格细化无关，特别是当我们远离边界时。同样明显的是，平滑度估计值与解的实际尺寸无关（见上面的解的图片），这也是应该的。然而，更值得关注的一点是，人们在仔细观察后发现，我们的估计器高估了有悬空节点的单元格的解决方案的平滑度。这反过来又导致了这些区域的多项式度数更高，使有限元在单元上的分配出现偏差。
+
+对于这种效果，我们目前还没有很好的解释。一种理论是，在有悬挂节点的单元上的数值解当然是受限制的，因此不能完全自由地探索函数空间以接近精确解。这种自由度的缺乏可能表现为在这些单元上产生具有抑制振荡的数值解，意味着更高的平滑度。估计器会捕捉到这个信号，估计的平滑度会高估实际值。然而，这个程序的作者目前还没有得到关于发生了什么的明确答案。
+
+当然，更大的问题是如何避免这个问题。可能的做法包括不是在单个细胞上估计平滑度，而是在每个细胞周围的细胞集合体或斑块上估计平滑度。也可能为每个细胞找到简单的校正因子，这取决于它所拥有的受限自由度的数量。无论哪种情况，都有大量的机会来进一步研究寻找好的 $hp$ -精化标准。另一方面，目前方案的主要内容是在deal.II中演示使用 $hp$ -技术，这不受我们使用可能的次优细化标准的影响。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Different hp-decision strategies</h4>
+
+本教程只演示了决定 $h$ -和 $p$ -适应的一个特殊策略。事实上，还有许多自动决定适应类型的方法，其中一些已经在deal.II中实现：  <ul>   <li>  <i>Fourier coefficient decay:</i> 这是本教程中目前实现的策略。有关该策略的更多信息，请参见 SmoothnessEstimator::Fourier 命名空间的一般文档。 </li> 
+
+    <li>  <i>Legendre coefficient decay:</i> 这个策略与目前的策略很相似，但使用了Legendre级数扩展，而不是傅里叶级数：这个策略使用Legendre多项式，而不是正弦波作为基础函数。当然，由于我们在每个单元上使用有限维度的多项式来近似解，因此解在Legendre多项式中的扩展也是有限的，因此，当我们谈论这个扩展的 "衰减 "时，我们只能考虑这个扩展的有限多个非零系数，而不是用渐进的方式来思考。   但是，如果我们有足够多的这些系数，我们当然可以把这些系数的衰减看作是精确解的系数衰减的特征（一般来说，精确解不是多项式的，所以会有一个无限的Legendre扩展），考虑我们拥有的系数应该可以揭示一些关于精确解的特性。
+
+  从傅里叶策略过渡到Legendre策略是非常简单的。   你只需要改变序列扩展类和相应的平滑度估计函数，使其成为适当命名空间 FESeries::Legendre 和 SmoothnessEstimator::Legendre. 的一部分，这个策略在step-75中使用。关于这个策略的理论背景，请参考 SmoothnessEstimator::Legendre 命名空间的一般文档，以及 @cite mavriplis1994hp 、 @cite eibner2007hp 和 @cite davydov2017hp  。 </li> 
+
+    <li>  <i>Refinement history:</i> 最后一种策略与其他两种截然不同。在理论上，我们知道在改变函数空间离散化后，误差将如何收敛。用 $h$ -细化，解会以代数方式收敛，正如在步骤7中已经指出的。不过，如果解足够平滑，我们预计解将随着有限元的多项式程度的增加而指数级收敛。我们可以在下面的步骤中把对误差的正确预测与实际误差进行比较，看看我们对适应类型的选择是否合理。
+
+  向这一策略的过渡要复杂一些。为此，我们需要一个纯 $h$ -或 $p$ -细化的初始化步骤，我们需要将预测的误差转移到适应的网格上。 hp::Refinement::predict_error() 函数的大量文档不仅描述了这种方法的理论细节，而且还介绍了如何在你的代码中实现这种策略的蓝图。欲了解更多信息，请参见  @cite melenk2001hp  。
+
+  请注意，用这个特殊的函数，你无法预测时间依赖性问题的下一个时间步骤的误差。因此，这种策略不能不加思索地应用于这种类型的问题。另外，也可以使用下面的方法，这也适用于所有其他的策略：从每个时间步长的粗网格开始，不断细化，直到对结果满意，然后才进入下一个时间步长。 </li>   </ul> 。
+
+试着在本教程中实施这些策略之一，观察结果的微妙变化。你会注意到，所有的策略都能够识别重心角附近的奇点，并在这些区域执行 $h$ -精简，而在体域中更倾向于 $p$ -精简。这些策略的详细比较见 @cite fehling2020  。
+
+
+
+
+<h4>Parallel hp-adaptive finite elements</h4>
+
+本教程中介绍的所有功能都已经适用于顺序和并行应用。不费吹灰之力就可以改成 parallel::shared::Triangulation 或 parallel::distributed::Triangulation 类。如果你觉得急于尝试，我们建议先阅读前者的第18步和后者的第40步，以进一步了解该主题的背景信息，然后再回到本教程来尝试你新获得的技能。
+
+我们在第75步中更进一步：在这里，我们将hp-adapative和MatrixFree方法与 parallel::distributed::Triangulation 对象结合在一起。
+
+

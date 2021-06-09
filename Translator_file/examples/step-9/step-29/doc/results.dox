@@ -1,0 +1,173 @@
+examples/step-29/doc/results.dox
+
+<a name="Results"></a>
+
+<h1>Results</h1>
+
+当前程序从一个名为 <code>\step-29.prm</code> 的输入文件中读取其运行时参数，该文件看起来像这样。
+
+@code
+subsection Mesh & geometry parameters
+  # Distance of the focal point of the lens to the x-axis
+  set Focal distance        = 0.3
+
+
+  # Number of global mesh refinement steps applied to initial coarse grid
+  set Number of refinements = 5
+end
+
+
+
+subsection Physical constants
+  # Wave speed
+  set c     = 1.5e5
+
+
+  # Frequency
+  set omega = 3.0e7
+end
+
+
+
+subsection Output parameters
+  # Name of the output file (without extension)
+  set Output file   = solution
+
+
+  # A name for the output format to be used
+  set Output format = vtu
+end
+@endcode
+
+
+
+可以看出，我们设置了 $d=0.3$  ，相当于换能器镜头的焦点在 $x=0.5$  ， $y=0.3$  。粗略的网格被细化了5次，结果是160x160个单元，输出结果以vtu格式写入。参数读取器可以理解更多的参数，特别是与输出的生成有关的参数，但是我们在这里不需要这些参数，因此坚持使用其默认值。
+
+这是调试模式下程序的控制台输出。
+
+@code
+> make run
+[ 66%] Built target step-29
+[100%] Run step-29 with Debug configuration
+Generating grid... done (0.820449s)
+  Number of active cells:  25600
+Setting up system... done (1.18392s)
+  Number of degrees of freedom: 51842
+Assembling system matrix... done (2.33291s)
+Solving linear system... done (1.34837s)
+Generating output... done (2.05782s)
+[100%] Built target run
+@endcode
+
+
+
+(当然，如果你在本地运行该程序，执行时间会有所不同。)事实上，大部分时间花在组装系统矩阵和生成输出上是由于在调试模式下需要检查许多断言。在发布模式下，程序的这些部分运行得更快，而求解线性系统的速度几乎没有加快。
+
+@code
+> make run
+[ 66%] Built target step-29
+Scanning dependencies of target run
+[100%] Run step-29 with Release configuration
+DEAL::Generating grid... done (0.0144960s)
+DEAL::  Number of active cells:  25600
+DEAL::Setting up system... done (0.0356880s)
+DEAL::  Number of degrees of freedom: 51842
+DEAL::Assembling system matrix... done (0.0436570s)
+DEAL::Solving linear system... done (1.54733s)
+DEAL::Generating output... done (0.720528s)
+[100%] Built target run
+@endcode
+
+
+
+程序的图形输出看起来如下。
+
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-29.v.png" alt="v = Re(u)">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-29.w.png" alt="w = Im(u)">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <img src="https://www.dealii.org/images/steps/developer/step-29.intensity.png" alt="|u|">
+    </td>
+  </tr>
+</table> 
+
+前两张图片显示了 $u$ 的实部和虚部，而最后一张显示了强度 $|u|$ 。我们可以清楚地看到，强度集中在镜头的焦点周围（0.5，0.3），焦点在 $x$ -方向上相当尖锐，但在 $y$ -方向上更加模糊，这是聚焦镜头的几何形状、其有限孔径和问题的波性的结果。
+
+因为五颜六色的图形总是很有趣，而且为了进一步强调聚焦效果，这里还有一组图片，强调了强度在 $x$ -方向上的实际聚焦效果。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-29.surface.png" alt="|u|">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-29.contours.png" alt="|u|">
+    </td>
+  </tr>
+</table> 
+
+
+最后，程序的结构使我们很容易确定程序的哪些部分可以随着网格的细化而很好地扩展，哪些部分不可以。下面是5、6、7次全局细化的运行时间。
+
+@code
+> make run
+[ 66%] Built target step-29
+[100%] Run step-29 with Release configuration
+DEAL::Generating grid... done (0.0135260s)
+DEAL::  Number of active cells:  25600
+DEAL::Setting up system... done (0.0213910s)
+DEAL::  Number of degrees of freedom: 51842
+DEAL::Assembling system matrix... done (0.0414300s)
+DEAL::Solving linear system... done (1.56621s)
+DEAL::Generating output... done (0.729605s)
+[100%] Built target run
+
+
+> make run
+[ 66%] Built target step-29
+[100%] Run step-29 with Release configuration
+DEAL::Generating grid... done (0.0668490s)
+DEAL::  Number of active cells:  102400
+DEAL::Setting up system... done (0.109694s)
+DEAL::  Number of degrees of freedom: 206082
+DEAL::Assembling system matrix... done (0.160784s)
+DEAL::Solving linear system... done (7.86577s)
+DEAL::Generating output... done (2.89320s)
+[100%] Built target run
+
+
+> make run
+[ 66%] Built target step-29
+[100%] Run step-29 with Release configuration
+DEAL::Generating grid... done (0.293154s)
+DEAL::  Number of active cells:  409600
+DEAL::Setting up system... done (0.491301s)
+DEAL::  Number of degrees of freedom: 821762
+DEAL::Assembling system matrix... done (0.605386s)
+DEAL::Solving linear system... done (45.1989s)
+DEAL::Generating output... done (11.2292s)
+[100%] Built target run
+@endcode
+
+
+
+每次我们细化一次网格，所以每一步的单元和自由度的数量大约是四倍。可以看出，生成网格、设置自由度、组装线性系统和生成输出的规模相当接近于线性，而求解线性系统的操作，自由度的数量每增加4倍，就需要8倍的时间，也就是说，它是 ${\cal O}(N^{3/2})$  。这可以解释为（使用最优排序）有限元矩阵的带宽是  $B={\cal O}(N^{(dim-1)/dim})$  ，而使用LU分解解决带状线性系统的努力是  ${\cal O}(BN)$  。这也解释了为什么该程序也能在3D中运行（在改变了 <code>UltrasoundProblem</code> 对象的维度后），但其扩展性很差，需要非常耐心才能完成对具有明显分辨率的网格上的线性系统的求解，尽管该程序的其他部分的扩展性非常好。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+这个程序的一个明显的可能的扩展是在3D中运行它&mdash；毕竟，我们周围的世界是三维的，而超声束在三维介质中传播。你可以通过简单地改变 <code>main()</code> 中主类的模板参数并运行它来尝试。但这不会让你走得很远：当然，如果你按照参数文件中的设置做5个全局细化步骤，就更不会了。你的内存会耗尽，因为网格（含 $(2^5)^3 \cdot 5^3=2^{15}\cdot 125 \approx 4\cdot 10^6$ 单元），特别是稀疏直接求解器会占用太多的内存。然而，如果你有时间的话，你可以用3个全局细化步骤来求解：在2011年初，直接求解大约需要半个小时。然而，你会注意到，这个解是完全错误的：网格大小根本不够小，不能准确地解决解的波浪，你可以在解的图中看到这一点。因此，在这种情况下，如果你不想在这个问题上扔一个更大的（估计是%并行的）机器，那么自适应性是必不可少的。
+
+

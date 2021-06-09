@@ -1,0 +1,256 @@
+examples/step-3/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+ @dealiiVideoLecture{10} 
+
+<h3>The basic set up of finite element methods</h3>
+
+这是第一个我们实际使用有限元来计算的例子。我们将解决一个简单的泊松方程，其边界值为零，但右手边非零。
+
+@f{align*}
+
+
+  -\Delta u &= f \qquad\qquad & \text{in}\ \Omega,
+  \\
+  u &= 0 \qquad\qquad & \text{on}\ \partial\Omega.
+
+
+@f}
+
+我们将在正方形 $\Omega=[-1,1]^2$ 上求解这个方程，你已经在步骤1和步骤2中学习了如何生成网格。在这个程序中，我们也将只考虑 $f(\mathbf x)=1$ 这个特殊情况，并在下一个教程程序中再来讨论如何实现更一般的情况，即步骤4。
+
+如果你学过有限元方法的基本知识，你会记得我们需要采取的步骤，用有限维度的近似方法来近似解 $u$ 。具体来说，我们首先需要推导出上述方程的弱形式，通过将方程乘以测试函数 $\varphi$ <i>from the left</i>（我们将在下面回到从左而非从右相乘的原因）并在域 $\Omega$ 上积分得到。
+
+@f{align*}
+
+
+  -\int_\Omega \varphi \Delta u = \int_\Omega \varphi f.
+
+
+@f}
+
+这可以通过部件进行整合。
+
+@f{align*}
+  \int_\Omega \nabla\varphi \cdot \nabla u
+
+
+  -
+  \int_{\partial\Omega} \varphi \mathbf{n}\cdot \nabla u
+   = \int_\Omega \varphi f.
+
+
+@f}
+
+测试函数 $\varphi$ 必须满足同样的边界条件（用数学术语来说：它需要来自我们寻求解决方案的集合的切线空间），因此在边界上 $\varphi=0$ ，因此我们正在寻找的弱形式为
+
+@f{align*}
+  (\nabla\varphi, \nabla u)
+   = (\varphi, f),
+
+
+@f}
+
+其中我们使用了常用的符号  $(a,b)=\int_\Omega a\; b$  。然后，问题要求从适当的空间（这里是空间 $H^1$ ）中找出一个函数 $u$ ，对于该函数，这一声明对于所有测试函数 $\varphi$ 都是真的。
+
+当然，在一般情况下，我们无法在计算机上找到这样的函数，而是寻求一个近似值 $u_h(\mathbf x)=\sum_j U_j \varphi_j(\mathbf
+x)$  ，其中 $U_j$ 是我们需要确定的未知膨胀系数（这个问题的 "自由度"）， $\varphi_i(\mathbf x)$ 是我们将使用的有限元形状函数。为了定义这些形状函数，我们需要以下内容。
+
+- 一个用来定义形状函数的网格。你已经看到如何在步骤1和步骤2中生成和操作描述网格的对象。
+
+- 一个描述我们想在参考单元上使用的形状函数的有限元（在deal.II中总是单位间隔 $[0,1]$ 、单位正方形 $[0,1]^2$ 或单位立方体 $[0,1]^3$ ，取决于你在哪个空间维度工作）。在步骤2中，我们已经使用了FE_Q<2>类型的对象，它表示通常的拉格朗日元素，通过对支持点的插值来定义形状函数。最简单的是FE_Q<2>(1)，它使用1度的多项式。在2D中，这些通常被称为<i>bilinear</i>，因为它们在参考单元的两个坐标中都是线性的。(在1d中，它们是<i>linear</i>，在3d中是<i>tri-linear</i>；然而，在deal.II文档中，我们经常不做这种区分，而总是简单地称这些函数为 "线性"。)
+
+- 一个DoFHandler对象，以有限元对象提供的参考单元描述为基础，枚举网格上的所有自由度。你也已经在步骤2中看到了如何做到这一点。
+
+- 一个映射，告诉你如何从参考单元上的有限元类定义的形状函数中获得实数单元上的形状函数。默认情况下，除非你明确说明，否则deal.II将使用（双，三）线性映射，所以在大多数情况下，你不必担心这个步骤。
+
+通过这些步骤，我们现在有一组函数 $\varphi_i$ ，我们可以定义离散问题的弱形式：找到一个函数 $u_h$ ，即找到上面提到的扩展系数 $U_j$ ，以便
+
+@f{align*}
+  (\nabla\varphi_i, \nabla u_h)
+   = (\varphi_i, f),
+   \qquad\qquad
+   i=0\ldots N-1.
+
+
+@f}
+
+请注意，我们在此遵循惯例，即一切从零开始计算，这在C和C++中很常见。如果你插入表示法 $u_h(\mathbf x)=\sum_j U_j
+\varphi_j(\mathbf x)$ ，这个方程可以重写为一个线性系统，然后观察到
+
+@f{align*}{
+  (\nabla\varphi_i, \nabla u_h)
+  &= \left(\nabla\varphi_i, \nabla \Bigl[\sum_j U_j \varphi_j\Bigr]\right)
+\\
+  &= \sum_j \left(\nabla\varphi_i, \nabla \left[U_j \varphi_j\right]\right)
+\\
+  &= \sum_j \left(\nabla\varphi_i, \nabla \varphi_j \right) U_j.
+
+
+@f}
+
+有了这个，问题就成了。找到一个向量 $U$ ，以便
+
+@f{align*}{
+  A U = F,
+
+
+@f}
+
+其中矩阵 $A$ 和右手边 $F$ 定义为
+
+@f{align*}
+  A_{ij} &= (\nabla\varphi_i, \nabla \varphi_j),
+  \\
+  F_i &= (\varphi_i, f).
+
+
+@f}
+
+
+
+
+
+
+<h3> Should we multiply by a test function from the left or from the right? </h3>
+
+在我们继续描述如何计算这些数量之前，请注意，如果我们从<i>right</i>乘以一个测试函数而不是从左边乘以原方程，那么我们将得到一个形式为的线性系统
+
+@f{align*}
+  U^T A = F^T
+
+
+@f}
+
+有一个行向量  $F^T$  。通过转置这个系统，这当然等同于解决了
+
+@f{align*}
+  A^T U = F
+
+
+@f}
+
+这里与上面的 $A=A^T$ 相同。但一般来说不是，为了避免任何形式的混淆，经验表明，只要养成从左边而不是从右边乘方程的习惯（正如数学文献中经常做的那样），就可以避免一类常见的错误，因为在比较理论和实现时，矩阵会自动正确，不需要转置。本教程的第一个例子见第9步，我们有一个非对称的双线性方程，对于这个方程，我们从右面还是从左面相乘是有区别的。
+
+
+
+
+<h3> Computing the matrix and right hand side vector </h3>
+
+现在我们知道我们需要什么（即：持有矩阵和向量的对象，以及计算 $A_{ij},F_i$ 的方法），我们可以看看需要什么来实现这一点。
+
+-  $A$ 的对象是SparseMatrix类型，而 $U$ 和 $F$ 的对象则是Vector类型。我们将在下面的程序中看到哪些类是用来解决线性系统的。
+
+- 我们需要一种方法来形成积分。在有限元方法中，最常见的是使用正交法，也就是说，积分被每个单元上的一组点的加权和所取代。也就是说，我们首先将 $\Omega$ 的积分分成所有单元的积分，@f{align*}
+    A_{ij} &= (\nabla\varphi_i, \nabla \varphi_j)
+    = \sum_{K \in {\mathbb T}} \int_K \nabla\varphi_i \cdot \nabla \varphi_j,
+    \\
+    F_i &= (\varphi_i, f)
+    = \sum_{K \in {\mathbb T}} \int_K \varphi_i f,
+  @f}
+
+  然后用正交法对每个单元的贡献进行近似。   @f{align*}
+    A^K_{ij} &=
+    \int_K \nabla\varphi_i \cdot \nabla \varphi_j
+    \approx
+    \sum_q \nabla\varphi_i(\mathbf x^K_q) \cdot \nabla
+    \varphi_j(\mathbf x^K_q) w_q^K,
+    \\
+    F^K_i &=
+    \int_K \varphi_i f
+    \approx
+    \sum_q \varphi_i(\mathbf x^K_q) f(\mathbf x^K_q) w^K_q,
+  @f}
+
+  其中 $\mathbf x^K_q$ 是 $q$ 单元上的第三个正交点 $K$ ， $w^K_q$ 是 $q$ 的正交权。这样做需要有不同的部分，接下来我们将依次讨论它们。
+
+- 首先，我们需要一种方法来描述正交点的位置  $\mathbf x_q^K$  和它们的权重  $w^K_q$  。它们通常以与形状函数相同的方式从参考单元映射出来，即隐含地使用MappingQ1类，或者，如果你明确地说，通过从Mapping派生的其他类之一。参考单元上的位置和权重由派生自正交基类的对象来描述。通常，人们选择一个正交公式（即一组点和权重），使正交正好等于矩阵中的积分；这可以实现，因为积分中的所有因子都是多项式，由高斯正交公式完成，在QGauss类中实现。
+
+- 然后我们需要一些东西来帮助我们在 $K$ 单元上评估 $\varphi_i(\mathbf x^K_q)$ 。这就是FEValues类的作用：它需要一个有限元对象来描述参考单元上的 $\varphi$ ，一个正交对象来描述正交点和权重，以及一个映射对象（或隐含地采用MappingQ1类），并在位于 $K$ 的正交点上提供形状函数的值和导数，以及积分所需的各种其他信息。
+
+FEValues确实是装配过程中的核心类。你可以这样看待它。FiniteElement和派生类描述了形状<i>functions</i>，即无限维度的对象：函数在每一点都有值。由于理论上的原因，我们需要这样做，因为我们想用函数的积分来进行分析。然而，对于计算机来说，这是一个非常困难的概念，因为它们一般只能处理有限的信息量，所以我们用正交点上的和来代替积分，我们通过使用定义在参考单元（正交对象）上的点映射（映射对象）到真实单元上的点来获得。实质上，我们将问题简化为我们只需要有限的信息，即形状函数值和导数、正交权重、法向量等，只需要在有限的点集合上。FEValues类就是将这三个部分结合在一起，并在一个特定的单元上提供这个有限的信息集  $K$  。当我们组装下面的线性系统时，你会看到它的作用。
+
+值得注意的是，如果你只是在应用程序中自己创建这三个对象，并自己处理这些信息，那么所有这些也都可以实现。然而，这样做既不简单（FEValues类提供的正是你实际需要的信息），也不快：FEValues类经过高度优化，只在每个单元中计算你需要的特定信息；如果有任何东西可以从上一个单元中重复使用，那么它就会这样做，而且该类中有很多代码可以确保在有利的地方进行缓存。
+
+这个介绍的最后一块是要提到，在得到一个线性系统后，要用迭代求解器进行求解，然后进行后处理：我们用DataOut类创建一个输出文件，然后可以用一个常见的可视化程序进行可视化。
+
+ @note  前面对任何有限元实现的所有重要步骤的概述，在deal.II中也有对应的内容：该库可以自然地归纳为若干 "模块"，涵盖刚才概述的基本概念。你可以通过本页面顶部的标签访问这些模块。在<a href="index.html">front page of the deal.II manual</a>上也有对最基本的概念组的概述。
+
+
+
+
+<h3>About the implementation</h3>
+
+虽然这是你能用有限元方法解决的最简单的方程，但这个程序显示了大多数有限元程序的基本结构，也是几乎所有下面的程序基本上都会遵循的模板。具体来说，这个程序的主类看起来像这样。
+
+@code
+class Step3
+{
+  public:
+    Step3 ();
+    void run ();
+
+
+  private:
+    void make_grid ();
+    void setup_system ();
+    void assemble_system ();
+    void solve ();
+    void output_results () const;
+
+
+    Triangulation<2>     triangulation;
+    FE_Q<2>              fe;
+    DoFHandler<2>        dof_handler;
+
+
+    SparsityPattern      sparsity_pattern;
+    SparseMatrix<double> system_matrix;
+    Vector<double>       solution;
+    Vector<double>       system_rhs;
+};
+@endcode
+
+
+
+这遵循了<a
+href="http://en.wikipedia.org/wiki/Encapsulation_(object-oriented_programming)">data
+encapsulation</a>的面向对象编程口号，也就是说，我们尽力将这个类的几乎所有内部细节隐藏在外部无法访问的私有成员中。
+
+让我们从成员变量开始。这些遵循我们在上面的要点中所概述的构建模块，即我们需要一个三角形和一个DoFHandler对象，以及一个描述我们想要使用的各种形状函数的有限元对象。第二组对象与线性代数有关：系统矩阵和右手边以及解向量，还有一个描述矩阵稀疏模式的对象。这就是这个类所需要的全部内容（也是任何静止PDE的求解器所需要的基本内容），并且需要在整个程序中存活。与此相反，我们在装配时需要的FEValues对象只在整个装配过程中需要，因此我们在进行装配的函数中把它作为一个局部对象来创建，并在结束时再次销毁它。
+
+其次，让我们来看看成员函数。这些，也已经构成了几乎所有下面的教程程序都会使用的共同结构。   <ul>   <li>   <code>make_grid()</code>  : 这就是人们所说的<i>preprocessing function</i>。顾名思义，它设置了存储三角图的对象。在以后的例子中，它还可以处理边界条件、几何形状等。     <li>   <code>setup_system()</code>  : 这是一个函数，其中设置了解决问题所需的所有其他数据结构。特别是，它将初始化DoFHandler对象并正确确定与线性代数有关的各种对象的大小。这个函数通常与上面的预处理函数分开，因为在一个与时间相关的程序中，每当网格被自适应细化时（我们将在步骤6中看到如何做），它可能至少每隔几个时间步就会被调用。另一方面，在上面的预处理函数中，设置网格本身只在程序开始时进行一次，因此，它被分离成自己的函数。     <li>   <code>assemble_system()</code>  : 这就是计算矩阵和右手边的内容的地方，在上面的介绍中已经详细讨论过。由于对这个线性系统进行处理在概念上与计算其条目有很大不同，我们将其与以下函数分开。     <li>   <code>solve()</code>  : 这就是我们计算线性系统 $U$ 的解的函数。在当前的程序中，这是一个简单的任务，因为矩阵是如此简单，但只要问题不再那么微不足道，它就会成为程序规模的重要部分（例如，一旦你对库有了更多的了解，请参阅步骤20，步骤22，或步骤31）。     <li>   <code>output_results()</code>  : 最后，当你计算出一个解决方案后，你可能想用它做一些事情。例如，你可能想以可视化的格式输出它，或者你可能想计算你感兴趣的量：例如，热交换器中的热通量、机翼的空气摩擦系数、最大桥梁载荷，或者仅仅是某一点上的数值解的值。因此，这个函数是对你的解进行后处理的地方。   </ul> 所有这些都是由单一的公共函数（除构造函数外），即 <code>run()</code> 函数来支撑的。它是在创建这种类型的对象的地方被调用的，它是按正确顺序调用所有其他函数的函数。把这个操作封装到 <code>run()</code> 函数中，而不是从 <code>main()</code> 中调用所有其他函数，确保你可以改变这个类中的关注点分离的实现方式。例如，如果其中一个函数变得太大了，你可以把它分成两个，而你唯一需要关注的地方就是这个类中的变化，而不是其他地方。
+
+如上所述，你会看到这种一般的结构&mdash；有时在函数名称的拼写上会有一些变化，但基本上是按照这种功能分离的顺序&mdash；在下面的许多教程程序中也是如此。
+
+
+
+
+<h3> A note on types </h3>
+
+deal.II通过命名空间 dealii::types. 中的别名定义了一些积分%类型（在前一句中，"积分 "一词被用作与名词 "整数 "相对应的<i>adjective</i>。它不应该与表示曲线或曲面下的面积或体积的<i>noun</i>"积分 "混淆起来。形容词 "积分 "在C++世界中被广泛使用，如 "积分类型"、"积分常数 "等。）特别是，在这个程序中，你会在几个地方看到 types::global_dof_index ：一个整数类型，用来表示自由度的<i>global</i>索引，即在定义在三角形之上的DoFHandler对象中特定自由度的索引（而不是特定单元中的特定自由度的索引）。对于当前的程序（以及几乎所有的教程程序），你将有几千个到几百万个全局未知数（而且，对于 $Q_1$ 元素，你将有4个<i>locally on each cell</i>的2D和8个3D）。因此，允许为全局DoF指数存储足够大的数字的数据类型是 <code>unsigned int</code> ，因为它允许存储0到略高于40亿的数字（在大多数系统中，整数是32位的）。事实上，这就是 types::global_dof_index 的作用。
+
+那么，为什么不马上使用 <code>unsigned int</code> 呢？deal.II在7.3版本之前一直是这样做的。然而，deal.II支持非常大的计算（通过步骤40中讨论的框架），当分布在几千个处理器上时，可能有超过40亿个未知数。因此，有些情况下 <code>unsigned int</code> 不够大，我们需要一个64位的无符号积分类型。为了实现这一点，我们引入了 types::global_dof_index ，它默认被定义为<code>unsigned int</code>，而如果有必要，可以通过在配置过程中传递一个特定的标志，将其定义为<code>unsigned long long int</code>（见ReadMe文件）。
+
+这涵盖了技术方面。但是还有一个文档的目的：在图书馆和建立在它之上的代码中，如果你看到一个地方使用数据类型 types::global_dof_index, ，你就会立即知道被引用的数量实际上是一个全局dof指数。如果我们只是使用 <code>unsigned int</code> （它也可能是一个局部索引，一个边界指示器，一个材料ID，等等），就不会有这样的意义了。立即知道一个变量指的是什么也有助于避免错误：如果你看到一个 types::global_dof_index 类型的对象被分配给 types::subdomain_id, 类型的变量，这很明显一定有一个错误，尽管它们都是用无符号整数表示，因此编译器不会抱怨。
+
+在更实际的情况下，这种类型的存在意味着在装配过程中，我们创建一个 $4\times 4$ 矩阵（在2d中，使用 $Q_1$ 元素）来表示我们当前所在单元的贡献，然后我们需要将这个矩阵的元素添加到全局（系统）矩阵的相应元素中。为此，我们需要获得当前单元的局部自由度的全局指数，为此我们将始终使用下面这段代码。
+
+@code
+  cell->get_dof_indices (local_dof_indices);
+@endcode
+
+其中 <code>local_dof_indices</code> 被声明为
+
+@code
+  std::vector<types::global_dof_index> local_dof_indices (fe.n_dofs_per_cell());
+@endcode
+
+这个变量的名字可能有点名不副实--它代表 "在当前单元上局部定义的那些自由度的全局指数"--但持有这种信息的变量在整个库中普遍是这样命名的。
+
+ @note   types::global_dof_index  并不是这个命名空间中定义的唯一类型。相反，有一整个系列，包括 types::subdomain_id,  types::boundary_id, 和 types::material_id. 所有这些都是整数数据类型的别名，但正如上面所解释的，它们被用于整个库，以便（i）变量的意图变得更容易辨别，以及（ii）如果有必要，可以将实际类型改为一个更大的类型，而不必翻阅整个库，找出 <code>unsigned int</code> 的特定使用是否对应于，例如，一个材料指标。
+
+

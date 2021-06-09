@@ -1,0 +1,123 @@
+examples/step-68/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by
+Bruno Blais (Polytechnique Montréal),
+Toni El Geitani Nehme (Polytechnique Montréal),
+Rene Gassmöller (University of California Davis),
+and Peter Munch (Technical University of Munich and Helmholtz-Zentrum Geesthacht).
+Bruno Blais was supported by NSERC Discovery grant
+RGPIN-2020-04510, by Compute Canada and Calcul Québec.
+</i>
+
+<h1>Introduction</h1>
+
+<h3>Simulation of the motion of massless tracer particles in a vortical flow</h3>
+
+粒子在大量应用的数值模型中发挥着重要作用。粒子通常被用作无质量追踪器，以显示瞬时流动的动态。它们也可以作为更复杂的有限元模型的一部分发挥固有的作用，如颗粒在细胞中（PIC）方法 @cite GLHPW2018 ，或者它们甚至可以用来模拟颗粒物质的运动，如离散元素法（DEM） @cite Blais2019  。在DEM的情况下，所产生的模型不再与有限元方法有关，而只是导致了一个描述颗粒运动和它们碰撞动态的常微分方程系统。所有这些模型都可以用deal.II的粒子处理能力来建立。
+
+在本步骤中，我们使用粒子作为无质量的追踪器来说明涡流的动态。由于粒子是无质量追踪器，每个粒子 $i$ 的位置由以下常微分方程（ODE）描述。
+
+@f[
+\frac{d \textbf{x}_i}{dt} =\textbf{u}(\textbf{x}_i)
+
+
+@f]
+
+
+
+其中 $\textbf{x}_i$ 是粒子 $i$ 的位置， $\textbf{u}(\textbf{x}_i)$ 是其位置上的流速。在本步骤中，该ODE使用显式欧拉方法进行求解。由此产生的方案是。
+
+@f[
+\textbf{x}_{i}^{n+1} = \textbf{x}_{i}^{n} + \Delta t \; \textbf{u}(\textbf{x}_{i}^{n})
+
+
+@f]
+
+
+
+其中 $\textbf{x}_{i}^{n+1}$ 和 $\textbf{x}_{i}^{n}$ 分别是粒子 $i$ 在时间 $t+\Delta t$ 和 $t$ 的位置，其中 $\Delta t$ 是时间步骤。在本步骤中，粒子位置的速度以两种不同的方式获得。
+
+- 通过在粒子的位置评估速度函数。
+
+- 通过在背景三角图上评估速度函数，并使用有限元支持，在粒子的位置上进行插值。
+
+第一种方法是不实际的，因为速度曲线一般是不知道的分析。第二种方法，基于在粒子位置的内插解，完全模仿了在现实的计算流体动力学模拟中的做法，这也是我们在步骤19中对粒子位置的有限元解进行评估的方式。在这一步中，我们说明了这两种策略。
+
+我们注意到，通过使用四阶Runge-Kutta方法或其他适当的方案对粒子的运动进行时间积分，可以获得更大的精度。  实施一个更先进的时间积分方案将是这一步骤的直接延伸。
+
+<h3>Particles in deal.II</h3>
+
+在deal.II中， Particles::Particle 是非常简单和灵活的实体，可以用来建立PIC、DEM或任何类型的基于粒子的模型。粒子在现实空间中有一个位置，在它们所在的元素的参考空间中有一个位置，还有一个唯一的ID。在大多数情况下，包含粒子的模拟需要大量的粒子。因此，通过一个聚集所有粒子的实体来处理所有的粒子变得很有趣。在deal.II中，这是通过使用 Particles::ParticleHandler 类来实现的。
+
+默认情况下，粒子没有直径、质量或任何其他我们通常期望的物理粒子的物理属性。然而，通过ParticleHandler，粒子可以访问一个 Particles::PropertyPool. PropertyPool是一个数组，可以用来存储与粒子相关的任意数量的属性。因此，用户可以建立自己的粒子解算器，并将所需的属性归属于粒子（例如，质量、电荷、直径、温度等）。在本教程中，这被用来存储流体速度的值和粒子所属的过程ID。
+
+<h3>Challenges related to distributed particle simulations</h3>
+
+尽管本步骤不是计算密集型的，但包括许多粒子的模拟可能对计算要求很高，需要并行化。本步骤展示了deal.II对粒子的分布式并行能力。一般来说，在包括粒子的平行分布式模拟中，有三个主要挑战。
+
+- 在分布式三角图上生成粒子。
+
+- 在处理器之间交换离开本地域的粒子。
+
+- 对模拟进行负载平衡，使每个处理器都有类似的计算负载。这些挑战及其在交易.II中的解决方案已经在 @cite GLHPW2018 中进行了更详细的讨论，但我们将在下面进行总结。
+
+当然也有关于简单设置使用粒子的代码的问题。这些问题在第19步中已经基本解决了。一些更高级的技术也将在第70步中讨论。
+
+<h4>Parallel particle generation</h4>
+
+以可扩展的方式生成分布式粒子并不简单，因为在找到它们所在的单元之前，必须首先确定它们所属的处理器。 deal.II通过 Particles::Generator 命名空间提供了许多生成粒子的能力。  其中一些粒子生成器只在本地拥有的子域上创建粒子。例如， Particles::Generators::regular_reference_locations() 在本地子域的每个单元内的相同参考位置创建粒子， Particles::Generators::probabilistic_locations() 使用全局定义的概率密度函数来确定本地生成粒子的数量和位置。
+
+在其他情况下，如本步骤，粒子必须在单元格上的特定位置生成，而这些单元格可能只由处理器的一个子集拥有。在大多数这些情况下，粒子的插入是在非常有限的时间步长内完成的，因此，不构成计算成本的很大一部分。对于这些情况，deal.II提供了方便的 Particles::Generators ，可以在全局范围内插入粒子，即使粒子不在启动创建粒子的调用的并行进程所拥有的单元中。生成器首先定位粒子位于哪个子域上，确定它们位于哪个单元中，并在处理器之间交换必要的信息，以确保生成的粒子具有正确的属性。因此，这种类型的粒子生成可能是通信密集型的。 Particles::Generators::dof_support_points 和 Particles::Generators::quadrature_points 分别使用三角法和相关DoFHandler或正交的点来生成粒子。用于生成粒子的三角形可以是用于背景网格的同一三角形，在这种情况下，这些函数与上一段中描述的 Particles::Generators::regular_reference_locations() 函数非常相似。然而，用于生成粒子的三角法也可以与背景网格的三角法不同（不匹配），这对于生成特定形状的粒子（如本例），或者在两个不同的计算网格之间传输信息（如步骤-70）是很有用的。  此外， Particles::ParticleHandler 类提供了 Particles::ParticleHandler::insert_global_particles() 函数，可以从任意点的矢量和边界框的全局矢量中插入粒子。在本步骤中，我们在非匹配三角形上使用 Particles::Generators::quadrature_points() 函数来插入位于圆盘形状位置的粒子。
+
+<h4>Particle exchange</h4>
+
+当粒子在平行分布式计算中移动时，它们可能会离开本地拥有的子域，需要转移到它们的新主人进程中。这种情况可能以两种非常不同的方式出现。首先，如果先前拥有的进程知道丢失的粒子的新主人（例如，因为粒子从一个处理器的本地拥有的单元移动到分布式三角形的相邻的幽灵单元），那么转移可以作为每个进程和新主人之间的点对点通信有效处理。每当粒子被分类到新单元时，这种转移就会自动发生。其次，以前的所有者可能不知道粒子被转移到哪个进程。在这种情况下，粒子被默认丢弃，因为全局搜索所有者的成本很高。步骤19显示了这样一个被丢弃的粒子仍然可以被收集、解释，并可能被用户重新插入。在本例中，我们通过在时间步长上施加一个CFL准则来防止第二种情况，以确保粒子最多会移动到本地进程的幽灵层，因此可以自动发送到邻近的进程。
+
+<h4>Balancing mesh and particle load</h4>
+
+在使用粒子的并行分布式计算中出现的最后一个挑战是平衡计算负荷，即在网格上完成的工作，例如解决有限元问题，和在粒子上完成的工作，例如移动粒子或计算粒子之间或粒子与网格之间的力。默认情况下，例如在步骤40中，deal.II尽可能均匀地将背景网格分配给可用的进程，也就是说，它平衡每个进程上的单元数量。然而，如果一些单元拥有比其他单元多得多的粒子，或者一个单元的粒子比其他单元的粒子计算成本高得多，那么这个问题就不再有效地扩展了（关于我们认为的 "可扩展 "程序的讨论，见 @ref GlossParallelScaling "这个词汇条"）。因此，我们必须应用一种 "负载平衡 "的形式，这意味着我们估计与每个单元及其粒子相关的计算负载。然后，重新划分网格就会考虑到这个综合的计算负荷，而不是单元数的简化假设  @cite GLHPW2018  。
+
+在本节中，我们只讨论了分布式计算中针对粒子的挑战。粒子与有限元解决方案共享的并行挑战（并行输出，网格细化过程中的数据传输）可以用其他例子中已经讨论过的有限元问题的解决方案来解决。
+
+<h3>The testcase</h3>
+
+在本步骤中，我们使用粒子作为无质量的追踪器来说明一个特殊的涡流的动力学：Rayleigh--Kothe涡流。这种流动模式通常被用作界面跟踪方法（如流体体积法和水平集法）的复杂测试案例，因为它导致了流体的强烈旋转和伸长  @cite Blais2013  。
+
+这个Rayleigh-Kothe涡流的流函数 $\Psi$ 被定义为。
+
+@f[
+\Psi = \frac{1}{\pi} \sin^2 (\pi x) \sin^2 (\pi y) \cos \left( \pi \frac{t}{T} \right)
+
+
+@f]
+
+其中 $T$ 为流动的一半周期。二维的速度曲线 (  $\textbf{u}=[u,v]^T$  ) 是 :
+
+@f{eqnarray*}
+   u &=&  - \frac{\partial\Psi}{\partial y} = -2 \sin^2 (\pi x) \sin (\pi y) \cos (\pi y)  \cos \left( \pi \frac{t}{T} \right)\\
+   v &=&  \frac{\partial\Psi}{\partial x} = 2 \cos(\pi x) \sin(\pi x) \sin^2 (\pi y) \cos \left( \pi \frac{t}{T} \right)
+
+
+@f}
+
+
+
+速度曲线在下面的动画中得到说明。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="500" src="https://www.youtube.com/embed/m6hQm7etji8"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+可以看出，由于项 $\cos \left( \pi \frac{t}{T} \right)$ 的存在，这个速度会周期性地逆转，材料在每一个长度为 $t=2T$ 的周期后都会结束在其起始位置。我们将正好运行这个教程程序一个周期，并将最终的粒子位置与初始位置进行比较，以说明这一流动特性。这个例子使用测试案例产生了两个模型，它们对粒子的处理略有不同。第一个模型将精确的分析速度解作为每个粒子的速度。因此，在这个模型中，分配给粒子的速度没有错误，而在给定时间内，粒子位置与分析位置的任何偏差都是由于使用时间步进法不准确地求解粒子运动方程的错误造成的。在第二个模型中，分析速度场首先被内插到一个有限元矢量空间（以模拟速度是通过求解有限元问题得到的情况，与步骤19中每个粒子的ODE取决于有限元解的方式相同）。然后在粒子的位置上评估这个有限元 "解决方案"，以解决其运动方程。这两种情况之间的差异允许评估所选择的有限元空间是否足够精确，以所选择的粒子平流方案的最佳收敛率来平流粒子，这个问题在实践中对确定组合算法的精度很重要（例如，见 @cite Gassmoller2019  ）。
+
+

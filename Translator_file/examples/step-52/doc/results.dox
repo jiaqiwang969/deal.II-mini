@@ -1,0 +1,42 @@
+examples/step-52/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+这个程序的重点不在于显示特定的结果，而在于显示它是如何做到的。这一点我们已经通过讨论上面的代码证明过了。因此，该程序的输出相对较少，只包括控制台输出和用于可视化的VTU格式的解决方案。
+
+控制台输出既包含错误，也包含对某些方法所执行的步骤数量。
+
+@code
+Explicit methods:
+   Forward Euler:            error=1.00883
+   Third order Runge-Kutta:  error=0.000227982
+   Fourth order Runge-Kutta: error=1.90541e-06
+
+
+Implicit methods:
+   Backward Euler:           error=1.03428
+   Implicit Midpoint:        error=0.00862702
+   Crank-Nicolson:           error=0.00862675
+   SDIRK:                    error=0.0042349
+
+
+Embedded explicit methods:
+   Heun-Euler:               error=0.0073012
+                   steps performed=284
+   Bogacki-Shampine:         error=0.000408407
+                   steps performed=181
+   Dopri:                    error=0.000836695
+                   steps performed=120
+   Fehlberg:                 error=0.00248922
+                   steps performed=106
+   Cash-Karp:                error=0.0787735
+                   steps performed=106
+@endcode
+
+
+
+正如预期的那样，高阶方法给出了（更）准确的解决方案。我们还看到，（相当不准确的）Heun-Euler方法增加了时间步数，以满足公差要求。另一方面，其他嵌入式方法使用的时间步数比规定的要少得多。
+
+

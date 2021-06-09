@@ -1,0 +1,140 @@
+examples/step-23/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当该程序运行时，它产生了以下输出。
+
+@code
+Number of active cells: 16384
+Number of degrees of freedom: 16641
+
+
+Time step 1 at t=0.015625
+   u-equation: 8 CG iterations.
+   v-equation: 22 CG iterations.
+   Total energy: 1.17887
+Time step 2 at t=0.03125
+   u-equation: 8 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 2.9655
+Time step 3 at t=0.046875
+   u-equation: 8 CG iterations.
+   v-equation: 21 CG iterations.
+   Total energy: 4.33761
+Time step 4 at t=0.0625
+   u-equation: 7 CG iterations.
+   v-equation: 21 CG iterations.
+   Total energy: 5.35499
+Time step 5 at t=0.078125
+   u-equation: 7 CG iterations.
+   v-equation: 21 CG iterations.
+   Total energy: 6.18652
+Time step 6 at t=0.09375
+   u-equation: 7 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 6.6799
+
+
+...
+
+
+Time step 31 at t=0.484375
+   u-equation: 7 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 21.9068
+Time step 32 at t=0.5
+   u-equation: 7 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 23.3394
+Time step 33 at t=0.515625
+   u-equation: 7 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 23.1019
+
+
+...
+
+
+Time step 319 at t=4.98438
+   u-equation: 7 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 23.1019
+Time step 320 at t=5
+   u-equation: 7 CG iterations.
+   v-equation: 20 CG iterations.
+   Total energy: 23.1019
+@endcode
+
+
+
+我们立即看到的是，至少在 $t=\frac 12$ 之后，能量是一个常数（在此之前，边界源项 $g$ 是非零的，向系统注入能量）。
+
+除了屏幕输出外，程序还将每个时间步骤的解写到输出文件中。如果我们对其进行充分处理，并将其粘贴到电影中，我们会得到以下结果。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-23.movie.gif" alt="Animation of the solution of step 23."> 
+
+影片显示了所产生的波在域中移动并返回，在夹持的边界处被反射。一些数值噪声跟在波的后面，这是由于网格尺寸过大造成的假象，可以通过减小网格宽度和时间步长来减少。
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+如果你想探索一下，可以尝试以下一些东西。   <ul>   <li>  Varying  $\theta$  。这给出了不同的时间步进方案，其中一些是稳定的，而另一些则不是。看一看能量是如何演变的。
+
+    <li>  不同的初始和边界条件，右手边。
+
+    <li>  更复杂的域或更精细的网格。请记住，时间步长需要以网格宽度为界，所以改变网格也应该包括改变时间步长。我们将在第24步再来讨论这个问题。
+
+    <li>  可变系数。在现实介质中，波速往往是可变的。特别是，现实介质中的 "真实 "波浪方程将读作@f[
+     \rho(x) \frac{\partial^2 u}{\partial t^2}
+
+
+     -
+     \nabla \cdot
+     a(x) \nabla u = f,
+  @f]
+
+  其中 $\rho(x)$ 是材料的密度， $a(x)$ 与刚度系数有关。那么波速就是  $c=\sqrt{a/\rho}$  。
+
+  为了做出这样的改变，我们将不得不用可变系数来计算质量和拉普拉斯矩阵。幸运的是，这并不难：函数 MatrixCreator::create_laplace_matrix 和 MatrixCreator::create_mass_matrix 有额外的默认参数，可以用来向它们传递非恒定系数函数。因此，所需的变化相对较小。另一方面，必须再次注意确保时间步长在允许范围内。
+
+    <li>  在代码内的注释中，我们讨论了这样一个事实：由于边界条件的原因，用于求解 $U^n$ 和 $V^n$ 的矩阵需要在每次都被重置，尽管实际内容没有变化。可以通过不消除线性系统中的列来避免复制，这可以通过在调用中附加一个 @p false 参数来实现。   @code
+    MatrixTools::apply_boundary_values(boundary_values,
+                                       matrix_u,
+                                       solution_u,
+                                       system_rhs,
+                                       false);
+  @endcode
+
+
+
+    <li>  deal.II是一个支持自适应网格的库，如果这个程序支持每隔几步就改变网格，那当然很好。考虑到解决方案的结构&mdash; 一个穿越领域的波浪&mdash; 如果我们只在波浪目前所在的地方完善网格，而不是简单地在所有地方完善网格，这似乎是合适的。直观地看，我们应该能够通过这种方式节省大量的单元。虽然经过进一步的思考，我们意识到这只是在模拟的初始阶段。   一段时间后，对于波浪现象来说，域中充满了初始波的反射，向各个方向发展，充满了域中的每个角落。   在这一点上，一般来说，使用局部网格细化可以获得的好处不多）。)
+
+  为了使自适应改变网格成为可能，基本上有两条路线。   "正确 "的方法是回到我们使用罗特方法得到的弱形式。例如，在每个时间步骤中要解决的两个方程中的第一个方程看起来是这样的。   \f{eqnarray*}
+  (u^n,\varphi) + k^2\theta^2(\nabla u^n,\nabla \varphi) &=&
+  (u^{n-1},\varphi) - k^2\theta(1-\theta)(\nabla u^{n-1},\nabla \varphi)
+  +
+  k(v^{n-1},\varphi)
+  + k^2\theta
+  \left[
+  \theta (f^n,\varphi) + (1-\theta) (f^{n-1},\varphi)
+  \right].
+  \f} 现在，注意我们在网格 ${\mathbb T}^n$ 上求解 $u^n$ ，因此测试函数 $\varphi$ 也必须来自空间 $V_h^n$ 。正如在介绍中所讨论的，像 $(u^{n-1},\varphi)$ 这样的条款要求我们将上一步的解决方案（可能是在不同的网格 ${\mathbb T}^{n-1}$ 上计算的）与当前网格的测试函数进行整合，从而得到一个矩阵 $M^{n,n-1}$ 。这个整合不同网格的形状函数的过程，充其量是尴尬的。它是可以做到的，但是因为很难保证 ${\mathbb T}^{n-1}$ 和 ${\mathbb T}^{n}$ 最多只相差一个细化级别，所以我们必须递归匹配两个网格的单元。这样做是可行的，但它会导致冗长的、不完全明显的代码。
+
+  第二种方法如下：每当我们改变网格时，我们只需使用SolutionTransfer类将旧网格上的最后一个时间步长的解内插到新网格上。换句话说，我们将解决\f{eqnarray*}
+  (u^n,\varphi) + k^2\theta^2(\nabla u^n,\nabla \varphi) &=&
+  (I^n u^{n-1},\varphi) - k^2\theta(1-\theta)(\nabla I^n u^{n-1},\nabla \varphi)
+  +
+  k(I^n v^{n-1},\varphi)
+  + k^2\theta
+  \left[
+  \theta (f^n,\varphi) + (1-\theta) (f^{n-1},\varphi)
+  \right],
+  \f}，其中 $I^n$ 将一个给定的函数插值到网格 ${\mathbb T}^n$ ，而不是上面的方程。   这是一个更简单的方法，因为在每个时间步长中，我们不再需要担心 $u^{n-1},v^{n-1}$ 是在我们现在使用的同一个网格上计算的，还是在不同的网格上计算的。因此，代码的唯一变化是增加了一个计算误差的函数，为细化标记单元，设置SolutionTransfer对象，将解转移到新的网格上，并在新的网格上重建矩阵和右手向量。建立矩阵和右手边的函数以及求解器都不需要改变。
+
+  虽然严格来说，这第二种方法在罗特框架中是不太正确的（它引入了一个额外的误差源，即插值），然而这几乎是每个人在解决时间相关方程时所做的事情。我们将在步骤31中使用这种方法，例如。   </ul> 
+
+

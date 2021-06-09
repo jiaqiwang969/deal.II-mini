@@ -1,0 +1,164 @@
+examples/step-50/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Thomas C. Clevenger and Timo Heister.
+<br>
+This material is based upon work partly supported by the National
+Science Foundation Award DMS-2028346, OAC-2015848, EAR-1925575, by the Computational
+Infrastructure in Geodynamics initiative (CIG), through the NSF under Award
+EAR-0949446 and EAR-1550901 and The University of California -- Davis.
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.4004166,https://zenodo.org/badge/DOI/10.5281/zenodo.4004166.svg} 
+
+ @note  作为这个程序的前提条件，你需要同时安装p4est和PETSc或Trilinos库。在<a href="../../readme.html" target="body">README</a>文件中描述了deal.II和这些附加库的安装情况。
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+
+这个例子显示了deal.II中的多级函数在并行、分布式网格上的应用，并给出了几何和代数多栅方法的比较。代数多网格(AMG)的前置条件与step-40中使用的相同。考虑了两种几何多网格（GMG）预处理方法：一种是类似于步骤16的基于矩阵的版本（但用于并行计算），另一种是步骤37中讨论的无矩阵版本。我们的目标是找出哪种方法能够为大型并行计算提供最佳解算器。
+
+本教程是基于  @cite clevenger_par_gmg  中的一个数值例子。关于deal.II中多网格实现的详细背景，请参见该出版物。我们将在下面的文字中总结一些结果。
+
+代数多网格方法显然是最容易用deal.II实现的，因为诸如 TrilinosWrappers::PreconditionAMG 和 PETScWrappers::PreconditionBoomerAMG 这样的类本质上是黑盒子预处理程序，即使是并行计算，也只需要几行就能设置好。另一方面，几何多网格方法需要对整个代码库进行修改 -- 不是很多，但必须知道自己在做什么。
+
+这个程序的结果将显示，代数和几何多网格方法的性能大致相当<i>when using matrix-based formulations</i>，而无矩阵的几何多网格方法对于这里所考虑的问题要好很多。另一个结论是，当每个处理器的未知数小于20,000个时，基于矩阵的几何多网格方法真的不能很好地扩展。
+
+
+
+
+<h3>The testcase</h3>
+
+我们考虑变系数拉普拉斯的弱表述
+
+@f{align*}
+ (\epsilon \nabla u, \nabla v) = (f,v) \quad \forall v \in V_h
+
+
+@f}
+
+在域 $\Omega = [-1,1]^\text{dim} \setminus [0,1]^\text{dim}$ （二维的L形域和三维的Fichera角）上，如果 $\min(x,y,z)>-\frac{1}{2}$ ，则 $\epsilon = 100$ 。换句话说， $\epsilon$ 是沿着域的边缘或面跑到重入角的小，这在下图中会看到。
+
+边界条件在整个边界上是 $u=0$ ，右手边是 $f=1$  。我们使用连续 $Q_2$ 元素来表示离散的有限元空间 $V_h$ ，并使用基于残差的、单元的后验误差估计器 $e(K) = e_{\text{cell}}(K) + e_{\text{face}}(K)$ ，来自 @cite karakashian2003posteriori 的
+
+@f{align*}
+ e_{\text{cell}}(K) &= h^2 \| f + \epsilon \triangle u \|_K^2, \\
+ e_{\text{face}}(K) &= \sum_F h_F \| \jump{ \epsilon \nabla u \cdot n } \|_F^2,
+
+
+@f}
+
+来适应性地细化网格。(这是KellyErrorEstimator类中使用的Kelly误差估计器的概括，KellyErrorEstimator类驱动大多数其他教程程序中的网格细化。)下图显示了二维的求解和细化：  <img width="400px" src="https://www.dealii.org/images/steps/developer/step-50-2d-solution.png" alt="">  在三维中，求解看起来类似（见下文）。在左边你可以看到解决方案，在右边我们显示了靠近域中心的 $x$ 的切片，显示了自适应细化的网格。   <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img width="400px" src="https://www.dealii.org/images/steps/developer/step-50-3d-solution.png" alt="">
+    </td>
+    <td align="center">
+      <img width="400px" src="https://www.dealii.org/images/steps/developer/step-50-refinement.png" alt="">
+    </td>
+  </tr>
+</table> 在二维和三维中，你都可以看到自适应细化拾取了角部奇点和粘度跳跃的内部奇点，而沿分离两个粘度的线的界面（正确地）没有被细化，因为它被充分地解决。这是因为由系数跳跃导致的解决方案中的扭结与细胞界面对齐。
+
+
+
+
+<h3>Workload imbalance for geometric multigrid methods</h3>
+
+如上所述，这个程序的目的是展示代数和几何多网格方法在这个问题上的应用，并做到并行计算。使算法扩展到大型并行机器的一个重要组成部分是确保每个处理器都有相同的工作量。更准确地说，重要的是没有一小部分处理器比其他处理器有更多的工作，因为如果是这样的话，很大一部分处理器会闲置，等待小部分处理器完成。相反，一小部分处理器的工作大大超过<i>less</i>并不是问题，因为大多数处理器继续生产，只有一小部分处理器在完成工作后闲置。)
+
+对于活跃的网格，我们使用 parallel::distributed::Triangulation 类，正如在步骤40中所做的那样，它使用外部库<a href="http://www.p4est.org/">p4est</a>中的功能在处理器之间分配活跃单元。对于多级层次结构中的非活动单元，deal.II实现了我们所说的 "第一子规则"，对于层次结构中的每个单元，我们递归地将一个单元的父级分配给第一个子单元的所有者。下面的数字给出了这样一个分布的例子。这里的左图表示使用空间填充曲线划分的二维网格样本的活动单元（这也是p4est用来划分单元的方法）；中间的图片给出了活动网格的树状表示；右图给出了单元的多级层次结构。颜色和数字代表不同的处理器。树上的圆形节点是非活动单元，使用 "长子规则 "进行分配。
+
+ <img width="800px" src="https://www.dealii.org/images/steps/developer/step-50-workload-example.png" alt=""> 
+
+在这个例子中，屏幕上的输出包括一个 "分区效率 "的值，这个值由 MGTools::workload_imbalance(). 给出，将用 $\mathbb{E}$ 表示，量化了多网格层次结构中每一层没有完美的工作平衡所产生的开销。这种不平衡在上面的例子中很明显：虽然 $\ell=2$ 层在三个处理器的四个单元中尽可能的平衡，但粗略的 $\ell=0$ 层只有一个处理器有工作，而 $\ell=1$ 层只有两个处理器有工作，其中一个处理器的工作是另一个的三倍。
+
+对于定义 $\mathbb{E}$ ，需要注意的是，由于我们使用局部平滑来定义多网格层次（参见 @ref mg_paper "多网格论文 "中对局部平滑的描述），一个单元的细化水平对应于该单元的多网格水平。现在，让 $N_{\ell}$ 为 $\ell$ 层的单元数（包括活动和非活动单元）， $N_{\ell,p}$ 为进程 $p$ 所拥有的子集。我们还将用 $P$ 表示处理器的总数量。假设任何一个处理器的工作量与该处理器拥有的单元格数量成正比，每个处理器的最佳工作量为
+
+@f{align*}
+W_{\text{opt}} = \frac1{P}\sum_{\ell} N_{\ell} = \sum_{\ell}\left(\frac1{P}\sum_{p}N_{\ell,p}\right).
+
+
+@f}
+
+接下来，假设每一层的工作都是同步的（即在V型循环的每一层，在进入下一层之前，所有的处理器都必须完成工作），每一层的极限工作由以下公式给出
+
+@f{align*}
+W_\ell = \max_{p} N_{\ell,p},
+
+
+@f}
+
+和总的并行复杂性
+
+@f{align*}
+W = \sum_{\ell} W_\ell.
+
+
+@f}
+
+然后我们将 $\mathbb{E}$ 定义为最佳分区与当前分区的并行复杂度之比
+
+@f{align*}
+  \mathbb{E} = \frac{W_{\text{opt}}}{W}.
+
+
+@f}
+
+对于上面的例子分布，我们有
+
+@f{align*}
+W_{\text{opt}}&=\frac{1}{P}\sum_{\ell} N_{\ell} = \frac{1}{3} \left(1+4+4\right)= 3 \qquad
+\\
+W &= \sum_\ell W_\ell = 1 + 2 + 3 = 6
+\\
+\mathbb{E} &= \frac{W_{\text{opt}}}{W} = \frac12.
+
+
+@f}
+
+这个值 MGTools::workload_imbalance()  $= 1/\mathbb{E}$ 代表了我们对GMG方法（vmults、assembly等）所期望的时间增加的因素，因为与完全负载平衡的工作负载相比，网格分区的不平衡。我们将在下面的结果部分报告一连串的网格，并与观察到的减速进行比较，因为我们的处理器数量越来越大（通常，负载不平衡也会变大）。
+
+这些考虑在 @cite clevenger_par_gmg 中得到了更详细的考虑，其中包含了对分区效率模型和不平衡对GMG V周期时间的影响的全面讨论。总之， $\mathbb{E}$ 的值高度依赖于所使用的局部网格细化程度，对于全局细化的网格有一个最佳值 $\mathbb{E} \approx 1$ 。通常对于自适应细化的网格，用于分配单个网格的处理器数量对 $\mathbb{E}$ 有负面影响，但只到一个平移点，即处理器数量增加时，不平衡度保持相对稳定，进一步细化对 $\mathbb{E}$ 的影响很小。最后， $1/\mathbb{E}$ 被证明可以准确地表示出对V型周期的计时所预期的并行扩展的减慢。
+
+应该注意的是，在多级网格之间有可能存在一些异步工作，特别是纯粹的近邻MPI通信，而且可以构建一个自适应网格，由于异步工作 "掩盖 "了不平衡，效率模型将远远高估V-周期的减慢（假设各级同步）。然而，对于大多数现实的自适应网格来说，预期这种异步工作只会掩盖非常小的一部分不平衡，效率模型会很好地描述减速。
+
+
+
+
+<h3>Workload imbalance for algebraic multigrid methods</h3>
+
+上面的考虑表明，我们必须期待在deal.II中实现的几何多网格算法的可扩展性有一定的限制，因为即使在网格的最细层是完全负载平衡的情况下，较粗层也可能不是。同时，较粗层的权重较小（ $W_\ell$ 对 $W$ 的贡献较小），因为较粗层的单元较少，因此，对整体运行时间的贡献不如较细层。换句话说，较粗层次的不平衡可能不会导致大局的影响。
+
+代数多网格方法当然是基于一种完全不同的方法来创建层次结构的。特别是，他们纯粹是在分析系统矩阵的基础上创建这些层次，并且在作为 TrilinosWrappers::PreconditionAMG 和 PETScWrappers::PreconditionBoomerAMG 类基础的hypre和ML/MueLu包中都实现了非常复杂的算法，以确保问题在每个层次上都得到良好的负载平衡。在某种意义上，这些算法比几何多网格方法更简单，因为它们只处理矩阵本身，而不是所有的网格、邻居、父母和其他几何实体的内涵。同时，为了使代数多网格方法能够扩展到非常大的问题，人们也做了很多工作，包括将在某一层次上工作的处理器数量减少到所有处理器的一个子集，如果不这样的话，处理器花在计算上的时间会比花在通信上的时间少。(人们可能会注意到，在几何多网格算法中也有可能实现这些相同的想法，在这些算法中，人们有目的地将一些处理器闲置在较粗的层次上，以减少通信量。只是目前deal.II没有这样做。)
+
+然而，这些并不是我们在这里通常需要担心的问题。在大多数情况下，我们使用代数多网格方法作为黑箱方法。
+
+
+
+
+<h3>Running the program</h3>
+
+如上所述，这个程序可以使用三种不同的方式来求解线性系统：基于矩阵的几何多网格（"MB"），无矩阵几何多网格（"MF"）和代数多网格（"AMG"）。这个程序所在的目录有后缀为".prm "的输入文件，适用于所有这三种选项，以及2D和3D。
+
+你可以按以下方式执行该程序
+
+@code
+  ./step-50 gmg_mb_2d.prm
+@endcode
+
+而这将从给定的输入文件（这里是`mg_mb_2d.prm`）中获取运行时参数。
+
+该程序的目的是要并行运行，你可以使用诸如以下的命令来实现这一点
+
+@code
+  mpirun -np 4 ./step-50 gmg_mb_2d.prm
+@endcode
+
+如果你想，比如说，在四个处理器上运行。也就是说，如果你有多少个处理器，程序也可以在`-np 28672`下运行）。
+
+

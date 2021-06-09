@@ -1,0 +1,367 @@
+examples/step-57/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+现在我们用上面讨论的方法来解决有粘度的纳维尔-斯托克斯方程  $1/400$  和  $1/7500$  。
+
+<h3> Test case 1: Low Reynolds Number </h3>
+
+在第一个测试案例中，粘度被设定为 $1/400$  。正如我们在介绍中所讨论的，初始猜测是相应斯托克斯问题的解。在下面的表格中，显示了每个网格上的牛顿迭代的残差。表中的数据表明，牛顿迭代的收敛性是四等的。
+
+ <table align="center" class="doxtable">
+<tr>
+    <th>$\mathrm{Re}=400$</th>
+    <th colspan="2">Mesh0</th>
+    <th colspan="2">Mesh1</th>
+    <th colspan="2">Mesh2</th>
+    <th colspan="2">Mesh3</th>
+    <th colspan="2">Mesh4</th>
+</tr>
+<tr>
+    <th>Newton iter   </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+</tr>
+<tr>
+  <td>1</td>
+  <td>3.7112e-03</td>
+  <td>5</td>
+  <td>6.4189e-03</td>
+  <td>3</td>
+  <td>2.4338e-03</td>
+  <td>3</td>
+  <td>1.0570e-03</td>
+  <td>3</td>
+  <td>4.9499e-04</td>
+  <td>3</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>7.0849e-04</td>
+  <td>5</td>
+  <td>9.9458e-04</td>
+  <td>5</td>
+  <td>1.1409e-04</td>
+  <td>6</td>
+  <td>1.3544e-05</td>
+  <td>6</td>
+  <td>1.4171e-06</td>
+  <td>6</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>1.9980e-05</td>
+  <td>5</td>
+  <td>4.5007e-05</td>
+  <td>5</td>
+  <td>2.9020e-08</td>
+  <td>5</td>
+  <td>4.4021e-10</td>
+  <td>6</td>
+  <td>6.3435e-11</td>
+  <td>6</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td>2.3165e-09</td>
+  <td>6</td>
+  <td>1.6891e-07</td>
+  <td>5</td>
+  <td>1.2338e-14</td>
+  <td>7</td>
+  <td>1.8506e-14</td>
+  <td>8</td>
+  <td>8.8563e-15</td>
+  <td>8</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>1.2585e-13</td>
+  <td>7</td>
+  <td>1.4520e-11</td>
+  <td>6</td>
+  <td>1.9044e-13</td>
+  <td>8</td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>6</td>
+  <td></td>
+  <td></td>
+  <td>1.3998e-15</td>
+  <td>8</td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+</table> 
+
+
+
+
+
+
+
+
+下面的数字显示了生成网格的顺序。对于 $\mathrm{Re}=400$ 的情况，初始猜测是通过在 $8 \times 8$ 网格上求解斯托克斯得到的，并且网格是自适应细化的。在不同的网格之间，粗网格的解被内插到细网格中，作为初始猜测使用。
+
+ <table align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re400_Mesh0.png" width="232px" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re400_Mesh1.png" width="232px" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re400_Mesh2.png" width="232px" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re400_Mesh3.png" width="232px" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re400_Mesh4.png" width="232px" alt="">
+    </td>
+  </tr>
+</table> 
+
+这张图片是用  $\mathrm{Re}=400$  的盖子驱动的空腔的图形流线结果。   <img src="https://www.dealii.org/images/steps/developer/step-57.Re400_Streamline.png" alt=""> 
+
+然后将该方案与来自[4]的参考方案进行比较，参考方案的数据可以在文件 "ref_2d_ghia_u.txt "中找到。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-57.compare-Re400.svg" style="width:50%" alt=""> 
+
+<h3> Test case 2: High Reynolds Number </h3>
+
+牛顿迭代法需要一个良好的初始猜测。然而，当雷诺数很大时，非线性项占主导地位，因此，斯托克斯方程的解可能与精确解相去甚远。如果斯托克斯方程的解作为初始猜测，收敛性就会丧失。下图显示，非线性迭代被卡住了，在进一步的迭代中，残差不再减少。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_loss_convergence.svg" style="width:50%" alt=""> 
+
+因此，初始猜测必须通过延续法获得，这在导言中已经讨论过了。这里延续法的步长是 $|\nu_{i}-\nu_{i+1}|$ ，是2000，初始网格的大小是 $32 \times 32$ 。在得到一个初始猜测后，如前一个测试案例一样，对网格进行细化。下图显示，在每次细化时，牛顿迭代都有二次收敛性。为解决这个测试案例，共执行了52步牛顿迭代。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_get_convergence.svg" style="width:50%" alt=""> 
+
+我们还显示了每个网格上牛顿迭代的每一步的残差。表格中可以清楚地看到二次收敛的情况。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <th>$\mathrm{Re}=7500$</th>
+    <th colspan="2">Mesh0</th>
+    <th colspan="2">Mesh1</th>
+    <th colspan="2">Mesh2</th>
+    <th colspan="2">Mesh3</th>
+    <th colspan="2">Mesh4</th>
+  </tr>
+  <tr>
+    <th>Newton iter   </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+    <th>Residual      </th>
+    <th>FGMRES        </th>
+  </tr>
+<tr>
+  <td>1</td>
+  <td>1.8922e-06</td>
+  <td>6</td>
+  <td>4.2506e-03</td>
+  <td>3</td>
+  <td>1.4299e-03</td>
+  <td>3</td>
+  <td>4.8793e-04</td>
+  <td>2</td>
+  <td>1.8998e-04</td>
+  <td>2</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>3.1644e-09</td>
+  <td>8</td>
+  <td>1.3732e-03</td>
+  <td>7</td>
+  <td>4.1506e-04</td>
+  <td>7</td>
+  <td>9.1119e-05</td>
+  <td>8</td>
+  <td>1.3555e-05</td>
+  <td>8</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>1.7611e-14</td>
+  <td>9</td>
+  <td>2.1946e-04</td>
+  <td>6</td>
+  <td>1.7881e-05</td>
+  <td>6</td>
+  <td>5.2678e-07</td>
+  <td>7</td>
+  <td>9.3739e-09</td>
+  <td>7</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td></td>
+  <td></td>
+  <td>8.8269e-06</td>
+  <td>6</td>
+  <td>6.8210e-09</td>
+  <td>7</td>
+  <td>2.2770e-11</td>
+  <td>8</td>
+  <td>1.2588e-13</td>
+  <td>9</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td></td>
+  <td></td>
+  <td>1.2974e-07</td>
+  <td>7</td>
+  <td>1.2515e-13</td>
+  <td>9</td>
+  <td>1.7801e-14</td>
+  <td>1</td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>6</td>
+  <td></td>
+  <td></td>
+  <td>4.4352e-11</td>
+  <td>7</td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>7</td>
+  <td></td>
+  <td></td>
+  <td>6.2863e-15</td>
+  <td>9</td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+</table> 
+
+
+
+
+
+
+
+
+生成的网格序列看起来像这样。   <table align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_Mesh0.png" width="232px" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_Mesh1.png" width="232px" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_Mesh2.png" width="232px" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_Mesh3.png" width="232px" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_Mesh4.png" width="232px" alt="">
+    </td>
+  </tr>
+</table>  我们将我们的解决方案与[5]的参考解决方案进行比较。   <img src="https://www.dealii.org/images/steps/developer/step-57.compare-Re7500.svg" style="width:50%" alt="">  下图是图形结果。   <img src="https://www.dealii.org/images/steps/developer/step-57.Re7500_Streamline.png" alt=""> 
+
+此外，误差由非线性误差和离散化误差组成，前者随着我们进行牛顿迭代而减少，后者则取决于网格大小。这就是为什么我们必须细化网格并在下一个更细的网格上重复牛顿迭代。从上表中，我们可以看到每个网格上的残差（非线性误差）都低于1e-12，但下图向我们展示了随后更细的网格上的解决方案之间的差异。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-57.converge-Re7500.svg" style="width:50%" alt=""> 
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Compare to other solvers</h4>
+
+比较目前实现的线性求解器和仅仅使用UMFPACK求解整个线性系统是很容易的。你需要去除包含常压的空域，这在第56步中完成。更有趣的是与其他先进的预处理程序如PCD的比较。事实证明，这里的预处理器是非常有竞争力的，在论文[2]中可以看到。
+
+下表显示了我们的迭代方法（FGMRES）与直接求解器（UMFPACK）之间在粘度设置为1/400的情况下对整个系统的计时结果。尽管我们在迭代求解器中的速度块使用了相同的直接求解器，但它的速度要快得多，消耗的内存也少。这在三维中会更加明显。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th>Refinement Cycle</th>
+  <th>DoFs</th>
+  <th>Iterative: Total/s (Setup/s)</th>
+  <th>Direct: Total/s (Setup/s)</th>
+</tr>
+<tr>
+  <td>5</td>
+  <td>9539</td>
+  <td>0.10 (0.06)</td>
+  <td>0.13 (0.12)</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>37507</td>
+  <td>0.58 (0.37)</td>
+  <td>1.03 (0.97)</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td>148739</td>
+  <td>3.59 (2.73)</td>
+  <td>7.78 (7.53)</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td>592387</td>
+  <td>29.17 (24.94)</td>
+  <td>(>4GB RAM)</td>
+</tr>
+</table> 
+
+
+
+
+<h4>3d computations</h4>
+
+该代码被设置为也可以在3D中运行。当然，参考值是不同的，例如，见[6]。在这个例子中，高分辨率的计算是无法做到的，因为速度块的直接求解器在三维中不能很好地工作。相反，需要一个基于代数或几何多网格的并行求解器。见下文。
+
+<h4>Parallelization</h4>
+
+对于较大的计算，特别是三维计算，有必要实现MPI并行求解器和预处理器。一个好的起点是step-55，它对斯托克斯方程的速度块使用代数多重网格。另一个选择是看一下<a href="https://www.dealii.org/code-gallery.html">deal.II code
+gallery</a>中的代码列表，其中已经包含了并行的纳维-斯托克斯求解器。
+
+

@@ -1,0 +1,425 @@
+examples/step-9/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+
+在这个例子中，我们的目的如下。<ol>  <li>  解决平流方程  $\beta \cdot \nabla u = f$  ；  <li>  显示如果我们有一台多处理器机器，我们如何使用多线程来快速获得结果；  <li>  开发一个简单的细化准则。   </ol> 虽然第二个目的在不参考代码的情况下很难进行一般性描述，但我们将在下文中讨论其他两个目的。然后将在程序中的相关地方详细介绍多线程的使用。然而，我们将遵循 @ref threads "多处理器访问共享内存的并行计算 "文件模块中详述的关于WorkStream方法的一般讨论。
+
+
+
+
+<h3>Discretizing the advection equation</h3>
+
+在本例程序中，我们要对平流方程的解进行数值近似计算
+
+@f[
+  \beta \cdot \nabla u = f,
+
+
+@f]
+
+其中 $\beta$ 是描述平流方向和速度的矢量场（如果 $\beta=\beta(\mathbf x)$ ，它可能取决于空间变量）， $f$ 是一个源函数， $u$ 是解。该方程描述的物理过程是一个给定的流场 $\beta$ ，另一种物质随其流动，其密度或浓度由 $u$ 给出。该方程不包含这第二种物质在其载体物质内的扩散，但有源项。
+
+很明显，在流入地，上述方程需要用边界条件来增加。
+
+@f[
+  u = g \qquad\qquad \mathrm{on}\ \partial\Omega_-,
+
+
+@f]
+
+其中 $\partial\Omega_-$ 描述了边界的流入部分，正式定义为
+
+@f[
+  \partial\Omega_-
+  =
+  \{{\mathbf x}\in \partial\Omega: \beta\cdot{\mathbf n}({\mathbf x}) < 0\},
+
+
+@f]
+
+和 ${\mathbf n}({\mathbf x})$ 是点 ${\mathbf x}\in\partial\Omega$ 处的域的向外法线。这个定义非常直观，因为由于 ${\mathbf n}$ 指向外侧，如果传输方向 $\beta$ 指向内侧，即在流入边界，那么与 $\beta$ 的标量乘积只能是负数。数学理论规定，我们不能在边界的流出部分提出任何边界条件。
+
+不幸的是，上述方程不能以稳定的方式用标准的有限元方法进行求解。问题是，这个方程的解在垂直于传输方向上具有不充分的规则性：虽然它们沿 "风场" $\beta$ 定义的流线是平滑的，但它们在垂直于这个方向上可能是不连续的。这很容易理解：方程 $\beta \cdot
+\nabla u = f$ 的意思实质上就是<i>rate of change of $u$ in
+direction $\beta$ equals $f$</i>。但该方程对垂直方向的导数没有影响，因此，如果 $u$ 在流入边界的某一点上不连续，那么这个不连续将简单地沿着从这个边界点开始的风场流线传输。这些不连续会导致数值不稳定，使标准的连续有限元离散化不可能获得稳定的解。
+
+解决这一困难的标准方法是  <em>  "流线-上风Petrov-Galerkin"  </em>  (SUPG)方法，有时也称为流线扩散法。对该方法的良好解释可以在  @cite elman2005  中找到。从形式上看，这种方法取代了我们从强形式推导出微分方程的弱形式的步骤。我们不是用测试函数 $v$ 乘以方程并在域上积分，而是乘以 $v + \delta \beta\cdot\nabla v$  ，其中 $\delta$ 是在（局部）网格宽度范围内选择的参数 $h$ ；通过设置 $\delta=0.1h$ 通常可以获得良好的结果。 为什么这被称为 "流线扩散 "将在下面解释；目前，让我们简单地认为这是我们如何推导出稳定的离散公式。这里 $\delta$ 的值小到足以使我们不引入过度的扩散，但大到足以使所产生的问题得到良好的解决。
+
+使用上面定义的测试函数，问题的初始弱形式将要求找到一个函数 $u_h$ ，以便对于所有测试函数 $v_h$ ，我们有
+
+@f[
+  (\beta \cdot \nabla u_h, v_h + \delta \beta\cdot\nabla v_h)_\Omega
+  =
+  (f, v_h + \delta \beta\cdot\nabla v_h)_\Omega.
+
+
+@f]
+
+然而，我们希望将流入的边界条件 $u=g$ 弱化到这个问题中，这可以通过要求除了上述方程之外，我们还有
+
+@f[
+  (u_h, w_h)_{\partial\Omega_-}
+  =
+  (g, w_h)_{\partial\Omega_-}
+
+
+@f]
+
+为所有住在边界上的测试函数 $w_h$ ，它们来自一个合适的测试空间。事实证明，一个合适的检验函数空间恰好是 $\beta\cdot {\mathbf n}$ 乘以我们已经用于域内微分方程的检验空间中的函数 $v_h$ 的踪迹。因此，我们要求对于所有测试函数 $v_h$ ，我们有
+
+@f[
+  (u_h, \beta\cdot {\mathbf n} v_h)_{\partial\Omega_-}
+  =
+  (g, \beta\cdot {\mathbf n} v_h)_{\partial\Omega_-}.
+
+
+@f]
+
+在不试图进行论证的情况下（请再次参阅关于一般的有限元方法，特别是流线扩散方法的文献），我们可以将微分方程和边界值的方程结合在我们的稳定化问题的以下弱表述中：找到一个离散函数 $u_h$ ，使得对于所有离散测试函数 $v_h$ ，存在着
+
+@f[
+  (\beta \cdot \nabla u_h, v_h + \delta \beta\cdot\nabla v_h)_\Omega
+
+
+  -
+  (u_h, \beta\cdot {\mathbf n} v_h)_{\partial\Omega_-}
+  =
+  (f, v_h + \delta \beta\cdot\nabla v_h)_\Omega
+
+
+  -
+  (g, \beta\cdot {\mathbf n} v_h)_{\partial\Omega_-}.
+
+
+@f]
+
+
+
+
+人们会认为，这将导致一个系统矩阵被倒置，其形式为
+
+@f[
+  a_{ij} =
+  (\beta \cdot \nabla \varphi_i,
+   \varphi_j + \delta \beta\cdot\nabla \varphi_j)_\Omega
+
+
+  -
+  (\varphi_i, \beta\cdot {\mathbf n} \varphi_j)_{\partial\Omega_-},
+
+
+@f]
+
+与基函数  $\varphi_i,\varphi_j$  。  然而，这是每一个数值分析师至少会遇到一次的陷阱（包括作者）：我们在这里扩大了解决方案  $u_h = \sum_i U_i \varphi_i$  ，但如果我们这样做，我们将不得不解决这个问题
+
+@f[
+  U^T A = F^T,
+
+
+@f]
+
+其中 $U$ 是膨胀系数的向量，也就是说，我们必须解决我们可能天真的预期的转置问题。
+
+这是我们在步骤3的介绍中提出的一个观点。在那里，我们认为为了避免这种问题，应该养成总是与检验函数<i>from the left</i>相乘的习惯，而不是从右边得到正确的矩阵。为了得到我们所需要的线性系统的形式，最好将弱式改写为
+
+@f[
+  (v_h + \delta \beta\cdot\nabla v_h, \beta \cdot \nabla u_h)_\Omega
+
+
+  -
+  (\beta\cdot {\mathbf n} v_h, u_h)_{\partial\Omega_-}
+  =
+  (v_h + \delta \beta\cdot\nabla v_h, f)_\Omega
+
+
+  -
+  (\beta\cdot {\mathbf n} v_h, g)_{\partial\Omega_-}
+
+
+@f]
+
+然后得到
+
+@f[
+  a_{ij} =
+  (\varphi_i + \delta \beta \cdot \nabla \varphi_i,
+   \beta\cdot\nabla \varphi_j)_\Omega
+
+
+  -
+  (\beta\cdot {\mathbf n} \varphi_i, \varphi_j)_{\partial\Omega_-},
+
+
+@f]
+
+作为系统矩阵。我们将在程序中组装这个矩阵。
+
+
+
+
+<h3>Why is this method called "streamline diffusion"?</h3>
+
+看一下上面提到的双线性形式，我们看到离散解必须满足一个方程，其中弱形式的左手边有一个域项，即
+
+@f[
+  (v_h + \delta \beta\cdot\nabla v_h, \beta \cdot \nabla u_h)_\Omega,
+
+
+@f]
+
+或如果我们将其拆分，则形式为
+
+@f[
+  (v_h, \beta \cdot \nabla u_h)_\Omega
+  +
+  (\delta \beta\cdot\nabla v_h, \beta \cdot \nabla u_h)_\Omega.
+
+
+@f]
+
+如果我们想看看这将对应于什么强的方程形式，我们需要对第二项进行积分。这就产生了下面的公式，为了简单起见，我们暂时不考虑边界项。
+
+@f[
+  (v_h, \beta \cdot \nabla u_h)_\Omega
+
+
+  -
+  \left(v_h, \delta \nabla \cdot \left[\beta \left(\beta \cdot \nabla
+  u_h\right)\right]\right)_\Omega
+  +
+  \text{boundary terms}.
+
+
+@f]
+
+让我们暂时假设风场 $\beta$ 是无发散的，即 $\nabla \cdot \beta = 0$  。然后将乘积法则应用于右边方括号内项的导数，并利用发散-绿色，我们将得到以下结果。
+
+@f[
+  (v_h, \beta \cdot \nabla u_h)_\Omega
+
+
+  -
+  \left(v_h, \delta \left[\beta \cdot \nabla\right] \left[\beta \cdot \nabla
+  \right]u_h\right)_\Omega
+  +
+  \text{boundary terms}.
+
+
+@f]
+
+这意味着，方程的强势形式将是这样的
+
+@f[
+  \beta \cdot \nabla u_h
+
+
+  -
+  \delta
+  \left[\beta \cdot \nabla\right] \left[\beta \cdot \nabla
+  \right] u_h.
+
+
+@f]
+
+现在要认识到的是， $\beta\cdot\nabla$ 是 <em> 方向的导数 $\beta$   </em>  。因此，如果我们用 $\beta\cdot\nabla=\frac{\partial}{\partial \beta}$ 来表示（就像我们经常用 $\mathbf n\cdot\nabla=\frac{\partial}{\partial n}$ 来表示边界处法线方向的导数一样），那么方程的强形式是
+
+@f[
+  \beta \cdot \nabla u_h
+
+
+  -
+  \delta
+  \frac{\partial^2}{\partial\beta^2} u_h.
+
+
+@f]
+
+换句话说，测试函数的不寻常选择相当于在强形式中增加了一个项，它对应于风场方向的二阶（即扩散）微分算子 $\beta$ ，即 "流线方向"。更全面的说明还必须探讨测试函数对边界值的影响，以及为什么有必要对右手边也使用相同的测试函数，但上面的讨论可能会使人明白该方法的 "流线扩散 "名称的由来。
+
+
+
+
+<h3>Why is this method also called "Petrov-Galerkin"?</h3>
+
+"Galerkin方法 "是指通过将方程乘以测试函数 $v$ （然后在 $\Omega$ 上进行积分）来获得弱表述，其中函数 $v$ 与解 $u$ 来自同一空间（尽管可能具有不同的边界值）。但这并不是严格意义上的必要条件。我们也可以想象从不同的函数集中选择测试函数，只要这个不同的函数集具有与原始函数集 "同样多的维度"，这样我们最终就会有与自由度同样多的独立方程（在无限维的情况下，所有这些都需要适当地定义）。利用这种可能性的方法（即以不同的方式选择测试函数集和解决方案集）被称为 "Petrov-Galerkin "方法。在目前的情况下，测试函数的形式都是 $v+\beta\cdot\nabla v$ ，其中 $v$ 是来自解集。
+
+
+
+
+<h3>Why is this method also called "streamline-upwind"?</h3>
+
+[上风方法](https://en.wikipedia.org/wiki/Upwind_scheme)在推导平流方程的稳定方案方面有很长的历史。一般来说，这个想法是，我们不是在 "这里 "看一个函数，而是在 "上游 "或 "上风 "的一小段距离看它，也就是说，"这里 "的信息最初来自哪里。这可能意味着不考虑 $u(\mathbf x)$ ，而是像 $u(\mathbf x - \delta \beta)$ 这样的。或者，等于是在整合后，我们可以评估 $u(\mathbf x)$ ，而考虑 $v$ 的下游部分。   $v(\mathbf x+\delta \beta)$  .由于各种原因，这将是很麻烦的。首先，如果 $\mathbf x + \delta \beta$ 恰好在 $\Omega$ 之外，我们将不得不定义 $v$ 应该是什么；其次，数值计算积分将更加困难，因为我们不再在同一正交点评估 $u$ 和 $v$ 。但由于我们假设 $\delta$ 很小，我们可以做一个泰勒扩展。
+
+@f[
+  v(\mathbf x + \delta \beta)
+  \approx
+  v(\mathbf x) + \delta \beta \cdot \nabla v(\mathbf x).
+
+
+@f]
+
+这个测试函数的形式现在看起来应该很熟悉。
+
+
+
+
+<h3>Solving the linear system that corresponds to the advection equation</h3>
+
+由于产生的矩阵不再是对称正定的，我们不能使用通常的共轭梯度方法（在SolverCG类中实现）来解决这个系统。相反，我们使用GMRES（Generalized Minimum RESidual）方法（在SolverGMRES中实现），它适用于我们这里的那种问题。
+
+
+
+
+<h3>The test case</h3>
+
+对于我们将在本教程程序中解决的问题，我们使用以下领域和函数（在 $d=2$ 空间维度）。
+
+@f{eqnarray*}
+  \Omega &=& [-1,1]^d \\
+  \beta({\mathbf x})
+  &=&
+  \left(
+    \begin{array}{c}2 \\ 1+\frac 45 \sin(8\pi x)\end{array}
+  \right),
+  \\
+  s
+  &=&
+  0.1,
+  \\
+  f({\mathbf x})
+  &=&
+  \left\{
+    \begin{array}{ll}
+        \frac 1{10 s^d} &
+        \mathrm{for}\ |{\mathbf x}-{\mathbf x}_0|<s, \\
+        0 & \mathrm{else},
+    \end{array}
+  \right.
+  \qquad\qquad
+  {\mathbf x}_0
+  =
+  \left(
+    \begin{array}{c} -\frac 34 \\ -\frac 34\end{array}
+  \right),
+  \\
+  g
+  &=&
+  e^{5 (1 - |\mathbf x|^2)} \sin(16\pi|\mathbf x|^2).
+
+
+@f}
+
+对于 $d>2$ ，我们扩展了 $\beta$ 和 ${\mathbf x}_0$ ，只是将上面显示的最后一个组件再重复一次。
+
+说了这么多，下面的评论是有必要的。<ol>  <li>  平流场 $\beta$ 大致以对角线方向从左下角向右上角传输解决方案，但叠加了一个摆动结构。   <li>  右手边在流入边界条件产生的场中加入了左下角的一个圆球，然后沿着这个圆球传输。   <li>  流入边界条件施加了一个加权的正弦结构，该结构与流场一起被传输。由于 $|{\mathbf x}|\ge 1$ 在边界上，加权项从未变得非常大。   </ol> 
+
+
+
+
+<h3>A simple refinement criterion</h3>
+
+在以前所有的自适应细化的例子中，我们都使用了Kelly等人首先开发的误差估计器，它为每个单元 $K$ 分配了以下指标。
+
+@f[
+  \eta_K =
+  \left(
+    \frac {h_K}{24}
+    \int_{\partial K}
+      [\partial_n u_h]^2 \; d\sigma
+  \right)^{1/2},
+
+
+@f]
+
+其中 $[\partial n u_h]$ 表示跨越单元格 $K$ 的一个面的法向导数的跳变。可以证明，这个误差指标使用的是二阶导数的离散类似物，由单元大小的一个幂加权，这个幂是根据这里假定使用的线性元素调整的。
+
+@f[
+  \eta_K \approx
+  C h \| \nabla^2 u \|_K,
+
+
+@f]
+
+其本身与能量准则中的误差大小有关。
+
+在目前的情况下，这个误差指标的问题是，它假定精确的解拥有二阶导数。在某些情况下，这对于拉普拉斯问题的解来说已经是个问题了，尽管那里大多数问题允许在 $H^2$ 中求解。如果解只在 $H^1$ 中，那么二阶导数在域的某些部分（低维）是奇异的，在网格细化的情况下，误差指标不会减少。因此，该算法将不断细化这些部分周围的单元，即细化为点或线（在2d中）。
+
+然而，对于目前的情况，解通常不在 $H^1$ 中（而且这种缺失的规律性并不是像拉普拉斯方程那样的特殊情况），所以上述的误差指标并不真正适用。因此，我们将开发一个基于梯度的离散近似的指标。尽管梯度经常不存在，但这是我们唯一可用的标准，至少在我们使用连续元素时是如此。首先，我们注意到，给定两个单元 $K$ ， $K'$ ，其中心由矢量 ${\mathbf y}_{KK'}$ 连接，我们可以对一个函数 $u$ 的方向导数进行近似，如下所示。
+
+@f[
+  \frac{{\mathbf y}_{KK'}^T}{|{\mathbf y}_{KK'}|} \nabla u
+  \approx
+  \frac{u(K') - u(K)}{|{\mathbf y}_{KK'}|},
+
+
+@f]
+
+其中 $u(K)$ 和 $u(K')$ 表示 $u$ 在各自单元格中心的评价。现在我们将上述近似值乘以 ${\mathbf y}_{KK'}/|{\mathbf y}_{KK'}|$ ，并对 $K$ 的所有邻居 $K'$ 求和。
+
+@f[
+  \underbrace{
+    \left(\sum_{K'} \frac{{\mathbf y}_{KK'} {\mathbf y}_{KK'}^T}
+                         {|{\mathbf y}_{KK'}|^2}\right)}_{=:Y}
+  \nabla u
+  \approx
+  \sum_{K'}
+  \frac{{\mathbf y}_{KK'}}{|{\mathbf y}_{KK'}|}
+  \frac{u(K') - u(K)}{|{\mathbf y}_{KK'}|}.
+
+
+@f]
+
+如果连接 ${\mathbf y}_{KK'}$ 与邻居的向量 $K$ 横跨整个空间（即大致为： $K$ 在所有方向都有邻居），那么左侧表达式中括号内的项形成一个正则矩阵，我们可以将其反转，得到 $u$ 对 $K$ 的梯度的近似。
+
+@f[
+  \nabla u
+  \approx
+  Y^{-1}
+  \left(
+    \sum_{K'}
+    \frac{{\mathbf y}_{KK'}}{|{\mathbf y}_{KK'}|}
+    \frac{u(K') - u(K)}{|{\mathbf y}_{KK'}|}
+  \right).
+
+
+@f]
+
+我们将用 $\nabla_h u(K)$ 表示右手边的近似值，我们将使用以下数量作为细化标准。
+
+@f[
+  \eta_K = h^{1+d/2} |\nabla_h u_h(K)|,
+
+
+@f]
+
+这是受以下（不严谨的）论证的启发。
+
+@f{eqnarray*}
+  \|u-u_h\|^2_{L_2}
+  &\le&
+  C h^2 \|\nabla u\|^2_{L_2}
+\\
+  &\approx&
+  C
+  \sum_K
+  h_K^2 \|\nabla u\|^2_{L_2(K)}
+\\
+  &\le&
+  C
+  \sum_K
+  h_K^2 h_K^d \|\nabla u\|^2_{L_\infty(K)}
+\\
+  &\approx&
+  C
+  \sum_K
+  h_K^{2+d} |\nabla_h u_h(K)|^2
+
+
+@f}
+
+
+
+

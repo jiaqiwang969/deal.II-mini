@@ -1,0 +1,129 @@
+examples/step-38/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当你运行该程序时，应在屏幕上打印出以下输出。
+
+@verbatim
+Surface mesh has 1280 cells.
+Surface mesh has 5185 degrees of freedom.
+H1 error = 0.0217136
+@endverbatim
+
+
+
+
+通过在 <code>LaplaceBeltrami::make_grid_and_dofs</code> 函数中玩弄全局细化的数量，可以增加或减少网格细化。例如，多做一次细化，只运行三维曲面问题，得到的输出结果如下。
+
+@verbatim
+Surface mesh has 5120 cells.
+Surface mesh has 20609 degrees of freedom.
+H1 error = 0.00543481
+@endverbatim
+
+
+
+这就是我们所期望的：将网格尺寸缩小2倍，误差下降4倍（记住我们使用的是双二次元）。从一到五次细化的全部误差序列看起来是这样的，整齐地遵循理论上预测的模式。
+
+@verbatim
+0.339438
+0.0864385
+0.0217136
+0.00543481
+0.00135913
+@endverbatim
+
+
+
+最后，该程序产生图形输出，我们可以将其可视化。下面是一个结果图。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-38.solution-3d.png" alt=""> 
+
+该程序也适用于2D中的1D曲线，而不仅仅是3D中的2D曲面。你可以通过改变 <code>main()</code> 中的模板参数来测试这一点，像这样。
+
+@code
+      LaplaceBeltramiProblem<2> laplace_beltrami;
+@endcode
+
+域是一条2D的曲线，我们可以通过使用第三维（和颜色）来表示函数 $u(x)$ 的值来可视化解决方案。这样看起来就像这样（白色的曲线是域，彩色的曲线是被挤压到第三维的解决方案，清楚地显示了当曲线从域的一个象限移动到相邻的象限时符号的变化）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-38.solution-2d.png" alt=""> 
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+只有当表面比仅仅是一个半球体更有趣时，在表面上的计算才会变得有趣。为了达到这个目的，deal.II可以通过通常的GridIn类读取描述曲面的网格。或者，万一你有一个分析性的描述，一个简单的网格有时可以被拉伸和弯曲成我们感兴趣的形状。
+
+让我们考虑一个相对简单的例子：我们把之前用过的半球体，在Z方向上拉伸10倍，然后把X和Y坐标拼一下。让我们先展示一下计算域和解决方案，然后再讨论下面的实现细节。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-38.warp-1.png" alt=""> 
+
+ <img src="https://www.dealii.org/images/steps/developer/step-38.warp-2.png" alt=""> 
+
+产生这种网格的方法是使用 GridTools::transform() 函数。它需要一个方法来转换每个单独的网格点到不同的位置。让我们在这里使用下面这个相当简单的函数（记住：在一个方向上拉伸，在另外两个方向上拼凑）。
+
+@code
+template <int spacedim>
+Point<spacedim> warp(const Point<spacedim> &p)
+{
+  Point<spacedim> q = p;
+  q[spacedim-1] *= 10;
+
+
+  if (spacedim >= 2)
+    q[0] += 2*std::sin(q[spacedim-1]);
+  if (spacedim >= 3)
+    q[1] += 2*std::cos(q[spacedim-1]);
+
+
+  return q;
+}
+@endcode
+
+
+
+如果我们遵循 <code>LaplaceBeltrami::make_grid_and_dofs</code> 函数，我们会像以前一样提取半球形表面网格，将其扭曲成我们想要的形状，并根据需要经常进行细化。但这并不像我们所希望的那样简单：细化需要我们有一个适当的流形对象附加到三角形上，描述细化时网格的新顶点应该位于何处。我相信可以通过简单地撤销上面的变换（重新得到球面），找到球面上新的点的位置，然后重新扭曲结果，以一种不太复杂的方式描述这个流形。但我是个懒人，既然这样做并不是真正的重点，我们还是让我们的生活变得简单一点：我们将提取半球体，根据需要对其进行细化，摆脱描述流形的对象，因为我们现在不再需要它，然后最后对网格进行扭曲。使用上面的函数，这将看起来如下。
+
+@code
+template <int spacedim>
+void LaplaceBeltrami<spacedim>::make_grid_and_dofs()
+{
+  {
+    Triangulation<spacedim> volume_mesh;
+    GridGenerator::half_hyper_ball(volume_mesh);
+
+
+    volume_mesh.refine_global(4);
+
+
+    std::set<types::boundary_id> boundary_ids;
+    boundary_ids.insert(0);
+
+
+    GridGenerator::extract_boundary_mesh(volume_mesh, triangulation,
+                                         boundary_ids);
+    GridTools::transform(&warp<spacedim>, triangulation);       /* ** */
+    std::ofstream x("x"), y("y");
+    GridOut().write_gnuplot(volume_mesh, x);
+    GridOut().write_gnuplot(triangulation, y);
+  }
+
+
+  std::cout << "Surface mesh has " << triangulation.n_active_cells()
+            << " cells."
+            << std::endl;
+  ...
+}
+@endcode
+
+
+
+请注意，唯一必要的补充是标有星号的那一行。不过值得指出的是：由于我们将流形描述从表面网格中分离出来，所以当我们在程序的其余部分使用映射对象时，它不再有曲线边界描述可言。相反，它将不得不使用隐含的FlatManifold类，该类用于域的所有未明确指定不同流形对象的部分。因此，无论我们使用MappingQ(2)、MappingQ(15)还是MappingQ1，我们的网格的每个单元都将使用双线性近似进行映射。
+
+撇开所有这些缺点不谈，得到的图片还是很好看的。与步骤38中的内容唯一不同的是，我们把右手边改为 $f(\mathbf x)=\sin x_3$ ，把边界值（通过 <code>Solution</code> 类）改为 $u(\mathbf x)|_{\partial\Omega}=\cos x_3$  。当然，我们现在已经不知道确切的解决方案，所以在 <code>LaplaceBeltrami::run</code> 末尾的误差计算将得到一个毫无意义的数字。
+
+

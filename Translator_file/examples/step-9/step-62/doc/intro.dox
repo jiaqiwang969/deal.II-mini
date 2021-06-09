@@ -1,0 +1,249 @@
+examples/step-62/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Daniel Garcia-Sanchez.</i> <br>  。
+
+
+
+
+ @note  作为这个程序的前提条件，你需要安装HDF5、复杂的PETSc和p4est库。在<a
+href="../../readme.html" target="body">README</a>文件中描述了deal.II与这些附加库的安装情况。
+
+<h1>Introduction</h1> 声子晶体是一种周期性的纳米结构，可以改变机械振动或[声子]的运动（https://en.wikipedia.org/wiki/Phonon）。声子结构可用于分散、引导和限制机械振动。这些结构在[量子信息](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.86.1391)方面有潜在的应用，并已被用于研究[宏观量子现象](https://science.sciencemag.org/content/358/6360/203)。声子晶体通常是在[洁净室]中制造的(https://en.wikipedia.org/wiki/Cleanroom)。
+
+在本教程中，我们展示了如何设计一个[声子超晶格空腔](https://doi.org/10.1103/PhysRevA.94.033813)，这是一种特殊类型的声子晶体，可用于限制机械振动。声子超晶格空腔是由两个[分布式布拉格反射器](https://en.wikipedia.org/wiki/Distributed_Bragg_reflector)、镜子和一个 $\lambda/2$ 空腔组成，其中 $\lambda$ 是声学波长。声学DBRs是周期性结构，其中一组具有对比物理特性（声速指数）的双层堆栈被重复 $N$ 次。超晶格空腔通常通过[分子束外延](https://en.wikipedia.org/wiki/Molecular-beam_epitaxy)在[砷化镓](https://en.wikipedia.org/wiki/Gallium_arsenide)晶片上生长。双层对应于砷化镓/砷化铝镜像对。如下图所示，镜像层（棕色和绿色）的厚度为 $\lambda/4$ ，空腔（蓝色）的厚度为 $\lambda/2$  。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.01.svg" height="200" /> 
+
+在本教程中，我们计算了[带隙](https://en.wikipedia.org/wiki/Band_gap)和声子超晶格空腔的机械共振，但这里介绍的代码可以很容易地用于设计和计算其他类型的[声子晶体](https://science.sciencemag.org/content/358/6360/203)。
+
+该装置是一个波导，其中的波从左到右。本教程的模拟是在二维进行的，但代码是独立于维度的，可以很容易地用于三维模拟。波导的宽度等于域的 $y$ 维，波导的长度等于域的 $x$ 维。有两个取决于波导宽度的制度。
+
+- 单一模式。在这种情况下，结构的宽度要比波长小得多。   这种情况可以用有限元法（我们在这里采取的方法）或用简单的半分析法[一维转移矩阵形式]（https://en.wikipedia.org/wiki/Transfer_matrix）来解决。
+
+- 多模。在这种情况下，结构的宽度比波长大。   这种情况可以用有限元法或[散射矩阵形式主义]（https://doi.org/10.1103/PhysRevA.94.033813）来解决。   尽管我们在本教程中没有研究这种情况，但通过增加波导宽度参数（jupyter笔记本中的`dimension_y'），很容易达到多模制度。
+
+本教程的模拟是在频域进行的。为了计算传输频谱，我们使用了时域[FDTD](https://meep.readthedocs.io/en/latest/Python_Tutorials/Resonant_Modes_and_Transmission_in_a_Waveguide_Cavity/)模拟中常用的一个[程序]。在结构的左侧产生一个特定频率的脉冲，在结构的右侧测量传输的能量。仿真运行了两次。首先，我们运行声子结构的模拟并测量传输能量。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.02.svg" height="200" /> 
+
+然后，我们运行没有声子结构的模拟，并测量传输的能量。我们使用没有结构的模拟来进行校准。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.03.svg" height="200" /> 
+
+传输系数相当于第一次模拟的能量除以校准能量。我们对每个频率步骤重复这一程序。
+
+
+
+
+<h3>Elastic equations</h3> 我们在这里要模拟的是弹性波的传输。因此，对问题的正确描述使用了弹性方程，在时域中，弹性方程由以下几项给出
+
+@f[
+\rho\partial_{tt} u_i - \partial_j (c_{ijkl} \varepsilon_{kl}) = f_i,
+\qquad i=0,1,2
+
+
+@f]
+
+其中刚度张量 $c_{ijkl}$ 取决于空间坐标，应变是位移的对称梯度，由以下公式给出
+
+@f[
+\varepsilon_{kl} =\frac{1}{2}(\partial_k u_l + \partial_l u_k)
+
+
+@f]
+
+
+
+[完美匹配层（PML）](https://en.wikipedia.org/wiki/Perfectly_matched_layer)可以用来在边界处截断解决方案。PML是一种导致复杂坐标拉伸的变换。
+
+本教程程序没有采用时域方法，而是通过对时间变量进行傅里叶变换，将上述方程转换为频域。频域中的弹性方程的内容如下
+
+@f{eqnarray*}
+\nabla\cdot(\boldsymbol{\bar\sigma} \xi \boldsymbol{\Lambda})&=&-\omega^2\rho\xi\mathbf{\bar u}\\
+\boldsymbol{\bar \sigma} &=&\mathbf{C}\boldsymbol{\bar\varepsilon}\\
+\boldsymbol{\bar\varepsilon}&=&\frac{1}{2}[(\nabla\mathbf{\bar{u}}\boldsymbol{\Lambda}+\boldsymbol{\Lambda}^\mathrm{T}(\nabla\mathbf{\bar{u}})^\mathrm{T})]\\
+\xi &=&\prod_i^\textrm{dim}s_i\\
+\boldsymbol{\Lambda} &=& \operatorname{diag}(1/s_0,1/s_1,1/s_2)\qquad\textrm{for 3D}\\
+\boldsymbol{\Lambda} &=& \operatorname{diag}(1/s_0,1/s_1)\qquad\textrm{for 2D}
+
+
+@f}
+
+其中系数 $s_i = 1+is_i'(x,y,z)$ 说明了吸收情况。3D中有3个 $s_i$ 系数，2D中有2个。 $s_i$ 的虚部在PML外等于零。PML仅对精确的波浪方程是无反射的。当方程组被离散化时，PML就不再是无反射的了。只要介质是缓慢变化的，反射就可以变得任意小，见[绝热定理](https://doi.org/10.1103/PhysRevE.66.066608)。在代码中，已经使用了PML的二次开启。线性和立方开启也是[已知可行的](https://doi.org/10.1364/OE.16.011376)。这些方程可以扩展为
+
+@f[
+
+
+-\omega^2\rho \xi  u_m - \partial_n \left(\frac{\xi}{s_n}c_{mnkl}
+\varepsilon_{kl}\right) = f_m
+
+
+@f]
+
+
+
+@f[
+\varepsilon_{kl} =\frac{1}{2}\left(\frac{1}{s_k}\partial_k u_l
++ \frac{1}{s_l}\partial_l u_k\right)
+
+
+@f]
+
+其中对重复指数（这里是 $n$ ，以及 $k$ 和 $l$ ）的求和一如既往地隐含着。请注意，应用PML的复数坐标拉伸后，应变不再是对称的。这组方程可以写成
+
+@f[
+
+
+-\omega^2\rho \xi  u_m - \partial_n \left(\frac{\xi c_{mnkl}}{2s_n s_k} \partial_k u_l
++ \frac{\xi c_{mnkl}}{2s_n s_l} \partial_l u_k\right) = f_m
+
+
+@f]
+
+
+
+与应变一样，应力张量在PML内也不是对称的（ $s_j\neq 0$ ）。事实上，PML内部的场不是物理的。介绍张量 $\alpha_{mnkl}$ 和 $\beta_{mnkl}$ 是有用的。
+
+@f[
+
+
+-\omega^2\rho \xi  u_m - \partial_n \left(\alpha_{mnkl}\partial_k u_l
++  \beta_{mnkl}\partial_l u_k\right) = f_m
+
+
+@f]
+
+
+
+我们可以乘以 $\varphi_m$ 并在 $\Omega$ 域上进行积分，并进行部分积分。
+
+@f{eqnarray*}
+
+
+-\omega^2\int_\Omega\rho\xi\varphi_m u_m + \int_\Omega\partial_n\varphi_m \left(\frac{\xi c_{mnkl}}{2s_n s_k} \partial_k u_l
++ \frac{\xi c_{mnkl}}{2s_n s_l} \partial_l u_k\right) = \int_\Omega\varphi_m f_m
+
+
+@f}
+
+正是这组方程，我们要解决一组频率 $\omega$ ，以计算传输系数与频率的关系。这个线性系统变成
+
+@f{eqnarray*}
+AU&=&F\\
+A_{ij} &=& -\omega^2\int_\Omega\rho \xi\varphi_m^i \varphi_m^j + \int_\Omega\partial_n\varphi_m^i \left(\frac{\xi c_{mnkl}}{2s_n s_k} \partial_k \varphi_l^j
++ \frac{\xi c_{mnkl}}{2s_n s_l} \partial_l \varphi_k^j\right)\\
+F_i &=& \int_\Omega\varphi_m^i f_m
+
+
+@f}
+
+
+
+<h3>Simulation parameters</h3> 在本教程中，我们使用python [jupyter notebook](https://github.com/dealii/dealii/blob/master/example/step-62/step-62.ipynb)来设置参数和运行模拟。首先，我们创建一个HDF5文件，在其中存储参数和模拟的结果。
+
+每个模拟（位移和校准）都存储在一个单独的HDF5组中。
+
+@code{.py}
+import numpy as np
+import h5py
+import matplotlib.pyplot as plt
+import subprocess
+import scipy.constants as constants
+import scipy.optimize
+
+
+# This considerably reduces the size of the svg data
+plt.rcParams['svg.fonttype'] = 'none'
+
+
+h5_file = h5py.File('results.h5', 'w')
+data = h5_file.create_group('data')
+displacement = data.create_group('displacement')
+calibration = data.create_group('calibration')
+
+
+# Set the parameters
+for group in [displacement, calibration]:
+    # Dimensions of the domain
+    # The waveguide length is equal to dimension_x
+    group.attrs['dimension_x'] = 2e-5
+    # The waveguide width is equal to dimension_y
+    group.attrs['dimension_y'] = 2e-8
+
+
+    # Position of the probe that we use to measure the flux
+    group.attrs['probe_pos_x']   = 8e-6
+    group.attrs['probe_pos_y']   = 0
+    group.attrs['probe_width_y'] = 2e-08
+
+
+    # Number of points in the probe
+    group.attrs['nb_probe_points'] = 5
+
+
+    # Global refinement
+    group.attrs['grid_level'] = 1
+
+
+    # Cavity
+    group.attrs['cavity_resonance_frequency'] = 20e9
+    group.attrs['nb_mirror_pairs']            = 15
+
+
+    # Material
+    group.attrs['poissons_ratio'] = 0.27
+    group.attrs['youngs_modulus'] = 270000000000.0
+    group.attrs['material_a_rho'] = 3200
+    if group == displacement:
+        group.attrs['material_b_rho'] = 2000
+    else:
+        group.attrs['material_b_rho'] = 3200
+    group.attrs['lambda'] = (group.attrs['youngs_modulus'] * group.attrs['poissons_ratio'] /
+                           ((1 + group.attrs['poissons_ratio']) *
+                           (1 - 2 * group.attrs['poissons_ratio'])))
+    group.attrs['mu']= (group.attrs['youngs_modulus'] / (2 * (1 + group.attrs['poissons_ratio'])))
+
+
+    # Force
+    group.attrs['max_force_amplitude'] = 1e26
+    group.attrs['force_sigma_x']       = 1e-7
+    group.attrs['force_sigma_y']       = 1
+    group.attrs['max_force_width_x']   = 3e-7
+    group.attrs['max_force_width_y']   = 2e-8
+    group.attrs['force_x_pos']         = -8e-6
+    group.attrs['force_y_pos']         = 0
+
+
+    # PML
+    group.attrs['pml_x']            = True
+    group.attrs['pml_y']            = False
+    group.attrs['pml_width_x']      = 1.8e-6
+    group.attrs['pml_width_y']      = 5e-7
+    group.attrs['pml_coeff']        = 1.6
+    group.attrs['pml_coeff_degree'] = 2
+
+
+    # Frequency sweep
+    group.attrs['center_frequency']    = 20e9
+    group.attrs['frequency_range']     = 0.5e9
+    group.attrs['start_frequency']     = group.attrs['center_frequency'] - group.attrs['frequency_range'] / 2
+    group.attrs['stop_frequency']      = group.attrs['center_frequency'] + group.attrs['frequency_range'] / 2
+    group.attrs['nb_frequency_points'] = 400
+
+
+    # Other parameters
+    if group == displacement:
+        group.attrs['simulation_name'] = 'phononic_cavity_displacement'
+    else:
+        group.attrs['simulation_name'] = 'phononic_cavity_calibration'
+    group.attrs['save_vtu_files'] = False
+
+
+h5_file.close()
+@endcode
+
+
+
+

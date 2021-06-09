@@ -1,0 +1,82 @@
+examples/step-40/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Timo Heister, Martin Kronbichler and Wolfgang
+Bangerth.
+<br>
+This material is based upon work partly supported by the National
+Science Foundation under Award No. EAR-0426271 and The California Institute of
+Technology. Any opinions, findings, and conclusions or recommendations
+expressed in this publication are those of the author and do not
+necessarily reflect the views of the National Science Foundation or of The
+California Institute of Technology.
+</i>
+
+
+
+
+ @note  作为这个程序的前提条件，你需要同时安装PETSc和p4est库。在<a
+href="../../readme.html" target="body">README</a>文件中描述了deal.II与这两个附加库的安装。还要注意的是，为了正常工作，本程序需要访问实现代数多网格的Hypre预处理程序包；它可以作为PETSc的一部分安装，但必须在配置PETSc时明确启用；参见PETSc安装说明中的链接页面。
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+ @dealiiVideoLecture{41.5,41.75} 
+
+鉴于今天的计算机，大多数有限元计算可以在一台机器上完成。因此，以前的大多数教程程序只显示了这一点，可能是在一些处理器之间进行分工，但这些处理器都可以访问相同的共享内存空间。也就是说，有些问题对于单台机器来说实在是太大了，在这种情况下，必须以适当的方式将问题分割给多台机器，每台机器都为整体贡献自己的一部分。在第17步和第18步中展示了一个简单的方法，我们展示了一个程序如何使用<a
+href="http://www.mpi-forum.org/" target="_top">MPI</a>来并行组装线性系统，存储它，解决它，并计算误差估计。所有这些操作的扩展都是相对微不足道的（关于操作 "扩展 "的定义，见 @ref GlossParallelScaling "本词汇表条目"），但是有一个明显的缺点：为了使这个实现适度简单，每个MPI处理器都必须保留自己的整个Triangulation和DoFHandler对象的副本。因此，虽然我们可以怀疑（有充分的理由）上面列出的操作可以扩展到成千上万的计算机和数十亿个单元和数十亿个自由度的问题规模，但在每一个最后的处理器上为这成千上万的计算机所解决的整个问题建立一个大的网格显然是不能扩展的：这将需要永远，也许更重要的是没有一台机器会有足够的内存来存储一个有十亿个单元的网格（至少在写这篇文章时没有）。在现实中，像第17步和第18步这样的程序不可能在超过100或200个处理器上运行，即使在那里，存储Triangulation和DoFHandler对象也会消耗每台机器上的绝大部分内存。
+
+因此，我们需要以不同的方式来处理这个问题：为了扩展到非常大的问题，每个处理器只能存储自己的一小块三角形和DoFHandler对象。deal.II在 parallel::distributed 命名空间和其中的类中实现了这样一个方案。它建立在一个外部库上，<a
+href="http://www.p4est.org/">p4est</a>（对表达式<i>parallel forest</i>的发挥，描述了将分层构造的网格作为四叉树或八叉树的森林进行并行存储）。你需要<a
+href="../../external-libs/p4est.html">install and configure p4est</a>，但除此之外，它的所有工作原理都隐藏在deal.II的表面之下。
+
+本质上， parallel::distributed::Triangulation 类和DoFHandler类中的代码所做的是分割全局网格，使每个处理器只存储其 "拥有 "的一小部分，以及围绕其拥有的单元的一层 "幽灵 "单元。在我们想要解决偏微分方程的领域的其余部分发生了什么，对每个处理器来说都是未知的，如果需要这些信息，只能通过与其他机器的交流来推断。这意味着我们还必须以不同于例如第17步和第18步的方式来思考问题：例如，没有一个处理器可以拥有用于后处理的整个解矢量，程序的每一部分都必须被并行化，因为没有一个处理器拥有顺序操作所需的所有信息。
+
+在 @ref distributed 文档模块中描述了这种并行化如何发生的一般概述。在阅读本程序的源代码之前，你应该先阅读它，以获得一个顶层的概述。在 @ref distributed_paper "分布式计算论文 "中也提供了关于我们将在程序中使用的许多术语的简明讨论。也许值得一读，以了解本程序内部如何工作的背景信息。
+
+
+
+
+<h3>The testcase</h3>
+
+这个程序基本上重新解决了我们在步骤6中已经做的事情，即它解决了拉普拉斯方程
+
+@f{align*}
+
+
+  -\Delta u &= f \qquad &&\text{in}\ \Omega=[0,1]^2, \\
+  u &= 0 \qquad &&\text{on}\ \partial\Omega.
+
+
+@f}
+
+当然不同的是，现在我们要在一个可能有十亿个单元，有十亿个左右自由度的网格上这样做。毫无疑问，对于这样一个简单的问题，这样做是完全愚蠢的，但毕竟一个教程程序的重点不是做一些有用的东西，而是展示如何使用deal.II来实现有用的程序。尽管如此，为了使事情至少有一点点有趣，我们选择右侧为一个不连续的函数。
+
+@f{align*}
+  f(x,y)
+  =
+  \left\{
+  \begin{array}{ll}
+    1 & \text{if}\ y > \frac 12 + \frac 14 \sin(4\pi x), \\
+
+
+    -1 & \text{otherwise},
+  \end{array}
+  \right.
+
+
+@f}
+
+使得解沿着蜿蜒穿过域的正弦线有一个奇点。因此，网格的细化将集中在这条线上。你可以在下面结果部分的网格图中看到这一点。
+
+与其在这里继续做冗长的介绍，不如让我们直接进入程序代码。如果你已经读完了步骤6和 @ref distributed 文档模块，大部分将要发生的事情你应该已经熟悉了。事实上，比较这两个程序，你会发现在%parallel中工作所需的额外努力几乎是微不足道的：这两个程序的代码行数差不多（尽管步骤6在处理系数和输出方面花费了更多的空间）。在任何情况下，下面的评论将只针对使step-40与step-6不同的事情，而且在 @ref distributed 文档模块中还没有涵盖。
+
+
+
+
+ @note  这个程序将能够在你想扔给它的多少个处理器上进行计算，以及你有多少内存和耐心来解决多大的问题。然而，<i>is</i>有一个限制：未知数的数量不能超过可以用类型 types::global_dof_index. 的对象存储的最大数量。默认情况下，这是<code>unsigned int</code>的别名，在今天大多数机器上是一个32位的整数，限制了你大约40亿（实际上，由于这个程序使用PETSc，你将被限制在一半，因为PETSc使用有符号整数）。然而，这可以在配置过程中改变为使用64位整数，见ReadMe文件。这将使问题的大小在短期内不太可能超过。
+
+

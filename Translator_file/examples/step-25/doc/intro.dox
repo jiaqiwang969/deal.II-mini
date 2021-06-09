@@ -1,0 +1,185 @@
+examples/step-25/doc/intro.dox
+
+<a name="Intro"></a> <h1>Introduction</h1>。
+
+这个程序是由德克萨斯A&amp;M大学的Ivan Christov的一个学生项目发展而来的。这个程序的大部分工作都是由他完成的。
+
+这个程序的目标是解决1、2或3空间维度的正弦戈登孤子方程。解决这个方程的动机是对二维和三维解的性质知之甚少，尽管一维情况已经被广泛研究。
+
+确切地说，正弦-戈登方程的名称是对所谓的克莱因-戈登方程的双关语，它是薛定谔方程的相对论版本，适用于非零质量的粒子。这种相似性不仅仅是表面的，正弦-戈登方程已经被证明可以模拟一些统一场现象，如亚原子粒子的相互作用（见，例如，Perring &amp; Skyrme in Nuclear %Physics <b>31</b>）和超导体结中的约瑟夫森（量子）效应（见，例如<a
+href="http://en.wikipedia.org/wiki/Long_Josephson_junction">http://en.wikipedia.org/wiki/Long_Josephson_junction</a>）。此外，从数学的角度来看，由于正弦戈登方程是 "完全可积分的"，它是使用反散射变换等通常方法研究的候选者。因此，多年来，人们发现了许多有趣的孤波，甚至是静止的正弦戈登方程解。在这些解中，粒子对应于局部特征。关于正弦戈登方程、反散射变换和其他寻找分析性孤子方程的方法的更多信息，读者应参考以下关于该主题的 "经典 "参考资料。G. L. Lamb的<i>Elements of Soliton
+Theory</i>（第5章，第2节）和G. B. Whitham的<i>Linear and
+Nonlinear Waves</i>（第17章，10-13节）。
+
+ @note  我们将在第58步中介绍量子力学中一个单独的非线性方程，即非线性Schr&ouml;dinger方程。
+
+<h3>Statement of the problem</h3> 我们希望解决的正弦戈登初始边界值问题（IBVP）由以下方程组成。
+
+\f{eqnarray*}
+  u_{tt}-\Delta u &=& -\sin(u) \quad\mbox{for}\quad (x,t) \in \Omega \times (t_0,t_f],\\
+  {\mathbf n} \cdot \nabla u &=& 0 \quad\mbox{for}\quad (x,t) \in \partial\Omega
+           \times (t_0,t_f],\\
+  u(x,t_0) &=& u_0(x).
+\f} 这是一个非线性方程，类似于我们在步骤23和步骤24中讨论的波浪方程。我们选择执行零诺伊曼边界条件，以使波从我们的域的边界上反射出去。然而，应该注意的是，迪里希特边界条件对这个问题并不合适。尽管正弦戈登方程的解是局部的，但只有在 $x=\pm\infty$ 处指定（迪里希特）边界条件才有意义，否则要么不存在解，要么只存在微不足道的解 $u=0$ 。
+
+然而，上述方程的形式对于数值离散化来说并不理想。如果我们要直接准确地离散二阶时间导数，那么我们将需要一个大的模板（即需要在内存中保留几个时间步长），这可能变得很昂贵。因此，与我们在步骤23和步骤24中所做的完全类似，我们将二阶（时间上）正弦-戈登方程拆分为两个一阶（时间上）方程系统，我们称之为拆分，或速度公式。为此，通过设置 $v = u_t$ ，很容易看到正弦-戈登方程等同于
+
+\f{eqnarray*}
+  u_t - v &=& 0,\\
+  v_t - \Delta u &=& -\sin(u).
+\f}
+
+现在，我们可以使用 $\theta$ 方法对分裂公式进行时间离散，该方法的模板只有两个时间步长。通过选择 $\theta\in [0,1]$ ，后者的离散化允许我们从一系列的方案中进行选择。特别是，如果我们选择 $\theta=0$ 或 $\theta=1$ ，我们可以分别得到一阶精确的显式或隐式欧拉方法。另一个重要的选择是 $\theta=\frac{1}{2}$ ，它给出了二阶精确的Crank-Nicolson方案。因此，上标 $n$ 表示在 $n^{\mathrm{th}}$ 时间步长的变量值，即在 $t=t_n \dealcoloneq n k$ ，其中 $k$ 是（固定）时间步长。因此，时间分解的正弦-戈登方程的拆分表述为
+
+\f{eqnarray*}
+  \frac{u^n - u^{n-1}}{k} - \left[\theta v^n + (1-\theta) v^{n-1}\right] &=& 0,\\
+  \frac{v^n - v^{n-1}}{k} - \Delta\left[\theta u^n + (1-\theta) u^{n-1}\right]
+  &=& -\sin\left[\theta u^n + (1-\theta) u^{n-1}\right].
+\f}
+
+我们可以通过一点代数来简化后者。从第一个方程中排除 $v^n$ 并重新排列，我们可以得到
+
+\f{eqnarray*}
+  \left[ 1-k^2\theta^2\Delta \right] u^n &=&
+         \left[ 1+k^2\theta(1-\theta)\Delta\right] u^{n-1} + k v^{n-1}
+
+
+         - k^2\theta\sin\left[\theta u^n + (1-\theta) u^{n-1}\right],\\
+   v^n &=& v^{n-1} + k\Delta\left[ \theta u^n + (1-\theta) u^{n-1}\right]
+
+
+         - k\sin\left[ \theta u^n + (1-\theta) u^{n-1} \right].
+\f}
+
+在这一点上，我们似乎可以直接进行空间离散化的方程。虽然这对第二个方程（在 $v^n$ 中是线性的）来说是正确的，但这对所有的 $\theta$ 来说是不可行的，因为上面的第一个方程是非线性的。因此，必须实现一个非线性求解器，然后将方程在空间中离散化并求解。
+
+为此，我们可以使用牛顿方法。给定非线性方程 $F(u^n) = 0$ ，我们对 $u^n$ 产生连续的近似值，如下。
+
+\f{eqnarray*}
+  \mbox{ Find } \delta u^n_l \mbox{ s.t. } F'(u^n_l)\delta u^n_l = -F(u^n_l)
+  \mbox{, set }  u^n_{l+1} = u^n_l + \delta u^n_l.
+\f} 迭代可以用旧的时间步长进行初始化，即 $u^n_0 = u^{n-1}$  ，最终会产生分裂公式的第一个方程的解（见上文）。对于这里所考虑的正弦-戈登方程的时间离散化，我们有
+
+\f{eqnarray*}
+  F(u^n_l) &=&  \left[ 1-k^2\theta^2\Delta \right] u^n_l -
+                 \left[ 1+k^2\theta(1-\theta)\Delta\right] u^{n-1} - k v^{n-1}
+                 + k^2\theta\sin\left[\theta u^n_l + (1-\theta) u^{n-1}\right],\\
+  F'(u^n_l) &=& 1-k^2\theta^2\Delta + k^2\theta^2\cos\left[\theta u^n_l
+                        + (1-\theta) u^{n-1}\right].
+\f} 注意，虽然 $F(u^n_l)$ 是一个函数，但 $F'(u^n_l)$ 是一个运算符。
+
+<h3>Weak formulation of the time-discretized equations</h3> 事后看来，我们选择解和检验空间都是 $H^1(\Omega)$  。因此，乘以测试函数 $\varphi$ 并进行积分，我们得到每个时间步长的分裂公式（包括第一个方程的非线性求解器）的以下变分（或弱）公式。
+
+\f{eqnarray*}
+  &\mbox{ Find}& \delta u^n_l \in H^1(\Omega) \mbox{ s.t. }
+  \left( F'(u^n_l)\delta u^n_l, \varphi \right)_{\Omega}
+  = -\left(F(u^n_l), \varphi \right)_{\Omega} \;\forall\varphi\in H^1(\Omega),
+  \mbox{ set } u^n_{l+1} = u^n_l + \delta u^n_l,\; u^n_0 = u^{n-1}.\\
+  &\mbox{ Find}& v^n \in H^1(\Omega) \mbox{ s.t. }
+  \left( v^n, \varphi \right)_{\Omega} = \left( v^{n-1}, \varphi \right)_{\Omega}
+
+
+         - k\theta\left( \nabla u^n, \nabla\varphi \right)_{\Omega}
+
+
+         - k (1-\theta)\left( \nabla u^{n-1}, \nabla\varphi \right)_{\Omega}
+
+
+         - k\left(\sin\left[ \theta u^n + (1-\theta) u^{n-1} \right],
+         \varphi \right)_{\Omega} \;\forall\varphi\in H^1(\Omega).
+\f}注意，我们在涉及拉普拉斯算子的所有项上使用了分项积分和零诺伊曼边界条件。此外， $F(\cdot)$ 和 $F'(\cdot)$ 如上定义， $(\cdot,\cdot)_{\Omega}$ 表示域 $\Omega$ 上通常的 $L^2$ 内积，即 $(f,g)_{\Omega} = \int_\Omega fg
+\,\mathrm{d}x$  。最后，请注意，第一个方程实际上是一个迭代程序的定义，所以在每个时间步骤中，它被多次解决，直到满足停止标准。
+
+<h3>Discretization of the weak formulation in space</h3>使用有限元方法，我们在空间中离散变量公式。为此，让 $V_h$ 成为一个具有节点基 $\{\varphi_1,\ldots,\varphi_N\}$ 的有限元空间（ $\mathrm{dim}\, V_h = N
+< \infty$ ）。现在，我们可以用节点基来展开弱公式（见上文）中的所有函数。此后，我们将用大写字母表示一个函数的系数向量（在节点基中），用小写字母表示；例如， $u^n = \sum_{i=1}^N
+U^n_i \varphi_i$  其中 $U^n \in {R}^N$  和 $u^n \in
+H^1(\Omega)$  。因此，变量公式的有限维版本要求我们在每个时间步长中解决以下矩阵方程。
+
+@f{eqnarray*}
+  F_h'(U^{n,l})\delta U^{n,l} &=& -F_h(U^{n,l}), \qquad
+        U^{n,l+1} = U^{n,l} + \delta U^{n,l}, \qquad U^{n,0} = U^{n-1}; \\
+  MV^n &=& MV^{n-1} - k \theta AU^n -k (1-\theta) AU^{n-1} - k S(u^n,u^{n-1}).
+
+
+@f}
+
+以上，矩阵 $F_h'(\cdot)$ 和向量 $F_h(\cdot)$ 表示上面讨论的小工具的离散版本，即。
+
+\f{eqnarray*}
+  F_h(U^{n,l}) &=&  \left[ M+k^2\theta^2A \right] U^{n,l} -
+                \left[ M-k^2\theta(1-\theta)A \right] U^{n-1} - k MV^{n-1}
+                + k^2\theta S(u^n_l, u^{n-1}),\\
+  F_h'(U^{n,l}) &=& M+k^2\theta^2A
+                                + k^2\theta^2N(u^n_l,u^{n-1})
+\f} 再次注意，上面的第一个矩阵方程实际上是迭代程序的定义，所以它被多次求解，直到满足停止标准。此外， $M$ 是质量矩阵，即 $M_{ij} = \left( \varphi_i,\varphi_j \right)_{\Omega}$  ， $A$ 是拉普拉斯矩阵，即 $A_{ij} = \left( \nabla \varphi_i, \nabla
+\varphi_j \right)_{\Omega}$  ， $S$  是定义我们的辅助速度变量的方程中的非线性项，即 $S_j(f,g) = \left(
+  \sin\left[ \theta f + (1-\theta) g\right], \varphi_j \right)_{\Omega}$  ， $N$  是 $F(\cdot)$  的雅各布矩阵中的非线性项，即 $N_{ij}(f,g) = \left( \cos\left[ \theta f + (1-\theta) g\right]\varphi_i,
+  \varphi_j \right)_{\Omega}$  。
+
+对于第一个方程，我们可以用什么解法？让我们来看看我们要反转的矩阵。
+
+@f[
+  (M+k^2\theta^2(A + N))_{ij} =
+  \int_\Omega (1+k^2\theta^2 \cos \alpha)
+  \varphi_i\varphi_j \; dx
+  + k^2 \theta^2 \int_\Omega \nabla\varphi_i\nabla\varphi_j \; dx,
+
+
+@f]
+
+为一些 $\alpha$ ，取决于现在和以前的解决方案。首先，请注意，该矩阵是对称的。此外，如果时间步长 $k$ 足够小，即如果 $k\theta<1$ ，那么该矩阵也将是正定的。在下面的程序中，情况总是这样的，所以我们将使用共轭梯度法和SSOR法作为预处理。然而，我们应该记住，如果我们碰巧使用更大的时间步长，这将失败。幸运的是，在这种情况下，求解器将只是抛出一个异常，表明收敛失败，而不是默默地产生一个错误的结果。如果发生这种情况，那么我们可以简单地用能够处理不确定对称系统的方法取代CG方法。GMRES求解器通常是处理所有 "坏 "线性系统的标准方法，但它也是一个缓慢的方法。更好的方法可能是利用对称性的求解器，例如，SymmLQ，它也在deal.II中实现。
+
+这个程序在步骤23和 @ref
+step_24 "步骤24 "上使用了巧妙的优化。如果你仔细阅读上述公式，就会发现，速度 $V$ 只出现在与质量矩阵的乘积中。因此，在步骤23和步骤24中，我们有点浪费：在每个时间步骤中，我们会用质量矩阵求解一个线性系统，只是在下一个时间步骤中再次将该系统的解乘以 $M$ 。当然，这可以避免，我们在这个程序中也是这样做的。
+
+
+
+
+<h3>The test case</h3>
+
+正弦戈登方程有几个分析解，包括一维和二维的。特别是，该程序如是计算一个具有单一的类似激波的初始条件的问题的解。  这个解是由Leibbrandt在Phys.Rev.Lett.中给出的。\b 41(7)中给出，并在 <code>ExactSolution</code> 类中实现。
+
+应该注意的是，严格来说，这个闭式解只适用于无限空间的初值问题（而不是这里考虑的诺伊曼初界值问题）。然而，鉴于我们施加了零诺依曼边界条件，我们期望我们的初始边界值问题的解将接近无限空间初始值问题的解，如果波在我们领域的边界上的反射没有发生。在实践中，情况当然不是这样的，但我们至少可以假设是这样的。
+
+二维解决方案中的常数 $\vartheta$ 和 $\lambda$ 以及三维解决方案中的 $\vartheta$ 、 $\phi$ 和 $\tau$ 被称为B&auml;cklund变换参数。它们控制诸如扭结的方向和陡度。为了测试代码与精确解的对比，我们应该选择这些参数，使扭结与网格保持一致。
+
+我们在 <code>ExactSolution</code> 类中实现的解决方案是这些。   <ul>   <li>  在1D中：@f[
+  u(x,t) =
+
+
+  -4 \arctan\left[
+     \frac{m}{\sqrt{1-m^2}}
+     \frac{\sin\left(\sqrt{1-m^2}t+c_2\right)}
+     {\cosh\left(mx+c_1\right)}
+     \right],
+  @f] 。
+
+  其中我们选择  $m=\frac 12, c_1=c_2=0$  。
+
+  在一维中，已知有更多有趣的分析解决方案。他们中的许多人被列在http://mathworld.wolfram.com/Sine-GordonEquation.html。
+
+    <li>  在2D：@f[
+    u(x,y,t) = 4 \arctan \left[a_0 e^{s\xi}\right],
+  @f] 。
+
+  其中 $\xi$ 被定义为@f[
+    \xi = x \cos\vartheta + \sin(\vartheta) (y\cosh\lambda + t\sinh \lambda),
+  @f]。
+
+  而在这里我们选择 $\vartheta=\frac \pi 4, \lambda=a_0=s=1$ 。
+
+    <li>  在三维：@f[
+    u(x,y,z,t) = 4 \arctan \left[c_0 e^{s\xi}\right],
+  @f] 。
+
+  其中 $\xi$ 被定义为@f[
+    \xi = x \cos\vartheta + y \sin \vartheta \cos\phi +
+          \sin \vartheta \sin\phi (z\cosh\tau + t\sinh \tau),
+  @f]。
+
+  而在这里，我们选择 $\vartheta=\phi=\frac{\pi}{4}, \tau=c_1=s=1$  。   </ul> 
+
+
+由于这使得玩起来更容易，用于设置&mdash;惊喜！&mdash;我们模拟的初始值的 <code>InitialValues</code> 类只是查询了描述初始时值的精确解的类，而不是重复实现解函数的努力。
+
+

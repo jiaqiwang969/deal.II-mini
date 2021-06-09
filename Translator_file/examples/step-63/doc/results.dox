@@ -1,0 +1,464 @@
+examples/step-63/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3> GMRES Iteration Numbers </h3>
+
+GMG的主要优势在于它是一种 $\mathcal{O}(n)$ 方法，也就是说，问题的复杂性随着问题的大小而线性增加。为了证明本教程中介绍的线性求解器实际上是 $\mathcal{O}(n)$ ，我们只需要证明GMRES求解的迭代次数在我们细化网格时保持大致不变。
+
+以下每个表格都给出了GMRES的迭代次数，以减少初始残差的系数 $10^8$  。我们选择了足够数量的平滑步骤（基于该方法），以获得与网格大小无关的迭代数。从下面的表格可以看出，该方法确实是  $\mathcal{O}(n)$  。
+
+<h4> DoF/Cell Renumbering </h4>
+
+逐点平滑器（"Jacobi "和 "SOR"）是按照每层的DoFs的编号顺序来应用的。我们可以使用DoFRenumbering命名空间来影响这一点。块平滑器的应用是基于我们在`setup_smoother()`中设置的顺序。我们可以直观地看到这个编号。下面的图片显示了在下游、随机和上游编号中的活动单元的编号（从左到右）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-63-cell-order.png" alt=""> 
+
+让我们从加性平滑器开始。下表显示了从GMRES获得收敛的必要迭代次数。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th></th>
+  <th></th>
+  <th colspan="1">$Q_1$</th>
+  <th colspan="7">Smoother (smoothing steps)</th>
+</tr>
+<tr>
+  <th></th>
+  <th></th>
+  <th></th>
+  <th colspan="3">Jacobi (6)</th>
+  <th></th>
+  <th colspan="3">Block Jacobi (3)</th>
+</tr>
+<tr>
+  <th></th>
+  <th></th>
+  <th></th>
+  <th colspan="3">Renumbering Strategy</th>
+  <th></th>
+  <th colspan="3">Renumbering Strategy</th>
+</tr>
+<tr>
+  <th>Cells</th>
+  <th></th>
+  <th>DoFs</th>
+  <th>Downstream</th>
+  <th>Random</th>
+  <th>Upstream</th>
+  <th></th>
+  <th>Downstream</th>
+  <th>Random</th>
+  <th>Upstream</th>
+</tr>
+<tr>
+  <th>32</th>
+  <th></th>
+  <th>48</th>
+  <td>3</th>
+  <td>3</th>
+  <td>3</th>
+  <th></th>
+  <td>3</th>
+  <td>3</th>
+  <td>3</th>
+</tr>
+<tr>
+  <th>128</th>
+  <th></th>
+  <th>160</th>
+  <td>6</th>
+  <td>6</th>
+  <td>6</th>
+  <th></th>
+  <td>6</th>
+  <td>6</th>
+  <td>6</th>
+</tr>
+<tr>
+  <th>512</th>
+  <th></th>
+  <th>576</th>
+  <td>11</th>
+  <td>11</th>
+  <td>11</th>
+  <th></th>
+  <td>9</th>
+  <td>9</th>
+  <td>9</th>
+</tr>
+<tr>
+  <th>2048</th>
+  <th></th>
+  <th>2176</th>
+  <td>15</th>
+  <td>15</th>
+  <td>15</th>
+  <th></th>
+  <td>13</th>
+  <td>13</th>
+  <td>13</th>
+</tr>
+<tr>
+  <th>8192</th>
+  <th></th>
+  <th>8448</th>
+  <td>18</th>
+  <td>18</th>
+  <td>18</th>
+  <th></th>
+  <td>15</th>
+  <td>15</th>
+  <td>15</th>
+</tr>
+<tr>
+  <th>32768</th>
+  <th></th>
+  <th>33280</th>
+  <td>20</th>
+  <td>20</th>
+  <td>20</th>
+  <th></th>
+  <td>16</th>
+  <td>16</th>
+  <td>16</th>
+</tr>
+<tr>
+  <th>131072</th>
+  <th></th>
+  <th>132096</th>
+  <td>20</th>
+  <td>20</th>
+  <td>20</th>
+  <th></th>
+  <td>16</th>
+  <td>16</th>
+  <td>16</th>
+</tr>
+</table> 
+
+我们看到，重新编号的DoF/单元对收敛速度没有影响。这是因为这些平滑器独立计算每个DoF（点平滑器）或单元（块平滑器）的操作，并将结果相加。由于我们可以将这些平滑器定义为矩阵之和的应用，而矩阵加法是交换性的，所以我们对不同组件进行加法的顺序不会影响最终结果。
+
+另一方面，乘法平滑器的情况则不同。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th></th>
+  <th></th>
+  <th colspan="1">$Q_1$</th>
+  <th colspan="7">Smoother (smoothing steps)</th>
+</tr>
+<tr>
+  <th></th>
+  <th></th>
+  <th></th>
+  <th colspan="3">SOR (3)</th>
+  <th></th>
+  <th colspan="3">Block SOR (1)</th>
+</tr>
+<tr>
+  <th></th>
+  <th></th>
+  <th></th>
+  <th colspan="3">Renumbering Strategy</th>
+  <th></th>
+  <th colspan="3">Renumbering Strategy</th>
+</tr>
+<tr>
+  <th>Cells</th>
+  <th></th>
+  <th>DoFs</th>
+  <th>Downstream</th>
+  <th>Random</th>
+  <th>Upstream</th>
+  <th></th>
+  <th>Downstream</th>
+  <th>Random</th>
+  <th>Upstream</th>
+</tr>
+<tr>
+  <th>32</th>
+  <th></th>
+  <th>48</th>
+  <td>2</th>
+  <td>2</th>
+  <td>3</th>
+  <th></th>
+  <td>2</th>
+  <td>2</th>
+  <td>3</th>
+</tr>
+<tr>
+  <th>128</th>
+  <th></th>
+  <th>160</th>
+  <td>5</th>
+  <td>5</th>
+  <td>7</th>
+  <th></th>
+  <td>5</th>
+  <td>5</th>
+  <td>7</th>
+</tr>
+<tr>
+  <th>512</th>
+  <th></th>
+  <th>576</th>
+  <td>7</th>
+  <td>9</th>
+  <td>11</th>
+  <th></th>
+  <td>7</th>
+  <td>7</th>
+  <td>12</th>
+</tr>
+<tr>
+  <th>2048</th>
+  <th></th>
+  <th>2176</th>
+  <td>10</th>
+  <td>12</th>
+  <td>15</th>
+  <th></th>
+  <td>8</th>
+  <td>10</th>
+  <td>17</th>
+</tr>
+<tr>
+  <th>8192</th>
+  <th></th>
+  <th>8448</th>
+  <td>11</th>
+  <td>15</th>
+  <td>19</th>
+  <th></th>
+  <td>10</th>
+  <td>11</th>
+  <td>20</th>
+</tr>
+<tr>
+  <th>32768</th>
+  <th></th>
+  <th>33280</th>
+  <td>12</th>
+  <td>16</th>
+  <td>20</th>
+  <th></th>
+  <td>10</th>
+  <td>12</th>
+  <td>21</th>
+</tr>
+<tr>
+  <th>131072</th>
+  <th></th>
+  <th>132096</th>
+  <td>12</th>
+  <td>16</th>
+  <td>19</th>
+  <th></th>
+  <td>11</th>
+  <td>12</th>
+  <td>21</th>
+</tr>
+</table> 
+
+在这里，我们可以通过在平流方向上对DoFs/单元进行重新编号来加快收敛速度，同样，如果我们在相反的方向上进行重新编号，我们可以减缓收敛速度。这是因为平流主导的问题有一个定向的信息流（在平流方向），如果对DoFs/单元进行正确的重新编号，乘法就能够捕捉到这些信息。
+
+然而，乘法的这一特点取决于 $\varepsilon$ 的值。当我们增加 $\varepsilon$ ，问题变得更加以扩散为主时，我们的信息在网格上的传播更加均匀，在平流方向上重新编号的优势就会减弱。相反，在 $\varepsilon=0$ 的极端情况下（仅有平流），我们有一个一阶PDE，具有正确重编号的乘法成为有效的求解器。正确的下游编号可能导致方法只需要一次迭代，因为信息可以从流入边界向下游传播，而没有相反方向的信息传输。然而，请注意，在 $\varepsilon=0$ 的情况下，必须对这种情况下的边界条件给予特别关注）。
+
+
+
+
+<h4> %Point vs. block smoothers </h4>
+
+我们将把结果限制在使用下游重新编号的运行上。下面是对 $Q_1$ 和 $Q_3$ 元素的所有四个平滑器的交叉比较。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th></th>
+  <td></th>
+  <th colspan="1">$Q_1$</th>
+  <th colspan="4">Smoother (smoothing steps)</th>
+  <th></th>
+  <th colspan="1">$Q_3$</th>
+  <th colspan="4">Smoother (smoothing steps)</th>
+</tr>
+<tr>
+  <th colspan="1">Cells</th>
+  <td></th>
+  <th colspan="1">DoFs</th>
+  <th colspan="1">Jacobi (6)</th>
+  <th colspan="1">Block Jacobi (3)</th>
+  <th colspan="1">SOR (3)</th>
+  <th colspan="1">Block SOR (1)</th>
+  <th></th>
+  <th colspan="1">DoFs</th>
+  <th colspan="1">Jacobi (6)</th>
+  <th colspan="1">Block Jacobi (3)</th>
+  <th colspan="1">SOR (3)</th>
+  <th colspan="1">Block SOR (1)</th>
+</tr>
+<tr>
+  <th>32</th>
+  <td></th>
+  <th>48</th>
+  <td>3</th>
+  <td>3</th>
+  <td>2</th>
+  <td>2</th>
+  <td></th>
+  <th>336</th>
+  <td>15</th>
+  <td>14</th>
+  <td>15</th>
+  <td>6</th>
+</tr>
+<tr>
+  <th>128</th>
+  <td></th>
+  <th>160</th>
+  <td>6</th>
+  <td>6</th>
+  <td>5</th>
+  <td>5</th>
+  <td></th>
+  <th>1248</th>
+  <td>23</th>
+  <td>18</th>
+  <td>21</th>
+  <td>9</th>
+</tr>
+<tr>
+  <th>512</th>
+  <td></th>
+  <th>576</th>
+  <td>11</th>
+  <td>9</th>
+  <td>7</th>
+  <td>7</th>
+  <td></th>
+  <th>4800</th>
+  <td>29</th>
+  <td>21</th>
+  <td>28</th>
+  <td>9</th>
+</tr>
+<tr>
+  <th>2048</th>
+  <td></th>
+  <th>2176</th>
+  <td>15</th>
+  <td>13</th>
+  <td>10</th>
+  <td>8</th>
+  <td></th>
+  <th>18816</th>
+  <td>33</th>
+  <td>22</th>
+  <td>32</th>
+  <td>9</th>
+</tr>
+<tr>
+  <th>8192</th>
+  <td></th>
+  <th>8448</th>
+  <td>18</th>
+  <td>15</th>
+  <td>11</th>
+  <td>10</th>
+  <td></th>
+  <th>74496</th>
+  <td>35</th>
+  <td>22</th>
+  <td>34</th>
+  <td>10</th>
+</tr>
+<tr>
+  <th>32768</th>
+  <td></th>
+  <th>33280</th>
+  <td>20</th>
+  <td>16</th>
+  <td>12</th>
+  <td>10</th>
+  <td></th>
+</tr>
+<tr>
+  <th>131072</th>
+  <td></th>
+  <th>132096</th>
+  <td>20</th>
+  <td>16</th>
+  <td>12</th>
+  <td>11</th>
+  <td></th>
+</tr>
+</table> 
+
+我们看到，对于 $Q_1$ ，两个乘法平滑器需要的平滑步骤和迭代次数的组合都比任何一个加法平滑器小。然而，当我们将度数增加到 $Q_3$ 元素时，在平滑步骤和迭代次数方面，块平滑器有明显的优势。具体来说，块状SOR平滑器在度数上给出了恒定的迭代次数，而块状Jacobi平滑器的迭代次数只增加了约38%，而Jacobi和SOR的迭代次数分别为75%和183%。
+
+<h3> Cost </h3>
+
+迭代次数并不能完全说明一个平滑器对另一个平滑器的最优性。很明显，我们必须检查迭代的成本。块状平滑器在这里处于不利地位，因为它们必须为每个单元构建和反转一个单元矩阵。下面是一个具有74,496个DoF的 $Q_3$ 元素的求解时间的比较。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th colspan="1">$Q_3$</th>
+  <th colspan="4">Smoother (smoothing steps)</th>
+</tr>
+<tr>
+  <th colspan="1">DoFs</th>
+  <th colspan="1">Jacobi (6)</th>
+  <th colspan="1">Block Jacobi (3)</th>
+  <th colspan="1">SOR (3)</th>
+  <th colspan="1">Block SOR (1)</th>
+</tr>
+<tr>
+  <th>74496</th>
+  <td>0.68s</th>
+  <td>5.82s</th>
+  <td>1.18s</th>
+  <td>1.02s</th>
+</tr>
+</table> 
+
+需要最多迭代的平滑器（Jacobi）实际上需要最短的时间（大约是下一个最快方法的2/3）。这是因为应用雅可比平滑步骤所需要的只是乘以一个对角线矩阵，这是非常便宜的。另一方面，虽然SOR比块SOR需要超过3倍的迭代（每个迭代有3倍的平滑步骤），但时间大致相当，这意味着块SOR的一个平滑步骤比SOR的一个平滑步骤大约慢9倍。最后，Jacobi块的成本比SOR块高6倍，这在直觉上是有道理的，因为每种方法的1个步骤都有相同的成本（反转单元格矩阵并将其相加或相乘），而Jacobi块每次迭代的平滑步骤是3倍，迭代次数是2倍。
+
+
+
+
+<h3> Additional points </h3>
+
+还有几个重要的点需要提及。
+
+<ol>  <li>  对于平行分布的网格，乘法不能在整个领域内执行。这是因为它们一次操作一个单元，而下游的单元只有在上游的单元已经完成后才能被处理。这在单个处理器上是没有问题的。处理器只是一个接一个地浏览单元的列表。然而，在并行的情况下，这将意味着一些处理器是空闲的，因为上游处理器还没有完成对当前处理器所拥有的上游单元的工作。一旦上游处理器完成工作，下游处理器就可以开始工作，但那时上游处理器已经没有工作了。换句话说，在这些平稳的步骤中，大部分时间，大多数处理器实际上是空闲的。这不是获得良好的并行可扩展性的方法!
+
+我们可以使用一种混合方法，即在每个子域上应用乘法平滑器，但是当你增加子域的数量时，该方法接近于加法的行为。这是这些方法的一个主要缺点。   </li> 
+
+ <li> 目前对块平滑器的研究表明，很快我们将能够计算单元矩阵的逆，比目前在deal.II里面做的要便宜得多。这项研究是基于快速对角线化方法（可以追溯到20世纪60年代），在光谱界已经使用了大约20年（例如，见<a
+href="https://doi.org/10.1007/s10915-004-4787-3"> Hybrid
+Multigrid/Schwarz Algorithms for the Spectral Element Method by Lottes
+and Fischer</a>）。目前，人们正在努力将这些方法推广到DG，并使其更加强大。此外，人们似乎应该能够利用无矩阵的实现，以及在域的内部，单元矩阵往往看起来非常相似的事实，允许更少的矩阵逆计算。   </li>   </ol> 。
+
+结合1.和2.，我们有充分的理由期待像块状雅可比这样的方法在未来变得非常强大，尽管目前对这些例子来说它是相当缓慢的。
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+<h4> Constant iterations for Q<sub>5</sub> </h4>
+
+改变平滑步骤的数量和平滑器放松参数（在 <code>Smoother::AdditionalData()</code> 中设置在 <code>create_smoother()</code> 里面，只对点平滑器有必要），以便我们对一个 $Q_5$ 元素保持一个恒定的迭代次数。
+
+<h4> Effectiveness of renumbering for changing epsilon </h4>
+
+增加/减少乘法的`.prm`文件中的参数 "Epsilon"，观察哪些数值的重编号不再影响收敛速度。
+
+<h4> Mesh adaptivity </h4>
+
+这段代码被设置为可以在自适应细化的网格中正常工作（接口矩阵被创建和设置）。设计一个合适的细化标准或尝试KellyErrorEstimator类。
+
+

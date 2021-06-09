@@ -1,0 +1,255 @@
+examples/step-55/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+正如上面的讨论所预期的那样，迭代次数与处理器的数量无关，只与 $h$ 有非常小的关系。
+
+ <table>
+<tr>
+  <th colspan="2">PETSc</th>
+  <th colspan="8">number of processors</th>
+</tr>
+<tr>
+  <th>cycle</th>
+  <th>dofs</th>
+  <th>1</th>
+  <th>2</th>
+  <th>4</th>
+  <th>8</th>
+  <th>16</th>
+  <th>32</th>
+  <th>64</th>
+  <th>128</th>
+</tr>
+<tr>
+  <td>0</td>
+  <td>659</td>
+  <td>49</td>
+  <td>49</td>
+  <td>49</td>
+  <td>51</td>
+  <td>51</td>
+  <td>51</td>
+  <td>49</td>
+  <td>49</td>
+</tr>
+<tr>
+  <td>1</td>
+  <td>2467</td>
+  <td>52</td>
+  <td>52</td>
+  <td>52</td>
+  <td>52</td>
+  <td>52</td>
+  <td>54</td>
+  <td>54</td>
+  <td>53</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>9539</td>
+  <td>56</td>
+  <td>56</td>
+  <td>56</td>
+  <td>54</td>
+  <td>56</td>
+  <td>56</td>
+  <td>54</td>
+  <td>56</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>37507</td>
+  <td>57</td>
+  <td>57</td>
+  <td>57</td>
+  <td>57</td>
+  <td>57</td>
+  <td>56</td>
+  <td>57</td>
+  <td>56</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td>148739</td>
+  <td>58</td>
+  <td>59</td>
+  <td>57</td>
+  <td>59</td>
+  <td>57</td>
+  <td>57</td>
+  <td>57</td>
+  <td>57</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>592387</td>
+  <td>60</td>
+  <td>60</td>
+  <td>59</td>
+  <td>59</td>
+  <td>59</td>
+  <td>59</td>
+  <td>59</td>
+  <td>59</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>2364419</td>
+  <td>62</td>
+  <td>62</td>
+  <td>61</td>
+  <td>61</td>
+  <td>61</td>
+  <td>61</td>
+  <td>61</td>
+  <td>61</td>
+</tr>
+</table> 
+
+ <table>
+<tr>
+  <th colspan="2">Trilinos</th>
+  <th colspan="8">number of processors</th>
+</tr>
+<tr>
+  <th>cycle</th>
+  <th>dofs</th>
+  <th>1</th>
+  <th>2</th>
+  <th>4</th>
+  <th>8</th>
+  <th>16</th>
+  <th>32</th>
+  <th>64</th>
+  <th>128</th>
+</tr>
+<tr>
+  <td>0</td>
+  <td>659</td>
+  <td>37</td>
+  <td>37</td>
+  <td>37</td>
+  <td>37</td>
+  <td>37</td>
+  <td>37</td>
+  <td>37</td>
+  <td>37</td>
+</tr>
+<tr>
+  <td>1</td>
+  <td>2467</td>
+  <td>92</td>
+  <td>89</td>
+  <td>89</td>
+  <td>82</td>
+  <td>86</td>
+  <td>81</td>
+  <td>78</td>
+  <td>78</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>9539</td>
+  <td>102</td>
+  <td>99</td>
+  <td>96</td>
+  <td>95</td>
+  <td>95</td>
+  <td>88</td>
+  <td>83</td>
+  <td>95</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td>37507</td>
+  <td>107</td>
+  <td>105</td>
+  <td>104</td>
+  <td>99</td>
+  <td>100</td>
+  <td>96</td>
+  <td>96</td>
+  <td>90</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td>148739</td>
+  <td>112</td>
+  <td>112</td>
+  <td>111</td>
+  <td>111</td>
+  <td>127</td>
+  <td>126</td>
+  <td>115</td>
+  <td>117</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td>592387</td>
+  <td>116</td>
+  <td>115</td>
+  <td>114</td>
+  <td>112</td>
+  <td>118</td>
+  <td>120</td>
+  <td>131</td>
+  <td>130</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td>2364419</td>
+  <td>130</td>
+  <td>126</td>
+  <td>120</td>
+  <td>120</td>
+  <td>121</td>
+  <td>122</td>
+  <td>121</td>
+  <td>123</td>
+</tr>
+</table> 
+
+虽然PETSc的结果显示迭代次数不变，但使用Trilinos时，迭代次数增加。这可能是由于AMG预处理程序的不同设置造成的。出于性能方面的考虑，我们不允许在几千个未知数以下进行粗化。由于粗解器是精确求解（我们默认使用LU），层数的变化将影响V型循环的质量。因此，对于较小的问题规模，V型循环更接近于精确求解器。
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Investigate Trilinos iterations</h4>
+
+玩弄平滑器、平滑步骤和Trilinos AMG的其他属性，以实现最佳预处理。
+
+<h4>Solve the Oseen problem instead of the Stokes system</h4>
+
+这一变化需要将外部求解器改为GMRES或BiCGStab，因为系统不再是对称的了。
+
+你可以在对流项 $b
+\cdot \nabla u$ 中规定精确的流动解，即 $b$  。如果你把右手边设置为零，这应该可以得到与原问题相同的解。
+
+<h4>Adaptive refinement</h4>
+
+到目前为止，这个教程程序在每一步都会对网格进行全局细化。将 StokesProblem::refine_grid() 中的代码替换为如下内容
+
+@code
+Vector<float> estimated_error_per_cell(triangulation.n_active_cells());
+
+
+FEValuesExtractors::Vector velocities(0);
+KellyErrorEstimator<dim>::estimate(
+  dof_handler,
+  QGauss<dim - 1>(fe.degree + 1),
+  std::map<types::boundary_id, const Function<dim> *>(),
+  locally_relevant_solution,
+  estimated_error_per_cell,
+  fe.component_mask(velocities));
+parallel::distributed::GridRefinement::refine_and_coarsen_fixed_number(
+  triangulation, estimated_error_per_cell, 0.3, 0.0);
+triangulation.execute_coarsening_and_refinement();
+@endcode
+
+使得探索自适应网格细化变得简单。
+
+

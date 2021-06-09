@@ -1,0 +1,403 @@
+examples/step-18/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+
+这个教程程序是我们已经在步骤8和步骤17中开始的弹性问题系列中的另一个。它将其扩展到两个不同的方向：首先，它用拉格朗日网格运动方法解决了大变形的准静态但与时间相关的弹性问题。其次，它又展示了一些使用PETSc的线性代数的%并行处理来解决此类问题的技术。除此之外，我们还展示了如何解决step-17的两个主要瓶颈中的一个，即我们只从一个进程中产生图形输出，而这在更多的进程和大问题上的扩展性非常差。另一个瓶颈，即每个处理器都必须持有整个网格和DoFHandler，将在第40步中解决）。最后，我们还展示了许多以前的程序中未曾展示过的各种改进和技术。
+
+如同前面的第17步，只要你安装了PETSc，程序在单机上的运行也是一样的。关于如何告诉deal.II你的系统上安装了PETSc的信息可以在deal.II的README文件中找到，该文件可以从你安装的deal.II的<a href="../../index.html">main
+documentation page</a>中链接到，或者在<a href="http://www.dealii.org/">the
+deal.II webpage</a>上。
+
+
+
+
+<h3>Quasistatic elastic deformation</h3>
+
+<h4>Motivation of the model</h4>
+
+一般来说，随时间变化的小弹性变形是由弹性波方程描述的
+
+@f[
+  \rho \frac{\partial^2 \mathbf{u}}{\partial t^2}
+  + c \frac{\partial \mathbf{u}}{\partial t}
+
+
+  - \textrm{div}\  ( C \varepsilon(\mathbf{u})) = \mathbf{f}
+  \qquad
+  \textrm{in}\ \Omega,
+
+
+@f]
+
+其中 $\mathbf{u}=\mathbf{u} (\mathbf{x},t)$ 是身体的变形， $\rho$ 和 $c$ 是密度和衰减系数，以及 $\mathbf{f}$ 外力。此外，初始条件
+
+@f[
+  \mathbf{u}(\cdot, 0) = \mathbf{u}_0(\cdot)
+  \qquad
+  \textrm{on}\ \Omega,
+
+
+@f]
+
+和Dirichlet（位移）或Neumann（牵引）边界条件，需要指定一个唯一的解决方案。
+
+@f{eqnarray*}
+  \mathbf{u}(\mathbf{x},t) &=& \mathbf{d}(\mathbf{x},t)
+  \qquad
+  \textrm{on}\ \Gamma_D\subset\partial\Omega,
+  \\
+  \mathbf{n} \ C \varepsilon(\mathbf{u}(\mathbf{x},t)) &=& \mathbf{b}(\mathbf{x},t)
+  \qquad
+  \textrm{on}\ \Gamma_N=\partial\Omega\backslash\Gamma_D.
+
+
+@f}
+
+在上述公式中， $\varepsilon(\mathbf{u})= \frac 12 (\nabla \mathbf{u} + \nabla
+\mathbf{u}^T)$ 是位移的对称梯度，也称为 <em> 应变 </em>  。   $C$ 是一个等级为4的张量，称为 <em> 应力-应变张量 </em> （<a
+  href="https://en.wikipedia.org/wiki/Hooke%27s_law#Hooke's_law_for_continuous_media"><em>compliance
+  tensor</em></a>的逆向）。]），它包含了材料弹性强度的知识；它的对称性特性确保它将秩为2的对称张量（&ldquo;矩阵&rdquo;的维数 $d$ ，其中 $d$ 是空间维数）映射到相同秩的对称张量上。我们将在下面更多地评论应变和应力张量的作用。现在只需要说，我们将术语 $\textrm{div}\  ( C \varepsilon(\mathbf{u}))$ 解释为具有分量 $\frac \partial{\partial x_j} C_{ijkl} \varepsilon(\mathbf{u})_{kl}$ 的向量，其中对指数 $j,k,l$ 的求和是隐含的。
+
+这个方程的准静态极限的动机如下：身体的每个小扰动，例如边界条件或强迫函数的变化，将导致身体配置的相应变化。一般来说，这将是以波的形式从扰动的位置辐射出去。由于阻尼项的存在，这些波将在例如 $\tau$ 的时间尺度上被衰减。现在，假设所有外部强制力的变化发生在比 $\tau$ 大得多的时间尺度上。在这种情况下，变化的动态性质并不重要：我们可以认为身体总是处于静态平衡状态，也就是说，我们可以假设在任何时候，身体都满足于
+
+@f{eqnarray*}
+
+
+  - \textrm{div}\  ( C \varepsilon(\mathbf{u})) &=& \mathbf{f}(\mathbf{x},t)
+  \qquad
+  \textrm{in}\ \Omega,
+  \\
+  \mathbf{u}(\mathbf{x},t) &=& \mathbf{d}(\mathbf{x},t)
+  \qquad
+  \textrm{on}\ \Gamma_D,
+  \\
+  \mathbf{n} \ C \varepsilon(\mathbf{u}(\mathbf{x},t)) &=& \mathbf{b}(\mathbf{x},t)
+  \qquad
+  \textrm{on}\ \Gamma_N.
+
+
+@f}
+
+请注意，微分方程不再包含任何时间导数 -- 所有的时间依赖性都是通过边界条件和可能的时间变化的力函数引入的  $\mathbf{f}(\mathbf{x},t)$  。因此，配置的变化可以被认为是瞬时静止的。对此的另一种看法是， $t$ 并不是真正的时间变量，而只是一个支配问题演变的类似时间的参数。
+
+虽然这些方程足以描述小的变形，但计算大的变形就有点复杂了，一般来说，会导致非线性方程，如步骤-44中处理的那些。在下文中，让我们考虑在模拟变形成为<i>large</i>的问题时，人们会采用的一些工具。
+
+ @note 我们下面要考虑的模型并不是建立在任何在数学上合理的基础上：我们将考虑一个模型，在这个模型中，我们产生一个小的变形，通过这个变形使身体的物理坐标变形，然后再考虑下一个加载步骤，作为一个线性问题。这并不一致，因为线性的假设意味着变形是无限小的，所以在解决下一个线性问题之前，在我们的网格顶点周围移动一个有限的量是不一致的做法。因此，我们应该注意到，在文献中找不到下面讨论的方程，这并不奇怪。<b>The model considered here has
+little to do with reality!</b>另一方面，我们所考虑的实现技术正是人们在实现<i>real</i>模型时需要使用的，我们将在步骤-44中看到。
+
+
+为了回到定义我们的 "人工 "模型，让我们首先引入一个张量的应力变量 $\sigma$ ，并以应力为基础写出微分方程。
+
+@f{eqnarray*}
+
+
+  - \textrm{div}\  \sigma &=& \mathbf{f}(\mathbf{x},t)
+  \qquad
+  \textrm{in}\ \Omega(t),
+  \\
+  \mathbf{u}(\mathbf{x},t) &=& \mathbf{d}(\mathbf{x},t)
+  \qquad
+  \textrm{on}\ \Gamma_D\subset\partial\Omega(t),
+  \\
+  \mathbf{n} \ C \varepsilon(\mathbf{u}(\mathbf{x},t)) &=& \mathbf{b}(\mathbf{x},t)
+  \qquad
+  \textrm{on}\ \Gamma_N=\partial\Omega(t)\backslash\Gamma_D.
+
+
+@f}
+
+注意这些方程是在一个随时间变化的域 $\Omega(t)$ 上提出的，边界根据边界上各点的位移 $\mathbf{u}(\mathbf{x},t)$ 而移动。为了完成这个系统，我们必须指定应力和应变之间的增量关系，如下所示。<a name="step_18.stress-strain"></a>
+
+@f[
+  \dot\sigma = C \varepsilon (\dot{\mathbf{u}}),
+  \qquad
+  \qquad
+  \textrm{[stress-strain]}
+
+
+@f]
+
+其中点表示一个时间导数。应力 $\sigma$ 和应变 $\varepsilon(\mathbf{u})$ 都是等级2的对称张量。
+
+
+
+
+<h4>Time discretization</h4>
+
+在数值上，该系统的求解方法如下：首先，我们使用后向欧拉方案对时间部分进行离散化。这导致了时间步长的离散平衡力  $n$  。
+
+@f[
+
+
+  -\textrm{div}\  \sigma^n = f^n,
+
+
+@f]
+
+其中
+
+@f[
+  \sigma^n = \sigma^{n-1} + C \varepsilon (\Delta \mathbf{u}^n),
+
+
+@f]
+
+和  $\Delta \mathbf{u}^n$  时间步长的增量位移  $n$  。此外，我们必须指定初始数据  $\mathbf{u}(\cdot,0)=\mathbf{u}_0$  。这样一来，如果我们想求解位移增量，我们必须求解以下系统。
+
+@f{align*}
+
+
+  - \textrm{div}\   C \varepsilon(\Delta\mathbf{u}^n) &= \mathbf{f} + \textrm{div}\  \sigma^{n-1}
+  \qquad
+  &&\textrm{in}\ \Omega(t_{n-1}),
+  \\
+  \Delta \mathbf{u}^n(\mathbf{x},t) &= \mathbf{d}(\mathbf{x},t_n) - \mathbf{d}(\mathbf{x},t_{n-1})
+  \qquad
+  &&\textrm{on}\ \Gamma_D\subset\partial\Omega(t_{n-1}),
+  \\
+  \mathbf{n} \ C \varepsilon(\Delta \mathbf{u}^n(\mathbf{x},t)) &= \mathbf{b}(\mathbf{x},t_n)-\mathbf{b}(\mathbf{x},t_{n-1})
+  \qquad
+  &&\textrm{on}\ \Gamma_N=\partial\Omega(t_{n-1})\backslash\Gamma_D.
+
+
+@f}
+
+这组方程的弱形式，像往常一样是有限元公式的基础，其内容如下：找到 $\Delta \mathbf{u}^n \in
+\{v\in H^1(\Omega(t_{n-1}))^d: v|_{\Gamma_D}=\mathbf{d}(\cdot,t_n) - \mathbf{d}(\cdot,t_{n-1})\}$ ，使<a name="step_18.linear-system"></a>这样的方程。
+
+@f{align*}
+  (C \varepsilon(\Delta\mathbf{u}^n), \varepsilon(\varphi) )_{\Omega(t_{n-1})}
+  &=
+  (\mathbf{f}, \varphi)_{\Omega(t_{n-1})}
+
+
+  -(\sigma^{n-1},\varepsilon(\varphi))_{\Omega(t_{n-1})}
+  \\
+  &\qquad
+  +(\mathbf{b}(\mathbf{x},t_n)-\mathbf{b}(\mathbf{x},t_{n-1}), \varphi)_{\Gamma_N}
+  +(\sigma^{n-1} \mathbf{n}, \varphi)_{\Gamma_N}
+  \\
+  &\qquad\qquad
+  \forall \varphi \in \{\mathbf{v}\in H^1(\Omega(t_{n-1}))^d: \mathbf{v}|_{\Gamma_D}=0\}.
+
+
+@f}
+
+利用 $\sigma^{n-1} \mathbf{n}
+            = [C \varepsilon(\mathbf{u}^{n-1})] \mathbf{n}
+            = \mathbf{b}(\mathbf x, t_{n-1})$ ，这些方程可以简化为
+
+@f{align*}
+  (C \varepsilon(\Delta\mathbf{u}^n), \varepsilon(\varphi) )_{\Omega(t_{n-1})}
+  &=
+  (\mathbf{f}, \varphi)_{\Omega(t_{n-1})}
+
+
+  -(\sigma^{n-1},\varepsilon(\varphi))_{\Omega(t_{n-1})}
+  +(\mathbf{b}(\mathbf{x},t_n),t_{n-1}), \varphi)_{\Gamma_N}
+  \\
+  &\qquad\qquad
+  \forall \varphi \in \{\mathbf{v}\in H^1(\Omega(t_{n-1}))^d: \mathbf{v}|_{\Gamma_D}=0\}.
+  \qquad
+  \qquad
+  \textrm{[linear-system]}
+
+
+@f}
+
+
+
+我们注意到，为了简单起见，在程序中我们总是假设没有边界力，即 $\mathbf{b} = 0$ ，并且身体的变形仅由身体力 $\mathbf{f}$ 和规定的边界位移 $\mathbf{d}$ 驱动。还值得注意的是，当通过部分积分时，我们会得到形式为 $(C \varepsilon(\Delta\mathbf{u}^n), \nabla \varphi
+)_{\Omega(t_{n-1})}$ 的条款，但我们用涉及对称梯度的条款 $\varepsilon(\varphi)$ 而不是 $\nabla\varphi$ 来取代它们。由于 $C$ 的对称性，这两个项在数学上是等价的，但对称版本避免了可能出现的四舍五入错误，使得到的矩阵略显非对称性。
+
+在时间步长 $n$ 的系统，要在旧域 $\Omega(t_{n-1})$ 上求解，其形式完全是一个静止的弹性问题，因此与我们在以前的例子程序中已经实现的类似。因此，除了说我们再次使用最低阶连续有限元之外，我们将不对空间离散化进行评论。
+
+但也有不同之处。<ol>  <li>  我们必须在每个时间步骤之后移动（更新）网格，以便能够在新的领域上解决下一个时间步骤。
+
+    <li> 我们需要知道 $\sigma^{n-1}$ 来计算下一个增量位移，也就是说，我们需要在时间步骤结束时计算它，以确保它可以用于下一个时间步骤。从本质上讲，应力变量是我们了解体的变形历史的窗口。   </ol>  这两个操作在程序中的 <code>move_mesh</code> 和 <code>update_quadrature_point_history</code> 函数中完成。移动网格只是一个技术问题，而更新应力则要复杂一些，将在下一节讨论。
+
+
+
+
+<h4>Updating the stress variable</h4>
+
+如上所述，在计算时间步长 $n+1$ 时，我们需要有应力变量 $\sigma^n$ ，我们可以用<a name="step_18.stress-update"></a>来计算它。
+
+@f[
+  \sigma^n = \sigma^{n-1} + C \varepsilon (\Delta \mathbf{u}^n).
+  \qquad
+  \qquad
+  \textrm{[stress-update]}
+
+
+@f]
+
+尽管这个方程表面上很简单，但有两个问题我们需要讨论。第一个问题是关于我们存储 $\sigma^n$ 的方式：即使我们使用最低阶有限元计算增量更新 $\Delta\mathbf{u}^n$ ，那么其对称梯度 $\varepsilon(\Delta\mathbf{u}^n)$ 一般来说仍然是一个不容易描述的函数。特别是，它不是一个片状常数函数，在一般的网格上（单元不是平行于坐标轴的矩形）或非恒定应力-应变张量 $C$ ，它甚至不是一个双线性或三线性函数。因此，如何在计算机程序中存储 $\sigma^n$ 是先验的。
+
+要决定这一点，我们必须看它被用在什么地方。我们需要应力的唯一地方是在术语 $(\sigma^{n-1},\varepsilon(\varphi))_{\Omega(t_{n-1})}$ 中。在实践中，我们当然会用数值正交来代替这个项。
+
+@f[
+  (\sigma^{n-1},\varepsilon(\varphi))_{\Omega(t_{n-1})}
+  =
+  \sum_{K\subset {T}}
+  (\sigma^{n-1},\varepsilon(\varphi))_K
+  \approx
+  \sum_{K\subset {T}}
+  \sum_q
+  w_q \ \sigma^{n-1}(\mathbf{x}_q) : \varepsilon(\varphi(\mathbf{x}_q),
+
+
+@f]
+
+其中 $w_q$ 是正交权重， $\mathbf{x}_q$ 是单元格 $K$ 上的正交点。这应该表明，我们真正需要的不是应力 $\sigma^{n-1}$ 本身，而只是所有单元上的正交点的应力值。然而，这是一个更简单的任务：我们只需要提供一个数据结构，能够为所有单元上的每个正交点（或者，由于我们是并行计算，目前的MPI进程拥有的所有单元的所有正交点&ldquo;rdquo;）容纳一个等级为2的对称张量。在每个时间步骤结束时，我们只需评估 $\varepsilon(\Delta \mathbf{u}^n(\mathbf{x}_q))$ ，将其乘以应力-应变张量 $C$ ，并使用该结果来更新正交点 $q$ 的应力 $\sigma^n(\mathbf{x}_q)$ 。
+
+第二个复杂的问题在我们上面选择的符号中并不明显。这是由于我们在域 $\Omega(t_{n-1})$ 上计算 $\Delta u^n$ ，然后用这个位移增量来更新应力，同时移动网格节点，以达到 $\Omega(t_n)$ ，在此基础上计算下一个增量。在这种情况下，我们必须确定的是，移动网格不仅涉及到节点的移动，还涉及到应力变量的相应变化：更新的应力是一个相对于旧域中材料的坐标系而定义的变量，必须转移到新域中。其原因可以理解为：在局部，增量变形 $\Delta\mathbf{u}$ 可以分解为三个部分，线性平移（点附近的位移增量场的常数部分），扩张分量（位移场梯度中具有非零发散的那部分），以及旋转。材料的线性平移并不影响冻结在其中的应力--应力值只是沿着平移。扩张或压缩的变化产生相应的应力更新。然而，旋转分量不一定会引起非零的应力更新（想想，在2d中，例如 $\Delta\mathbf{u}=(y, -x)^T$  ，与 $\varepsilon(\Delta
+\mathbf{u})=0$  的情况）。尽管如此，如果材料在某个方向上被预应力，那么这个方向将随着材料的旋转而旋转。  为此，我们必须定义一个旋转矩阵 $R(\Delta \mathbf{u}^n)$ ，描述在每一个点上由于位移增量而产生的旋转。不难看出， $R$ 对 $\Delta \mathbf{u}^n$ 的实际依赖只能是通过位移的卷曲，而不是位移本身或其全部梯度（如上所述，增量的常数分量描述平移，其发散描述扩张模式，而卷曲描述旋转模式）。由于 $R$ 的确切形式很麻烦，我们只在程序代码中说明，并注意到应力变量的正确更新公式是<a name="step_18.stress-update+rot"></a> 。
+
+@f[
+  \sigma^n
+  =
+  R(\Delta \mathbf{u}^n)^T
+  [\sigma^{n-1} + C \varepsilon (\Delta \mathbf{u}^n)]
+  R(\Delta \mathbf{u}^n).
+  \qquad
+  \qquad
+  \textrm{[stress-update+rot]}
+
+
+@f]
+
+
+
+应力更新和旋转都是在示例程序的函数 <code>update_quadrature_point_history</code> 中实现的。
+
+
+
+
+<h3>Parallel graphical output</h3>
+
+在步骤17中，就运行时间而言，平行计算的主要瓶颈是只有第一个处理器产生整个领域的输出。由于生成图形输出是很昂贵的，所以当涉及到更多数量的处理器时，这并不能很好地扩展。我们将在这里解决这个问题。关于程序 "扩展 "的定义，见 @ref GlossParallelScaling "本词汇表条目"）。
+
+基本上，我们需要做的是让每个进程为它所拥有的那个单元子集产生图形输出，将它们写进单独的文件，并有办法同时显示某个时间步长的所有文件。这样，代码在每个时间步长的每个进程产生一个 <code>.vtu</code> 文件。两个常见的VTK文件查看器ParaView和Viscit都支持一次打开一个以上的 <code>.vtu</code> 文件。为了简化挑选正确文件的过程，并允许在时间上移动，两者都支持记录文件，以引用特定时间步长的所有文件。遗憾的是，记录文件在VisIt和Paraview之间有不同的格式，所以我们把两种格式都写出来。
+
+代码将生成文件 <code>solution-TTTT.NNN.vtu</code> ，其中 <code>TTTT</code> 是时间步数（从1开始）， <code>NNN</code> 是进程等级（从0开始）。这些文件包含时间段和处理器的本地所有单元。文件 <code>solution-TTTT.visit</code> 是时间段的访问记录 <code>TTTT</code>, while <code>solution-TTTT.pvtu</code> 对ParaView也是如此。(较新版本的VisIt实际上也可以读取 <code>.pvtu</code> 文件，但输出两种记录文件也无妨。)最后， <code>solution.pvd</code> 文件是只有ParaView支持的特殊记录，它引用所有的时间步骤。所以在ParaView中，只需要打开solution.pvd，而在VisIt中需要选择所有的.visit文件组，才能达到同样的效果。
+
+
+
+
+<h3>A triangulation with automatic partitioning</h3>
+
+在第17步中，我们使用了一个在每个处理器上简单复制的常规三角形，以及一个相应的DoFHandler。两者都不知道它们是在%并行环境下使用的--它们只是完整地存在于每个处理器上，我们认为这最终会成为一个主要的内存瓶颈。
+
+我们在这里不解决这个问题（我们将在第40步中解决），但使情况稍微自动化一些。在第17步中，我们创建了三角形，然后手动 "分区"，也就是说，我们给每个单元分配了 @ref GlossSubdomainId "子域ID"，以表明哪个 @ref GlossMPIProcess "MPI进程""拥有 "该单元。在这里，我们使用了一个类 parallel::shared::Triangulation ，它至少自动完成了这一部分：每当你创建或完善这样一个三角图时，它都会自动在所有参与的进程之间进行划分（它知道这些进程，因为你必须告诉它在构建三角图时连接这些进程的 @ref GlossMPICommunicator "MPI通信器"）。否则， parallel::shared::Triangulation 看起来，就所有的实际目的而言，就像一个普通的Triangulation对象。
+
+使用这个类的便利性不仅来自于能够避免手动调用 GridTools::partition(). ，相反，DoFHandler类现在也知道你想在并行环境下使用它，并且默认情况下会自动列举自由度，使进程0拥有的所有DoF先于进程1拥有的所有DoF，等等。换句话说，你也可以避免对 DoFRenumbering::subdomain_wise(). 的调用。
+
+还有其他好处。例如，由于三角计算知道它生活在一个%parallel universe中，它也知道它 "拥有 "某些单元（即那些子域id等于其MPI等级的单元；以前，三角计算只存储这些子域id，但没有办法使它们有意义）。因此，在汇编函数中，你可以测试一个单元是否 "本地拥有"（即由当前进程拥有，见 @ref GlossLocallyOwnedCell ），当你在所有单元上循环时，使用以下语法
+
+@code
+  if (cell->is_locally_owned())
+@endcode
+
+这种知识延伸到建立在这种三角形上的DoFHandler对象，然后它可以通过 DoFHandler::compute_n_locally_owned_dofs_per_processor() 和 DoFTools::extract_locally_relevant_dofs(). 等调用来识别哪些自由度是本地拥有的（见 @ref GlossLocallyOwnedDof ）。最后，DataOut类也知道如何处理这种三角形，并将简单地跳过在非本地拥有的单元上生成图形输出。
+
+当然，正如在第17步的讨论中多次指出的那样，在每个进程上保持整个三角形将无法扩展：大型问题可能根本无法再适合每个进程的内存，即使我们有足够多的进程在合理的时间内解决它们。在这种情况下， parallel::shared::Triangulation 不再是一个合理的计算基础，我们将在步骤40中展示如何使用 parallel::distributed::Triangulation 类来解决这个问题，即让每个进程只存储一个<i>part</i>的三角图。
+
+
+
+
+<h3>Overall structure of the program</h3>
+
+程序的整体结构可以从 <code>run()</code> 函数中推断出来，该函数首先在第一个时间步骤中调用 <code>do_initial_timestep()</code> ，然后在所有后续时间步骤中调用 <code>do_timestep()</code> 。这些函数之间的区别仅仅在于，在第一个时间步骤中，我们从一个粗略的网格开始，在其上求解，自适应地细化网格，然后在新的网格上以干净的状态重新开始。这个过程给了我们一个更好的起始网格，尽管我们当然应该在迭代过程中不断调整网格--这个程序中没有这样做，但是下面会有评论。
+
+这两个处理时间步骤的函数的共同部分是在本网格上的以下操作序列。   <ul>   <li>   <code>assemble_system ()</code> [via <code>solve_timestep ()</code>  ] 。   这第一个函数也是最有趣的一个。它组装了对应于方程<a href="#step_18.linear-system">[linear-system]</a>离散化版本的线性系统。这导致了一个系统矩阵 $A_{ij} = \sum_K
+  A^K_{ij}$ ，由每个单元 $K$ 上的局部贡献组成，其条目为@f[
+    A^K_{ij} = (C \varepsilon(\varphi_j), \varepsilon(\varphi_i))_K;
+  @f] 。
+
+  在实践中， $A^K$ 是根据公式@f[
+    A^K_{ij} = \sum_q w_q [\varepsilon(\varphi_i(\mathbf{x}_q)) : C :
+                           \varepsilon(\varphi_j(\mathbf{x}_q))],
+  @f]使用数值正交计算出来的。
+
+  与正交点 $\mathbf{x}_q$ 和权重 $w_q$  。我们之前在步骤8和步骤17中建立了这些贡献，但在这两种情况下，我们都是通过使用等级4张量 $C$ 的组成知识，以及考虑应变张量的单个元素 $\varepsilon(\varphi_i),\varepsilon(\varphi_j)$ ，相当笨拙地完成的。这其实并不方便，特别是如果我们想考虑比各向同性的情况更复杂的弹性模型，而 $C$ 有方便的形式  $C_{ijkl}  = \lambda \delta_{ij} \delta_{kl} + \mu (\delta_{ik} \delta_{jl}
+  + \delta_{il} \delta_{jk})$  。虽然我们在本程序中没有使用比这更复杂的形式，但我们还是希望以一种容易实现的方式来编写它。因此，很自然地要引入代表等级为2（用于应变和应力）和4（用于应力-应变张量 $C$ ）的对称张量的类。幸运的是，deal.II提供了这些： <code>SymmetricTensor<rank,dim></code> 类模板提供了等级 <code>rank</code> （需要是偶数）和维度 <code>dim</code> 的这类张量的完整实现。
+
+  然后我们需要的是两件事：一种创建应力-应变等级4张量 $C$ 的方法，以及从形状函数 $\varphi_i$ 的梯度在给定单元上的正交点 $\mathbf{x}_q$ 创建一个等级2的对称张量（应变张量）。在这个例子程序的执行顶部，你会发现这样的函数。第一个， <code>get_stress_strain_tensor</code>  ，需要两个参数，对应于Lam&eacute; 常数 $\lambda$ 和 $\mu$ ，并返回对应于这些常数的各向同性的应力应变张量（在程序中，我们将选择对应于钢的常数）；用一个计算各向异性的张量的函数来代替这个函数是很简单的，或者考虑到晶体对称性，比如说。第二个， <code>get_strain</code> takes an object of type <code>FEValues</code> 和指数 $i$ 和 $q$ ，返回对称梯度，即应变，对应于形状函数 $\varphi_i(\mathbf{x}_q)$ ，在 <code>FEValues</code> 对象最后被重新初始化的单元上评估。
+
+  鉴于此， <code>assemble_system</code> 的最内部循环以下列优雅的方式计算对矩阵的局部贡献（变量 <code>stress_strain_tensor</code> ，对应于张量 $C$ ，之前已经用上述第一个函数的结果初始化了）。   @code
+for (unsigned int i=0; i<dofs_per_cell; ++i)
+  for (unsigned int j=0; j<dofs_per_cell; ++j)
+    for (unsigned int q_point=0; q_point<n_q_points;
+         ++q_point)
+      {
+        const SymmetricTensor<2,dim>
+          eps_phi_i = get_strain (fe_values, i, q_point),
+          eps_phi_j = get_strain (fe_values, j, q_point);
+
+
+        cell_matrix(i,j)
+          += (eps_phi_i * stress_strain_tensor * eps_phi_j *
+              fe_values.JxW (q_point));
+      }
+  @endcode
+
+  值得注意的是这段代码的表现力，并将其与我们在以前的例子中为弹性问题所经历的复杂情况进行比较。公平地说，在写这些以前的例子时，SymmetricTensor类模板还不存在）。为了简单起见， <code>operator*</code> 在这里规定了偶数等级的对称张量之间的（双重求和）积。
+
+  组建本地捐款@f{eqnarray*}
+      f^K_i &=&
+      (\mathbf{f}, \varphi_i)_K -(\sigma^{n-1},\varepsilon(\varphi_i))_K
+      \\
+      &\approx&
+      \sum_q
+      w_q \left\{
+        \mathbf{f}(\mathbf{x}_q) \cdot \varphi_i(\mathbf{x}_q) -
+        \sigma^{n-1}_q : \varepsilon(\varphi_i(\mathbf{x}_q))
+      \right\}
+  @f}
+
+  到<a href="#step_18.linear-system">[linear-system]</a>的右手边同样是直接的（注意，我们在这里不考虑任何边界牵引 $\mathbf{b}$ ）。请记住，我们只需要在单元格的正交点上存储旧的应力。在程序中，我们将提供一个变量 <code>local_quadrature_points_data</code> ，允许访问每个正交点的应力 $\sigma^{n-1}_q$ 。有了这个，右手边的代码看起来就像这样，同样相当优雅。   @code
+for (unsigned int i=0; i<dofs_per_cell; ++i)
+  {
+    const unsigned int
+      component_i = fe.system_to_component_index(i).first;
+
+
+    for (unsigned int q_point=0; q_point<n_q_points; ++q_point)
+      {
+        const SymmetricTensor<2,dim> &old_stress
+          = local_quadrature_points_data[q_point].old_stress;
+
+
+        cell_rhs(i) += (body_force_values[q_point](component_i) *
+                        fe_values.shape_value (i,q_point)
+
+
+                        -
+                        old_stress *
+                        get_strain (fe_values,i,q_point)) *
+                       fe_values.JxW (q_point);
+      }
+  }
+  @endcode
+
+  请注意，在乘法 $\mathbf{f}(\mathbf{x}_q) \cdot \varphi_i(\mathbf{x}_q)$ 中，我们利用了这样一个事实：对于所选的有限元素， $\varphi_i$ 中只有一个向量分量（即 <code>component_i</code> ）是非零的，因此我们也只需要考虑 $\mathbf{f}(\mathbf{x}_q)$ 的一个分量。
+
+  这基本上结束了我们在这个函数中提出的新材料。它后来必须处理边界条件以及悬挂节点约束，但这与我们以前在其他程序中已经要做的事情相类似。
+
+ <li>   <code>solve_linear_problem ()</code> [via <code>solve_timestep ()</code>  ] 。   与前一个函数不同，这个函数其实并不有趣，因为它做的是以前所有教程程序中的类似函数--用CG方法求解线性系统，使用不完整的LU分解作为预处理程序（在%并行情况下，它分别使用每个处理器块的ILU）。它与第17步几乎没有变化。
+
+ <li>   <code>update_quadrature_point_history ()</code>  [通过 <code>solve_timestep ()</code>  ] 。基于之前计算的位移场 $\Delta \mathbf{u}^n$ ，我们根据<a href="#step_18.stress-update">[stress-update]</a>和<a href="#step_18.stress-update+rot">[stress-update+rot]</a>更新所有正交点的应力值，包括坐标系的旋转。
+
+ <li>   <code>move_mesh ()</code>  ：给定之前计算的解决方案，在这个函数中，我们通过移动每个顶点的位移矢量场来实现网格的变形。
+
+ <li>   <code>output_results ()</code>  : 这个函数只是根据我们上面所说的输出解决方案，也就是说，每个处理器只对自己的那部分域计算输出。除了解决方案，我们还计算了每个单元上所有正交点平均的应力的规范。   </ul> 
+
+有了这个代码的一般结构，我们只需要定义我们要解决的情况。在本程序中，我们选择模拟一个垂直圆柱体的准静态变形，其底部边界是固定的，顶部边界以规定的垂直速度被推倒。然而，顶层边界的水平速度没有被指定--我们可以把这种情况想象成一块油性良好的板从顶部推到圆柱体上，圆柱体顶层边界上的点被允许沿着板的表面水平滑动，但被板强迫向下移动。圆柱体的内部和外部边界是自由的，不受任何规定的偏转或牵引的影响。此外，重力作用于身体。
+
+程序文本将揭示更多关于如何实现这种情况，而结果部分将显示这种模拟产生的位移模式。
+
+

@@ -1,0 +1,141 @@
+examples/step-61/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+我们在运行程序时，右手边会产生解  $p = \sin(\pi x) \sin(\pi y)$  ，并且在域  $\Omega = (0,1)^2$  中具有同质的迪里希特边界条件。此外，我们选择微分算子 $\mathbf{K}$ 中的系数矩阵作为身份矩阵。我们使用 $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 、 $\mbox{WG}(Q_1,Q_1;RT_{[1]})$ 和 $\mbox{WG}(Q_2,Q_2;RT_{[2]})$ 元素组合测试这一设置，可以通过使用`main()`中`WGDarcyEquation`对象的适当构造参数来选择。然后我们将可视化单元内部和面上的压力值。随着网格的细化，压力、速度和流量的收敛率对于 $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 应该是1，对于 $\mbox{WG}(Q_1,Q_1;RT_{[1]})$ 是2，对于 $\mbox{WG}(Q_2,Q_2;RT_{[2]})$ 是3。
+
+
+
+
+<h3>Test results on <i>WG(Q<sub>0</sub>,Q<sub>0</sub>;RT<sub>[0]</sub>)</i><i>WG(Q<sub>0</sub>,Q<sub>0</sub>;RT<sub>[0]</sub>)</i></h3> 。
+
+下面的数字显示了使用 $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 元素的内部压力和表面压力。网格分别细化了2倍（顶部）和4倍（底部）。(这个数字可以在`make_grid()`函数中调整)。当网格较粗时，可以看到面压 $p^\partial$ 整齐地位于两个相邻单元的内压 $p^\circ$ 的数值之间。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg000_2d_2.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg000_3d_2.png" alt=""></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg000_2d_4.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg000_3d_4.png" alt=""></td>
+  </tr>
+</table> 
+
+从图中我们可以看出，随着网格的细化，最大和最小的压力值正在接近我们的预期值。由于网格是一个矩形网格，每个方向的单元数是偶数，所以我们有对称的解决方案。从右边的三维图中，我们可以看到在 $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 上，压力在单元的内部是一个常数，正如预期的那样。
+
+<h4>Convergence table for <i>k=0</i><i>k=0</i></h4> 。
+
+我们用不同的细化网格（在 "make_grid() "函数中选择）运行代码，得到压力、速度和通量（如引言中定义的）的以下收敛率。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>number of refinements </th><th>  $\|p-p_h^\circ\|$  </th><th>  $\|\mathbf{u}-\mathbf{u}_h\|$ </th><th> $\|(\mathbf{u}-\mathbf{u}_h) \cdot \mathbf{n}\|$ </th>
+  </tr>
+  <tr>
+   <td>   2                  </td><td>    1.587e-01        </td><td>        5.113e-01               </td><td>   7.062e-01 </td>
+  </tr>
+  <tr>
+   <td>   3                  </td><td>    8.000e-02        </td><td>        2.529e-01               </td><td>   3.554e-01 </td>
+  </tr>
+  <tr>
+   <td>   4                  </td><td>    4.006e-02        </td><td>        1.260e-01               </td><td>   1.780e-01 </td>
+  </tr>
+  <tr>
+   <td>   5                  </td><td>    2.004e-02        </td><td>        6.297e-02               </td><td>   8.902e-02 </td>
+  </tr>
+  <tr>
+   <th>Conv.rate             </th><th>      1.00           </th><th>          1.00                  </th><th>      1.00   </th>
+  </tr>
+</table> 
+
+我们可以看到， $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 的收敛率在1左右。当然，这与我们的理论预期相符。
+
+
+
+
+<h3>Test results on <i>WG(Q<sub>1</sub>,Q<sub>1</sub>;RT<sub>[1]</sub>)</i><i>WG(Q<sub>1</sub>,Q<sub>1</sub>;RT<sub>[1]</sub>)</i></h3> 。
+
+我们可以用下一个更高的多项式度数重复上面的实验。下面的数字是使用 $\mbox{WG}(Q_1,Q_1;RT_{[1]})$ 实现的内部压力和表面压力。网格被细化了4次。  与之前使用 $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 的数字相比，在每个单元上，解决方案不再是恒定的，因为我们现在使用双线性多项式来做近似。因此，在一个内部有4个压力值，在每个面上有2个压力值。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg111_2d_4.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg111_3d_4.png" alt=""></td>
+  </tr>
+</table> 
+
+与 $\mbox{WG}(Q_0,Q_0;RT_{[0]})$ 组合的相应图像相比，现在的解决方案大大增加了准确性，特别是在界面上如此接近于连续，以至于我们不再能够区分相邻单元上的界面压力 $p^\partial$ 和内部压力 $p^\circ$ 。
+
+<h4>Convergence table for <i>k=1</i><i>k=1</i></h4> 。
+
+以下是我们使用 $\mbox{WG}(Q_1,Q_1;RT_{[1]})$ 元素组合得到的压力、速度和通量的收敛率。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>number of refinements </th><th>  $\|p-p_h^\circ\|$  </th><th>  $\|\mathbf{u}-\mathbf{u}_h\|$ </th><th> $\|(\mathbf{u}-\mathbf{u}_h) \cdot \mathbf{n}\|$ </th>
+  </tr>
+  <tr>
+    <td>  2           </td><td>           1.613e-02      </td><td>          5.093e-02     </td><td>             7.167e-02   </td>
+  </tr>
+  <tr>
+    <td>  3           </td><td>           4.056e-03      </td><td>          1.276e-02     </td><td>             1.802e-02    </td>
+  </tr>
+  <tr>
+    <td>  4           </td><td>           1.015e-03      </td><td>          3.191e-03     </td><td>             4.512e-03  </td>
+  </tr>
+  <tr>
+    <td>  5           </td><td>           2.540e-04      </td><td>          7.979e-04     </td><td>             1.128e-03  </td>
+  </tr>
+  <tr>
+    <th>Conv.rate     </th><th>              2.00        </th><th>             2.00       </th><th>                 2.00    </th>
+  </tr>
+</table> 
+
+ $WG(Q_1,Q_1;RT_{[1]})$ 的收敛率在2左右，符合预期。
+
+
+
+
+<h3>Test results on <i>WG(Q<sub>2</sub>,Q<sub>2</sub>;RT<sub>[2]</sub>)</i><i>WG(Q<sub>2</sub>,Q<sub>2</sub>;RT<sub>[2]</sub>)</i></h3> 。
+
+让我们再提高一个多项式等级。以下是使用 $WG(Q_2,Q_2;RT_{[2]})$ 实现的内部压力和表面压力，网格大小为 $h = 1/32$ （即5个全局网格细化步骤）。在程序中，我们在生成图形输出时使用`data_out_face.build_patches(fe.degree)`（参见 DataOut::build_patches()), 的文档，这里意味着我们将每个2d单元内部分成4个子单元，以便提供更好的二次多项式的可视化。   <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg222_2d_5.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-61.wg222_3d_5.png" alt=""></td>
+  </tr>
+</table> 
+
+
+
+
+<h4>Convergence table for <i>k=2</i><i>k=2</i></h4> 。
+
+和以前一样，我们可以使用 $L_2$ 组合生成压力、速度和流量的 $\mbox{WG}(Q_2,Q_2;RT_{[2]})$ 误差的收敛数据。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>number of refinements </th><th>  $\|p-p_h^\circ\|$  </th><th>  $\|\mathbf{u}-\mathbf{u}_h\|$ </th><th> $\|(\mathbf{u}-\mathbf{u}_h) \cdot \mathbf{n}\|$ </th>
+  </tr>
+  <tr>
+     <td>  2               </td><td>       1.072e-03       </td><td>         3.375e-03       </td><td>           4.762e-03   </td>
+  </tr>
+  <tr>
+    <td>   3               </td><td>       1.347e-04       </td><td>         4.233e-04       </td><td>           5.982e-04    </td>
+  </tr>
+  <tr>
+    <td>   4               </td><td>       1.685e-05      </td><td>          5.295e-05       </td><td>           7.487e-05  </td>
+  </tr>
+  <tr>
+    <td>   5               </td><td>       2.107e-06      </td><td>          6.620e-06       </td><td>           9.362e-06  </td>
+  </tr>
+  <tr>
+    <th>Conv.rate          </th><th>         3.00         </th><th>            3.00          </th><th>              3.00    </th>
+  </tr>
+</table> 
+
+再一次， $\mbox{WG}(Q_2,Q_2;RT_{[2]})$ 的收敛率符合预期，其数值在3左右。
+
+

@@ -1,0 +1,248 @@
+examples/step-51/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Martin Kronbichler and Scott Miller.
+</i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+本教程程序介绍了对流-扩散方程的可混合的不连续Galkerin方法的实现。
+
+<h3> Hybridizable discontinuous Galerkin methods </h3>
+
+反对使用非连续Galerkin元素的一个常见论点是，在隐式系统中必须解决大量的全局耦合自由度。  这是因为，与连续有限元不同，在典型的非连续元中，每个顶点有一个自由度<i>for each of the adjacent elements</i>，而不是只有一个，对边和面也是如此。  作为未知数增长速度的例子，请考虑FE_DGPMonomial基础：每个标量解分量都由度数为 $p$ 的多项式表示，每个元素有 $(1/\text{dim}!) \prod_{i=1}^{\text{dim}}(p+i)$ 个自由度。通常，一个元素的所有自由度都与相邻元素的所有自由度相耦合。  由此产生的离散方程会很快产生非常大的线性系统，特别是对于2或3维的方程系统。
+
+<h4> Reducing the size of the linear system </h4>为了减轻解决这种大型线性系统的计算成本，Cockburn和同事们引入了可混合的非连续Galerkin（HDG）方法（见Nguyen和Peraire最近发表的HDG概述文章中的参考资料 @cite Ngu2012 ）。
+
+HDG方法通过使用Dirichlet-to-Neumann映射对数学问题进行表述来实现这一目标。  偏微分方程首先被写成一阶系统，然后每个场通过DG方法进行离散。  在这一点上，网格骨架上的单值 "跟踪 "值，即元素面，被视为独立的未知量。这就产生了离散公式中的未知数，这些未知数分为两类。
+
+- 面的未知数，只与面的两边的单元格未知数耦合。
+
+- 单元未知数只与同一单元内定义的单元和面未知数相耦合。最重要的是，一个单元格的内部自由度不会与另一个单元格的任何内部自由度相耦合。
+
+然后，Dirichlet-to-Neumann地图的概念允许以下解决程序。<ol>  <li>  使用局部元素内部数据来强制执行三角形骨架上的Neumann条件。  然后，全局问题是求解轨迹值，这是唯一全局耦合的未知数。     <li>  使用已知的骨架值作为Dirichlet数据来求解局部元素级的解决方案。  这被称为 "局部求解器"，是一个<i>embarrassingly parallel</i>逐个元素的求解过程。   </ol> 
+
+<h4> Relation with Static Condensation </h4>上述程序也有线性代数的解释--被称为<i>static condensation</i>--被Guyan在连续有限元的背景下 @cite G65 ，以及被Fraeijs de Veubeke用于混合方法 @cite F65 ，用来减少全局线性系统的大小。在后一种情况下（混合公式），系统的减少是通过使用不连续的通量，结合引入一个额外的辅助变量<i>hybrid</i>来实现的，该变量在每个元素的边界上近似于未知数的轨迹。这个过程被称为混合化，并且通过类比，这也是为什么Cockburn、Gopalakrishnan和Lazarov在2009年引入的局部非连续Galerkin方法 @cite CGL2009 ，以及随后由他们的合作者开发，最终被称为<i>hybridizable discontinuous Galerkin</i>（HDG）方法的原因。
+
+让我们把与HDG问题相关的完整线性系统写成一个块状系统，离散DG（单元内部）变量 $U$ 为第一块，骨架（面）变量 $\Lambda$ 为第二块。
+
+@f{eqnarray*}
+\begin{pmatrix} A & B \\ C & D \end{pmatrix}
+\begin{pmatrix} U \\ \Lambda \end{pmatrix}
+=
+\begin{pmatrix} F \\ G \end{pmatrix}.
+
+
+@f}
+
+我们现在的目的是用类似于步骤20的舒尔补码方法来消除 $U$ 块，这导致了以下两个步骤。
+
+@f{eqnarray*}
+(D - C A^{-1} B) \Lambda &=& G - C A^{-1} F, \\
+A U &=& F - B \Lambda.
+
+
+@f}
+
+关键是 $A^{-1}$ 的存在不是问题，因为 $A$ 是一个块对角线矩阵，每个块对应一个单元，因此足够容易反转。与其他单元的耦合是由骨架变量上的矩阵 $B$ 和 $C$ 引入的。 $A$ 的块对角性以及 $B$ 和 $C$ 的结构使我们能够逐元反转矩阵 $A$ （迪里希特问题的局部解），并从 $D$ 中减去 $CA^{-1}B$ 。因此，迪里切特到诺曼映射概念的步骤对应于<ol>  <li>  构建舒尔补码矩阵 $D-C A^{-1} B$ 和右手边 $G - C A^{-1} F$  <i>locally on each cell</i>并以通常的方式将贡献插入全局跟踪矩阵， <li> 求解舒尔互补系统 $\Lambda$ ， <li> 使用第二个方程求解 $U$ ，给出 $\Lambda$  。   </ol> 
+
+
+
+
+<h4> Solution quality and rates of convergence</h4> 对传统DG方法的另一个批评是，近似通量的收敛是次优的。  局部HDG解可以被证明是收敛的 $\mathcal{O}(h^{p+1})$  ，即以最优顺序收敛。  此外，还可以利用超级收敛特性对新的近似解进行后处理，使其以  $\mathcal{O}(h^{p+2})$  的速率收敛。
+
+
+
+
+<h4> Alternative approaches </h4>
+
+可混合的非连续Galerkin方法只是解决非连续Galerkin方法的问题的一种方法。另一个想法是所谓的 "弱Galerkin "方法。它在步骤61中进行了探讨。
+
+
+
+
+<h3> HDG applied to the convection-diffusion problem </h3>
+
+本例中使用的HDG公式取自 <br> <b>
+  N.C. Nguyen, J. Peraire, B. Cockburn:
+  <i>An implicit high-order hybridizable discontinuous Galerkin method
+  for linear convection–diffusion equations</i><i>An implicit high-order hybridizable discontinuous Galerkin method
+  for linear convection–diffusion equations</i>,
+  Journal of Computational Physics, 2009, 228:9, 3232-3254.
+  <a href="http://dx.doi.org/10.1016/j.jcp.2009.01.030">[DOI]</a><a href="http://dx.doi.org/10.1016/j.jcp.2009.01.030">[DOI]</a>
+</b>。
+
+我们考虑域 $\Omega$ 上的对流-扩散方程，该方程具有迪里切特边界 $\partial \Omega_D$ 和诺伊曼边界 $\partial \Omega_N$  。
+
+@f{eqnarray*}
+	\nabla \cdot (\mathbf{c} u) - \nabla \cdot (\kappa \nabla u) &=& f,
+	\quad \text{ in } \Omega, \\
+	u &=& g_D, \quad \text{ on } \partial \Omega_D, \\
+	(\mathbf{c} u - \kappa \nabla u)\cdot \mathbf{n} &=& g_N,
+	\quad \text{ on }  \partial \Omega_N.
+
+
+@f}
+
+
+
+引入辅助变量 $\mathbf{q}=-\kappa \nabla u$ ，将上述方程改写为一阶系统。
+
+@f{eqnarray*}
+  \mathbf{q} + \kappa \nabla u &=& 0, \quad \text{ in } \Omega, \\
+  \nabla \cdot (\mathbf{c} u + \mathbf{q}) &=& f, \quad \text{ in } \Omega, \\
+  u &=& g_D, \quad \text{ on } \partial \Omega_D, \\
+  (\mathbf{q} + \mathbf{c}u)\cdot\mathbf{n}  &=& g_N,
+	\quad \text{ on }  \partial \Omega_N.
+
+
+@f}
+
+
+
+我们将这些方程乘以权重函数 $\mathbf{v}, w$ ，并对每个元素 $K$ 进行分项积分，得到。
+
+@f{eqnarray*}
+  (\mathbf{v}, \kappa^{-1} \mathbf{q})_K - (\nabla\cdot\mathbf{v}, u)_K
+    + \left<\mathbf{v}\cdot\mathbf{n}, {\hat{u}}\right>_{\partial K} &=& 0, \\
+
+
+  - (\nabla w, \mathbf{c} u + \mathbf{q})_K
+    + \left<w, (\widehat{\mathbf{c} u}+{\hat{\mathbf{q}}})\cdot\mathbf{n}\right>_{\partial K}
+    &=& (w,f)_K.
+
+
+@f}
+
+
+
+带帽子的术语表示数值轨迹（通常也被称为数值通量）。  它们是对元素边界上的内部值的近似。  为了确保守恒，这些项在任何给定的元素边上都必须是单值的 $\partial K$ ，尽管对于不连续的形状函数，当然可能有多个值来自界面附近的单元。我们通过使用以下形式的跟踪来消除数字跟踪 $\hat{\mathbf{q}}$ 。
+
+@f{eqnarray*}
+  \widehat{\mathbf{c} u}+\hat{\mathbf{q}} = \mathbf{c}\hat{u} + \mathbf{q}
+  + \tau(u - \hat{u})\mathbf{n} \quad \text{ on } \partial K.
+
+
+@f}
+
+
+
+变量 $\hat {u}$ 作为一个额外的自变量被引入，是我们最终建立一个全局耦合线性系统的变量。如上所述，它被定义在元素面上，并且在面与面的交汇处（2D中的顶点，3D中的边缘和顶点）不连续。数值跟踪函数中出现的 $u$ 和 $\mathbf{q}$ 的值被认为是限制在边界 $\partial K$ 的单元内部解。
+
+局部稳定参数 $\tau$ 对HDG解决方案的稳定性和准确性有影响；进一步的讨论见文献。据报道，稳定参数为1是给出最佳结果的选择。趋向于无穷大的稳定参数 $\tau$ 禁止解在元素边界上的跳跃，使HDG解接近连续有限元素的近似值。在下面的程序中，我们选择稳定参数为
+
+@f{eqnarray*}
+  \tau = \frac{\kappa}{\ell} + |\mathbf{c} \cdot \mathbf{n}|
+
+
+@f}
+
+其中我们设定扩散 $\kappa=1$ 和扩散长度尺度为 $\ell = \frac{1}{5}$  。
+
+HDG方法中的轨迹/骨架变量在元素面上是单值的。  因此，它们必须强烈地代表 $\partial\Omega_D$ 上的迪里希特数据。  这意味着
+
+@f{equation*}
+  \hat{u}|_{\partial \Omega_D} = g_D,
+
+
+@f}
+
+其中等号实际上是指边界函数 $L_2$ 对脸部变量空间的 $g$ 投射（例如脸部的线性函数）。然后，这个约束被应用于骨架变量 $\hat{u}$ ，使用非均质约束的方法 VectorTools::project_boundary_values. 。
+
+将三角结构中所有元素的贡献相加，强制执行数值通量的法线分量，并对由 $w$ 加权的方程进行分项积分，我们得出问题的最终形式：找到 $(\mathbf{q}_h, u_h, \hat{u}_h) \in
+\mathcal{V}_h^p \times \mathcal{W}_h^p \times \mathcal{M}_h^p$ ，以便
+
+@f{align*}
+  (\mathbf{v}, \kappa^{-1} \mathbf{q}_h)_{\mathcal{T}}
+
+
+    - ( \nabla\cdot\mathbf{v}, u_h)_{\mathcal{T}}
+    + \left<\mathbf{v}\cdot\mathbf{n}, \hat{u}_h\right>_{\partial\mathcal{T}}
+    &= 0,
+    \quad &&\forall \mathbf{v} \in \mathcal{V}_h^p,
+\\
+
+
+   - (\nabla w, \mathbf{c} u_h)_{\mathcal{T}}
+   + (w, \nabla \cdot \mathbf{q}_h)_{\mathcal{T}}
+   + (w, (\mathbf{c}\cdot\mathbf{n}) \hat{u}_h)_{\partial \mathcal{T}}
+    + \left<w, \tau (u_h - \hat{u}_h)\right>_{\partial \mathcal{T}}
+    &=
+    (w, f)_{\mathcal{T}},
+    \quad &&\forall w \in \mathcal{W}_h^p,
+\\
+  \left< \mu, \hat{u}_h\mathbf{c} \cdot \mathbf{n}
+  		+ \mathbf{q}_h\cdot \mathbf{n}
+  	    + \tau (u_h - \hat{u}_h)\right>_{\partial \mathcal{T}}
+    &=
+    \left<\mu, g_N\right>_{\partial\Omega_N},
+    \quad &&\forall \mu \in \mathcal{M}_h^p.
+
+
+@f}
+
+
+
+未知数 $(\mathbf{q}_h, u_h)$ 被称为局部变量；它们被表示为标准的DG变量。  未知数 $\hat{u}_h$ 是骨架变量，在网格的一维表面（面）上有支持。
+
+我们用符号 $(\cdot, \cdot)_{\mathcal{T}} = \sum_K (\cdot, \cdot)_K$ 表示所有单元的积分之和， $\left<\cdot,
+\cdot\right>_{\partial \mathcal{T}} = \sum_K \left<\cdot,
+\cdot\right>_{\partial K}$ 表示所有单元的所有面的积分，也就是说，内部面被访问两次，一次来自每侧，并有相应的法向量。当结合共享一个面的两个元素的贡献时，上述方程产生了DG方法中熟悉的条款，解在单元格边界上有跳跃性。
+
+在上述方程中，标量变量  $\mathcal {W}_h^{p}$  的空间  $u_h$  被定义为在每个单元上为张量积多项式  $p$  且在元素边界上不连续的函数空间  $\mathcal Q_{-p}$  ，即由  <code>FE_DGQ<dim>(p)</code>  描述的空间。梯度或通量变量的空间  $\mathbf{q}_i$  是一个矢量元素空间，其中每个分量是局部多项式且不连续  $\mathcal Q_{-p}$  。在下面的代码中，我们将这两个局部部分收集在一个FESystem中，其中第一个 @p dim组件表示梯度部分，最后一个标量组件对应标量变量。对于骨架部分 $\hat{u}_h$ ，我们定义了一个由住在元素面上的不连续张量乘积多项式组成的空间，在deal.II中由FE_FaceQ类实现。这个空间在其他方面与FE_DGQ相似，即解函数在两个相邻的面之间不连续，也可参见下面的结果部分进行说明。
+
+在上面给出的弱形式中，我们可以注意到以下的耦合模式。<ol>  <li>  矩阵 $A$  由局部-局部耦合项组成。  当局部加权函数 $(\mathbf{v}, w)$ 与局部求解项 $(\mathbf{q}_h, u_h)$ 相乘时就会产生这些耦合项。因为这些元素是不连续的， $A$ 是块对角线。     <li>  矩阵 $B$ 代表局部面的耦合。  这些是具有加权函数 $(\mathbf{v}, w)$ 的条款，乘以骨架变量 $\hat{u}_h$  。     <li>  矩阵 $C$ 代表面-本地耦合，它涉及加权函数 $\mu$ 乘以本地解 $(\mathbf{q}_h, u_h)$  。     <li>  矩阵  $D$  是面-面耦合；条款涉及  $\mu$  和  $\hat{u}_h$  。   </ol> 
+
+<h4> Post-processing and super-convergence </h4>
+
+HDG方法的一个特点是，它们通常允许构建一个丰富的解决方案，以提高精度。这种后处理方法以逐个元素的方式获取HDG解决方案，并将其结合起来，从而在使用度数为 $p$ 的多项式时可以获得 $\mathcal O(h^{p+2})$ 的精度。要做到这一点，有两个必要的成分。<ol>  <li>  计算的解梯度  $\mathbf{q}_h$  以最佳速度收敛，即  $\mathcal{O}(h^{p+1})$  。     <li>  解的标量部分的单元平均数， $\frac{(1,u_h)_K}{\text{vol}(K)}$  ，以 $\mathcal{O}(h^{p+2})$  的速度超级收敛。   </ol> 
+
+我们现在引入一个新的变量 $u_h^* \in \mathcal{V}_h^{p+1}$ ，我们通过在约束条件 $\left(1, u_h^*\right)_K = \left(1,
+u_h\right)_K$ 下对单元格 $K$ 的表达式进行最小化来找到它。这个约束是必要的，因为最小化函数并不能确定 $u_h^*$ 的常数部分。这就转化为以下方程组。
+
+@f{eqnarray*}
+\left(1, u_h^*\right)_K &=& \left(1, u_h\right)_K\\
+\left(\nabla w_h^*, \kappa \nabla u_h^*\right)_K &=&
+
+
+-\left(\nabla w_h^*, \mathbf{q}_h\right)_K
+\quad \text{for all } w_h^* \in \mathcal Q^{p+1}.
+
+
+@f}
+
+
+
+由于我们在第二组方程中用度数为 $p+1$ 的张量积多项式空间中的整组基函数进行测试，这是一个过度确定的系统，方程比未知数多一个。我们在下面的代码中通过省略其中一个方程来解决这个问题（因为拉普拉斯的行在代表一个常数函数时是线性依赖的）。正如我们将在下面看到的，这种形式的后处理给出了所需的超级收敛结果，速率为 $\mathcal {O}(h^{p+2})$  。  应该指出的是，在构建 $u_h^*$ 时有一定的自由度，这种从梯度中提取信息的最小化方法不是唯一的方法。特别是，这里定义的后处理方案在任何意义上都不满足对流-扩散方程。作为替代方案，上面引用的Nguyen、Peraire和Cockburn的论文提出了另一个有点复杂的对流-扩散公式，该公式也可以将通量变量后处理为 $H(\Omega,\mathrm{div})$ -符合的变体，并且在扩散较小时更好地表示局部对流-扩散算子。我们把更复杂的后处理的实现作为一个可能的扩展留给感兴趣的读者。
+
+请注意，对于矢量值的问题，后处理的工作原理是类似的。我们只需为每个向量分量的平均值分别设置约束，并将梯度作为主要信息来源。
+
+<h3> Problem specific data </h3>
+
+在这个教程程序中，我们考虑的测试案例与步骤7中的几乎相同。计算域是 $\Omega \dealcoloneq [-1,1]^d$ ，精确的解决方案与步骤7中的解决方案相对应，除了一个缩放比例。我们使用以下源中心 $x_i$ 作为指数 <ul>   <li>  1D： $\{x_i\}^1 = \{ -\frac{1}{3}, 0, \frac{1}{3} \}$  ,  <li>  2D： $\{\mathbf{x}_i\}^2 = \{ (-\frac{1}{2},\frac{1}{2}),
+                        		 (-\frac{1}{2},-\frac{1}{2}),
+  					 (\frac{1}{2},-\frac{1}{2})
+  				   \}$  ,  <li>  3D： $\{\mathbf{x}_i\}^3 = \{ (-\frac{1}{2},\frac{1}{2}, \frac{1}{4}),
+  				      (-\frac{3}{5},-\frac{1}{2}, -\frac{1}{8}),
+  				      (\frac{1}{2},-\frac{1}{2}, \frac{1}{2})
+  				   \}$  。   </ul> 
+
+有了精确的解决方案，我们就可以选择右手边的强制力和诺伊曼边界条件，从而得到这个解决方案（制造的解决方案技术）。在这个例子中，我们选择扩散等于1，对流为
+
+\f[
+\mathbf{c} = \begin{cases}
+1, & \textrm{dim}=1 \\
+(y, -x), & \textrm{dim}=2 \\
+(y, -x, 1), & \textrm{dim}=3
+\end{cases}
+\f] 注意，对流是无发散的，  $\nabla \cdot c = 0$  。
+
+<h3> Implementation </h3>
+
+除了实现上述方程，下面的实现还提供了以下功能。   <ul>   <li>  WorkStream来并行化本地求解器。在步骤9中已经详细介绍了Workstream。     <li>  从跟踪中重构本地DG解。     <li>  对解进行后处理以实现超融合。     <li>  用于直接输出全局骨架解的DataOutFaces。   </ul> 
+
+

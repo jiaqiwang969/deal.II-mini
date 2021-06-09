@@ -1,0 +1,144 @@
+examples/step-45/doc/intro.dox
+
+ <br> 
+
+［<i>This program was contributed by Daniel Arndt and Matthias Maier.</i>］ ［<a name="Intro"></a>］
+
+<h1>Introduction</h1>
+
+在这个例子中，我们介绍了如何在deal.II中使用周期性边界条件。周期性边界条件是代数约束，通常出现在一个大域的代表性区域的计算中，这些区域在一个或多个方向上重复。
+
+一个例子是模拟光子晶体的电子结构，因为它们有一个类似格子的结构，因此，往往只需要在格子的一个盒子上进行实际计算。为了能够以这种方式进行，我们必须假设该模型可以周期性地扩展到其他盒子上；这要求解决方案具有周期性结构。
+
+<a name="Procedure"></a>
+
+<h1>Procedure</h1>
+
+deal.II提供了一些高水平的入口来施加周期性边界条件。应用周期性边界条件的一般方法包括三个步骤（也见 @ref GlossPeriodicConstraints "关于周期性边界条件的词汇表条目"）。
+
+-# 创建一个网格
+
+-# 识别边界不同部分的那些面对，在这些面对上的解应该是对称的，使用 GridTools::collect_periodic_faces()  。
+
+-# 使用 parallel::distributed::Triangulation::add_periodicity() 将周期性信息添加到网格中。
+
+-# 使用 DoFTools::make_periodicity_constraints() 添加周期性约束。
+
+第二和第三步对于使用 parallel::distributed::Triangulation 类的平行网格是必要的，以确保位于域的对面但由周期性面连接的单元是鬼层的一部分，如果它们中的一个存储在本地处理器上。如果三角结构不是 parallel::distributed::Triangulation, 类，这些步骤就没有必要。
+
+第一步包括收集匹配的周期性面，并将它们存储在 <code>std::vector</code> 的 GridTools::PeriodicFacePair. 中，这是通过函数 GridTools::collect_periodic_faces() 来完成的，例如可以这样调用。
+
+@code
+GridTools::collect_periodic_faces(dof_handler,
+                                  b_id1,
+                                  b_id2,
+                                  direction,
+                                  matched_pairs,
+                                  offset = <default value>,
+                                  matrix = <default value>,
+                                  first_vector_components = <default value>);
+@endcode
+
+
+
+这个调用在周期性边界上的容器dof_handler的所有面进行循环，其边界指标分别为 @p b_id1  和  @p b_id2, 。(你可以在创建粗略网格后手工分配这些边界指标，见 @ref GlossBoundaryIndicator  "边界指标"。另外，如果你指定了 "着色 "标志，你也可以让命名空间GridGenerator中的许多函数来做这件事；在这种情况下，这些函数会给边界的不同部分分配不同的边界指标，细节通常在这些函数的文档中详细说明）。)
+
+具体来说，如果 $\text{vertices}_{1/2}$ 是两个面 $\text{face}_{1/2}$ 的顶点，那么上面的函数调用将匹配成对的面（和道夫），使得 $\text{vertices}_2$ 和 $matrix\cdot \text{vertices}_1+\text{offset}$ 之间的差异在除方向之外的每个分量中都消失，并将产生的对与相关数据存储在 @p matched_pairs. 中（关于匹配过程的详细信息，见 GridTools::orthogonal_equality() ）。
+
+例如，考虑彩色单位方块 $\Omega=[0,1]^2$ ，其边界指标0在左边，1在右边，2在下面，3在上面的面。参见 GridGenerator::hyper_cube() 的文件，了解这个关于如何分配边界指标的惯例）。然后。
+
+@code
+GridTools::collect_periodic_faces(dof_handler,
+                                  /*b_id1*/ 0,
+                                  /*b_id2*/ 1,
+                                  /*direction*/ 0,
+                                  matched_pairs);
+@endcode
+
+将产生周期性约束，使 $u(0,y)=u(1,y)$ 为所有 $y\in[0,1]$ 。
+
+如果我们转而考虑由 $(0,0)$ ,  $(1,1)$ ,  $(1,2)$ ,  $(0,1)$ 的凸壳给出的平行四边形，我们可以通过指定一个 @p offset: 来实现约束 $u(0,y)=u(1,y+1)$  。
+
+@code
+GridTools::collect_periodic_faces(dof_handler,
+                                  /*b_id1*/ 0,
+                                  /*b_id2*/ 1,
+                                  /*direction*/ 0,
+                                  matched_pairs,
+                                  Tensor<1, 2>(0.,1.));
+@endcode
+
+或
+
+@code
+GridTools::collect_periodic_faces(dof_handler,
+                                  /*b_id1*/ 0,
+                                  /*b_id2*/ 1,
+                                  /*arbitrary direction*/ 0,
+                                  matched_pairs,
+                                  Tensor<1, 2>(1.,1.));
+@endcode
+
+在这里，边界指标0和1的分配也是源于 GridGenerator::parallelogram() 的文件。
+
+由此产生的 @p matched_pairs 可以在 DoFTools::make_periodicity_constraints 中使用，用于为AffineConstraints对象填充周期性约束。
+
+@code
+DoFTools::make_periodicity_constraints(matched_pairs, constraints);
+@endcode
+
+
+
+除了这个高水平的接口外，还有结合这两个步骤的 DoFTools::make_periodicity_constraints 的变体（见 DofTools::make_periodicity_constraints). 的变体）可用。
+
+如果需要更多的灵活性，也有一个与 DoFTools::make_periodicity_constraints 的低级接口。该低级变体允许直接指定两个应被约束的面。
+
+@code
+using namespace DoFTools;
+make_periodicity_constraints(face_1,
+                             face_2,
+                             affine_constraints,
+                             component_mask = <default value>;
+                             face_orientation = <default value>,
+                             face_flip = <default value>,
+                             face_rotation = <default value>,
+                             matrix = <default value>);
+@endcode
+
+在这里，我们需要使用 @p face_orientation,  @p face_flip 和 @p face_orientation. 来指定两个面的方向。 要想了解更详细的描述，请看 DoFTools::make_periodicity_constraints. 的文档。除了自我解释的 @p component_mask 和 @p affine_constraints. 之外，其余的参数与高级接口相同。
+
+
+<a name="problem"></a>
+
+<h1>A practical example</h1>
+
+在下文中，我们将展示如何在一个更复杂的例子中使用上述函数。任务是对斯托克斯流的速度分量实施旋转的周期性约束。
+
+在由 $\Omega=\{{\bf x}\in(0,1)^2:\|{\bf x}\|\in (0.5,1)\}$ 定义的四分之一圆上，我们要解决斯托克斯问题
+
+@f{eqnarray*}
+
+
+  -\Delta \; \textbf{u} + \nabla p &=& (\exp(-100\|{\bf x}-(.75,0.1)^T\|^2),0)^T, \\
+
+
+  -\textrm{div}\;  \textbf{u}&=&0,\\
+  \textbf{u}|_{\Gamma_1}&=&{\bf 0},
+
+
+@f}
+
+其中边界 $\Gamma_1$ 被定义为 $\Gamma_1 \dealcoloneq \{x\in \partial\Omega: \|x\|\in\{0.5,1\}\}$  。对于边界的其余部分，我们将使用周期性边界条件，即
+
+@f{align*}
+  u_x(0,\nu)&=-u_y(\nu,0)&\nu&\in[0,1]\\
+  u_y(0,\nu)&=u_x(\nu,0)&\nu&\in[0,1].
+
+
+@f}
+
+
+
+网格将由 GridGenerator::quarter_hyper_shell(), 生成，该文件还记录了如果其`colorize'参数设置为`true'，它是如何为其各种边界分配边界指标的。
+
+

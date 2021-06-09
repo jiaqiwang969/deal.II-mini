@@ -1,0 +1,230 @@
+examples/step-32/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当运行时，该程序以与step-31相同的方式模拟三维对流，尽管有一个完全不同的测试案例。
+
+
+
+
+<h3>Comparison of results with \step-31</h3>
+
+然而，在我们讨论这个测试案例之前，让我们展示一下这个程序稍早的版本的一些结果，该版本正是在解决我们在第31步中使用的测试案例，只是我们现在以并行方式解决它，而且分辨率要高很多。我们展示这些结果主要是为了比较。
+
+下面是两张图片，如果我们选择 <code>main()</code> 中的3d计算，以及设置 <code>initial_refinement=3</code> 和 <code>n_pre_refinement_steps=4</code> ，则可以看到这种更高的分辨率。在所示的时间步骤中，网格有大约72,000和236,000个单元，分别为2,680,000和8,250,000个自由度，比我们在步骤31中的可用度多了一个数量级。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-32.3d.cube.0.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-32.3d.cube.1.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+计算是在德克萨斯A&amp;M大学Brazos集群的50个处理器的子集上完成的。
+
+
+
+
+<h3>Results for a 2d circular shell testcase</h3>
+
+接下来，我们将用目录中的参数文件运行step-32，但有一个变化：我们将最终时间增加到1e9。这里我们使用的是16个处理器。启动的命令是（注意，step-32.prm是默认的）。
+
+<code> <pre>  $ mpirun -np 16 ./step-32
+</pre>
+</code>
+
+
+Note that running a job on a cluster typically requires going through a job
+scheduler, which we won't discuss here. The output will look roughly like
+this:
+
+
+<code>
+<pre>
+\$  mpirun -np 16 ./step-32 活动单元的数量：12,288（在6层） 自由度的数量：186,624（99,840+36,864+49,920）。
+
+时间步数0：t=0年
+
+   重建斯托克斯预处理程序...    解决斯托克斯系统...41次迭代。    最大速度：60.4935厘米/年 时间步长：18166.9年 温度的17次CG迭代 温度范围：973 4273.16
+
+活动单元的数量：15,921（在7层） 自由度的数量：252,723（136,640+47,763+68,320）。
+
+时间步数0：t=0年
+
+   重建斯托克斯预处理程序...    解决斯托克斯系统...50次迭代。    最大速度：60.3223厘米/年 时间步长：10557.6年 温度的19次CG迭代 温度范围：973 4273.16
+
+活动单元的数量：19,926（在8层） 自由度的数量：321,246（174,312+59,778+87,156）。
+
+时间步数0：t=0年
+
+   重建斯托克斯预处理程序...    解决斯托克斯系统...50次迭代。    最大速度：57.8396厘米/年 时间步长：5453.78年 温度的18次CG迭代 温度范围：973 4273.16
+
+时间步数1：t=5453.78年
+
+   解决斯托克斯系统...49次迭代。    最大速度：59.0231厘米/年 时间步长：5345.86年 温度的18次CG迭代 温度范围：973 4273.16
+
+时间步数2：t=10799.6年
+
+   解决斯托克斯系统...24次迭代。    最大速度：60.2139厘米/年 时间步长：5241.51年 温度的17次CG迭代 温度范围：973 4273.16
+
+[...]
+
+时间步数100：t=272151年
+
+   解决斯托克斯系统......21次迭代。    最大速度：161.546厘米/年 时间步长：1672.96年 温度的17次CG迭代 温度范围：973 4282.57
+
+活动单元的数量：56,085（在8层） 自由度的数量：903,408（490,102+168,255+245,051）。
+
+
+
+
++---------------------------------------------+------------+------------+ | 从开始到现在，总的壁挂时间经过了115s构建斯托克斯预调节器 | 12 | 2.09s | 1.8% | 解算斯托克斯系统 | 103 | 90.4s | 79% | 解算温度系统 | 103 | 1.53s | 1.3% | 后处理 | 3 | 0.532s | 0.完善网格结构，第一部分 | 12 | 0.93s | 0.81% | 完善网格结构，第二部分 | 12 | 0.384s | 0.33% | 设置阻尼系统 | 13 | 2.96s | 2.6% | +---------------------------------+-----------+------------+------------+
+
+[...]
+
++---------------------------------------------+------------+------------+ | 从开始到现在总共经过了多少壁挂时间 | 9.14e+04s | | | | 部分 | 调用次数 | 壁挂时间 | 占总数的百分比 | +---------------------------------+-----------+------------+------------+ | 组装斯托克斯系统 | 47045 | 2.05e+03s | 2.2% | 组装温度矩阵 | 4707 | 310s | 0.34% | 组装温度rhs | 47045 | 8.7e+03s | 9.4707 | 1.48e+03s | 1.6% | 解决斯托克斯系统 | 47045 | 7.34e+04s | 80% | 解决温度系统 | 47045 | 1.46e+03s | 1.6% | 后处理 | 1883 | 222s | 0.24% | | 完善网格结构，第一部分 | 4706 | 641s | 0.7% | 完善网格结构，第二部分 | 4706 | 259s | 0.28% | 设置阻尼系统 | 4707 | 1.86e+03s | 2% | +---------------------------------+-----------+------------+------------+ </pre> </code>
+
+当时间达到输入文件中选择的10亿年时，模拟就会终止。  你可以从中推断出不同的最终时间的模拟需要多长时间（时间步长最终确定在20,000年左右，所以计算20亿年需要100,000个时间步长，给或给20%）。  从这里可以看出，我们把大部分的计算时间花在了组装线性系统和&mdash;首先&mdash;解决斯托克斯系统。
+
+
+为了演示输出，我们在这里展示了每1250个时间步骤的输出。   <table>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-000.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-050.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-100.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-150.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-200.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-250.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-300.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-350.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-400.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-450.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-500.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-550.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-time-600.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-cells.png" alt="">
+    </td>
+    <td>
+      <img src="https://www.dealii.org/images/steps/developer/step-32-2d-partition.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+最后两张图片显示了网格以及16个子域和16个处理器的同一计算的网格划分情况。这个模拟的全部动态只有通过看动画才能看到，例如<a
+href="https://www.dealii.org/images/steps/developer/step-32-2d-temperature.webm">shown
+on this site</a>。由于其艺术质量和对岩浆羽流演变的迷人描述，这个图像非常值得观看。
+
+如果你看电影，你会看到对流模式经历了几个阶段。首先，它摆脱了不稳定的温度分层，热物质被致密的冷物质覆盖。在这个巨大的驱动力被消除后，我们有了一种稳定的情况，几个小球开始从内圈的热边界层中分离出来并上升，几个冷指也从外部边界层中掉下来。在这一阶段，解决方案仍然大部分是对称的，反映了原始网格的12倍对称性。在最后一个阶段，流体进入剧烈的混沌搅拌，其中所有的对称性都消失了。这是一个随后继续主导流动的模式。
+
+如果我们看一下模拟中作为时间函数的最大速度，也可以确定这些不同阶段。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-32.2d.t_vs_vmax.png" alt=""> 
+
+在这里，当温度分层不稳定时，速度（以厘米/年表示）在开始时变得非常大，达到几米/年的数量级）。然后平静下来，变成相对较小的数值，然后在混乱的搅动系统中再次回升。在那里，它保持在每年10-40厘米的范围内，完全在物理上预期的区域内。
+
+
+
+
+<h3>Results for a 3d spherical shell testcase</h3>
+
+三维计算在计算上是非常昂贵的。此外，如上所述，有趣的行为只有在相当长的时间后才开始，需要更多的CPU时间，而不是在一个典型的集群上可用。因此，与其在这里展示一个完整的模拟，不如让我们简单地展示几张图片，我们使用这个程序的后续程序，称为<i>ASPECT</i>（简称<i>Advanced
+%Solver for Problems in Earth's ConvecTion</i>），该程序正在独立于deal.II开发，已经包括了下面讨论的一些扩展。下面两张图片显示了温度的等值线和领域（连同网格）在512个处理器上的划分。
+
+<p align="center">  <img src="https://www.dealii.org/images/steps/developer/step-32.3d-sphere.solution.png" alt=""> 
+
+ <img src="https://www.dealii.org/images/steps/developer/step-32.3d-sphere.partition.png" alt="">  </p>  。
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+这个程序有许多可以扩展的方向。正如在介绍的最后提到的，在本教程程序完成时，其中大部分正在<i>ASPECT</i>（简称<i>Advanced %Solver for Problems
+in Earth's ConvecTion</i>）代码中积极开发。具体来说，下面这些肯定是人们应该解决的话题，以使程序更加有用。
+
+ <ul>   <li>  <b>Adiabatic heating/cooling:</b> 我们在模拟中得到的温度场在一段时间后大多是恒定的，在内部和外部边界有边界层，冷和热物质的流线混合一切。然而，这并不符合我们的预期，即靠近地心的东西应该比靠近地表的东西更热。原因是我们使用的能量方程不包括一个描述绝热冷却和加热的术语：岩石，像气体一样，在你压缩它的时候会加热。因此，上升的物质以绝热方式冷却，而下沉的冷物质则以绝热方式加热。因此，正确的温度方程看起来有点像这样。   @f{eqnarray*}
+    \frac{D T}{Dt}
+
+
+    -
+    \nabla \cdot \kappa \nabla T &=& \gamma + \tau\frac{Dp}{Dt},
+  @f}
+
+  或者，扩大平流导数  $\frac{D}{Dt} =
+  \frac{\partial}{\partial t} + \mathbf u \cdot \nabla$  : @f{eqnarray*}
+    \frac{\partial T}{\partial t}
+    +
+    {\mathbf u} \cdot \nabla T
+
+
+    -
+    \nabla \cdot \kappa \nabla T &=& \gamma +
+    \tau\left\{\frac{\partial
+    p}{\partial t} + \mathbf u \cdot \nabla p \right\}.
+  @f} 。
+
+  换句话说，随着岩石体积中压力的增加（ $\frac{Dp}{Dt}>0$ ），我们会得到一个额外的热源，反之亦然。
+
+  压力的时间导数实施起来有点困难。如果有必要，我们可以利用导言中概述的事实进行近似，即压力可以分解为由于温差和由此产生的流动而产生的动态部分，以及仅由上层岩石的静压力产生的静态部分。由于后者要大得多，我们可以对 $p\approx p_{\text{static}}=-\rho_{\text{ref}}
+  [1+\beta T_{\text{ref}}] \varphi$ 进行近似处理，从而对 $\frac{Dp}{Dt} \approx \left\{- \mathbf u \cdot \nabla \rho_{\text{ref}}
+  [1+\beta T_{\text{ref}}]\varphi\right\} = \rho_{\text{ref}}
+  [1+\beta T_{\text{ref}}] \mathbf u \cdot \mathbf g$ 进行处理。   换句话说，如果流体沿着重力方向（向下）运动，它将被压缩，因为在这种情况下 $\mathbf u
+  \cdot \mathbf g > 0$ 我们得到一个正的热源。反之，如果流体逆着重力方向运动，它将被冷却。
+
+ <li>  <b>Compressibility:</b> 正如在上面的温度模型中已经暗示的那样，地幔岩石不是不可压缩的。相反，鉴于地幔中的巨大压力（在地核-地幔边界，压力约为140GPa，相当于大气压力的140万倍），岩石实际上确实被压缩到它在表面压力下的密度的1.5倍左右。对这一情况进行建模会遇到很多困难。首先，质量守恒方程不再是 $\textrm{div}\;\mathbf u=0$ ，而应该是 $\textrm{div}(\rho\mathbf u)=0$ ，其中密度 $\rho$ 现在不再是空间常数，而是取决于温度和压力。一个后果是，该模型现在不再是线性的；线性化的斯托克斯方程也不再是对称的，需要我们重新考虑预处理程序，甚至可能是离散化。至于如何解决这个问题，我们在这里就不做详细介绍了。
+
+ <li>  <b>Nonlinear material models:</b> 正如在不同地方已经暗示的那样，材料参数，如密度、粘度和各种热参数，在整个地幔中并不恒定。相反，它们非线性地依赖于压力和温度，在粘度的情况下，还依赖于应变率  $\varepsilon(\mathbf u)$  。对于复杂的模型，准确解决这些模型的唯一方法可能是在每个时间步骤中实际迭代出这种依赖关系，而不是简单地将系数冻结在从前一个（几个）时间步骤推算出来的数值上。
+
+ <li>  <b>Checkpoint/restart:</b> 在一些处理器上以2D运行这个程序可以在一两天内解决现实的模型。然而，在3d中，计算时间非常大，以至于会遇到两个典型问题。(i) 在大多数计算集群上，排队系统将单个作业的运行时间限制在2或3天；(ii) 在数百个处理器上运行几天，由于硬件故障、错误配置或断电而丢失计算结果是一种耻辱。这两个问题都可以通过定期保存程序的状态来解决，如果有必要，在这个时候重新启动程序。这种技术通常被称为<i>checkpoint/restart</i>，它要求将程序的整个状态写到一个永久的存储位置（例如硬盘）。考虑到这个程序的数据结构的复杂性，这并不是完全微不足道的（也可能涉及到写入数千兆字节或更多的数据），但可以通过意识到可以在两个时间步骤之间保存状态，其中基本上只包括网格和解向量；在重新启动期间，然后首先以之前的方式重新列举自由度，然后重新组装矩阵。然而，考虑到这里涉及的数据结构的分布性质，保存和恢复程序的状态并不简单。一个额外的复杂性是由以下事实引入的：人们可能希望在两次运行之间改变处理器的数量，例如，因为人们可能希望在一个比用于在中间时间预计算起始温度场的网格更精细的网格上继续计算。
+
+ <li>  <b>Predictive postprocessing:</b> 像这样的计算的重点不是简单地解决方程。相反，它通常是探索不同的物理模型，并将其与我们在地球表面可以测量到的东西进行比较，以发现哪些模型是现实的，哪些是与现实相矛盾的。为此，我们需要从我们的解决方案向量中计算出与我们可以观察到的东西有关的数量。例如，其中包括地球表面的热流，以及整个地幔的地震速度，因为这些影响到地震仪所记录的地震波。
+
+ <li>  <b>Better refinement criteria:</b> 从上面的3D案例可以看出，3D的网格主要是沿着内部边界细化的。这是因为那里的边界层比领域中的任何其他过渡都要强，导致我们几乎只在那里细化，基本上没有沿着羽流的方向细化。我们当然需要更好的细化标准来跟踪我们真正感兴趣的部分，而不是这里使用的标准，即应用于温度的KellyErrorEstimator，能够做到。   </ul> 
+
+
+还有许多其他方法来扩展当前的程序。然而，与其在这里讨论它们，不如让我们指出更大的开放源代码ASPECT（见https://aspect.geodynamics.org/），它构成了step-32的进一步发展，并且已经包括了许多这样可能的扩展。
+
+

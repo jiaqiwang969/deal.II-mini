@@ -1,0 +1,110 @@
+examples/step-28/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+我们可以用下面的输入文件运行该程序。
+
+@code
+# Listing of Parameters
+# ---------------------
+# Polynomial degree of the finite element to be used
+set Finite element degree     = 2
+
+
+# The number of energy different groups considered
+set Number of energy groups   = 2
+
+
+# Inner power iterations are stopped when the change in k_eff falls below this
+# tolerance
+set Power iteration tolerance = 1e-12
+
+
+# Number of refinement cycles to be performed
+set Refinement cycles         = 12
+@endcode
+
+这个程序的输出包括控制台输出，一个名为 "convergence_table "的文件，记录网格迭代的主要结果，以及vtu格式的图形输出。
+
+控制台的输出看起来像这样。
+
+@code
+Cycle 0:
+   Numbers of active cells:       1156 1156
+   Numbers of degrees of freedom: 4761 4761
+
+
+Iter number: 1 k_eff=319.375676634310 flux_ratio=6.836246075630 max_thermal=1.433899030144
+Iter number: 2 k_eff=0.834072546055 flux_ratio=5.204601882144 max_thermal=0.004630925876
+Iter number: 3 k_eff=0.862826188043 flux_ratio=4.645051765984 max_thermal=0.005380396338
+...
+Iter number:69 k_eff=0.906841960370 flux_ratio=4.384056022578 max_thermal=0.008466414246
+Iter number:70 k_eff=0.906841960371 flux_ratio=4.384056022583 max_thermal=0.008466414246
+
+
+   Cycle=0, n_dofs=9522,  k_eff=0.906841960371, time=7.623425000000
+
+
+
+Cycle 1:
+   Numbers of active cells:       1156 2380
+   Numbers of degrees of freedom: 4761 10667
+
+
+Iter number: 1 k_eff=0.906838267472 flux_ratio=4.385474405125 max_thermal=0.008463675976
+...
+
+
+Cycle 11:
+   Numbers of active cells:       11749 47074
+   Numbers of degrees of freedom: 50261 204523
+
+
+Iter number: 1 k_eff=0.906798057750 flux_ratio=4.384878772166 max_thermal=0.008464822382
+Iter number: 2 k_eff=0.906833008185 flux_ratio=4.384868138638 max_thermal=0.008465057191
+...
+Iter number:32 k_eff=0.906834736550 flux_ratio=4.384846081793 max_thermal=0.008465019607
+Iter number:33 k_eff=0.906834736551 flux_ratio=4.384846081798 max_thermal=0.008465019607
+
+
+   Cycle=11, n_dofs=254784,  k_eff=0.906834736551, time=238.593762000000
+@endcode
+
+
+
+我们看到动力迭代在第0周期后确实收敛得更快，这是因为用上一次网格迭代的解决方案进行了初始化。收敛表 "的内容是。
+
+@code
+0 4761 4761 0.906841960371 4.38405602258
+1 4761 10667 0.906837901031 4.38548908776
+2 4761 18805 0.906836075928 4.3854666475
+3 6629 27301 0.90683550011 4.38540458087
+4 12263 48095 0.906835001796 4.38538179873
+5 17501 69297 0.906834858174 4.38485382341
+6 19933 78605 0.90683482406 4.38485065879
+7 23979 93275 0.906834787555 4.38484837926
+8 30285 117017 0.906834761604 4.38484654495
+9 40087 154355 0.906834746215 4.38484608319
+10 45467 179469 0.906834740155 4.38484600505
+11 50261 204523 0.906834736551 4.3848460818
+@endcode
+
+列的含义是：网格迭代次数，快速能量组的自由度数，热能组的自由度数，收敛的K效应和快速通量的最大值和热能的最大值之间的比率。
+
+网格迭代#9时，快速和热能组的网格看起来如下。
+
+ <img width="400" src="https://www.dealii.org/images/steps/developer/step-28.grid-0.9.order2.png" alt=""> &nbsp;  <img width="400" src="https://www.dealii.org/images/steps/developer/step-28.grid-1.9.order2.png" alt="">  。
+
+我们看到，热组的网格比快组的网格要细得多。这些网格上的解决方案是：（注：通量被归一化，总裂变源等于1）。
+
+ <img width="400" src="https://www.dealii.org/images/steps/developer/step-28.solution-0.9.order2.png" alt="">  &nbsp;  <img width="400" src="https://www.dealii.org/images/steps/developer/step-28.solution-1.9.order2.png" alt=""> 
+
+然后我们绘制出多项式阶数等于1、2和3的收敛数据。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-28.convergence.png" alt=""> 
+
+估计的 "精确的 "k-effective=0.906834721253，这只是从最后一次网格迭代的多项式阶数3减去2e-10。我们看到，h-adaptive计算提供了一个代数收敛性。多项式阶数越高，网格迭代收敛的速度越快。在我们的问题中，我们需要较少的DoFs数量来实现较高的多项式阶数下的相同精度。
+
+

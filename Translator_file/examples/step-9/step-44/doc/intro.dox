@@ -1,0 +1,762 @@
+examples/step-44/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Jean-Paul Pelteret and Andrew McBride.
+<br>
+This material is based upon work supported by  the German Science Foundation (Deutsche
+Forschungsgemeinschaft, DFG), grant STE 544/39-1,  and the National Research Foundation of South Africa.
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.439772,https://zenodo.org/badge/DOI/10.5281/zenodo.439772.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+本教程的主题是非线性固体力学。经典的单场方法（例如见步骤18）不能正确描述准不可压缩材料的响应。响应过于僵硬；这种现象被称为锁定。锁定问题可以通过各种替代策略来规避。其中一个策略是三场公式。在这里，它被用来模拟各向同性连续体的三维、完全非线性（几何和材料）响应。材料响应被近似为超弹性。此外，所采用的三场公式对准不可压缩和可压缩材料都有效。
+
+本报告的目的是为使用deal.II处理非线性固体力学的问题提供基础。线性问题在步骤8中得到了解决。在第18步中部分考虑了几何非线性问题的非标准的、超弹性的形式：使用了线性化构成关系的速率形式，问题域随着运动的进行而变化。围绕非线性运动学的重要概念在理论和实施中都没有。然而，第18步确实描述了许多关键概念，以便在deal.II的框架内实现弹性。
+
+我们从非线性运动学的速成课程开始。为了简单起见，我们将注意力限制在准静态问题上。此后，我们介绍了各种关键的应力测量，并描述了构成模型。然后，在解释用于管理材料的类的结构之前，我们详细描述了三场公式。然后介绍了例子问题的设置。
+
+ @note  本教程是针对三维空间的弹性问题而开发的（并在介绍中进行了描述）。  虽然空间维度可以在main()例程中改变，但需要注意的是。  一般来说，二维弹性问题只是作为三维问题的理想化而存在。  也就是说，它们要么是平面应变，要么是平面应力。  这些选择中的任何一个的假设都需要被一致地施加。  更多信息请参见步骤8的说明。
+
+<h3>List of references</h3>
+
+这里实施的三场公式是由Simo等人（1985）开创的，被称为混合雅各布-压力公式。重要的相关贡献包括Simo和Taylor（1991）以及Miehe（1994）的贡献。这里采用的符号在很大程度上借鉴了Holzapfel（2001）对非线性固体力学理论方面的出色概述。Hughes (2000)对与不可压缩弹性（小应变时）有关的问题作了很好的概述。
+
+<ol>  <li>  J.C. Simo, R.L. Taylor and K.S. Pister (1985), Variational and projection methods for the volume constraint in finite deformation elasto-plasticity,  <em>  Computer Methods in Applied Mechanics and Engineering  </em>  , <strong> 51</strong>, 1-3, 177-208. 		DOI: <a href="http://doi.org/10.1016/0045-7825(85)90033-7">10.1016/0045-7825(85)90033-7</a>;  <li>  J.C. Simo and R.L. Taylor (1991), Quasi-incompressible finite elasticity in principal stretches.Continuum basis and numerical algorithms,  <em>  Computer Methods in Applied Mechanics and Engineering  </em>  , <strong> 85 </strong>, 3, 273-310. 		DOI: <a href="http://doi.org/10.1016/0045-7825(91)90100-K">10.1016/0045-7825(91)90100-K</a>;  <li>  C. Miehe (1994), Aspects of the formulation and finite element implementation of large strain isotropic elasticity  <em>  International Journal for Numerical Methods in Engineering  </em>  <strong> 37 /strong>, 12, 1981-2004. 		DOI: <a href="http://doi.org/10.1002/nme.1620371202">10.1002/nme.1620371202</a>;  <li>  G.A. Holzapfel (2001), Nonlinear Solid Mechanics.A Continuum Approach for Engineering, John Wiley & Sons. 		ISBN: 0-471-82304-X;  <li>  T.J.R. Hughes (2000), The Finite Element Method:线性静态和动态有限元分析》，多佛。 		ISBN: 978-0486411811  </ol> .
+
+<ol>  <li>  J-P. V. Pelteret, D. Davydov, A. McBride, D. K. Vu, and P. Steinmann (2016), 在一个耦合问题中使用这种三场公式的例子记录在<ol>  <li>  J-P.V. Pelteret, D. Davydov, A. McBride, D. K. Vu, and P. Steinmann (2016), Computational electro-and magneto-elasticity for quasi-incompressible media immersed in free space,  <em>  International Journal for Numerical Methods in Engineering  </em>  。 		DOI: <a href="http://doi.org/10.1002/nme.5254">10.1002/nme.5254</a>  </ol>  。
+
+<h3> Notation </h3>
+
+我们可以把四阶张量看作是将二阶张量（矩阵）映射到自己身上的线性算子，其方式与矩阵将向量映射到向量上一样。有各种四阶单位张量，在即将到来的介绍中会用到。四阶单位张量 $\mathcal{I}$ 和 $\overline{\mathcal{I}}$ 定义如下
+
+@f[
+	\mathbf{A} = \mathcal{I}:\mathbf{A}
+		\qquad \text{and} \qquad
+	\mathbf{A}^T = \overline{\mathcal{I}}:\mathbf{A} \, .
+
+
+@f]
+
+注意  $\mathcal{I} \neq \overline{\mathcal{I}}^T$  。此外，我们通过以下方式定义对称和偏斜对称的四阶单位张量
+
+@f[
+	\mathcal{S} \dealcoloneq \dfrac{1}{2}[\mathcal{I} + \overline{\mathcal{I}}]
+		\qquad \text{and} \qquad
+	\mathcal{W} \dealcoloneq \dfrac{1}{2}[\mathcal{I} - \overline{\mathcal{I}}] \, ,
+
+
+@f]
+
+以致于
+
+@f[
+	\dfrac{1}{2}[\mathbf{A} + \mathbf{A}^T] = \mathcal{S}:\mathbf{A}
+		\qquad \text{and} \qquad
+	\dfrac{1}{2}[\mathbf{A} - \mathbf{A}^T] = \mathcal{W}:\mathbf{A} \, .
+
+
+@f]
+
+identity_tensor()返回的四阶  <code>SymmetricTensor</code>  是  $\mathcal{S}$  。
+
+
+
+
+<h3>Kinematics</h3>
+
+让时间域表示为 $\mathbb{T} = [0,T_{\textrm{end}}]$  ，其中 $t \in \mathbb{T}$ 和 $T_{\textrm{end}}$ 是总的问题持续时间。考虑一个连续体，在时间 $t=0$ 占据参考配置 $\Omega_0$ 。参考配置中的%粒子由位置矢量 $\mathbf{X}$ 识别。身体在后来的时间 $t>0$ 的配置被称为当前配置，表示为 $\Omega$ ，粒子由矢量 $\mathbf{x}$ 识别。参考配置和当前配置之间的非线性映射，表示为  $\boldsymbol{\varphi}$  ，作用如下。
+
+@f[
+	\mathbf{x} = \boldsymbol{\varphi}(\mathbf{X},t) \, .
+
+
+@f]
+
+粒子的位移的材料描述被定义为
+
+@f[
+	\mathbf{U}(\mathbf{X},t) = \mathbf{x}(\mathbf{X},t) - \mathbf{X} \, .
+
+
+@f]
+
+
+
+变形梯度 $\mathbf{F}$ 被定义为运动的材料梯度。
+
+@f[
+	\mathbf{F}(\mathbf{X},t)
+		\dealcoloneq \dfrac{\partial \boldsymbol{\varphi}(\mathbf{X},t)}{\partial \mathbf{X}}
+		= \textrm{Grad}\ \mathbf{x}(\mathbf{X},t)
+		= \mathbf{I} + \textrm{Grad}\ \mathbf{U} \, .
+
+
+@f]
+
+变形梯度 $J(\mathbf{X},t) \dealcoloneq \textrm{det}\ \mathbf{F}(\mathbf{X},t) > 0$ 的行列式在参考配置和当前配置中映射出相应的体积元素，分别表示为 $\textrm{d}V$ 和 $\textrm{d}v$  ，为
+
+@f[
+	\textrm{d}v = J(\mathbf{X},t)\; \textrm{d}V \, .
+
+
+@f]
+
+
+
+就空间和材料坐标而言，变形的两个重要度量是左和右Cauchy-Green张量，分别表示为 $\mathbf{b} \dealcoloneq \mathbf{F}\mathbf{F}^T$ 和 $\mathbf{C} \dealcoloneq \mathbf{F}^T\mathbf{F}$  。它们都是对称的和正定的。
+
+格林-拉格朗日应变张量的定义为
+
+@f[
+	\mathbf{E} \dealcoloneq \frac{1}{2}[\mathbf{C} - \mathbf{I} ]
+		= \underbrace{\frac{1}{2}[\textrm{Grad}^T \mathbf{U} +	\textrm{Grad}\mathbf{U}]}_{\boldsymbol{\varepsilon}}
+			+ \frac{1}{2}[\textrm{Grad}^T\ \mathbf{U}][\textrm{Grad}\ \mathbf{U}] \, .
+
+
+@f]
+
+如果假定变形为无限小，那么右边的第二项就可以忽略， $\boldsymbol{\varepsilon}$ （线性化的应变张量）是应变张量的唯一组成部分。从问题的设置来看，这个假设在步骤18中是不成立的，这使得在该教程程序中使用线性化的 $\boldsymbol{\varepsilon}$ 作为应变度量值得怀疑。
+
+为了处理材料在受到体积和剪切型变形时表现出的不同响应，我们考虑将变形梯度 $\mathbf{F}$ 和左Cauchy-Green张量 $\mathbf{b}$ 分解为体积变化（体积）和体积保持（等效）部分。
+
+@f[
+	\mathbf{F}
+		= (J^{1/3}\mathbf{I})\overline{\mathbf{F}}
+	\qquad \text{and} \qquad
+	\mathbf{b}
+        = (J^{2/3}\mathbf{I})\overline{\mathbf{F}}\,\overline{\mathbf{F}}^T
+		=  (J^{2/3}\mathbf{I})\overline{\mathbf{b}} \, .
+
+
+@f]
+
+显然， $\textrm{det}\ \mathbf{F} = \textrm{det}\ (J^{1/3}\mathbf{I}) = J$  。
+
+空间速度场被表示为 $\mathbf{v}(\mathbf{x},t)$  。空间速度场相对于空间坐标的导数给出空间速度梯度  $\mathbf{l}(\mathbf{x},t)$  ，即
+
+@f[
+	\mathbf{l}(\mathbf{x},t)
+		\dealcoloneq \dfrac{\partial \mathbf{v}(\mathbf{x},t)}{\partial \mathbf{x}}
+		= \textrm{grad}\ \mathbf{v}(\mathbf{x},t) \, ,
+
+
+@f]
+
+其中 $\textrm{grad} \{\bullet \}
+= \frac{\partial \{ \bullet \} }{ \partial \mathbf{x}}
+= \frac{\partial \{ \bullet \} }{ \partial \mathbf{X}}\frac{\partial \mathbf{X} }{ \partial \mathbf{x}}
+= \textrm{Grad} \{ \bullet \} \mathbf{F}^{-1}$  。
+
+
+
+
+<h3>Kinetics</h3>
+
+考奇应力定理将作用在当前构型 $\mathbf{t}$ 的无穷小表面元素上的考奇牵引力 $\mathrm{d}a$ 等同于考奇应力张量 $\boldsymbol{\sigma}$ （一个空间量）与表面的外向单位法线 $\mathbf{n}$ 的积，即
+
+@f[
+	\mathbf{t}(\mathbf{x},t, \mathbf{n}) = \boldsymbol{\sigma}\mathbf{n} \, .
+
+
+@f]
+
+Cauchy应力是对称的。同样，作用于参考构型 $\mathbf{T}$ 中的无穷小表面元素的第一皮奥拉-基尔霍夫牵引力 $\mathrm{d}A$ 是第一皮奥拉-基尔霍夫应力张量 $\mathbf{P}$ （两点张量）与表面的外向单位法线 $\mathbf{N}$ 的乘积，为
+
+@f[
+	\mathbf{T}(\mathbf{X},t, \mathbf{N}) = \mathbf{P}\mathbf{N} \, .
+
+
+@f]
+
+Cauchy牵引力 $\mathbf{t}$ 和第一个Piola-Kirchhoff牵引力 $\mathbf{T}$ 的关系为
+
+@f[
+	\mathbf{t}\mathrm{d}a = \mathbf{T}\mathrm{d}A \, .
+
+
+@f]
+
+这可以用<a href="http://en.wikipedia.org/wiki/Finite_strain_theory">Nanson's formula</a>来证明。
+
+第一个Piola-Kirchhoff应力张量与Cauchy应力的关系为
+
+@f[
+	\mathbf{P} = J \boldsymbol{\sigma}\mathbf{F}^{-T} \, .
+
+
+@f]
+
+进一步的重要应力测量是（空间）基尔霍夫应力  $\boldsymbol{\tau} = J \boldsymbol{\sigma}$  和（参考）第二Piola-Kirchhoff应力  $\mathbf{S} = {\mathbf{F}}^{-1} \boldsymbol{\tau} {\mathbf{F}}^{-T}$  。
+
+
+
+
+<h3> Push-forward and pull-back operators </h3>
+
+前推和后拉运算符允许人们在材料和空间设置之间转换各种措施。这里使用的应力测量是逆变的，而应变测量是协变的。
+
+二阶协变张量 $(\bullet)^{\text{cov}}$ 的前推和后拉操作分别由以下方法给出。
+
+@f[
+	\chi_{*}(\bullet)^{\text{cov}} \dealcoloneq \mathbf{F}^{-T} (\bullet)^{\text{cov}} \mathbf{F}^{-1}
+	\qquad \text{and} \qquad
+	\chi^{-1}_{*}(\bullet)^{\text{cov}} \dealcoloneq \mathbf{F}^{T} (\bullet)^{\text{cov}} \mathbf{F} \, .
+
+
+@f]
+
+
+
+二阶禁忌张量 $(\bullet)^{\text{con}}$ 的前推和后拉操作分别由以下方法给出。
+
+@f[
+	\chi_{*}(\bullet)^{\text{con}} \dealcoloneq \mathbf{F} (\bullet)^{\text{con}} \mathbf{F}^T
+	\qquad \text{and} \qquad
+	\chi^{-1}_{*}(\bullet)^{\text{con}} \dealcoloneq \mathbf{F}^{-1} (\bullet)^{\text{con}} \mathbf{F}^{-T} \, .
+
+
+@f]
+
+例如  $\boldsymbol{\tau} = \chi_{*}(\mathbf{S})$  。
+
+
+
+
+<h3>Hyperelastic materials</h3>
+
+超弹性材料的响应受亥姆霍兹自由能函数 $\Psi = \Psi(\mathbf{F}) = \Psi(\mathbf{C}) = \Psi(\mathbf{b})$ 的制约，该函数作为应力的势能。例如，如果Helmholtz自由能取决于右Cauchy-Green张量 $\mathbf{C}$ ，那么各向同性的超弹性响应为
+
+@f[
+	\mathbf{S}
+		= 2 \dfrac{\partial \Psi(\mathbf{C})}{\partial \mathbf{C}} \, .
+
+
+@f]
+
+如果亥姆霍兹自由能取决于左Cauchy-Green张量 $\mathbf{b}$ ，那么各向同性的超弹性响应为
+
+@f[
+	\boldsymbol{\tau}
+		= 2 \dfrac{\partial \Psi(\mathbf{b})}{\partial \mathbf{b}} \mathbf{b}
+		=  2 \mathbf{b} \dfrac{\partial \Psi(\mathbf{b})}{\partial \mathbf{b}} \, .
+
+
+@f]
+
+
+
+根据变形梯度的乘法分解，亥姆霍兹自由能可以分解为
+
+@f[
+	\Psi(\mathbf{b}) = \Psi_{\text{vol}}(J) + \Psi_{\text{iso}}(\overline{\mathbf{b}}) \, .
+
+
+@f]
+
+同样，基尔霍夫应力可以分解为体积部分和等效部分 $\boldsymbol{\tau} = \boldsymbol{\tau}_{\text{vol}} + \boldsymbol{\tau}_{\text{iso}}$ ，其中。
+
+@f{align*}
+	\boldsymbol{\tau}_{\text{vol}} &=
+		2 \mathbf{b} \dfrac{\partial \Psi_{\textrm{vol}}(J)}{\partial \mathbf{b}}
+		\\
+		&= p J\mathbf{I} \, ,
+		\\
+	\boldsymbol{\tau}_{\text{iso}} &=
+		2 \mathbf{b} \dfrac{\partial \Psi_{\textrm{iso}} (\overline{\mathbf{b}})}{\partial \mathbf{b}}
+		\\
+		&= \underbrace{( \mathcal{I} - \dfrac{1}{3} \mathbf{I} \otimes \mathbf{I})}_{\mathbb{P}} : \overline{\boldsymbol{\tau}} \, ,
+
+
+@f}
+
+其中 $p \dealcoloneq \dfrac{\partial \Psi_{\text{vol}}(J)}{\partial J}$ 是压力响应。   $\mathbb{P}$ 是投影张量，它提供了欧拉环境下的偏差算子。虚构的基尔霍夫应力张量 $\overline{\boldsymbol{\tau}}$ 被定义为
+
+@f[
+	\overline{\boldsymbol{\tau}}
+		\dealcoloneq 2 \overline{\mathbf{b}} \dfrac{\partial \Psi_{\textrm{iso}}(\overline{\mathbf{b}})}{\partial \overline{\mathbf{b}}} \, .
+
+
+@f]
+
+
+
+
+
+
+ @note  上述定义的压力响应与固体力学中广泛使用的压力定义不同，即 $p = - 1/3 \textrm{tr} \boldsymbol{\sigma} = - 1/3 J^{-1} \textrm{tr} \boldsymbol{\tau}$  。这里 $p$ 是静水压力。我们在本教程中使用压力响应（尽管我们把它称为压力）。
+
+<h4> Neo-Hookean materials </h4>
+
+与可压缩<a href="http://en.wikipedia.org/wiki/Neo-Hookean_solid">neo-Hookean material</a>相对应的亥姆霍兹自由能由以下公式给出
+
+@f[
+    \Psi \equiv
+        \underbrace{\kappa [ \mathcal{G}(J) ] }_{\Psi_{\textrm{vol}}(J)}
+        + \underbrace{\bigl[c_1 [ \overline{I}_1 - 3] \bigr]}_{\Psi_{\text{iso}}(\overline{\mathbf{b}})} \, ,
+
+
+@f]
+
+其中 $\kappa \dealcoloneq \lambda + 2/3 \mu$ 是体积模量（ $\lambda$ 和 $\mu$ 是Lam&eacute; 参数）和 $\overline{I}_1 \dealcoloneq \textrm{tr}\ \overline{\mathbf{b}}$  。函数 $\mathcal{G}(J)$ 被要求是严格凸的，并满足 $\mathcal{G}(1) = 0$ 等条件，进一步的细节见Holzapfel（2001）。在这项工作中  $\mathcal{G} \dealcoloneq \frac{1}{4} [ J^2 - 1 - 2\textrm{ln}J ]$  .
+
+不可压缩性对所有运动施加了等效约束  $J=1$  。对应于不可压缩的新胡克材料的亥姆霍兹自由能由以下公式给出
+
+@f[
+    \Psi \equiv
+        \underbrace{\bigl[ c_1 [ I_1 - 3] \bigr] }_{\Psi_{\textrm{iso}}(\mathbf{b})} \, ,
+
+
+@f]
+
+其中  $ I_1 \dealcoloneq \textrm{tr}\mathbf{b} $  。因此，通过从可压缩自由能中去除体积分量并执行  $J=1$  得到不可压缩响应。
+
+
+
+
+<h3>Elasticity tensors</h3>
+
+我们将使用Newton-Raphson策略来解决非线性边界值问题。因此，我们将需要将构成关系线性化。
+
+材料描述中的四阶弹性张量定义为
+
+@f[
+	\mathfrak{C}
+		= 2\dfrac{\partial \mathbf{S}(\mathbf{C})}{\partial \mathbf{C}}
+		= 4\dfrac{\partial^2 \Psi(\mathbf{C})}{\partial \mathbf{C} \partial \mathbf{C}} \, .
+
+
+@f]
+
+空间描述 $\mathfrak{c}$ 中的四阶弹性张量由 $\mathfrak{C}$ 的推演得到，为
+
+@f[
+	\mathfrak{c} = J^{-1} \chi_{*}(\mathfrak{C})
+		\qquad \text{and thus} \qquad
+	J\mathfrak{c} = 4 \mathbf{b} \dfrac{\partial^2 \Psi(\mathbf{b})} {\partial \mathbf{b} \partial \mathbf{b}} \mathbf{b}	\, .
+
+
+@f]
+
+四阶弹性张量（对于超弹性材料）同时拥有主要和次要的对称性。
+
+四阶空间弹性张量可以写成以下解耦形式。
+
+@f[
+	\mathfrak{c} = \mathfrak{c}_{\text{vol}} + \mathfrak{c}_{\text{iso}} \, ,
+
+
+@f]
+
+其中
+
+@f{align*}
+	J \mathfrak{c}_{\text{vol}}
+		&= 4 \mathbf{b} \dfrac{\partial^2 \Psi_{\text{vol}}(J)} {\partial \mathbf{b} \partial \mathbf{b}} \mathbf{b}
+		\\
+		&= J[\widehat{p}\, \mathbf{I} \otimes \mathbf{I} - 2p \mathcal{I}]
+			\qquad \text{where} \qquad
+		\widehat{p} \dealcoloneq p + \dfrac{\textrm{d} p}{\textrm{d}J} \, ,
+		\\
+	J \mathfrak{c}_{\text{iso}}
+		&=  4 \mathbf{b} \dfrac{\partial^2 \Psi_{\text{iso}}(\overline{\mathbf{b}})} {\partial \mathbf{b} \partial \mathbf{b}} \mathbf{b}
+		\\
+		&= \mathbb{P} : \mathfrak{\overline{c}} : \mathbb{P}
+			+ \dfrac{2}{3}[\overline{\boldsymbol{\tau}}:\mathbf{I}]\mathbb{P}
+
+
+			- \dfrac{2}{3}[ \mathbf{I}\otimes\boldsymbol{\tau}_{\text{iso}}
+				+ \boldsymbol{\tau}_{\text{iso}} \otimes \mathbf{I} ] \, ,
+
+
+@f}
+
+其中空间描述中的虚构弹性张量 $\overline{\mathfrak{c}}$ 被定义为
+
+@f[
+	\overline{\mathfrak{c}}
+		= 4 \overline{\mathbf{b}} \dfrac{ \partial^2 \Psi_{\textrm{iso}}(\overline{\mathbf{b}})} {\partial \overline{\mathbf{b}} \partial \overline{\mathbf{b}}} \overline{\mathbf{b}} \, .
+
+
+@f]
+
+
+
+<h3>Principle of stationary potential energy and the three-field formulation</h3>
+
+系统的总势能 $\Pi$ 是内部和外部势能之和，分别表示为 $\Pi_{\textrm{int}}$ 和 $\Pi_{\textrm{ext}}$  。我们希望通过最小化势能找到平衡配置。
+
+如上所述，我们采用了三场的表述。我们用 $\mathbf{\Xi} \dealcoloneq \{ \mathbf{u}, \widetilde{p}, \widetilde{J} \}$ 表示主要未知数的集合。独立运动学变量 $\widetilde{J}$ 作为对 $J$ 的约束进入公式，由拉格朗日乘数 $\widetilde{p}$ （压力，我们将看到）强制执行。
+
+这里使用的三场变分原理由以下公式给出
+
+@f[
+	\Pi(\mathbf{\Xi}) \dealcoloneq \int_\Omega \bigl[
+		\Psi_{\textrm{vol}}(\widetilde{J})
+		+ \widetilde{p}\,[J(\mathbf{u}) - \widetilde{J}]
+		+ \Psi_{\textrm{iso}}(\overline{\mathbf{b}}(\mathbf{u}))
+		\bigr] \textrm{d}v
+	+ 	\Pi_{\textrm{ext}} \, ,
+
+
+@f]
+
+其中外部电势的定义为
+
+@f[
+	\Pi_{\textrm{ext}}
+		= - \int_\Omega \mathbf{b}^\text{p} \cdot \mathbf{u}~\textrm{d}v
+
+
+			- \int_{\partial \Omega_{\sigma}} \mathbf{t}^\text{p} \cdot \mathbf{u}~\textrm{d}a \, .
+
+
+@f]
+
+当前配置 $\partial \Omega$ 的边界由两部分组成： $\partial \Omega = \partial \Omega_{\mathbf{u}} \cup \partial \Omega_{\sigma}$  ，其中 $\partial \Omega_{\mathbf{u}} \cap \partial \Omega_{\boldsymbol{\sigma}} = \emptyset$  。规定的Cauchy牵引力，表示为  $\mathbf{t}^\text{p}$  ，被应用于  $ \partial \Omega_{\boldsymbol{\sigma}}$  ，而运动被规定在边界的其余部分  $\partial \Omega_{\mathbf{u}}$  。每单位电流体积的体力表示为  $\mathbf{b}^\text{p}$  。
+
+
+
+
+势的静止性如下
+
+@f{align*}
+	R(\mathbf\Xi;\delta \mathbf{\Xi})
+		&= D_{\delta \mathbf{\Xi}}\Pi(\mathbf{\Xi})
+		\\
+		&= \dfrac{\partial \Pi(\mathbf{\Xi})}{\partial \mathbf{u}} \cdot \delta \mathbf{u}
+			+ \dfrac{\partial \Pi(\mathbf{\Xi})}{\partial \widetilde{p}} \delta \widetilde{p}
+			+ \dfrac{\partial \Pi(\mathbf{\Xi})}{\partial \widetilde{J}} \delta \tilde{J}
+			\\
+		&= \int_{\Omega_0}  \left[
+			\textrm{grad}\ \delta\mathbf{u} : [ \underbrace{[\widetilde{p} J \mathbf{I}]}_{\equiv \boldsymbol{\tau}_{\textrm{vol}}}
+            +  \boldsymbol{\tau}_{\textrm{iso}}]
+			+ \delta \widetilde{p}\, [ J(\mathbf{u}) - \widetilde{J}]
+			+ \delta \widetilde{J}\left[ \dfrac{\textrm{d} \Psi_{\textrm{vol}}(\widetilde{J})}{\textrm{d} \widetilde{J}}
+
+
+            -\widetilde{p}\right]
+			\right]~\textrm{d}V
+			\\
+		&\quad - \int_{\Omega_0} \delta \mathbf{u} \cdot \mathbf{B}^\text{p}~\textrm{d}V
+
+
+			- \int_{\partial \Omega_{0,\boldsymbol{\sigma}}} \delta \mathbf{u} \cdot \mathbf{T}^\text{p}~\textrm{d}A
+			\\
+		&=0 \, ,
+
+
+@f}
+
+对于所有虚拟位移 $\delta \mathbf{u} \in H^1(\Omega)$ ，受 $\delta \mathbf{u} = \mathbf{0}$ 对 $\partial \Omega_{\mathbf{u}}$ 的约束，以及所有虚拟压力 $\delta \widetilde{p} \in L^2(\Omega)$ 和虚拟膨胀 $\delta \widetilde{J} \in L^2(\Omega)$ 。
+
+人们应该注意到，在三个场的表述中 $\boldsymbol{\tau}_{\textrm{vol}} \equiv \widetilde{p} J \mathbf{I}$ ，体积基尔霍夫应力的定义和随后的体积正切与超弹性材料一节中给出的一般形式略有不同，其中 $\boldsymbol{\tau}_{\textrm{vol}} \equiv p J\mathbf{I}$ 。这是因为压力 $\widetilde{p}$ 现在是一个主要的场，而不是一个构成性的派生量。我们需要仔细区分主要场和从构成关系中得到的场。
+
+ @note  虽然变量都是用空间量来表示的，但积分的领域是初始配置。这种方法被称为  <em>  总拉格朗日公式  </em>  。在步骤18中给出的方法，其积分域是当前配置，可以称为  <em>  更新的拉格朗日公式  </em>  。这两种方法的各种优点在文献中被广泛讨论。然而，应该指出的是，它们是等同的。
+
+
+与残留物相对应的欧拉-拉格朗日方程为：。
+
+@f{align*}
+	&\textrm{div}\ \boldsymbol{\sigma} + \mathbf{b}^\text{p} = \mathbf{0} && \textrm{[equilibrium]}
+		\\
+	&J(\mathbf{u}) = \widetilde{J} 		&& \textrm{[dilatation]}
+		\\
+	&\widetilde{p} = \dfrac{\textrm{d} \Psi_{\textrm{vol}}(\widetilde{J})}{\textrm{d} \widetilde{J}} && \textrm{[pressure]} \, .
+
+
+@f}
+
+第一个方程是空间设置中的（准静态）平衡方程。第二个是约束条件  $J(\mathbf{u}) = \widetilde{J}$  。第三个是压力的定义  $\widetilde{p}$  。
+
+ @note 下面的简化单场推导（ $\mathbf{u}$ 是唯一的主变量）使我们清楚地知道如何将积分的极限转化为参考域。
+
+@f{align*}
+\int_{\Omega}\delta \mathbf{u} \cdot [\textrm{div}\ \boldsymbol{\sigma} + \mathbf{b}^\text{p}]~\mathrm{d}v
+&=
+\int_{\Omega} [-\mathrm{grad}\delta \mathbf{u}:\boldsymbol{\sigma} + \delta \mathbf{u} \cdot\mathbf{b}^\text{p}]~\mathrm{d}v
+  + \int_{\partial \Omega} \delta \mathbf{u} \cdot \mathbf{t}^\text{p}~\mathrm{d}a \\
+&=
+
+
+- \int_{\Omega_0} \mathrm{grad}\delta \mathbf{u}:\boldsymbol{\tau}~\mathrm{d}V
++ \int_{\Omega_0} \delta \mathbf{u} \cdot J\mathbf{b}^\text{p}~\mathrm{d}V
+ + \int_{\partial \Omega_0} \delta \mathbf{u} \cdot \mathbf{T}^\text{p}~\mathrm{d}A \\
+&=
+
+
+- \int_{\Omega_0} \mathrm{grad}\delta \mathbf{u}:\boldsymbol{\tau}~\mathrm{d}V
++ \int_{\Omega_0} \delta \mathbf{u} \cdot \mathbf{B}^\text{p}~\mathrm{d}V
+ + \int_{\partial \Omega_{0,\sigma}} \delta \mathbf{u} \cdot \mathbf{T}^\text{p}~\mathrm{d}A \\
+&=
+
+
+- \int_{\Omega_0} [\mathrm{grad}\delta\mathbf{u}]^{\text{sym}} :\boldsymbol{\tau}~\mathrm{d}V
++ \int_{\Omega_0} \delta \mathbf{u} \cdot \mathbf{B}^\text{p}~\mathrm{d}V
+ + \int_{\partial \Omega_{0,\sigma}} \delta \mathbf{u} \cdot \mathbf{T}^\text{p}~\mathrm{d}A \, ,
+
+
+@f}
+
+其中 $[\mathrm{grad}\delta\mathbf{u}]^{\text{sym}} = 1/2[ \mathrm{grad}\delta\mathbf{u} + [\mathrm{grad}\delta\mathbf{u}]^T] $  。
+
+我们将使用迭代牛顿-拉弗森方法来解决非线性剩余方程  $R$  。为了简单起见，我们假设死荷载，即荷载不因变形而改变。
+
+在  $t_{\textrm{n}-1}$  的已知状态和  $t_{\textrm{n}}$  的当前未知状态之间的数量变化被表示为  $\varDelta \{ \bullet \} = { \{ \bullet \} }^{\textrm{n}} - { \{ \bullet \} }^{\textrm{n-1}}$  。在当前迭代 $\textrm{i}$ 的数量值表示为  ${ \{ \bullet \} }^{\textrm{n}}_{\textrm{i}} = { \{ \bullet \} }_{\textrm{i}}$  。迭代  $\textrm{i}$  和  $\textrm{i}+1$  之间的增量变化被表示为  $d \{ \bullet \} \dealcoloneq \{ \bullet \}_{\textrm{i}+1} - \{ \bullet \}_{\textrm{i}}$  。
+
+假设系统的状态在某个迭代中是已知的  $\textrm{i}$  。用牛顿-拉弗森方法求解的非线性治理方程的线性化近似值是：找到  $d \mathbf{\Xi}$  ，以便
+
+@f[
+	R(\mathbf{\Xi}_{\mathsf{i}+1}) =
+		R(\mathbf{\Xi}_{\mathsf{i}})
+		+ D^2_{d \mathbf{\Xi}, \delta \mathbf{\Xi}} \Pi(\mathbf{\Xi_{\mathsf{i}}}) \cdot d \mathbf{\Xi} \equiv 0 \, ,
+
+
+@f]
+
+然后设置  $\mathbf{\Xi}_{\textrm{i}+1} = \mathbf{\Xi}_{\textrm{i}}
++ d \mathbf{\Xi}$  。切线由以下公式给出
+
+@f[
+	D^2_{d \mathbf{\Xi}, \delta \mathbf{\Xi}} \Pi( \mathbf{\Xi}_{\mathsf{i}} )
+		= D_{d \mathbf{\Xi}} R( \mathbf{\Xi}_{\mathsf{i}}; \delta \mathbf{\Xi})
+		=: K(\mathbf{\Xi}_{\mathsf{i}}; d \mathbf{\Xi}, \delta \mathbf{\Xi}) \, .
+
+
+@f]
+
+因此。
+
+@f{align*}
+ 	K(\mathbf{\Xi}_{\mathsf{i}}; d \mathbf{\Xi}, \delta \mathbf{\Xi})
+ 		&=
+ 			D_{d \mathbf{u}} R( \mathbf{\Xi}_{\mathsf{i}}; \delta \mathbf{\Xi}) \cdot d \mathbf{u}
+ 			\\
+ 				&\quad +
+ 			 	D_{d \widetilde{p}} R( \mathbf{\Xi}_{\mathsf{i}}; \delta \mathbf{\Xi})  d \widetilde{p}
+ 			 \\
+ 			 	&\quad +
+ 			  D_{d \widetilde{J}} R( \mathbf{\Xi}_{\mathsf{i}}; \delta \mathbf{\Xi})  d \widetilde{J} \, ,
+
+
+@f}
+
+其中
+
+@f{align*}
+	D_{d \mathbf{u}} R( \mathbf{\Xi}; \delta \mathbf{\Xi})
+ 	&=
+ 	\int_{\Omega_0} \bigl[ \textrm{grad}\ \delta \mathbf{u} :
+ 			\textrm{grad}\ d \mathbf{u} [\boldsymbol{\tau}_{\textrm{iso}} + \boldsymbol{\tau}_{\textrm{vol}}]
+ 			+ \textrm{grad}\ \delta \mathbf{u} :[
+             \underbrace{[\widetilde{p}J[\mathbf{I}\otimes\mathbf{I} - 2 \mathcal{I}]}_{\equiv J\mathfrak{c}_{\textrm{vol}}} +
+             J\mathfrak{c}_{\textrm{iso}}] :\textrm{grad} d \mathbf{u}
+ 		\bigr]~\textrm{d}V \, ,
+ 		\\
+ 	&\quad + \int_{\Omega_0} \delta \widetilde{p} J \mathbf{I} : \textrm{grad}\ d \mathbf{u} ~\textrm{d}V
+ 	\\
+ 	D_{d \widetilde{p}} R( \mathbf{\Xi}; \delta \mathbf{\Xi})
+ 	&=
+ 	\int_{\Omega_0} \textrm{grad}\ \delta \mathbf{u} : J \mathbf{I} d \widetilde{p} ~\textrm{d}V
+
+
+ 		-  \int_{\Omega_0} \delta \widetilde{J} d \widetilde{p}  ~\textrm{d}V \, ,
+ 	\\
+ 	D_{d \widetilde{J}} R( \mathbf{\Xi}; \delta \mathbf{\Xi})
+ 	&=  -\int_{\Omega_0} \delta \widetilde{p} d \widetilde{J}~\textrm{d}V
+ 	 + \int_{\Omega_0} \delta \widetilde{J}  \dfrac{\textrm{d}^2 \Psi_{\textrm{vol}}(\widetilde{J})}{\textrm{d} \widetilde{J}\textrm{d}\widetilde{J}} d \widetilde{J} ~\textrm{d}V \, .
+
+
+@f}
+
+
+
+注意，以下条款被称为几何应力和材料对切线矩阵的贡献。
+
+@f{align*}
+& \int_{\Omega_0} \textrm{grad}\ \delta \mathbf{u} :
+ 			\textrm{grad}\ d \mathbf{u} [\boldsymbol{\tau}_{\textrm{iso}} +  \boldsymbol{\tau}_{\textrm{vol}}]~\textrm{d}V
+ 			&& \quad {[\textrm{Geometrical stress}]} \, ,
+ 		\\
+& \int_{\Omega_0} \textrm{grad} \delta \mathbf{u} :
+ 			[J\mathfrak{c}_{\textrm{vol}} + J\mathfrak{c}_{\textrm{iso}}] :\textrm{grad}\ d \mathbf{u}
+ 		~\textrm{d}V
+ 		&& \quad {[\textrm{Material}]} \, .
+
+
+@f}
+
+
+
+
+
+
+<h3> Discretization of governing equations </h3>
+
+这里使用的三场公式对准不可压缩材料是有效的，即在 $\nu \rightarrow 0.5$ （其中 $\nu$ 是<a
+href="http://en.wikipedia.org/wiki/Poisson's_ratio">Poisson's ratio</a>）的地方，要很好地选择 $\mathbf{u},~\widetilde{p}$ 和 $\widetilde{J}$ 的插值场。通常情况下，选择 $Q_n \times DGPM_{n-1} \times DGPM_{n-1}$ 。这里 $DGPM$ 是FE_DGPMonomial类。一个流行的选择是 $Q_1 \times DGPM_0 \times DGPM_0$ ，它被称为平均扩张法（见Hughes（2000）的直观讨论）。这个代码可以容纳 $Q_n \times DGPM_{n-1} \times DGPM_{n-1}$ 的表述。不连续的近似允许 $\widetilde{p}$ 和 $\widetilde{J}$ 被浓缩出来，并恢复了基于位移的经典方法。
+
+对于完全不可压缩的材料 $\nu = 0.5$ 和三场公式仍将表现出锁定行为。这可以通过在自由能中引入一个额外的约束条件来克服，其形式为  $\int_{\Omega_0} \Lambda [ \widetilde{J} - 1]~\textrm{d}V$  。这里 $\Lambda$ 是一个拉格朗日乘数，用于强制执行等时约束条件。进一步的细节见Miehe (1994)。
+
+线性化的问题可以写成
+
+@f[
+	\mathbf{\mathsf{K}}( \mathbf{\Xi}_{\textrm{i}}) d\mathbf{\Xi}
+	=
+	\mathbf{ \mathsf{F}}(\mathbf{\Xi}_{\textrm{i}})
+
+
+@f]
+
+其中
+
+@f{align*}
+		\underbrace{\begin{bmatrix}
+			\mathbf{\mathsf{K}}_{uu}	&	\mathbf{\mathsf{K}}_{u\widetilde{p}}	& \mathbf{0}
+			\\
+			\mathbf{\mathsf{K}}_{\widetilde{p}u}	&	\mathbf{0}	&	\mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}
+			\\
+			\mathbf{0}	& 	\mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}		& \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{J}}
+		\end{bmatrix}}_{\mathbf{\mathsf{K}}(\mathbf{\Xi}_{\textrm{i}})}
+		\underbrace{\begin{bmatrix}
+			d \mathbf{\mathsf{u}}\\
+            d \widetilde{\mathbf{\mathsf{p}}} \\
+            d \widetilde{\mathbf{\mathsf{J}}}
+		\end{bmatrix}}_{d \mathbf{\Xi}}
+        =
+        \underbrace{\begin{bmatrix}
+
+
+			-\mathbf{\mathsf{R}}_{u}(\mathbf{u}_{\textrm{i}}) \\
+
+
+            -\mathbf{\mathsf{R}}_{\widetilde{p}}(\widetilde{p}_{\textrm{i}}) \\
+
+
+           -\mathbf{\mathsf{R}}_{\widetilde{J}}(\widetilde{J}_{\textrm{i}})
+		\end{bmatrix}}_{ -\mathbf{\mathsf{R}}(\mathbf{\Xi}_{\textrm{i}}) }
+=
+        \underbrace{\begin{bmatrix}
+			\mathbf{\mathsf{F}}_{u}(\mathbf{u}_{\textrm{i}}) \\
+            \mathbf{\mathsf{F}}_{\widetilde{p}}(\widetilde{p}_{\textrm{i}}) \\
+           \mathbf{\mathsf{F}}_{\widetilde{J}}(\widetilde{J}_{\textrm{i}})
+		\end{bmatrix}}_{ \mathbf{\mathsf{F}}(\mathbf{\Xi}_{\textrm{i}}) } \, .
+
+
+@f}
+
+
+
+在配方中没有压力和膨胀（主要）变量的导数存在。因此，压力和膨胀的不连续有限元插值产生了 $\mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}$ 、 $\mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}$ 和 $\mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{J}}$ 的块对角矩阵。因此，我们可以很容易地表达每个单元上的场 $\widetilde{p}$ 和 $\widetilde{J}$ ，只需倒置一个局部矩阵并乘以局部右手。然后我们可以将结果插入其余的方程中，并恢复一个经典的基于位移的方法。为了在元素水平上凝结出压力和膨胀的贡献，我们需要以下结果。
+
+@f{align*}
+		d \widetilde{\mathbf{\mathsf{p}}}
+		& = \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}^{-1} \bigl[
+			 \mathbf{\mathsf{F}}_{\widetilde{J}}
+
+
+			 - \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{J}} d \widetilde{\mathbf{\mathsf{J}}} \bigr]
+			\\
+		d \widetilde{\mathbf{\mathsf{J}}}
+		& = \mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}^{-1} \bigl[
+			\mathbf{\mathsf{F}}_{\widetilde{p}}
+
+
+			- \mathbf{\mathsf{K}}_{\widetilde{p}u} d \mathbf{\mathsf{u}}
+			\bigr]
+		\\
+		 \Rightarrow d \widetilde{\mathbf{\mathsf{p}}}
+		&=  \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}^{-1} \mathbf{\mathsf{F}}_{\widetilde{J}}
+
+
+		- \underbrace{\bigl[\mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}^{-1} \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{J}}
+		\mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}^{-1}\bigr]}_{\overline{\mathbf{\mathsf{K}}}}\bigl[ \mathbf{\mathsf{F}}_{\widetilde{p}}
+
+
+ 		- \mathbf{\mathsf{K}}_{\widetilde{p}u} d \mathbf{\mathsf{u}} \bigr]
+
+
+@f}
+
+因此
+
+@f[
+		\underbrace{\bigl[ \mathbf{\mathsf{K}}_{uu} + \overline{\overline{\mathbf{\mathsf{K}}}}~ \bigr]
+		}_{\mathbf{\mathsf{K}}_{\textrm{con}}} d \mathbf{\mathsf{u}}
+		=
+        \underbrace{
+		\Bigl[
+		\mathbf{\mathsf{F}}_{u}
+
+
+			- \mathbf{\mathsf{K}}_{u\widetilde{p}} \bigl[ \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}^{-1} \mathbf{\mathsf{F}}_{\widetilde{J}}
+
+
+			- \overline{\mathbf{\mathsf{K}}}\mathbf{\mathsf{F}}_{\widetilde{p}} \bigr]
+		\Bigr]}_{\mathbf{\mathsf{F}}_{\textrm{con}}}
+
+
+@f]
+
+其中
+
+@f[
+		\overline{\overline{\mathbf{\mathsf{K}}}} \dealcoloneq
+			\mathbf{\mathsf{K}}_{u\widetilde{p}} \overline{\mathbf{\mathsf{K}}} \mathbf{\mathsf{K}}_{\widetilde{p}u} \, .
+
+
+@f]
+
+请注意，由于 $\widetilde{p}$ 和 $\widetilde{J}$ 选择的是元素层面的不连续，所有需要反转的矩阵都是在元素层面定义的。
+
+构建各种贡献的程序如下。
+
+- 构建  $\mathbf{\mathsf{K}}$  。
+
+- 形成  $\mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}^{-1}$  的元素，并存储在  $\mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}$  中的  $\mathbf{\mathsf{K}}$  。
+
+- 形成 $\overline{\overline{\mathbf{\mathsf{K}}}}$ 并添加到 $\mathbf{\mathsf{K}}_{uu}$ ，得到 $\mathbf{\mathsf{K}}_{\textrm{con}}$ 。
+
+- 修改后的系统矩阵被称为  ${\mathbf{\mathsf{K}}}_{\textrm{store}}$  。   也就是@f[
+        \mathbf{\mathsf{K}}_{\textrm{store}}
+\dealcoloneq
+        \begin{bmatrix}
+			\mathbf{\mathsf{K}}_{\textrm{con}}	&	\mathbf{\mathsf{K}}_{u\widetilde{p}}	& \mathbf{0}
+			\\
+			\mathbf{\mathsf{K}}_{\widetilde{p}u}	&	\mathbf{0}	&	\mathbf{\mathsf{K}}_{\widetilde{p}\widetilde{J}}^{-1}
+			\\
+			\mathbf{0}	& 	\mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{p}}		& \mathbf{\mathsf{K}}_{\widetilde{J}\widetilde{J}}
+		\end{bmatrix} \, .
+  @f] 。
+
+
+
+
+
+
+<h3> The material class </h3>
+
+一个好的面向对象的材料类的设计将有利于本教程扩展到广泛的材料类型。在本教程中，我们只有一个名为Material_Compressible_Neo_Hook_Three_Field的材料类。理想情况下，这个类会派生自超弹性材料（HyperelasticMaterial），而超弹性材料会派生自基类Material。这里使用的三场性质的表述也使问题复杂化。
+
+三场公式的亥姆霍兹自由能函数为  $\Psi = \Psi_\text{vol}(\widetilde{J}) + \Psi_\text{iso}(\overline{\mathbf{b}})$  。Kirchhoff应力的等效部分 ${\boldsymbol{\tau}}_{\text{iso}}(\overline{\mathbf{b}})$ 与使用超弹性材料的单场公式得到的相同。然而，自由能的体积部分现在是一个主要变量的函数  $\widetilde{J}$  。因此，对于三场公式来说，基尔霍夫应力 ${\boldsymbol{\tau}}_{\text{vol}}$ 的体积部分的构成反应（和正切）并不像单场公式那样由超弹性构成法给出。我们可以将术语 $\boldsymbol{\tau}_{\textrm{vol}} \equiv \widetilde{p} J \mathbf{I}$ 标记为体积基尔霍夫应力，但压力 $\widetilde{p}$ 不是由自由能得出的；它是一个主场。
+
+为了有一个灵活的方法，我们决定Material_Compressible_Neo_Hook_Three_Field仍然能够计算并返回一个体积Kirchhoff应力和正切。为了做到这一点，我们选择在与正交点相关的Material_Compressible_Neo_Hook_Three_Field类中存储插值的主域 $\widetilde{p}$ 和 $\widetilde{J}$ 。这个决定应该在以后的阶段，当教程扩展到考虑其他材料时，再重新审视。
+
+
+
+
+<h3> Numerical example </h3>
+
+这里考虑的数值例子是一个压缩下的几乎不可压缩的块。这个基准问题取自
+
+- S. Reese, P. Wriggers, B.D. Reddy (2000), A new locking-free brick element technique for large deformation problems in elasticity,  <em>  Computers and Structures  </em>  , <strong> 75</strong>, 291-304.   DOI:<a href="http://doi.org/10.1016/S0045-7949(99)00137-6">10.1016/S0045-7949(99)00137-6</a>。
+
+   <img src="https://www.dealii.org/images/steps/developer/step-44.setup.png" alt=""> 
+
+该材料是具有<a href="http://en.wikipedia.org/wiki/Shear_modulus">shear modulus</a> $\mu = 80.194e6$ 和 $\nu = 0.4999$ 的准不可压缩的新胡克式。对于这样一个材料特性的选择，传统的单场 $Q_1$ 方法将锁定。也就是说，响应会过于僵硬。初始和最终配置显示在上面的图片中。利用对称性，我们只求解四分之一的几何体（即一个尺寸为 $0.001$ 的立方体）。域的上表面的内四分之一受到 $p_0$ 的载荷。
+
+

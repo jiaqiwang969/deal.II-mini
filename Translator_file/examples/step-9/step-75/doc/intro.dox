@@ -1,0 +1,209 @@
+examples/step-75/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Marc Fehling, Peter Munch and
+Wolfgang Bangerth.
+<br>
+This material is based upon work partly supported by the National
+Science Foundation under Award No. DMS-1821210, EAR-1550901, and
+OAC-1835673. Any opinions, findings, and conclusions or recommendations
+expressed in this publication are those of the authors and do not
+necessarily reflect the views of the National Science Foundation.
+<br>
+Peter Munch would like to thank Timo Heister, Martin Kronbichler, and
+Laura Prieto Saavedra for many very interesting discussions.
+</i>
+
+
+
+
+ @note  作为这个程序的先决条件，你需要安装p4est库和Trilinos库。在<a
+href="../../readme.html" target="body">README</a>文件中描述了deal.II与这些附加库的安装情况。
+
+
+
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+在有限元背景下，更多的自由度通常会产生一个更精确的解决方案，但也需要更多的计算工作。
+
+在以前的整个教程中，我们找到了通过将网格分辨率与解的复杂性进行局部调整来有效分配自由度的方法（自适应网格细化，步骤6）。如果我们不仅单独调整网格，而且还局部调整每个单元上相关有限元的多项式程度，这种方法就特别有效（hp-adaptation，第27步）。
+
+此外，分配更多的进程同时运行你的程序有助于在更短的时间内解决计算工作量。根据你的机器的硬件结构，你的程序必须为所有进程都能访问相同的内存（共享内存，第18步），或者进程被托管在几个独立的节点上（分布式内存，第40步）这种情况做好准备。
+
+在高性能计算部分，内存访问变成了当前超级计算机的瓶颈。我们可以通过使用MatrixFree方法（第37步）来计算矩阵-向量乘积的效果，从而完全避免存储矩阵。它们可以用于几何多网格方法（步骤50），也可以用于多项式多网格方法，以极大地加快方程组的求解速度。
+
+本教程结合所有这些特点，介绍了如何解决一个简单的拉普拉斯问题的最先进的方法：在具有分布式内存的机器上利用hp-适应和无矩阵混合多网格方法。
+
+
+
+
+<h3>Load balancing</h3>
+
+对于有限元的并行应用，我们将网格划分为子域（又称域分解），这些子域被分配给进程。这种划分发生在deal.II的活动单元上，如步骤40所示。在那里，每个单元都有相同的有限元和相同的自由度分配，以及大致相同的工作负荷。为了平衡所有进程的工作负荷，我们必须平衡所有参与进程上的单元数量。
+
+在hp-adaptive方法中，情况不再如此：有限元类型可能因单元而异，因此自由度的数量也不同。匹配单元的数量并不能产生一个平衡的工作量。在无矩阵的情况下，可以假设工作量与每个过程的自由度数量成正比，因为在最好的情况下，只有源和目的向量需要被加载。
+
+我们可以通过给每个单元分配权重来平衡工作量，这些权重与自由度的数量成正比，并平衡所有进程之间的所有权重之和。给每个单元分配单独的权重可以通过我们后面要使用的 parallel::CellWeights 类来实现。
+
+
+
+
+<h3>hp-decision indicators</h3>
+
+使用hp-adaptive方法，我们不仅要决定哪些单元需要细化或粗化，而且还可以选择如何做：要么调整网格分辨率，要么调整有限元的多项式程度。
+
+我们将再次根据当前解决方案的（后验）计算误差估计值来决定哪些单元需要调整，例如，使用KellyErrorEstimator。我们将同样决定如何用（事后）计算的平滑度估计值进行调整：大的多项式度数对解决方案的平滑部分效果最好，而细的网格分辨率对不规则部分是有利的。在第27步中，我们提出了一种基于傅里叶系数衰减的平滑度估计的计算方法。让我们利用这个机会，提出一种遵循相同思路的替代方法，但采用Legendre系数。
+
+我们将简要介绍这种新技术的思路，但为了简单起见，将其描述限制在一维。假设 $u_\text{hp}(x)$ 是一个有限元函数，在单元格 $K$ 上定义为
+
+@f[
+u_\text{hp}(x) = \sum c_i \varphi_i(x)
+
+
+@f]
+
+其中每个 $\varphi_i(x)$ 是一个形状函数。我们可以用Legendre多项式 $P_k$ 的基础等价表示 $u_\text{hp}(x)$ 为
+
+@f[
+u_\text{hp}(x) = \sum l_k P_k(x).
+
+
+@f]
+
+我们的目标是获得有限元系数 $c_i$ 和Legendre系数 $l_k$ 之间的映射。我们将通过把问题写成 $L^2$ 对 $u_\text{hp}(x)$ 在Legendre基础上的投影来实现这一目标。每个系数 $l_k$ 可以通过以下方式计算
+
+@f[
+l_k = \int_K u_\text{hp}(x) P_k(x) dx.
+
+
+@f]
+
+根据结构，Legendre多项式在 $L^2$ 上的内积下是正交的。此外，我们假设它们已经被归一化，所以它们的内积可以写成
+
+@f[
+\int_K P_i(x) P_j(x) dx = \det(J_K) \, \delta_{ij}
+
+
+@f]
+
+其中 $\delta_{ij}$ 是克朗克三角洲， $J_K$ 是 $\hat{K}$ 到 $K$ 的映射的雅各布，（在本教程中）假定它是常数（即，映射必须是仿射的）。
+
+因此，结合所有这些假设，在Legendre基础上表达 $u_\text{hp}(x)$ 的投影矩阵只是 $\det(J_K) \,
+\mathbb{I}$  -- 即 $\det(J_K)$ 乘以身份矩阵。让 $F_K$ 成为从 $K$ 到其参考单元 $\hat{K}$ 的映射。因此，投影系统中右侧的条目为：。
+
+@f[
+\int_K u_\text{hp}(x) P_k(x) dx
+= \det(J_K) \int_\hat{K} u_\text{hp}(F_K(\hat{x})) P_k(F_K(\hat{x})) d\hat{x}.
+
+
+@f]
+
+回顾 $u_\text{hp}(x)$ 的形状函数表示，我们可以把它写成 $\det(J_K) \, \mathbf{C} \, \mathbf{c}$ ，其中 $\mathbf{C}$ 是改变基础的矩阵，条目是
+
+@f[
+\int_K P_i(x) \varphi_j(x) dx
+= \det(J_K) \int_{\hat{K}} P_i(F_K(\hat{x})) \varphi_j(F_K(\hat{x})) d\hat{x}
+= \det(J_K) \int_{\hat{K}} \hat{P}_i(\hat{x}) \hat{\varphi}_j(\hat{x}) d\hat{x}
+\dealcoloneq \det(J_K) \, C_{ij}
+
+
+@f]
+
+所以 $\mathbf{C}$ 的值可以写成 <em> 独立于 </em> 的 $K$ ，在转换为参考坐标后，将 $\det(J_K)$ 从前面因式分解。因此，把这一切放在一起，投影问题可以写为
+
+@f[
+\det(J_K) \, \mathbb{I} \, \mathbf{l} = \det(J_K) \, \mathbf{C} \, \mathbf{c}
+
+
+@f]
+
+可以简单改写为
+
+@f[
+\mathbf{l} = \mathbf{C} \, \mathbf{c}.
+
+
+@f]
+
+
+
+在这一点上，我们需要强调的是，大多数有限元应用都使用非结构化网格，对于这些网格的映射几乎总是非affine的。换句话说： $J_K$ 在整个单元中是恒定的这一假设对于一般的网格来说是不正确的。因此， $l_k$ 的正确计算不仅要求我们为每一个单元计算相应的变换矩阵 $\mathbf{C}$ ，而且还要求我们在可能具有任意和非常复杂的几何形状的单元 $K$ 上定义一组类Legendre正交函数。特别是第二部分，在计算上非常昂贵。目前FESeries变换类的实现依赖于具有恒定雅各布系数所带来的简化，以提高性能，因此只对仿射映射产生正确结果。变换只用于平滑度估计的目的，以决定适应的类型，这不是有限元程序的一个关键组成部分。除此之外，这种情况对本教程不构成问题，因为我们只使用方形的单元。
+
+Eibner和Melenk  @cite eibner2007hp  认为，当且仅当Legendre系数的绝对值随指数增加而衰减时，一个函数是解析的，即可以用幂级数表示  $k$  。
+
+@f[
+\exists C,\sigma > 0 : \quad \forall k \in \mathbb{N}_0 : \quad |l_k|
+\leq C \exp\left( - \sigma k \right) .
+
+
+@f]
+
+衰减率 $\sigma$ 可以被解释为衡量该函数的平滑度。我们可以把它看成是转化系数的线性回归拟合的斜率。
+
+@f[
+\ln(|l_k|) \sim \ln(C) - \sigma k .
+
+
+@f]
+
+
+
+我们将对每个单元 $K$ 进行这种拟合，以获得对有限元近似的平滑度的局部估计。然后，衰减率 $\sigma_K$ 作为hp-adaptation的决策指标。对于单元上的有限元 $K$ 的多项式程度 $p$ ，计算 $k \leq (p+1)$ 的系数被证明是估计平稳性的合理选择。你可以在  @cite fehling2020  中找到更详细和独立于维度的描述。
+
+以上所有内容已经在 FESeries::Legendre 类和 SmoothnessEstimator::Legendre 命名空间中实现。有了误差估计和平滑度指标，我们就可以对单元格进行实际细化和粗化了。来自 parallel::distributed::GridRefinement 和 hp::Refinement 命名空间的一些函数将在后面帮助我们完成这个任务。
+
+
+
+
+<h3>Hybrid geometric multigrid</h3>
+
+有限元矩阵通常是非常稀疏的。此外，hp-adaptive方法对应于每行非零项数量变化很大的矩阵。一些最先进的预处理程序，如Step-40中使用的代数多重网格（AMG），在这些情况下表现不佳。
+
+因此，我们将依靠一个无矩阵的混合多网格预处理程序。Step-50已经证明了几何多网格方法与MatrixFree框架结合时的优越性。在hp-adaptive FEM上的应用需要一些额外的工作，因为一个单元的子代可能有不同的多项式程度。作为补救措施，我们首先对线性元素进行p松弛（类似于Mitchell @cite mitchell2010hpmg ），然后以常规方式进行h松弛。在最粗的层次上，我们应用代数多网格求解器。p-多栅、h-多栅和AMG的结合使求解器成为一个混合多栅求解器。
+
+我们将通过使用MGTransferGlobalCoarsening，在现有的全局粗化基础设施的帮助下，创建一个具有上述特殊水平要求的自定义混合多网格预处理器。
+
+
+
+
+<h3>The test case</h3>
+
+对于椭圆方程来说，每个再入角通常会引出一个奇点  @cite brenner2008  。我们可以利用这种情况对我们的HP决策算法进行测试：在所有要适应的单元上，我们倾向于在奇点附近采用精细的网格，而在其他情况下采用高的多项式程度。
+
+作为在这些条件下要解决的最简单的椭圆问题，我们选择了L型域中的拉普拉斯方程，其再入角位于坐标系的原点。
+
+为了能够确定实际的误差，我们制造一个有已知解的边界值问题。在上述领域，拉普拉斯方程的一个解是，在极坐标中， $(r, \varphi)$  。
+
+@f[
+u_\text{sol} = r^{2/3} \sin(2/3 \varphi).
+
+
+@f]
+
+
+
+参见  @cite brenner2008  或  @cite mitchell2014hp  。解决方案看起来如下。
+
+<div style="text-align:center;"> <img src="https://www.dealii.org/images/steps/developer/step-75.solution.svg" alt="分析性解决方案。"> </div>
+
+通过研究再入角附近的解决方案的梯度，即原点，奇异性变得很明显了。
+
+@f[
+\left\| \nabla u_\text{sol} \right\|_{2} = 2/3 r^{-1/3} , \quad
+\lim\limits_{r \rightarrow 0} \left\| \nabla u_\text{sol} \right\|_{2} =
+\infty .
+
+
+@f]
+
+
+
+由于我们知道奇点的位置，我们希望我们的hp-decision算法在这个特定的区域内决定采用精细的网格分辨率，而在其他地方采用高多项式程度。
+
+因此，让我们看看情况是否真的如此，以及hp-adaptation与纯h-adaptation相比表现如何。但首先让我们详细看看实际的代码。
+
+

@@ -1,0 +1,291 @@
+examples/step-42/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Jörg Frohne (University of Siegen,
+Germany) while on a long-term visit to Texas A&amp;M University, with significant
+contributions by Timo Heister and Wolfgang Bangerth.
+<br>
+<br>
+The code described here provides the basis for the numerical experiments shown
+in the following paper:
+<br>
+  J. Frohne, T. Heister, W. Bangerth: <b>Efficient numerical methods for the large-scale, parallel
+                  solution of elastoplastic contact problems</b><b>Efficient numerical methods for the large-scale, parallel
+                  solution of elastoplastic contact problems</b>.
+  Accepted for publication in International Journal for Numerical Methods in Engineering, 2015.
+</i> 。
+
+
+
+
+<a name="Intro"></a>
+
+<h3>Introduction</h3>
+
+这个例子是第41步的延伸，考虑的是三维接触问题，具有各向同性硬化的弹塑性材料行为。换句话说，它考虑的是，如果把一个刚性的障碍物推到一个三维体上，它是如何变形的（接触问题），其中的变形受弹塑性材料法则（一种只能容纳一定最大应力的材料）的制约，随着变形的累积，该材料会硬化。为了说明我们打算做什么，在讨论太多细节之前，让我们只展示一张解决方案的图片（可变形体是一个立方体--实际上只显示了一半--，障碍物对应于一个汉字，将在下面讨论）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-42.CellConstitutionLi2.png" alt=""> 
+
+
+这个问题的描述意味着，与第41步相比，我们必须照顾到一个额外的非线性因素：材料行为。由于我们在这里考虑的是一个三维问题，我们还必须考虑到一个事实，即现在接触区是在可变形体的边界，而不是在内部。最后，与第41步相比，我们还必须在处理线性系统和不等式约束时处理悬空节点，因为我们希望使用自适应网格；在后一种情况下，我们将不得不处理优先考虑悬空节点的约束还是不等式的约束更重要。
+
+由于在三维空间中很容易达到几百万个自由度，即使使用自适应网格细化，我们决定使用Trilinos和p4est来并行运行我们的代码，在步骤40的框架上进行并行化。并行化的其他指针可以在步骤32中找到。
+
+
+
+
+<h3>Classical formulation</h3>
+
+该问题的经典表述具有以下形式。
+
+@f{align*}
+ \varepsilon(\mathbf u) &= A\sigma + \varepsilon^p & &\quad\text{in } \Omega,\\
+
+
+  -\textrm{div}\ \sigma &= \mathbf f & &\quad\text{in } \Omega,\\
+  \varepsilon^p:(\tau - \sigma) &\geq 0\quad\forall\tau\text{ with
+  }\mathcal{F}(\tau)\leq 0 & &\quad\text{in } \Omega,\\
+  \mathbf u &= 0 & &\quad\text{on }\Gamma_D,\\
+  \sigma \mathbf n - [\mathbf n \cdot(\sigma \mathbf n)]\mathbf n &= 0,
+  \quad \mathbf n \cdot (\sigma
+  \mathbf n) \leq 0 & &\quad\text{on }\Gamma_C,\\
+  (\mathbf n \cdot (\sigma
+  \mathbf n))(\mathbf n \cdot \mathbf u - g) &= 0,\quad \mathbf n
+  \cdot \mathbf u - g \leq 0 & &\quad\text{on } \Gamma_C.
+
+
+@f}
+
+这里，这些方程的第一个定义了应变 $\varepsilon(\mathbf u)=\frac{1}{2}\left(\nabla \mathbf u
+  + \nabla \mathbf u^T\right)$ 和应力 $\sigma$ 之间的关系，通过四阶顺应性张量 $A$ ； $\varepsilon^p$ 提供了应变的塑性成分，确保应力不超过屈服应力。我们将只考虑各向同性的材料，对于这些材料， $A$ 可以用Lam&eacute;模量 $\lambda$ 和 $\mu$ 表示，或者用体模量 $\kappa$ 和 $\mu$ 表示。第二个方程是力的平衡；我们在此不考虑任何体力，并假定 $\mathbf f=0$  。第三行的互补条件意味着，如果 $\mathcal{F}(\sigma)< 0$ ，则 $\varepsilon^p=0$ ，但当且仅当 $\mathcal{F}(\sigma) = 0$ ， $\varepsilon^p$ 可能是一个非零张量，特别是在这种情况下， $\varepsilon^p$ 必须指向 $\partial
+\mathcal{F}(\sigma)/\partial \sigma$ 的方向。不等式 $\mathcal{F}(\sigma)\le 0$ 是塑性材料只能支持有限的应力；换句话说，如果外力会导致 $\sigma$ 的应力，那么它们就会产生塑性变形 $\varepsilon^p$ 的反应。这种<i>yield function</i>的典型形式是 $\mathcal{F}(\sigma)=|\sigma^D|-\sigma_{\text{yield}}$ ，其中 $\tau^D
+= \tau - \dfrac{1}{3}tr(\tau)I$ 是张量的偏离部分， $|\cdot|$ 表示弗罗本尼斯规范。
+
+进一步的方程描述了 $\Gamma_D$ 上固定的零位移，在可能出现接触的表面 $\Gamma_C=\partial\Omega\backslash\Gamma_D$ 上，障碍物施加的法向力 $\sigma_n=\mathbf n \cdot (\sigma(\mathbf u)
+  \mathbf n)$ 是向内的（障碍物对我们的身体没有 "拉力"），切向分量为零 $\mathbf \sigma_t= \sigma \mathbf n - \mathbf \sigma_n \mathbf n
+= \sigma \mathbf n - [\mathbf n \cdot(\sigma \mathbf n)]\mathbf n$  。最后一个条件又是一个互补条件，意味着在 $\Gamma_C$ 上，只有当身体与障碍物接触时，法向力才能非零；第二部分描述了障碍物和身体的不可穿透性。最后两个方程通常被称为Signorini接触条件。
+
+大多数材料--尤其是金属--都有这样的特性，即它们在变形时表现出一定的硬化。换句话说， $\sigma_{\text{yield}}$ 随着变形而增加。在实践中，导致硬化的不是弹性变形，而是塑性成分。有不同的构成法则来描述这些材料行为。最简单的称为线性各向同性硬化，由流动函数  $\mathcal{F}(\sigma,\varepsilon^p) = \vert\sigma^D\vert - (\sigma_0 +
+\gamma^{\text{iso}}|\varepsilon^p|)$  描述。
+
+
+
+
+<h3>Reformulation as a variational inequality</h3>
+
+一般来说，处理不等式是相当笨拙的。在这里，我们必须处理两个问题：塑性和接触问题。正如本页顶部提到的论文中详细描述的那样，我们至少可以重新表述塑性，使其看起来像一个非线性，然后我们可以用牛顿方法处理。这在数学上略显棘手，因为非线性不只是一些平滑的函数，而是在应力达到屈服应力的地方有结点；然而，对于这样的<i>semismooth</i>函数，可以证明牛顿方法仍然收敛。
+
+在不涉及细节的情况下，我们也将摆脱作为独立变量的应力，而完全用位移来工作  $\mathbf u$  。最终，这种重构的目标是，我们希望最终得到一个对称的、正定的问题--比如一个线性化的弹性问题，其空间变量系数由塑性行为产生--需要在每个牛顿步骤中解决。我们希望如此，因为有高效和可扩展的方法来解决这样的线性系统，如用代数多重网格的CG预处理。这与我们继续使用包含位移和应力的混合公式所得到的类似于混合拉普拉斯的鞍点问题（见第20步）是相反的，第20步已经提示了构建良好的求解器和预处理器是多么困难。
+
+说到这里，让我们简单陈述一下我们在重构后得到的问题（同样，细节可以在论文中找到）。找到一个位移 $\mathbf u \in
+V^+$ ，以便
+
+@f{align*}
+\left(P_{\Pi}(C\varepsilon(\mathbf u)),\varepsilon(\varphi) - \varepsilon(\mathbf u)\right) \geq 0,\quad \forall \varphi\in V^+.
+
+
+@f}
+
+其中投影仪 $P_\Pi$ 被定义为
+
+@f{align*}
+ P_{\Pi}(\tau) \dealcoloneq \begin{cases}
+    \tau, & \text{if }\vert\tau^D\vert \leq \sigma_0,\\
+    \left[
+      \dfrac{\gamma^{\text{iso}}}{2\mu + \gamma^{\text{iso}}} +
+      \left(1-\dfrac{\gamma^{\text{iso}}}{2\mu + \gamma^{\text{iso}}}\right)\dfrac{\sigma_0}{\vert\tau^D\vert}
+    \right]\tau^D
+    + \dfrac{1}{3}\text{trace}(\tau) I, & \text{if }\vert\tau^D\vert >
+    \sigma_0,
+  \end{cases}
+
+
+@f}
+
+和空间 $V^+$ 是满足接触条件的所有位移的空间。
+
+@f{align*}
+  V
+  &=
+  \left\{ \mathbf u\in \left[H^1(\Omega)\right]^{d}:
+    \mathbf u = 0 \text{ on } \Gamma_D\right\},
+  \\
+  V^+
+  &=
+  \left\{ \mathbf u\in V: \mathbf n \cdot \mathbf u\leq g \text{ on } \Gamma_C \right\}.
+
+
+@f}
+
+
+
+在实际代码中，我们将使用缩写  $\gamma=\dfrac{\gamma^{\text{iso}}}{2\mu + \gamma^{\text{iso}}}$  。
+
+鉴于这种表述，我们将应用两种技术。
+
+- 运行牛顿方法来迭代出投影仪的非线性。
+
+- 为接触条件运行一个主动设置方法，方法与我们在步骤41中所做的基本相同。
+
+一个严格的方法是在我们迭代牛顿方法到收敛时保持活动集的固定（或者也许反过来：在进入下一个牛顿迭代之前找到最终的活动集）。在实践中，事实证明，每个活动集迭代只做一个牛顿步骤就足够了，所以我们将同时迭代它们。我们还将每隔一段时间细化一下网格。
+
+
+
+
+<h3>A Newton method for the plastic nonlinearity</h3>
+
+如前所述，我们将通过应用牛顿方法来处理算子 $P_\Pi$ 的非线性，尽管该算子在严格意义上是不可微的。然而，它满足了<i>slant</i>的可微条件，这就足以使牛顿方法发挥作用。由此产生的方法被称为<i>semi-smooth Newton method</i>，听起来令人印象深刻，但实际上只是一个牛顿方法应用于一个具有适当选择的 "导数 "的半光滑函数。
+
+在目前的情况下，我们将通过在每个迭代 $i$ 中求解以下方程来运行我们的迭代（仍然是不等式，但是线性化）。
+
+@f{align*}
+  \label{eq:linearization}
+  \left(I_{\Pi}\varepsilon(\tilde {\mathbf u}^{i}),
+    \varepsilon(\varphi) - \varepsilon(\tilde {\mathbf u}^{i})\right) \geq
+  \left(\left(I_{\Pi}\varepsilon({\mathbf u}^{i-1}),
+    \varepsilon(\varphi) - \varepsilon(\tilde {\mathbf u}^{i})\right) -
+  \left(P_{\Pi}(C\varepsilon({\mathbf u}^{i-1})),
+    \varepsilon(\varphi) - \varepsilon(\tilde {\mathbf u}^{i})\right)\right),
+  \quad \forall \varphi\in V^+,
+
+
+@f}
+
+其中，等级4张量 $I_\Pi=I_\Pi(\varepsilon^D(\mathbf u^{i-1}))$ 由以下公式给出
+
+@f{align}
+  I_\Pi = \begin{cases}
+    C_{\mu} + C_{\kappa}, & \hspace{-8em} \text{if } \vert C\varepsilon^D(\mathbf u^{i-1}) \vert \leq \sigma_0,
+    \\
+    \frac{\gamma^{\text{iso}}}{2\mu + \gamma^{\text{iso}}} C_{\mu} + \frac{\left(1-\frac{\gamma^{\text{iso}}}{2\mu + \gamma^{\text{iso}}}\right)\sigma_0}{\vert C\varepsilon^D(\mathbf u^{i-1}) \vert}\left(C_{\mu} -
+      2\mu\dfrac{C\varepsilon^D(\mathbf u^{i-1})\otimes C\varepsilon^D(\mathbf
+        u^{i-1})}{\vert C\varepsilon^D(\mathbf u^{i-1})\vert^2}\right) + C_{\kappa}, & \text{ else.}
+\end{cases}
+
+
+@f}
+
+这个张量是 $P_\Pi(C\cdot)$ 围绕 $\varepsilon^D(\mathbf u^{i-1})$ 的（形式）线性化。对于我们这里考虑的线性各向同性材料，投影仪的体积和剪切分量由以下公式给出
+
+@f{gather*}
+  C_{\kappa} = \kappa I\otimes I,
+  \qquad\qquad\qquad\qquad
+  C_{\mu} = 2\mu\left(\mathbb{I}  - \dfrac{1}{3} I\otimes
+    I\right),
+
+
+@f}
+
+其中 $I$ 和 $\mathbb{I}$ 分别是等级为2和4的认同张量。
+
+请注意，这个问题对应于线性弹性接触问题，其中 $I_\Pi$ 扮演弹性张量的角色  $C=A^{-1}$  。事实上，如果材料在某一点上没有塑性，那么 $I_\Pi=C$  。然而，在材料具有塑性的地方， $I_\Pi$ 是一个空间变化的函数。在任何情况下，我们必须解决牛顿迭代的系统 $\tilde {\mathbf u}^{i}$ 使我们更接近重写我们问题的目标，使我们能够使用众所周知的椭圆系统的求解器和预处理器。
+
+作为对牛顿方法的最后说明，让我们提一下，正如牛顿方法常见的那样，我们需要通过控制步长来使其全球化。换句话说，虽然上面的系统求解的是 $\tilde {\mathbf u}^{i}$ ，但最后的迭代结果将是
+
+@f{align*}
+  {\mathbf u}^{i} = {\mathbf u}^{i-1} + \alpha_i (\tilde {\mathbf u}^{i} - {\mathbf u}^{i-1})
+
+
+@f}
+
+其中右边括号中的差值扮演了传统牛顿方向的角色， $\delta {\mathbf u}^{i}$  。我们将用标准的直线搜索来确定 $\alpha^i$ 。
+
+
+
+
+<h3>Active Set methods to solve the saddle point problem</h3>
+
+这个要在每个牛顿步骤中解决的线性化问题基本上与步骤41一样。唯一的区别在于接触区是在边界而不是在域中。但这没有进一步的后果，所以我们参考步骤41的文件，唯一的提示是 $\mathcal{S}$ 这次包含了接触边界的所有顶点 $\Gamma_C$ 。和那里一样，我们需要做的是保持一个自由度子集的固定，导致额外的约束，可以写成一个鞍点问题。然而，正如论文中所讨论的，通过以适当的方式写这些约束，消除自由度之间的耦合，我们最终会得到一组节点，这些节点基本上只是附加了Dirichlet值。
+
+
+
+
+<h3>Overall algorithm</h3>
+
+上述算法结合了阻尼半光滑牛顿法（我们用于非线性构成法）和半光滑牛顿法用于接触。它的工作原理如下。<ol>  <li>  初始化活动和非活动集 $\mathcal{A}_i$ 和 $\mathcal{F}_i$ ，使 $\mathcal{S} = \mathcal{A}_i \cup \mathcal{F}_i$ 和 $\mathcal{A}_i \cap
+ \mathcal{F}_i = \emptyset$ 和集 $i = 1$  。这里， $\mathcal{S}$ 是位于可能发生接触的域的表面的所有自由度的集合。  起始值 $\hat U^0 \dealcoloneq
+ P_{\mathcal{A}_k}(0)$ 满足我们的障碍条件，也就是说，我们将初始零位移投射到可行位移集合上。
+
+   <li>  组装牛顿矩阵  $A_{pq} \dealcoloneq a'(
+ U^{i-1};\varphi_p,\varphi_q)$  和右侧  $F(\hat U^{i-1})$  。  这些对应于线性化的牛顿步骤，暂时忽略了接触不等式。
+
+   <li>  找到满足@f{align*}
+ A\tilde U^i + B\Lambda^i & = F, &\\
+ \left[B^T\tilde U^i\right]_p & = G_p & \forall p\in\mathcal{A}_i,\\
+ \Lambda^i_p & = 0 & \forall p\in\mathcal{F}_i.
+ @f}的原始-双数对 $(\tilde U^i,\Lambda^i)$  。
+
+如同步骤-41，我们可以通过消除第一个方程中 ${\cal A}_i$ 的那些自由度来获得这个问题的解决方案，并获得一个线性系统 $\hat {\hat A}(U^{i-1}) \tilde U^i = \hat {\hat H}(U^{i-1})$  。
+
+
+
+
+   <li>  通过应用直线搜索和计算 $U^{i-1}$ 和 $\tilde U^i$ 的线性组合来减弱 $i>2$ 的牛顿迭代。这需要找到一个 $\alpha^i_l \dealcoloneq 2^{-l},(l=0,\ldots,10)$ ，以便@f{gather*}U^i \dealcoloneq \alpha^i_l\bar U^i +
+ (1-\alpha^i_l)U^{i-1}@f}。
+
+满足@f{gather*}
+   \vert {\hat R}\left({\mathbf u}^{i}\right) \vert < \vert {\hat R}\left({\mathbf u}^{i-1}\right) \vert.
+ \f}与 ${\hat R}\left({\mathbf u}\right)=\left(P_{Pi}(C\varepsilon(u)),\varepsilon(\varphi^{i}_p\right)$ ，除了(i)元素 $p\in\mathcal{A}_i$ ，我们设置 ${\hat R}\left({\mathbf u}\right)=0$ ，和(ii)对应于悬挂节点的元素，我们以通常方式消除。
+
+   <li>  通过@f{gather*}\mathcal{A}_{i+1} \dealcoloneq \lbrace p\in\mathcal{S}:\Lambda^i_p +
+ c\left(\left[B^TU^i\right]_p - G_p\right) > 0\rbrace,@f}定义新的活动和非活动集。
+
+@f{gather*}\mathcal{F}_{i+1} \dealcoloneq \lbrace p\in\mathcal{S}:\Lambda^i_p +
+ c\left(\left[B^TU^i\right]_p - G_p\right) \leq 0\rbrace.@f}
+
+
+
+   <li> 项目 $U^i$ ，使其满足接触不等式，@f{gather*}\hat U^i \dealcoloneq P_{\mathcal{A}_{i+1}}(U^i).@f} 。
+
+这里， $P_{\mathcal{A}}(U)$ 是 $\mathcal{A}$ 中的活性成分对间隙@f{gather*}P_{\mathcal{A}}(U)_p \dealcoloneq \begin{cases}
+ U_p, & \textrm{if}\quad p\notin\mathcal{A}\\
+ g_{h,p}, & \textrm{if}\quad
+ p\in\mathcal{A},
+ \end{cases}@f}的投影。
+
+其中 $g_{h,p}$ 是<i>gap</i>，表示障碍物与身体未位移配置的距离。
+
+   <li>  如果 $\mathcal{A}_{i+1} = \mathcal{A}_k$ 和 $\left\|
+ {\hat R}\left({\mathbf u}^{i}\right) \right\|_{\ell_2} < \delta$ 则停止，否则设置 $i=i+1$ 并转到步骤（1）。这一步确保我们只有在找到正确的活动集和塑性已经迭代到足够的精度时才停止迭代。   </ol> 
+
+在这个算法的第3步中，矩阵 $B\in\mathbb{R}^{n\times m}$ ,  $n>m$ 描述了位移和拉格朗日乘数（接触力）的基数的耦合，在我们的情况下它不是二次的，因为 $\Lambda^k$ 只定义在 $\Gamma_C$ ，即可能发生接触的面。如文中所示，我们可以选择 $B$ 是一个每行只有一个条目的矩阵，（另见H&uuml;eber, Wohlmuth:A primal-dual active set strategy for non-linear multibody contact problems, Comput.Method Appl. Mech.Engrg.194, 2005, pp.3147-3166）。)矢量 $G$ 是由间隙 $g_h$ 的合适近似值定义的。
+
+@f{gather*}G_p = \begin{cases}
+g_{h,p}, & \text{if}\quad p\in\mathcal{S}\\
+0, & \text{if}\quad p\notin\mathcal{S}.
+\end{cases}@f}
+
+
+
+
+
+
+<h3>Adaptive mesh refinement</h3>
+
+由于我们的程序是在三维空间中运行的，所以程序执行的计算很昂贵。因此，使用自适应网格细化是在可接受的运行时间内的一个重要步骤。为了使我们的生活更轻松，我们简单地选择已经在deal.II中实现的KellyErrorEstimator。我们把包含位移 $u$ 的解向量交给它。正如我们将在结果中看到的，它产生了一个相当合理的接触区和塑性的自适应网格。
+
+
+
+
+<h3>Implementation</h3>
+
+本教程实质上是步骤40和步骤41的混合体，但我们没有使用PETSc，而是让Trilinos库来处理线性代数的并行化问题（就像步骤32一样）。由于我们试图解决一个类似于步骤41的问题，我们将使用同样的方法，但现在是并行的。
+
+一个困难是处理来自Dirichlet条件的约束，悬挂节点和由接触产生的不平等条件。为此，我们创建了三个AffineConstraints类型的对象，它们描述了各种约束条件，我们将在每次迭代中适当地组合它们。
+
+与第41步相比，该计划有一些新的课程。
+
+ <ul>   <li>   <code>ConstitutiveLaw</code>  描述材料的塑性行为。
+
+ <li>   <code>SphereObstacle</code> 描述一个球体，作为被推入可变形弹性体的障碍物。   是用这个还是下一个类来描述障碍物，由输入参数文件决定。
+
+ <li>   <code>ChineseObstacle</code> （和一个辅助类）是一个允许我们从一个文件中读入障碍物的类。在我们将在结果部分展示的例子中，这个文件将是 <code>'obstacle_file.dat'</code> ，并对应于显示力或力量的中文、日文或韩文符号的数据（见http://www.orientaloutpost.com/："这个词可用于激励--它也可以指力量/运动/推进/力。它可以是任何使你继续前进的内部或外部事物。这是用中文表达动机的最安全方式。如果你的听众是日本人，请看另一个关于动机的条目。这是日语和韩语中的一个词，但它的意思是 "动力 "或 "动能"（没有你可能正在寻找的动机的意思）"）。实质上，我们将假装有一个印章（即对应于平底障碍物的面具，没有中间高度的碎片），我们把它压在身体里。有关的符号看起来如下（也可参见本节顶部的图片，了解最终结果是怎样的）。
+
+    <img src="https://www.dealii.org/images/steps/developer/step-42.character.png" alt="" width="25%">   </ul> 。
+
+除此以外，让我们只对以下方面进行评论。   <ul>   <li>  程序允许你通过参数文件从两个不同的粗略网格中进行选择。这些是立方体 $[0,1]^3$ 或半球体，其开放面朝向正 $z$ 方向。
+
+ <li> 在这两种情况下，我们将假设可能与障碍物接触的边界部分具有边界指标一的惯例。对于这两种网格，我们假定这是一个自由表面，即身体要么在那里接触，要么没有力作用在它身上。对于半球体，弯曲部分的边界指标为零，我们在那里施加零位移。对于盒子，我们沿底部施加零位移，但允许沿边的垂直位移（尽管没有水平位移）。   </ul> 
+
+

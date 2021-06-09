@@ -1,0 +1,88 @@
+examples/step-2/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+该程序运行后，产生了两个稀疏模式。我们可以通过在网络浏览器中打开 <code>.svg</code> 文件来可视化它们。
+
+结果是这样的（每一个点都表示一个可能为非零的条目；当然，这个条目是否真的为零取决于所考虑的方程，但矩阵中的指示位置告诉我们，在离散化局部，即微分方程时，哪些形状函数可以，哪些不可以耦合）。   <table style="width:60%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-2.sparsity-1.svg" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-2.sparsity-2.svg" alt=""></td>
+  </tr>
+</table> 
+
+左图中的不同区域，由线条中的扭结和左边和上面的单点表示，代表了三角法不同细化层次上的自由度。  从右图中可以看出，重新编号后，稀疏模式在矩阵的主对角线附近的聚类情况要好得多。虽然这可能不明显，但两张图片中非零项的数量当然是一样的。
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+就像第1步一样，你可能想在程序中玩一下，熟悉一下deal.II。例如，在 <code>distribute_dofs</code> 函数中，我们使用线性有限元（FE_Q对象的参数 "1 "就是如此）。探索一下如果你使用高阶元素，例如立方或五元元素（使用3和5作为各自的参数），稀疏模式会有什么变化。
+
+你也可以通过细化网格来探索稀疏性模式的变化。你会发现，不仅矩阵的大小会发生变化，其带宽（矩阵中离对角线最远的那些非零元素与对角线的距离）也会发生变化，不过带宽与大小的比例通常会缩小，也就是说，矩阵在对角线周围聚集得更多。
+
+实验的另一个想法是尝试DoFRenumbering命名空间中除Cuthill-McKee之外的其他重新编号策略，看看它们如何影响稀疏性模式。
+
+你也可以使用<a
+href="http://www.gnuplot.info/">GNUPLOT</a>（较简单的可视化程序之一；也许不是最容易使用的，因为它是命令行驱动的，但在所有Linux和其他类似Unix的系统上也是普遍可用的）通过改变 <code>print_svg()</code> to <code>print_gnuplot()</code> in <code>distribute_dofs()</code> and <code>renumber_dofs()</code> 来使输出可视化。
+
+@code
+examples/\step-2> gnuplot
+
+
+        G N U P L O T
+        Version 3.7 patchlevel 3
+        last modified Thu Dec 12 13:00:00 GMT 2002
+        System: Linux 2.6.11.4-21.10-default
+
+
+        Copyright(C) 1986 - 1993, 1998 - 2002
+        Thomas Williams, Colin Kelley and many others
+
+
+        Type `help` to access the on-line reference manual
+        The gnuplot FAQ is available from
+        http://www.gnuplot.info/gnuplot-faq.html
+
+
+        Send comments and requests for help to <info-gnuplot@dartmouth.edu>
+        Send bugs, suggestions and mods to <bug-gnuplot@dartmouth.edu>
+
+
+
+Terminal type set to 'x11'
+gnuplot> set style data points
+gnuplot> plot "sparsity_pattern.1"
+@endcode
+
+
+
+另一个基于<a href="http://www.gnuplot.info/">GNUPLOT</a>的做法是尝试打印出带有支撑点位置和编号的网格。为此，你需要包含GridOut和MappingQ1的头文件。这方面的代码是。
+
+@code
+  std::ofstream out("gnuplot.gpl");
+  out << "plot '-' using 1:2 with lines, "
+      << "'-' with labels point pt 2 offset 1,1"
+      << std::endl;
+  GridOut().write_gnuplot (triangulation, out);
+  out << "e" << std::endl;
+  const int dim = 2;
+  std::map<types::global_dof_index, Point<dim> > support_points;
+  DoFTools::map_dofs_to_support_points (MappingQ1<dim>(),
+                                        dof_handler,
+                                        support_points);
+  DoFTools::write_gnuplot_dof_support_point_info(out,
+                                                 support_points);
+  out << "e" << std::endl;
+@endcode
+
+在我们运行该代码后，我们得到了一个名为gnuplot.gpl的文件。要查看这个文件，我们可以在命令行中运行以下代码。
+
+@code
+gnuplot -p gnuplot.gpl
+@endcode.有了这个，你会得到一个类似于 @image html support_point_dofs1.png 的图片，这取决于你正在看的网格。更多信息，见 DoFTools::write_gnuplot_dof_support_point_info. 。
+
+

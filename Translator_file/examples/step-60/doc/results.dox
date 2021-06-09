@@ -1,0 +1,383 @@
+examples/step-60/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行该程序的目录中默认不包含参数文件。另一方面，这个程序想从一个叫parameters.prm的文件中读取它的参数 -- 因此，当你第一次执行它时，你会得到一个异常，即找不到这样的文件。
+
+@code
+
+
+----------------------------------------------------
+Exception on processing:
+
+
+--------------------------------------------------------
+An error occurred in line <74> of file <../source/base/parameter_acceptor.cc> in function
+    static void dealii::ParameterAcceptor::initialize(const std::string &, const std::string &, const ParameterHandler::OutputStyle, dealii::ParameterHandler &)
+The violated condition was:
+    false
+Additional information:
+    You specified <parameters.prm> as input parameter file, but it does not exist. We created it for you.
+
+
+--------------------------------------------------------
+
+
+Aborting!
+
+
+----------------------------------------------------
+@endcode
+
+
+
+然而，正如错误信息已经指出的那样，触发该异常的代码也将生成一个参数.prm文件，该文件仅仅包含该程序所关心的所有参数的默认值。通过对参数文件的检查，我们看到以下内容。
+
+@code
+# Listing of Parameters
+# ---------------------
+subsection Distributed Lagrange<1,2>
+  set Coupling quadrature order                    = 3
+  set Embedded configuration finite element degree = 1
+  set Embedded space finite element degree         = 1
+  set Embedding space finite element degree        = 1
+  set Homogeneous Dirichlet boundary ids           = 0, 1, 2, 3
+  set Initial embedded space refinement            = 7
+  set Initial embedding space refinement           = 4
+  set Local refinements steps near embedded domain = 3
+  set Use displacement in embedded interface       = false
+  set Verbosity level                              = 10
+
+
+
+  subsection Embedded configuration
+    # Sometimes it is convenient to use symbolic constants in the expression
+    # that describes the function, rather than having to use its numeric value
+    # everywhere the constant appears. These values can be defined using this
+    # parameter, in the form `var1=value1, var2=value2, ...'.
+    #
+    # A typical example would be to set this runtime parameter to
+    # `pi=3.1415926536' and then use `pi' in the expression of the actual
+    # formula. (That said, for convenience this class actually defines both
+    # `pi' and `Pi' by default, but you get the idea.)
+    set Function constants  = R=.3, Cx=.4, Cy=.4                 # default:
+
+
+    # The formula that denotes the function you want to evaluate for
+    # particular values of the independent variables. This expression may
+    # contain any of the usual operations such as addition or multiplication,
+    # as well as all of the common functions such as `sin' or `cos'. In
+    # addition, it may contain expressions like `if(x>0, 1, -1)' where the
+    # expression evaluates to the second argument if the first argument is
+    # true, and to the third argument otherwise. For a full overview of
+    # possible expressions accepted see the documentation of the muparser
+    # library at http://muparser.beltoforion.de/.
+    #
+    # If the function you are describing represents a vector-valued function
+    # with multiple components, then separate the expressions for individual
+    # components by a semicolon.
+    set Function expression = R*cos(2*pi*x)+Cx; R*sin(2*pi*x)+Cy # default: 0
+
+
+    # The names of the variables as they will be used in the function,
+    # separated by commas. By default, the names of variables at which the
+    # function will be evaluated are `x' (in 1d), `x,y' (in 2d) or `x,y,z' (in
+    # 3d) for spatial coordinates and `t' for time. You can then use these
+    # variable names in your function expression and they will be replaced by
+    # the values of these variables at which the function is currently
+    # evaluated. However, you can also choose a different set of names for the
+    # independent variables at which to evaluate your function expression. For
+    # example, if you work in spherical coordinates, you may wish to set this
+    # input parameter to `r,phi,theta,t' and then use these variable names in
+    # your function expression.
+    set Variable names      = x,y,t
+  end
+
+
+  subsection Embedded value
+    # Sometimes it is convenient to use symbolic constants in the expression
+    # that describes the function, rather than having to use its numeric value
+    # everywhere the constant appears. These values can be defined using this
+    # parameter, in the form `var1=value1, var2=value2, ...'.
+    #
+    # A typical example would be to set this runtime parameter to
+    # `pi=3.1415926536' and then use `pi' in the expression of the actual
+    # formula. (That said, for convenience this class actually defines both
+    # `pi' and `Pi' by default, but you get the idea.)
+    set Function constants  =
+
+
+    # The formula that denotes the function you want to evaluate for
+    # particular values of the independent variables. This expression may
+    # contain any of the usual operations such as addition or multiplication,
+    # as well as all of the common functions such as `sin' or `cos'. In
+    # addition, it may contain expressions like `if(x>0, 1, -1)' where the
+    # expression evaluates to the second argument if the first argument is
+    # true, and to the third argument otherwise. For a full overview of
+    # possible expressions accepted see the documentation of the muparser
+    # library at http://muparser.beltoforion.de/.
+    #
+    # If the function you are describing represents a vector-valued function
+    # with multiple components, then separate the expressions for individual
+    # components by a semicolon.
+    set Function expression = 1     # default: 0
+
+
+    # The names of the variables as they will be used in the function,
+    # separated by commas. By default, the names of variables at which the
+    # function will be evaluated are `x' (in 1d), `x,y' (in 2d) or `x,y,z' (in
+    # 3d) for spatial coordinates and `t' for time. You can then use these
+    # variable names in your function expression and they will be replaced by
+    # the values of these variables at which the function is currently
+    # evaluated. However, you can also choose a different set of names for the
+    # independent variables at which to evaluate your function expression. For
+    # example, if you work in spherical coordinates, you may wish to set this
+    # input parameter to `r,phi,theta,t' and then use these variable names in
+    # your function expression.
+    set Variable names      = x,y,t
+  end
+
+
+  subsection Schur solver control
+    set Log frequency = 1
+    set Log history   = false
+    set Log result    = true
+    set Max steps     = 1000   # default: 100
+    set Reduction     = 1.e-12 # default: 1.e-2
+    set Tolerance     = 1.e-12 # default: 1.e-10
+  end
+
+
+end
+@endcode
+
+
+
+如果你现在运行该程序，你将得到一个名为`used_parameters.prm`的文件，其中包含上述参数的简短版本（没有注释和文档），记录了所有用于运行你的程序的参数。
+
+@code
+# Parameter file generated with
+# DEAL_II_PACKAGE_VERSION = 9.0.0
+subsection Distributed Lagrange<1,2>
+  set Coupling quadrature order                    = 3
+  set Embedded configuration finite element degree = 1
+  set Embedded space finite element degree         = 1
+  set Embedding space finite element degree        = 1
+  set Homogeneous Dirichlet boundary ids           = 0, 1, 2, 3
+  set Initial embedded space refinement            = 7
+  set Initial embedding space refinement           = 4
+  set Local refinements steps near embedded domain = 3
+  set Use displacement in embedded interface       = false
+  set Verbosity level                              = 10
+  subsection Embedded configuration
+    set Function constants  = R=.3, Cx=.4, Cy=.4
+    set Function expression = R*cos(2*pi*x)+Cx; R*sin(2*pi*x)+Cy
+    set Variable names      = x,y,t
+  end
+  subsection Embedded value
+    set Function constants  =
+    set Function expression = 1
+    set Variable names      = x,y,t
+  end
+  subsection Schur solver control
+    set Log frequency = 1
+    set Log history   = false
+    set Log result    = true
+    set Max steps     = 1000
+    set Reduction     = 1.e-12
+    set Tolerance     = 1.e-12
+  end
+end
+@endcode
+
+
+
+首先创建`parameters.prm`文件（第一次运行程序），然后创建`used_parameters.prm`（每隔一段时间运行程序），其理由是你可能想让大多数参数保持默认值，而只修改其中的一小部分。
+
+例如，你可以在这个教程程序中使用以下（完全有效的）参数文件。
+
+@code
+subsection Distributed Lagrange<1,2>
+  set Initial embedded space refinement            = 7
+  set Initial embedding space refinement           = 4
+  set Local refinements steps near embedded domain = 3
+  subsection Embedded configuration
+    set Function constants  = R=.3, Cx=.4, Cy=.4
+    set Function expression = R*cos(2*pi*x)+Cx; R*sin(2*pi*x)+Cy
+    set Variable names      = x,y,t
+  end
+  subsection Embedded value
+    set Function constants  =
+    set Function expression = 1
+    set Variable names      = x,y,t
+  end
+end
+@endcode
+
+
+
+你会得到与下面测试案例1完全相同的结果。
+
+<h3> Test case 1: </h3>
+
+对于默认问题， $u$ 在 $\Gamma$ 上的值被设置为常数 $1$ ：这就像在 $\Gamma$ 上施加了一个常数迪里希特边界条件，被视为 $\Omega$ 在 $\Gamma$ 内的部分的边界。同样，在 $\partial
+\Omega$ 上，我们有零的迪里切特边界条件。
+
+
+<div class="twocolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-60.1_no_grid.png" alt = "" width="500"> </div> </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-60.1_grid.png" alt = "" width="500"> </div> </div></div>
+
+程序的输出将如下所示。
+
+@code
+DEAL::Embedded dofs: 129
+DEAL::Embedding minimal diameter: 0.0110485, embedded maximal diameter: 0.00781250, ratio: 0.707107
+DEAL::Embedding dofs: 2429
+DEAL:cg::Starting value 0.166266
+DEAL:cg::Convergence step 108 value 7.65958e-13
+
+
+
++---------------------------------------------+------------+------------+
+| Total CPU time elapsed since start          |     0.586s |            |
+|                                             |            |            |
+| Section                         | no. calls |  CPU time  | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble coupling system        |         1 |     0.132s |        23% |
+| Assemble system                 |         1 |    0.0733s |        12% |
+| Output results                  |         1 |     0.087s |        15% |
+| Setup coupling                  |         1 |    0.0244s |       4.2% |
+| Setup grids and dofs            |         1 |    0.0907s |        15% |
+| Solve system                    |         1 |     0.178s |        30% |
++---------------------------------+-----------+------------+------------+
+
+
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |     0.301s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble coupling system        |         1 |    0.0385s |        13% |
+| Assemble system                 |         1 |    0.0131s |       4.3% |
+| Output results                  |         1 |    0.0736s |        24% |
+| Setup coupling                  |         1 |    0.0234s |       7.7% |
+| Setup grids and dofs            |         1 |    0.0679s |        23% |
+| Solve system                    |         1 |    0.0832s |        28% |
++---------------------------------+-----------+------------+------------+
+
+
+@endcode
+
+
+
+你可能会注意到，就CPU时间而言，组装耦合系统的成本是组装标准泊松系统的两倍，尽管矩阵更小。这是由于离散化的非匹配性造成的。这是否可以接受，取决于应用。
+
+如果问题被设置在三维环境中，并且浸入式网格与时间有关，那么在每一步重新创建网格要比使用我们这里介绍的技术要昂贵得多。此外，你也许可以在一个均匀细化的正方形或立方体网格上创建一个非常快速和优化的求解器，并在你想进行计算的地方嵌入这里的技术。这就要求你只需要有一个领域的表面代表（一个更便宜和更容易制作的网格）。
+
+为了玩一玩，我们要把虚构的领域以及我们强加给它的边界条件复杂化一点。
+
+<h3> Test case 2 and 3: </h3>
+
+如果我们使用以下参数文件。
+
+@code
+subsection Distributed Lagrange<1,2>
+  set Coupling quadrature order                    = 3
+  set Embedded configuration finite element degree = 1
+  set Embedded space finite element degree         = 1
+  set Embedding space finite element degree        = 1
+  set Homogeneous Dirichlet boundary ids           = 0,1,2,3
+  set Initial embedded space refinement            = 8
+  set Initial embedding space refinement           = 4
+  set Local refinements steps near embedded domain = 4
+  set Use displacement in embedded interface       = false
+  set Verbosity level                              = 10
+  subsection Embedded configuration
+    set Function constants  = R=.3, Cx=.5, Cy=.5, r=.1, w=12
+    set Function expression = (R+r*cos(w*pi*x))*cos(2*pi*x)+Cx; (R+r*cos(w*pi*x))*sin(2*pi*x)+Cy
+    set Variable names      = x,y,t
+  end
+  subsection Embedded value
+    set Function constants  =
+    set Function expression = x-.5
+    set Variable names      = x,y,t
+  end
+  subsection Schur solver control
+    set Log frequency = 1
+    set Log history   = false
+    set Log result    = true
+    set Max steps     = 100000
+    set Reduction     = 1.e-12
+    set Tolerance     = 1.e-12
+  end
+end
+@endcode
+
+
+
+我们得到了一个看起来很 "花 "的域，在这里我们施加了一个线性边界条件  $g=x-.5$  。这个测试表明，该方法在从边界条件中恢复一个完全线性的函数方面实际上是相当准确的，即使网格没有对齐，我们也得到了一个相当好的结果。
+
+用 $2(x-.5)^2-2(y-.5)^2$ 替换 $x-.5$ ，即修改参数文件，使我们有
+
+@code
+  ...
+  subsection Embedded value
+    set Function constants  =
+    set Function expression = 2*(x-.5)^2-2*(y-.5)^2
+    set Variable names      = x,y,t
+  end
+@endcode
+
+生产右边的马鞍。
+
+<div class="twocolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-60.3_grid.png" alt = "" width="500"> </div> </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-60.4_grid.png" alt = "" width="500"> </div> </div></div>
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4> Running with `spacedim` equal to three</h4>
+
+虽然目前的教程程序是为`spacedim`等于2而写的，但为了使程序在不同的尺寸组合中运行，你只需要做一些小的改动。
+
+如果你想在`spacedim`等于3，`dim`等于2的情况下运行，那么你几乎肯定要进行以下修改。
+
+- 使用不同的参考域来嵌入网格，也许可以从一个文件中读取它。不可能用一个正方形域的单一参数化来构造一个光滑的封闭表面，因此你很可能想用一个拓扑学上等同于球体边界的参考域。
+
+- 用位移代替变形，将 $\Gamma_0$ 映射为 $\Gamma$ 。
+
+<h4> More general domains </h4>
+
+我们在其他教程中看到（例如在第5步和第54步）如何从输入文件中读取网格。这个教程程序的一个很好的概括是允许用户选择从参数文件本身读取网格，而不是在教程程序本身硬编码网格类型。
+
+<h4> Preconditioner</h4>
+
+目前，我们没有关于Schur补数的预处理程序。这对于二维问题来说是可以的，几百次迭代就可以把残差降低到机器的精度，但在三维问题上是行不通的。
+
+在这里，一个好的预处理程序是什么并不明显。我们用舒尔补码解决的物理问题是将Dirichlet数据 $g$ 与Lagrange乘数 $\lambda$ 的值联系起来。   $\lambda$ 可以解释为法线梯度的*跳跃，需要强加在 $u$ 上，跨越 $\Gamma$ ，以获得迪里切特数据 $g$ 。
+
+所以 $S$ 是某种诺伊曼到迪里切特的映射，我们希望有一个迪里切特到诺伊曼映射的良好近似。一种可能性是使用 $\Gamma$ 上的问题的边界元素近似，并构建一个与 $\Gamma$ 相关的泊松问题的超星形算子的粗略近似，这正是迪里切特到诺依曼的映射。
+
+<h4> Parallel Code </h4>
+
+这里提出的简单代码可以作为更复杂问题的起点，要解决这些问题，需要在并行代码上运行，可能使用分布式网格（见步骤17、步骤40，以及 parallel::shared::Triangulation 和 parallel::distributed::Triangulation). 的文档）。
+
+当并行使用非匹配网格时，会出现一个问题：为了计算矩阵 $C$ ，一个进程需要关于实空间同一部分的两个网格的信息，但是，当使用分布式网格时，这种信息可能无法获得，因为存储在特定处理器上的 $\Omega$ 三角形的本地所有部分可能与存储在同一处理器上的 $\Gamma$ 三角形的本地所有部分不在同一地点。
+
+可以实施各种策略来解决这个问题。
+
+- 分布这两个网格，以便满足这个约束条件。
+
+- 对现实空间中不满足约束的部分使用通信。
+
+- 对嵌入空间使用分布式三角法，对模拟配置使用共享三角法。
+
+后一种策略显然是最容易实现的，因为本教程程序中使用的大多数函数在并行情况下也能不变地工作。当然，我们可以使用反转策略（即有一个分布式嵌入三角法和一个共享嵌入三角法）。
+
+然而，这种策略很可能会更加昂贵，因为根据定义，嵌入网格比嵌入网格要大，而且分配两个网格中最大的网格更有意义，保持最小的网格由所有处理器共享。
+
+

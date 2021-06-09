@@ -1,0 +1,280 @@
+examples/step-14/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Point values</h3>
+
+
+这个程序提供了很多玩耍的可能性。因此，我们只能展示在这个程序的帮助下可以获得的所有可能结果的一小部分。然而，我们鼓励你通过改变主程序中的设置来尝试。在这里，我们先简单地让它运行，不做任何修改。
+
+@code
+Refinement cycle: 0
+   Number of degrees of freedom=72
+   Point value=0.03243
+   Estimated error=0.000702385
+Refinement cycle: 1
+   Number of degrees of freedom=67
+   Point value=0.0324827
+   Estimated error=0.000888953
+Refinement cycle: 2
+   Number of degrees of freedom=130
+   Point value=0.0329619
+   Estimated error=0.000454606
+Refinement cycle: 3
+   Number of degrees of freedom=307
+   Point value=0.0331934
+   Estimated error=0.000241254
+Refinement cycle: 4
+   Number of degrees of freedom=718
+   Point value=0.0333675
+   Estimated error=7.4912e-05
+Refinement cycle: 5
+   Number of degrees of freedom=1665
+   Point value=0.0334083
+   Estimated error=3.69111e-05
+Refinement cycle: 6
+   Number of degrees of freedom=3975
+   Point value=0.033431
+   Estimated error=1.54218e-05
+Refinement cycle: 7
+   Number of degrees of freedom=8934
+   Point value=0.0334406
+   Estimated error=6.28359e-06
+Refinement cycle: 8
+   Number of degrees of freedom=21799
+   Point value=0.0334444
+@endcode
+
+
+
+
+首先让我们看看这个程序实际计算的结果。在第七个网格上，原始和双重数值解看起来是这样的（使用的颜色方案旨在唤起科罗拉多州白雪皑皑的山峰，这个程序的原作者现在称之为家）。   <table align="center">
+  <tr>
+    <td width="50%">
+      <img src="https://www.dealii.org/images/steps/developer/step-14.point-value.solution-7.9.2.png" alt="">
+    </td>
+    <td width="50%">
+      <img src="https://www.dealii.org/images/steps/developer/step-14.point-value.solution-7-dual.9.2.png" alt="">
+    </td>
+  </tr>
+</table> 显然，左下角的区域对于右上角的点值评估是如此不重要，以至于网格在那里完全没有被细化，尽管解在该单元的内角有奇异点由于右手边和领域的对称性，解决方案实际上应该是在右上角的所有四个角落，但是涉及到对偶解决方案的网格细化标准选择了不同的细化方式--因为我们说过，我们真正关心的只是右上角某个地方的单一函数值。
+
+
+
+
+下面是一些在细化周期0、2、4（顶行）和5、7、8（底行）中产生的网格。
+
+ <table width="80%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.grid-0.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.grid-2.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.grid-4.9.2.png" alt="" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.grid-5.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.grid-7.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.grid-8.9.2.png" alt="" width="100%"></td>
+  </tr>
+</table> 
+
+请注意解决角部奇异点和解决评估点周围的奇异点之间的微妙相互作用。手工生成这样的网格是相当困难的，因为这将涉及到定量地判断四个角的奇异点应该被解决多少，并设置与评估点附近的权重。
+
+
+
+
+程序会打印出这个数量的点值和估计的误差。通过推断，我们可以猜测出精确的数值接近0.0334473，正负0.0000001（注意，我们从只有22000个（原始）自由度中得到近6个有效数字。这个数字不能单独从函数值中得到，但我使用了误差估计器大部分是精确的假设，并将计算值加上估计误差进行外推，得到真实值的近似值。用更多自由度的计算表明，这个假设确实是有效的。
+
+
+
+
+从计算结果中，我们可以生成两个图表：一个显示点值中误差 $J(u)-J(u_h)$ （将外推值视为正确）的收敛性，以及我们将计算值 $J(u_h)$ 和估计误差eta相加得到的值（如果误差估计器 $eta$ 是精确的，那么值 $J(u_h)+\eta$ 将等于精确的点值，并且这个量的误差将总是零；然而，由于误差估计器只是对真实误差的一个-好的-近似值，我们只能通过这个来减少误差的大小）。)在这张图中，我们还指出了复杂度 ${\cal O}(1/N)$ ，以表明网格细化在这种情况下的作用是最佳的。第二张图比较了真实误差和估计误差，显示两者实际上是非常接近的，即使对于点值这样一个复杂的数量。
+
+
+ <table width="80%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.error.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-value.error-estimation.png" alt="" width="100%"></td>
+  </tr>
+</table> 
+
+
+
+
+<h3>Comparing refinement criteria</h3>
+
+
+由于我们在使用由对偶加权误差估计器驱动的网格细化时接受了相当多的努力（用于解决对偶问题，以及评估误差表示），因此值得询问这种努力是否成功。为此，我们首先比较不同的网格细化标准所达到的误差水平。要产生这些数据，只需改变主程序中的网格细化准则变量的值。结果是这样的（对于Kelly指标中的权重，我们选择了 $1/(r^2+0.1^2)$ 这个函数，其中 $r$ 是到评估点的距离；可以证明，如果我们忽略边界的影响，这就是最佳权重）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-14.point-value.error-comparison.png" alt=""> 
+
+
+
+
+检查这些数字，我们看到对于全局细化，误差与 $O(1/(sqrt(N) log(N)))$ 成正比，而对于双重估计器 $O(1/N)$  。一般来说，我们看到双重加权误差估计器比其他细化指标要好，至少在与那些具有类似规则行为的指标相比时是如此。凯利指标产生的误差较小，但在画面上的跳动相当不规则，误差有时也会改变符号。因此，它的行为不允许将结果推断到更大的N值。此外，如果我们相信双重加权误差估计器的误差估计值，可以通过将估计的误差加入到计算值中来改善结果。因此在可靠性方面，加权估计器比凯利指标更好，尽管后者有时会产生较小的误差。
+
+
+
+
+<h3>Evaluation of point stresses</h3>
+
+
+除了评估某一点上的解的值，程序还提供了评估某一点上的X-导数的可能性，并且还可以为此定制网格细化的方法。要让程序计算这些量，只需将主函数中出现的两个 <code>PointValueEvaluation</code> 替换为 <code>PointXDerivativeEvaluation</code> ，然后让程序运行。
+
+@code
+Refinement cycle: 0
+   Number of degrees of freedom=72
+   Point x-derivative=-0.0719397
+   Estimated error=-0.0126173
+Refinement cycle: 1
+   Number of degrees of freedom=61
+   Point x-derivative=-0.0707956
+   Estimated error=-0.00774316
+Refinement cycle: 2
+   Number of degrees of freedom=131
+   Point x-derivative=-0.0568671
+   Estimated error=-0.00313426
+Refinement cycle: 3
+   Number of degrees of freedom=247
+   Point x-derivative=-0.053033
+   Estimated error=-0.00136114
+Refinement cycle: 4
+   Number of degrees of freedom=532
+   Point x-derivative=-0.0526429
+   Estimated error=-0.000558868
+Refinement cycle: 5
+   Number of degrees of freedom=1267
+   Point x-derivative=-0.0526955
+   Estimated error=-0.000220116
+Refinement cycle: 6
+   Number of degrees of freedom=2864
+   Point x-derivative=-0.0527495
+   Estimated error=-9.46731e-05
+Refinement cycle: 7
+   Number of degrees of freedom=6409
+   Point x-derivative=-0.052785
+   Estimated error=-4.21543e-05
+Refinement cycle: 8
+   Number of degrees of freedom=14183
+   Point x-derivative=-0.0528028
+   Estimated error=-2.04241e-05
+Refinement cycle: 9
+   Number of degrees of freedom=29902
+   Point x-derivative=-0.052814
+@endcode
+
+
+
+
+
+
+解决方案看起来与之前大致相同（准确的解决方案当然是 <em> 与 </em> 相同，只是网格发生了一点变化），但现在的对偶解决方案是不同的。评估点周围的特写显示了这一点。   <table align="center">
+  <tr>
+    <td width="50%">
+      <img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.solution-7-dual.png" alt="">
+    </td>
+    <td width="50%">
+      <img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.solution-7-dual-close-up.png" alt="">
+    </td>
+</table> 这次，细化周期0、5、6、7、8和9的网格是这样的。
+
+ <table align="center" width="80%">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.grid-0.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.grid-5.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.grid-6.9.2.png" alt="" width="100%"></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.grid-7.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.grid-8.9.2.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.grid-9.9.2.png" alt="" width="100%"></td>
+  </tr>
+</table> 
+
+请注意，与我们在点评估中获得的网格相比，这些网格是不对称的。这是由于域和原始解可能是围绕对角线对称的，但 $x$ -导数不是，后者进入了细化标准。
+
+
+
+
+然后，有趣的是，将感兴趣的量的实际计算值（即在某一点的解决方案的X导数）与参考值-0.0528223...正负0.0000005进行比较。我们通过在更细的网格上计算得到这个参考值，经过一些更细的网格细化，大约有13万个单元。回顾一下，如果在最佳情况下，误差是 $O(1/N)$ ，那么采用多十倍的单元格的网格，我们的结果就会多出一个数字。
+
+
+
+
+在下图的左边部分，你再次看到误差向这个外推值的收敛，而在右边你看到真实和估计误差的比较。
+
+ <table width="80%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.error.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.point-derivative.error-estimation.png" alt="" width="100%"></td>
+  </tr>
+</table> 
+
+在初始阶段，真实的误差改变了它的符号，估计的误差又与它很好地匹配。还请注意，当使用估计误差来修正 $J(u_h)$ 的计算值时，误差有了极大的改善。
+
+
+
+
+<h3>step-13 revisited</h3>
+
+
+如果我们不选择 <code>Exercise_2_3</code> 的数据集，而是在主函数中选择 <code>CurvedRidges</code> ，并选择 $(0.5,0.5)$ 作为评价点，那么我们就可以重新进行前面的例子程序的计算，以比较在双重加权误差估计器帮助下得到的结果是否比之前的结果更好。
+
+
+
+
+首先，分别用点评估和导数评估细化标准得到的9个自适应细化周期后的网格看起来是这样的。
+
+ <table width="80%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.step-13.point-value.png" alt="" width="100%"></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.step-13.point-derivative.png" alt="" width="100%"></td>
+  </tr>
+</table> 
+
+在网格中仍然可以看到解的特征，但是由于解是光滑的，对偶解的奇异点完全主导了网格细化准则，并导致网格强烈集中。第七次细化步骤后的解看起来像下面这样。
+
+ <table width="40%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-14.step-13.solution-7.9.2.png" alt="" width="100%"></td>
+  </tr>
+</table> 
+
+显然，在某些地方的解是比较差的，但是网格细化过程中应该注意到这些地方对计算点值并不重要。
+
+
+
+
+
+下一步是将新的（基于二重性的）网格细化标准与旧的标准进行比较。这些是结果。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-14.step-13.error-comparison.png" alt=""> 
+
+
+
+
+其结果是，嗯，有点混合。首先，Kelly指标因其不稳定的行为而失去了资格，多次改变了误差的符号，而且在网格细化下误差越来越大。双重加权误差估计器的误差呈单调下降，比加权凯利和全局细化要好，但幅度没有预期的那么大。在这里，这是由于全局细化可以利用评估点周围网格的规则结构，从而导致点误差的收敛顺序更好。然而，如果我们有一个不是局部矩形的网格，例如因为我们必须近似弯曲的边界，或者如果系数不是恒定的，那么全局细化网格的这种优势就会消失，而基于对偶性的估计器的良好性能将保持不变。
+
+
+
+
+
+
+
+<h3>Conclusions and outlook</h3>
+
+
+这里的结果并没有太明显地表明双加权误差估计方法在网格细化方面比其他网格细化标准（如Kelly指标）更有优势。这是由于所显示的应用相对简单的缘故。如果你还不相信这种方法确实有优势，请你浏览一下引言中提到的文献，其中提供了大量的例子，双加权方法可以将必要的数值工作减少几个数量级，使之成为计算某些数量的合理精度的唯一途径。
+
+
+
+
+除了你可能对其作为网格细化标准提出的反对意见外，考虑到对可能想要计算的量的误差的准确认识是非常有用的，因为我们可以在对精度满意的时候停止计算。使用更传统的方法，很难得到任意量的精确估计，也许除了能量准则的误差，我们将不能保证我们计算的结果满足对其准确性的任何要求。另外，正如对点值和导数的评价所显示的那样，误差估计可以用来推断结果，在我们想知道的量上产生更高的精度。
+
+
+
+
+抛开这些数学上的考虑，我们试图以模块化的方式编写程序，这样实现另一个测试案例，或另一个评估和双重功能就很简单。我们鼓励你把这个程序作为你自己实验的基础，并且玩一玩。
+
+

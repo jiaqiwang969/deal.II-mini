@@ -1,0 +1,223 @@
+examples/step-52/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Bruno Turcksin and Damien Lebrun-Grandie.</i>
+
+ @note  为了运行这个程序，deal.II必须被配置为使用UMFPACK稀疏直接解算器。请参考<a
+href="../../readme.html#umfpack">ReadMe</a>中的说明如何做到这一点。
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这个程序展示了如何使用Runge-Kutta方法来解决一个随时间变化的问题。它解决了首先在步骤26中讨论的热方程的一个小变化，但是由于这个程序的目的只是演示使用更高级的方法与deal.II的时间步进算法对接，所以只解决了一个均匀细化网格上的简单问题。
+
+
+
+
+<h3>Problem statement</h3>
+
+在这个例子中，我们求解中子输运方程的单组时间依赖性扩散近似（关于时间依赖性多组扩散，见步骤28）。这是一个关于中子如何在高散射介质中移动的模型，因此它是时间依赖性扩散方程的一个变体--它只是步骤26中讨论的热方程的一个不同名称，加上一些额外的条款。我们假设介质是不可逆的，因此，中子通量满足以下方程。
+
+@f{eqnarray*}
+\frac{1}{v}\frac{\partial \phi(x,t)}{\partial t} = \nabla \cdot D(x) \nabla \phi(x,t)
+
+
+- \Sigma_a(x) \phi(x,t) + S(x,t)
+
+
+@f}
+
+通过适当的边界条件增强。这里， $v$ 是中子的速度（为简单起见，我们假设它等于1，这可以通过简单地缩放时间变量来实现）， $D$ 是扩散系数， $\Sigma_a$ 是吸收截面， $S$ 是一个源。因为我们只对时间依赖性感兴趣，我们假设 $D$ 和 $\Sigma_a$ 是常数。
+
+由于这个程序只打算演示如何使用先进的时间步进算法，我们将只寻找相对简单问题的解。具体来说，我们要在一个正方形域 $[0,b]\times[0,b]$ 上寻找一个解，其形式为
+
+@f{eqnarray*}
+\phi(x,t) = A\sin(\omega t)(bx-x^2).
+
+
+@f}
+
+通过使用二次有限元，我们可以在任何特定时间精确地表示这个函数，所有的误差都是由于时间离散化造成的。我们这样做是因为这样就很容易观察到我们将要考虑的各种时间步进方案的收敛顺序，而不需要将空间和时间误差分开。
+
+我们施加以下边界条件：对 $x=0$ 和 $x=b$ 施加同质的迪里希特条件，对 $y=0$ 和 $y=b$ 施加同质的纽曼条件。我们选择源项，以便相应的解决方案实际上是上述的形式。
+
+@f{eqnarray*}
+S=A\left(\frac{1}{v}\omega \cos(\omega t)(bx -x^2) + \sin(\omega t)
+\left(\Sigma_a (bx-x^2)+2D\right) \right).
+
+
+@f}
+
+因为解是时间上的正弦，我们知道精确解满足 $\phi\left(x,\frac{\pi}{\omega}\right) = 0$  。因此，时间 $t=\frac{\pi}{\omega}$ 的误差只是数值解的规范，即 $\|e(\cdot,t=\frac{\pi}{\omega})\|_{L_2} = \|\phi_h(\cdot,t=\frac{\pi}{\omega})\|_{L_2}$ ，而且特别容易评估。在代码中，我们评估 $l_2$ 的节点值的规范，而不是相关空间函数的 $L_2$ 规范，因为前者的计算更简单；然而，在均匀网格上，这两者只是由一个常数相关，因此我们可以用其中一个观察时间收敛顺序。
+
+
+
+
+<h3>Runge-Kutta methods</h3>
+
+在deal.II中实现的Runge-Kutta方法假定要解决的方程可以写成。
+
+@f{eqnarray*}
+\frac{dy}{dt} = g(t,y).
+
+
+@f}
+
+另一方面，当使用有限元时，离散化的时间导数总是导致左手边存在一个质量矩阵。这可以很容易地看出，如果上述方程中的解向量 $y(t)$ 实际上是节点系数的向量 $U(t)$ ，其形式为变量
+
+@f{eqnarray*}
+  u_h(x,t) = \sum_j U_j(t) \varphi_j(x)
+
+
+@f}
+
+用空间形状函数 $\varphi_j(x)$ ，然后乘以一个形式的方程
+
+@f{eqnarray*}
+  \frac{\partial u(x,t)}{\partial t} = q(t,u(x,t))
+
+
+@f}
+
+通过测试函数，对 $\Omega$ 进行积分，代入 $u\rightarrow u_h$ 并将测试函数限制在上面的 $\varphi_i(x)$ ，那么这个空间离散方程的形式为
+
+@f{eqnarray*}
+M\frac{dU}{dt} = f(t,U),
+
+
+@f}
+
+其中 $M$ 是质量矩阵， $f(t,U)$ 是 $q(t,u(x,t))$ 的空间离散版本（其中 $q$ 通常是出现空间导数的地方，但鉴于我们只考虑时间导数，这一点目前并不太关心）。换句话说，这种形式符合上面的一般方案，如果我们写成
+
+@f{eqnarray*}
+\frac{dy}{dt} = g(t,y) = M^{-1}f(t,y).
+
+
+@f}
+
+
+
+Runk-Kutta方法是一种时间步进方案，通过特定的一步法对 $y(t_n)\approx
+y_{n}$ 进行近似。它们通常被写成以下形式
+
+@f{eqnarray*}
+y_{n+1} = y_n + \sum_{i=1}^s b_i k_i
+
+
+@f}
+
+其中对于上面的右手边的形式
+
+@f{eqnarray*}
+k_i = h M^{-1} f\left(t_n+c_ih,y_n+\sum_{j=1}^sa_{ij}k_j\right).
+
+
+@f}
+
+这里 $a_{ij}$ ,  $b_i$ , 和 $c_i$ 是已知的系数，确定你要使用的特定Runge-Kutta方案， $h=t_{n+1}-t_n$ 是使用的时间步长。Runge-Kutta类的不同时间步长方法在级数 $s$ 和系数 $a_{ij}$ 、 $b_i$ 和 $c_i$ 上有所不同，但由于可以查找这些系数的表格值，所以很容易实施。这些表格通常被称为Butcher tableaus）。
+
+在编写本教程时，deal.II中实现的方法可分为三类。<ol>  <li>  显式Runge-Kutta；为了使一个方法成为显式，必须在上述定义 $k_i$ 的公式中， $k_i$ 不出现在右侧。换句话说，这些方法必须满足  $a_{ii}=0, i=1,\ldots,s$  。   <li>  嵌入式（或自适应）Runge-Kutta；我们将在下面讨论其特性。   <li>  隐式Runge-Kutta；这类方法需要解决可能是非线性系统的上述阶段 $k_i$ ，即它们至少有 $a_{ii}\neq 0$  个阶段 $i=1,\ldots,s$  。   </ol>  许多众所周知的时间步进方案，人们通常不会将其与Runge或Kutta的名字联系起来，事实上，它们也可以用这些类别来表达。它们往往代表这些系列的最低阶成员。
+
+
+
+
+<h4>Explicit Runge-Kutta methods</h4>
+
+这些方法，只需要一个函数来评估 $M^{-1}f(t,y)$ ，但不需要（作为隐式方法）来解决涉及 $f(t,y)$ 的 $y$ 的方程。与所有显式时间步长方法一样，当选择的时间步长过大时，它们会变得不稳定。
+
+这一类众所周知的方法包括正向欧拉、三阶Runge-Kutta和四阶Runge-Kutta（通常缩写为RK4）。
+
+
+
+
+<h4>Embedded Runge-Kutta methods</h4>
+
+这些方法同时使用低阶和高阶方法来估计误差，并决定是否需要缩短时间步长或可以增加。术语 "嵌入 "是指低阶方法不需要对函数 $M^{-1}f(\cdot,\cdot)$ 进行额外的评估，而是重复使用那些必须为高阶方法计算的数据。换句话说，它基本上是免费的，而我们得到的误差估计是使用高阶方法的副产品。
+
+这类方法包括Heun-Euler、Bogacki-Shampine、Dormand-Prince（在Matlab中为ode45，通常缩写为RK45，表示这里使用的低阶和高阶方法分别为4阶和5阶Runge-Kutta方法），Fehlberg和Cash-Karp。
+
+在撰写本文时，只有嵌入式的显式方法得到了实现。
+
+
+
+
+<h4>Implicit Runge-Kutta methods</h4>
+
+隐式方法要求在每个（子）时间步中解决 $\alpha y = f(t,y)$ 形式的 $y$ 的（可能是非线性）系统。在内部，这是用牛顿式方法完成的，因此，它们要求用户提供能够评估 $M^{-1}f(t,y)$ 和 $\left(I-\tau M^{-1} \frac{\partial f}{\partial y}\right)^{-1}$ 或等价的 $\left(M - \tau \frac{\partial f}{\partial y}\right)^{-1} M$ 的函数。
+
+这个算子的特殊形式来自于这样一个事实，即每一个牛顿步骤都需要解一个形式的方程
+
+@f{align*}
+  \left(M - \tau \frac{\partial f}{\partial y}\right) \Delta y
+  = -M h(t,y)
+
+
+@f}
+
+对于一些（给定的） $h(t,y)$  。无论时间步长如何，隐式方法总是稳定的，但过大的时间步长当然会影响到解的<i>accuracy</i>，即使数值解仍然稳定且有界。
+
+这类方法包括后退欧拉法、隐式中点法、Crank-Nicolson法和两阶段SDIRK法（"单对角隐式Runge-Kutta "的简称，这个术语是用来表示定义时间步进方法的对角线元素 $a_{ii}$ 都是相等的；这个特性使得牛顿矩阵 $I-\tau M^{-1}\frac{\partial f}{\partial y}$ 可以在各阶段之间重复使用，因为 $\tau$ 每次都是相同的）。
+
+
+
+
+<h3>Spatially discrete formulation</h3>
+
+通过扩大我们的模型问题的解决方案，一如既往地使用形状函数 $\psi_j$ 并写出
+
+@f{eqnarray*}
+\phi_h(x,t) = \sum_j U_j(t) \psi_j(x),
+
+
+@f}
+
+我们立即得到扩散方程的空间离散化版本为
+
+@f{eqnarray*}
+  M \frac{dU(t)}{dt}
+  = -{\cal D} U(t) - {\cal A} U(t) + {\cal S}(t)
+
+
+@f}
+
+其中
+
+@f{eqnarray*}
+  M_{ij}  &=& (\psi_i,\psi_j), \\
+  {\cal D}_{ij}  &=& (D\nabla\psi_i,\nabla\psi_j)_\Omega, \\
+  {\cal A}_{ij}  &=& (\Sigma_a\psi_i,\psi_j)_\Omega, \\
+  {\cal S}_{i}(t)  &=& (\psi_i,S(x,t))_\Omega.
+
+
+@f}
+
+参见第24步和第26步以了解我们如何到达这里。由于当前问题所选择的边界条件，边界项是没有必要的。为了使用Runge-Kutta方法，我们将其改写如下。
+
+@f{eqnarray*}
+f(y) = -{\cal D}y - {\cal A}y + {\cal S}.
+
+
+@f}
+
+在代码中，我们将需要能够评估这个函数 $f(U)$ 以及它的导数。
+
+@f{eqnarray*}
+\frac{\partial f}{\partial y} = -{\cal D} - {\cal A}.
+
+
+@f}
+
+
+
+
+
+
+<h3>Notes on the testcase</h3>
+
+为了简化问题，域是二维的，网格是均匀细化的（不需要调整网格，因为我们使用的是二次有限元，而且精确解是二次的）。从二维域到三维域并不是很有挑战性。然而，如果你打算解决更复杂的问题，必须对网格进行调整（例如在步骤26中），那么就必须记住以下问题。
+
+<ol>  <li>  在改变网格时，你需要将解投影到新的网格上。当然，从每个时间步长的开始到结束，所使用的网格应该是相同的，这个问题的出现是因为Runge-Kutta方法在每个时间步长内使用了多次方程求值。   <li>  每次改变网格时，你都需要更新质量矩阵和它的逆值。   </ol>  这些步骤的技术可以通过查看步骤26轻易获得。
+
+

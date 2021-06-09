@@ -1,0 +1,168 @@
+examples/step-19/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当这个程序运行时，它产生的输出看起来如下。``时间步数1 场自由度：4989 仿真中的粒子总数：20 这个时间步数损失的粒子数：0
+
+  现在在t=2.12647e-07，dt=2.12647e-07。
+
+时间步数2 场自由度：4989 仿真中的粒子总数：24 本时间步数损失的粒子数：0
+
+  现在在t=4.14362e-07，dt=2.01715e-07。
+
+时间步数3 场自由度：4989 仿真中的粒子总数：28 本时间步数损失的粒子数：0
+
+  现在在t=5.96019e-07，dt=1.81657e-07。
+
+时间步数4 场自由度：4989 仿真中的粒子总数。  32 这个时间步长损失的粒子数：0
+
+  现在在t=7.42634e-07，dt=1.46614e-07。
+
+
+...
+
+
+  时间步数1000场自由度：4989模拟中的粒子总数。  44 这个时间步长损失的粒子数：6 通过阳极损失的粒子的比例。0.0601266
+
+  现在在t=4.93276e-05，dt=4.87463e-08。
+
+时间步数1001场自由度：4989模拟中的粒子总数。  44 这个时间步长损失的粒子数：0 通过阳极损失的粒子的分数。0.0601266
+
+  现在在t=4.93759e-05，dt=4.82873e-08。
+
+
+...
+
+
+时间步数2091场自由度：4989模拟中的粒子总数。  44 这个时间步长损失的粒子数：0 通过阳极损失的粒子的比例。0.0503338
+
+  现在在t=9.99237e-05，dt=4.26254e-08。
+
+时间步数2092场自由度：4989模拟中的粒子总数。  44 这个时间步长损失的粒子数：0 通过阳极损失的粒子的分数。0.0503338
+
+  现在在t=9.99661e-05，dt=4.24442e-08。
+
+时间步数2093场自由度：4989模拟中的粒子总数。  44 这个时间步长损失的粒子数：2 通过阳极损失的粒子的比例。0.050308
+
+  现在在t=0.0001，dt=3.38577e-08。```
+
+随机选取几个时间步长，我们可以用电场的流线和电子的点的形式来可视化解决方案。<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-19.solution.0000.png" alt="时间步骤0（t=0秒）的解决方案。" width="500">  <br>  时间步骤0（t=0秒）的解决方案。       <br>  </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-19.solution.1400.png" alt="时间步骤1400（t=0.000068秒）的解决方案。" width="500">  <br>  时间步骤1400（t=0.000068秒）的解决方案。       <br>  </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-19.solution.0700.png" alt="时间步骤700（t=0.000035秒）的解决方案。" width="500">  <br>  在时间步骤700（t=0.000035秒）的解决方案。       <br>  </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-19.solution.2092.png" alt="时间步骤2092（t=0.0001秒）的解决方案。" width="500">  <br>  时间步骤2092（t=0.0001秒）的解决方案。       <br>  </div> </div>
+
+也就是说，更合适的方式是通过创建一个视频，展示这些电子是如何运动的，以及电场是如何随着它们的运动而变化的，从而将这个程序的结果可视化。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/HwUtE7xuteE"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+在这里你可以看到边界的 "焦点元素 "是如何用其负电压排斥电子，并确保它们不会垂直于阴极飞走（就像它们在其轨迹的初始部分那样）。它还显示了电场线如何随着时间的推移而移动，以回应飞过的电荷--换句话说，粒子对电场的反馈，而电场本身驱动着电子的运动。
+
+这部电影表明，电子是以 "成串 "或 "爆裂 "的方式移动的。这种表象的一个因素是电影是如何创建的，是一个伪影。电影的每一帧都对应着一个时间步长，但时间步长是不同的。更具体地说，穿过最小单元的最快粒子决定了时间步长（见介绍中的讨论），因此，每当一个（快速）粒子穿过域的右边缘的小单元时，时间步长都很小；一旦粒子离开域，时间步长又会变长。通过绘制屏幕输出中显示的时间步长，可以很容易地看到这种减速-加速的效果。
+
+然而，这其中的第二部分是真实的。模拟在开始时创造了一大群粒子，而在大约第300个时间步长后，粒子数量就减少了。这可能是因为模拟中的粒子带有负电荷。它们降低了（同样带负电的电极）的电场强度，因此减少了阴极上的点的数量，在这些点上，电场强度超过了将电子从电极中吸引出来所需的阈值。
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4> Avoiding a performance bottleneck with particles </h4>
+
+`assemble_system()`、`move_particles()`和`update_timestep_size()`函数都调用 Particles::ParticleHandler::particles_in_cell() 和 Particles::ParticleHandler::n_particles_in_cell() ，查询位于当前单元上的粒子信息。虽然这很方便，但也很低效。为了理解为什么会这样，我们需要知道粒子是如何存储在 Particles::ParticleHandler: 中的，即在一个数据结构中，粒子是以某种线性方式按它们所在的单元进行排序的。因此，为了找到与给定单元相关的粒子，这些函数需要搜索给定单元上的第一个（也可能是最后一个）粒子--这种努力需要花费 ${\cal O}(\log N)$ 次操作，其中 $N$ 是粒子的数量。但这是在每个单元上重复的；假设对于大型计算来说，单元和粒子的数量大致成正比，那么这些函数调用的累积成本是 ${\cal O}(N \log N)$ ，因此大于我们应该对程序的所有部分进行的 ${\cal O}(N)$ 成本。
+
+不过，我们可以使之更便宜。首先，我们可以先调用 Particles::ParticleHandler::n_particles_in_cell(), 而不是 Particles::ParticleHandler::particles_in_cell() ，然后通过计算当前单元上的最后一个粒子到第一个粒子的距离来计算单元上的粒子数。
+
+@code
+  const typename Particles::ParticleHandler<dim, spacedim>::particle_iterator_range
+    particles_in_cell = particle_handler.particles_in_cell(cell);
+  const unsigned int
+    n_particles_in_cell = std::distance (particles_in_cell.begin(),
+                                         particles_in_cell.end());
+@endcode
+
+其中第一个调用当然还是 ${\cal O}(\log N)$ ，但至少第二个调用只需要与当前单元上的粒子数成比例的计算时间，因此，当累积到所有单元时，其成本为 ${\cal O}(N)$ 。
+
+但我们甚至可以通过一些适当的算法设计来摆脱这些调用中的第一个。这是因为粒子的排列方式与单元格相同，因此我们可以在单元格上移动时直接走动它们。下面的算法纲要就是这样做的。
+
+@code
+  auto begin_particle_on_cell = particle_handler.begin();
+  for (const auto &cell : dof_handler.active_cell_iterators())
+    {
+      unsigned int n_particles_on_cell = 0;
+      auto end_particle_on_cell = begin_particle_on_cell;
+      while (end_particle_on_cell->get_surrounding_cell(triangulation)
+             == cell)
+        {
+          ++n_particles_on_cell;
+          ++end_particle_on_cell;
+        }
+
+
+      ...now operate on the range of particles from begin_particle_on_cell
+         to end_particle_on_cell, all of which are known to be on the current
+         cell...;
+
+
+      // Move the begin iterator forward so that it points to the first
+      // particle on the next cell
+      begin_particle_on_cell = end_particle_on_cell;
+    }
+@endcode
+
+
+
+在这段代码中，我们对每个单元都精确地接触了一次，而且我们从来不需要在大数据结构中搜索每个单元上的第一个或最后一个粒子。因此，该算法总共花费了 ${\cal O}(N)$ 来完成对所有粒子和所有单元的扫瞄。
+
+对这个程序中存在这个问题的所有三个函数实施这个方案并不十分困难。
+
+
+
+
+<h4> More statistics about electrons </h4>
+
+该程序已经计算出了通过阳极上的孔离开该领域的电子的比例。但人们可能还对其他数量感兴趣。例如，这些粒子的平均速度。从每个粒子的属性中获得其速度并不是很困难，就像我们在`move_particles()`函数中所做的那样，并从中计算出统计数据。
+
+
+
+
+<h4> A better-synchronized visualization </h4>
+
+如上所述，视频的不同帧之间有不同的时间差，因为我们为每个时间步长创建输出。一个更好的创建电影的方法是在固定的时间间隔内生成一个新的输出文件，不管每个这样的点之间有多少时间步长。
+
+
+
+
+<h4> A better time integrator </h4>
+
+我们在这个程序中考虑的问题是一个耦合的、多物理学的问题。但是我们解决它的方法是首先计算（电）势场，然后更新粒子位置。这就是所谓的 "算子分割法"，我们将在第58步中更详细地研究这一概念。
+
+虽然要想出一个不涉及将问题分割成PDE部分和粒子部分的方法是很尴尬的，但人们*可以*（而且可能应该！）想出一个更好的方法来更新粒子的位置。具体来说，我们用来更新粒子位置的方程是
+
+@f{align*}{
+  \frac{{\mathbf v}_i^{(n)}-{\mathbf v}_i^{(n-1)}}{\Delta t} &= \frac{e\nabla V^{(n)}}{m}
+  \\
+  \frac{{\mathbf x}_i^{(n)}-{\mathbf x}_i^{(n-1)}}{\Delta t} &= {\mathbf v}_i^{(n)}.
+
+
+@f}
+
+这相当于一个简单的正向欧拉时间离散化--一种在时间步长上具有一阶精度的方法 $\Delta t$ ，我们知道我们应该避免，因为我们可以做得更好。相反，我们可能想考虑一种方案，如[跃迁方案](https://en.wikipedia.org/wiki/Leapfrog_integration)或更普遍的[折衷积分器](https://en.wikipedia.org/wiki/Symplectic_integrator)，如[Verlet方案](https://en.wikipedia.org/wiki/Verlet_integration)。
+
+
+
+
+<h4> Parallelization </h4>
+
+在写这篇文章时，在作者的一台笔记本电脑上，在发布模式下，该程序的运行时间约为3.5分钟。这是可以接受的。但是，如果我们想让模拟变成三维的呢？如果我们想在任何时候都不使用最多约100个粒子（如这里使用的参数），而是使用100,000个？如果我们需要一个更细的网格？
+
+在这些情况下，人们不只是想在单个处理器上运行程序，实际上是在尽可能多的处理器上运行。这就要求对PDE的解决方案以及粒子进行并行化。在实践中，虽然有大量的挑战要使其高效和良好地扩展，但这些挑战都在deal.II本身中得到了解决。例如，第40步显示了如何将有限元部分并行化，第70步显示了如何将粒子部分也并行化。
+
+

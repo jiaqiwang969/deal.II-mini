@@ -1,0 +1,185 @@
+examples/step-26/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+正如许多教程一样，程序的实际输出并不重要，重要的是我们是如何到达那里的。尽管如此，它还是来了。
+
+@code
+===========================================
+Number of active cells: 48
+Number of degrees of freedom: 65
+
+
+Time step 1 at t=0.002
+     7 CG iterations.
+
+
+===========================================
+Number of active cells: 60
+Number of degrees of freedom: 81
+
+
+
+Time step 1 at t=0.002
+     7 CG iterations.
+
+
+===========================================
+Number of active cells: 105
+Number of degrees of freedom: 136
+
+
+
+Time step 1 at t=0.002
+     7 CG iterations.
+
+
+[...]
+
+
+Time step 249 at t=0.498
+     13 CG iterations.
+Time step 250 at t=0.5
+     14 CG iterations.
+
+
+===========================================
+Number of active cells: 1803
+Number of degrees of freedom: 2109
+@endcode
+
+
+
+也许更有意义的是解决方案的可视化和计算的网格。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-26.movie.gif" alt="Animation of the solution of step 26."> 
+
+这部电影显示了两个信号源是如何开启和关闭的，以及网格对此的反应。很明显，现在的网格可能不是我们能想出的最好的。我们将在下一节再来讨论这个问题。
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+至少有两个方面可以大大改善这个程序：自适应时间步长和更好地选择网格。
+
+<h4>Adaptive time stepping</h4>
+
+由于选择了隐式时间步进方案，我们不受任何类似CFL的时间步进条件的约束。此外，由于在热力方程中发生变化的时间尺度不受细胞直径的约束（与波浪方程的情况不同，在波浪方程中我们有一个固定的信息传输速度，将时间尺度和空间尺度联系起来），我们可以随意选择时间步长。或者，最好是按照我们认为必要的准确性来选择它。
+
+看一下解决方案，很明显，行动并不是随时间均匀发生的：在我们打开一个源的时候，很多东西都在发生变化，一旦一个源开启了一段时间，事情就变得不那么戏剧化了，而当两个源都关闭的时候，我们进入了一个漫长的下降阶段。在这些时候，我们肯定可以在不牺牲太多精确度的情况下，采用比以前更大的时间步长。
+
+文献中有许多关于如何自适应地选择时间步长的建议。例如，可以从ODE求解器选择其时间步长的方式中学到很多。我们也可以从后验误差估计中得到启发，理想情况下，后验误差估计可以写成由对整体误差的时间和空间贡献组成。如果时间上的贡献太大，我们应该选择一个较小的时间步长。例如，这个方向的想法可以在deal.II的前主要开发者Ralf Hartmann的博士论文中找到，该论文由德国海德堡大学在2002年出版。
+
+
+
+
+<h4>Better time stepping methods</h4>
+
+我们在这里使用了一种比较简单的时间步进方法，即二阶时间的Crank-Nicolson方法。然而，更精确的方法如Runge-Kutta方法是可用的，并且应该使用，因为它们并不代表很多额外的努力。对于目前的程序来说，实现这一点并不困难，但在step-52中也给出了一个更系统的处理。
+
+
+
+
+<h4>Better refinement criteria</h4>
+
+如果你看一下上面电影中的网格，很明显，它们不是特别适合手头的任务。事实上，它们看起来相当随意。
+
+有两个因素在起作用。首先，有一些岛屿，其中的单元已经被细化，但周围是未细化的单元（可能还有一些偶尔被粗化的岛屿）。这些并不可怕，因为它们大多数时候并不影响网格的近似质量，但是它们也没有帮助，因为它们的许多额外的自由度事实上受到悬挂节点约束的限制。也就是说，这很容易解决：Triangulation类在其构造函数中接受一个参数，表示 "网格平滑 "的程度。传递许多可能的标志之一，这将指示三角剖分细化一些额外的单元，或者不细化一些单元，这样得到的网格就不会有这些伪影。
+
+第二个问题更为严重：网格似乎滞后于解。其根本原因是我们每隔五步才调整一次网格，而且在这些情况下只允许进行一次细化。每当一个源打开时，之前的解在这个区域是非常平滑的，因此网格也是相当粗糙的。这意味着在下一个时间步骤中，当我们细化网格时，我们会在这个区域多得到一个细化级别，五个时间步骤后再多一个级别，等等。但这还不够：首先，我们应该在一个源打开时立即进行细化（毕竟在当前情况下，我们至少知道右手边是什么），而且我们应该允许超过一个细化级别。当然，所有这些都可以用deal.II来完成，只是需要在如何使其发挥作用方面有一些算法上的思考!
+
+
+
+
+<h4>Positivity preservation</h4>
+
+为了提高你的模拟在时间上的准确性和分辨率，通常会减少时间步长  $k_n$  。如果你在这个特定的例子中开始玩弄时间步长，你会注意到，如果 $k_n$ 低于某个阈值，解决方案会变成部分负数。这不是我们所期望发生的（在自然界）。
+
+为了从数学上了解这种行为，让我们考虑一个一般的、完全离散的问题。
+
+@f{align*}
+  A u^{n} = B u^{n-1}.
+
+
+@f}
+
+那么 $i$ th方程的一般形式为：。
+
+@f{align*}
+  a_{ii} u^{n}_i &= b_{ii} u^{n-1}_i +
+  \sum\limits_{j \in S_i} \left( b_{ij} u^{n-1}_j - a_{ij} u^{n}_j \right),
+
+
+@f}
+
+其中 $S_i$ 是与DoF $i$ 耦合的自由度集合（即矩阵 $A$ 或矩阵 $B$ 在位置 $(i,j)$ 有一个非零条目）。如果所有系数都满足以下条件。
+
+@f{align*}
+  a_{ii} &> 0, & b_{ii} &\geq 0, & a_{ij} &\leq 0, & b_{ij} &\geq 0,
+  &
+  \forall j &\in S_i,
+
+
+@f}
+
+所有的解决方案 $u^{n}$ 都保持其与之前的解决方案 $u^{n-1}$ 的符号，因此也保持其与初始值 $u^0$ 的符号。关于正性保留的更多信息，请参见例如 <a href="http://bookstore.siam.org/cs14/">Kuzmin, H&auml;m&auml;l&auml;inen</a> 。
+
+根据要解决的PDE和使用的时间积分方案，人们能够推导出时间步长的条件  $k_n$  。对于采用Crank-Nicolson方案的热方程，<a href="https://doi.org/10.2478/cmam-2010-0025">Schatz et. al.</a>已将其转化为下列方案。
+
+@f{align*}
+  (1 - \theta) k a_{ii} &\leq m_{ii},\qquad \forall i,
+  &
+  \theta k \left| a_{ij} \right| &\geq m_{ij},\qquad j \neq i,
+
+
+@f}
+
+其中 $M = m_{ij}$ 表示质量矩阵， $A = a_{ij}$ 表示刚度矩阵， $a_{ij} \leq 0$ 分别表示 $j \neq i$ 。有了 $a_{ij} \leq 0$ ，我们可以制定全局时间步长 $k$ 的界限如下。
+
+@f{align*}
+  k_{\text{max}} &= \frac{ 1 }{ 1 - \theta }
+  \min\left( \frac{ m_{ii} }{ a_{ii} } \right),~ \forall i,
+  &
+  k_{\text{min}} &= \frac{ 1 }{ \theta  }
+  \max\left( \frac{ m_{ij} }{ \left|a_{ij}\right| } \right),~ j \neq i.
+
+
+@f}
+
+换句话说，在Crank-Nicolson方案的情况下，时间步长受到<i>both a lower
+and upper bound</i>的限制。这些约束应与CFL条件一起考虑，以确保所进行的模拟的重要性。
+
+无法使时间步长达到我们想要的小，以获得更多的精度，而又不失去积极性属性，这是令人讨厌的。这就提出了一个问题：在这个特定的教程中，我们是否至少可以<i>compute</i>选择最小的时间步长来确保正性的保留。事实上，我们可以使用通过MatrixCreator函数创建的质量和刚度的SparseMatrix对象。通过SparseMatrixIterators遍历每个条目，我们可以检查对角线和非对角线条目，从而动态地设置一个合适的时间步长。对于二次元矩阵，对角线元素被存储为一行的第一个成员（见SparseMatrix文档）。下面是一个关于如何从 <code>mass_matrix</code> 中抓取感兴趣的条目的示范性代码片断。
+
+@code
+Assert (mass_matrix.m() == mass_matrix.n(), ExcNotQuadratic());
+const unsigned int num_rows = mass_matrix.m();
+double mass_matrix_min_diag    = std::numeric_limits<double>::max(),
+       mass_matrix_max_offdiag = 0.;
+
+
+SparseMatrixIterators::Iterator<double,true> row_it (&mass_matrix, 0);
+
+
+for(unsigned int m = 0; m<num_rows; ++m)
+{
+  // check the diagonal element
+  row_it = mass_matrix.begin(m);
+  mass_matrix_min_diag = std::min(row_it->value(), mass_matrix_min_diag);
+  ++row_it;
+
+
+  // check the off-diagonal elements
+  for(; row_it != mass_matrix.end(m); ++row_it)
+    mass_matrix_max_offdiag = std::max(row_it->value(), mass_matrix_max_offdiag);
+}
+@endcode
+
+
+
+利用这样计算出来的信息，我们可以通过上述公式来约束时间步长。
+
+

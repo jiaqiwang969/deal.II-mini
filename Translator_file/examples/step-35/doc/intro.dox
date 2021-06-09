@@ -1,0 +1,246 @@
+examples/step-35/doc/intro.dox
+
+ <br> 
+
+<i>
+This program grew out of a student project by Abner Salgado at Texas A&M
+University. Most of the work for this program is by him.
+</i>
+
+<a name="Intro"></a>
+
+<h1> Introduction </h1>
+
+<a name="Motivation"></a>
+
+<h3> Motivation </h3> 本程序的目的是展示如何有效地解决不可压缩的时间依赖性纳维-斯托克斯方程。这些方程描述了粘性不可压缩流体的流动，读作
+
+@f{align*}
+  u_t + u \cdot \nabla u - \nu \Delta u + \nabla p = f, \\
+  \nabla \cdot u = 0,
+
+
+@f}
+
+其中 $u$ 表示流速， $p$ 表示压力。这个方程组由初始条件来补充
+
+@f[
+  u |_{t=0} = u_0,
+
+
+@f]
+
+与 $u_0$ 足够光滑和螺线管，以及合适的边界条件。例如，一个可接受的边界条件，是
+
+@f[
+  u|_{\partial\Omega} = u_b.
+
+
+@f]
+
+也可以规定其他边界条件。在我们这里解决的测试案例中，边界被划分为两个不相交的子集 $\partial\Omega = \Gamma_1 \cup \Gamma_2$ ，我们有
+
+@f[
+  u|_{\Gamma_1} = u_b,
+
+
+@f]
+
+和
+
+@f[
+ u\times n|_{\Gamma_2} = 0, \quad p|_{\Gamma_2} = 0
+
+
+@f]
+
+其中 $n$ 是外部单位法线。 $\Gamma_2$ 上的边界条件经常被用来模拟外流条件。
+
+在以前的教程中（例如参见第20步和第22步），我们已经看到了如何使用Schur补数方法来解决与时间无关的斯托克斯方程。对于随时间变化的情况，在时间离散化之后，我们将得到一个类似于以下的系统
+
+@f{align*}
+  \frac1\tau u^k - \nu \Delta u^k + \nabla p^k = F^k, \\
+  \nabla \cdot u^k = 0,
+
+
+@f}
+
+其中 $\tau$ 是时间步长。虽然这个系统的结构与斯托克斯系统相似，因此可以用Schur补数的方法来解决，但事实证明，Schur补数的条件数与 $\tau^{-2}$ 成正比。这使得该系统非常难解，也意味着对于纳维-斯托克斯方程来说，这不是一个有用的求解途径。
+
+<a name="Projection"></a>
+
+<h3> Projection methods </h3>
+
+相反，我们需要想出一个不同的方法来解决与时间有关的纳维-斯托克斯方程。解决这些问题的困难来自于速度和压力是通过约束条件耦合在一起的事实
+
+@f[
+  \nabla \cdot u = 0,
+
+
+@f]
+
+对其而言，压力是拉格朗日乘数。投影方法旨在将这一约束与扩散（拉普拉斯）算子脱钩。
+
+让我们简短地描述一下投影方法在半离散情况下的样子。我们的目标是获得一个速度 $\{u^k\}$ 和压力 $\{p^k\}$ 序列。我们还将得到一个辅助变量的序列 $\{\phi^k\}$ 。假设从初始条件和一阶方法的应用中我们已经找到了  $(u^0,p^0,\phi^0=0)$  和  $(u^1,p^1,\phi^1=p^1-p^0)$  。那么投影法包括以下步骤。   <ul>   <li>  <b>Step 0</b> 。外推法。定义一下。   @f[
+    u^\star = 2u^k - u^{k-1}, \quad p^\sharp = p^k + \frac43 \phi^k - \frac13 \phi^{k-1}.
+  @f]
+
+    <li>  <b>Step 1</b>:扩散步骤。我们发现 $u^{k+1}$ 可以解决单一线性方程@f[
+    \frac1{2\tau}\left( 3u^{k+1} - 4u^k + u^{k-1} \right)
+    + u^\star \cdot\nabla u^{k+1} + \frac12 \left( \nabla \cdot u^\star \right) u^{k+1}
+
+
+    -\nu \Delta u^{k+1} + \nabla p^\sharp
+    = f^{k+1},
+    \quad
+    u^{k+1}|_{\Gamma_1} = u_b,
+    \quad
+    u^{k+1} \times n|_{\Gamma_2} = 0.
+  @f]。
+
+
+
+    <li>  <b>Step 2</b>:投影。找到能解决@f[
+    \Delta \phi^{k+1} = \frac3{2\tau} \nabla \cdot u^{k+1},
+    \quad
+    \partial_n \phi^{k+1}|_{\Gamma_1} = 0,
+    \quad
+    \phi^{k+1}|_{\Gamma_2} = 0
+  @f]的 $\phi^{k+1}$ 。
+
+    <li>  <b>Step 3</b>:压力校正。这里我们有两个选项。       <ul>   <li>  <i>Incremental Method in Standard Form</i>。压力的更新方式是。       @f[
+        p^{k+1} = p^k + \phi^{k+1}.
+      @f]
+
+        <li>  <i>Incremental Method in Rotational Form</i>。在这种情况下，@f[
+        p^{k+1} = p^k + \phi^{k+1} - \nu \nabla \cdot u^{k+1}.
+      @f] 。
+
+      </ul>  </ul>  。
+
+在不详细说明的情况下，让我们对我们刚刚描述的投影方法做一些说明。   <ul>   <li>  平流项 $u\cdot\nabla u$ 被其<i>skew symmetric form</i> @f[
+    u \cdot \nabla u + \frac12 \left( \nabla\cdot u \right) u.
+  @f]取代。
+
+  这与连续方程是一致的（因为 $\nabla\cdot u = 0$  ，尽管对于离散解来说，这在点上是不正确的），它需要保证时间步进方案的无条件稳定性。此外，为了使该术语线性化，我们使用 $u^\star$ 的二阶外推 $u^{k+1}$  。     <li>  投影步骤是亥姆霍兹分解的实现 @f[
+    L^2(\Omega)^d = H \oplus \nabla H^1_{\Gamma_2}(\Omega),
+  @f] 。
+
+  其中@f[
+    H = \left\{ v \in L^2(\Omega)^d:\  \nabla\cdot v =0, \  v\cdot n|_{\Gamma_1} = 0 \right\},
+  @f]
+
+  和@f[
+    H^1_{\Gamma_2}(\Omega) = \left\{ q \in H^1(\Omega):\ q|_{\Gamma_2} = 0 \right\}.
+  @f]
+
+  事实上，如果我们在 $u^{k+1}$ 上使用这种分解，我们可以得到@f[
+    u^{k+1} = v^{k+1} + \nabla \left( \frac{2\tau}{3}  \phi^{k+1} \right),
+  @f]
+
+  与 $v^{k+1}\in H$  。取这个方程的发散，我们得出了投影方程。     <li>  上面概述的两种变体中更准确的是旋转变体。然而，下面的程序同时实现了两种变体。此外，根据作者的经验，如果粘度 $\nu$ 是可变的，应该使用标准形式。   </ul> 
+
+
+ <p>  van Kan在 <ul>   <li>  J. van Kan, "A second-order accurate pressure-correction scheme for viscous incompressible flow", SIAM Journal on Scientific and Statistical Computing, Vol. 7, no.3, pp. 870-891, 1986  </ul>  并由Guermond在 <ul>   <li>  J.-L. Guermond分析。L. Guermond, "Un résultat de convergence d'ordre deux en temps pour l'approximation des équations de Navier-Stokes par une technique de projection incrémentale", ESAIM: Mathematical Modelling and Numer Analysis, vol. 33, no. 1, pp. 169-189, 1999  </ul>  。事实证明，这种技术受到运动压力的非物理边界条件的影响，导致收敛率降低。为了防止这种情况，Timmermans等人在 <ul>   <li>  L. Timmermans, P. Minev, and F. Van De Vosse, "An approximate projection scheme for incompressible flow using spectral elements", International Journal for Numerical Methods in Fluids, vol. 22, no. 7, pp.673-688, 1996  </ul>  旋转压力校正投影方法，使用运动压力的分歧校正。 <ul>   <li>  J.-L. Guermond和J. Shen, "On the error estimates for the rotational pressure-correction projection methods", Mathematics of Computation, vol. 73, no. 248, pp.1719-1737, 2004  </ul>  对Stokes问题进行了全面分析。   </p> 
+
+<a name ="fullydiscrete"></a>
+
+<h3> The Fully Discrete Setting </h3>为了获得该方法的完全离散设置，我们一如既往地需要一个变分公式。鉴于边界条件的性质，这里有一个微妙的问题。当我们把方程乘以一个合适的测试函数时，出现的一个项是
+
+@f[
+
+
+  -\nu \int_\Omega \Delta u \cdot v.
+
+
+@f]
+
+如果我们，比如说，在整个边界上有迪里希特的边界条件，那么经过部分积分，我们将得到
+
+@f[
+
+
+  -\nu \int_\Omega \Delta u \cdot v = \nu \int_\Omega \nabla u : \nabla v
+
+
+                                    - \int_{\partial\Omega} \partial_n u \cdot v
+                                    = \nu \int_\Omega \nabla u : \nabla v.
+
+
+@f]
+
+这种表述的优点之一是，它完全解耦了速度的各个组成部分。此外，它们都共享同一个系统矩阵。这可以在程序中加以利用。
+
+然而，考虑到非标准的边界条件，为了能够考虑到这些条件，我们需要使用以下%的特征
+
+@f[
+  \Delta u = \nabla\nabla\cdot u - \nabla\times\nabla\times u,
+
+
+@f]
+
+因此，当我们通过部分积分并考虑到边界条件时，我们可以得到
+
+@f[
+
+
+  -\nu \int_\Omega \Delta u \cdot v = \nu \int_\Omega \left[ \nabla \cdot u \nabla \cdot v
+                                    + \nabla \times u \nabla \times v \right],
+
+
+@f]
+
+这就是我们必须使用的形式。请注意，这是对速度分量的耦合。此外，为了强制执行压力的边界条件，我们需要重写
+
+@f[
+  \int_\Omega \nabla p \cdot v = -\int_\Omega p \nabla \cdot v + \int_{\Gamma_1} p v\cdot n
+                                + \int_{\Gamma_2} p v\cdot n
+                               = -\int_\Omega p \nabla \cdot v,
+
+
+@f]
+
+其中 $\Gamma_1$ 中的边界积分在速度的边界条件下等于零， $\Gamma_2$ 中的积分在压力的边界条件下等于零。
+
+在简化的情况下，边界 $\Gamma_2$ 与坐标轴平行%，这在我们下面进行的测试案例中成立，实际上可以表明
+
+@f[
+  \nu \int_\Omega \nabla u : \nabla v = \nu \int_\Omega \left[ \nabla \cdot u \nabla \cdot v
+                                    + \nabla \times u \nabla \times v \right].
+
+
+@f]
+
+这个问题在文献中并不经常涉及。更多信息，读者可以参考，例如， <ul>   <li>  J.-L. GUERMOND, L. QUARTAPELLE, On the approximation of the unsteady Navier-Stokes equations by finite element projection methods, Numer.Math., 80 (1998) 207-238  <li>  J.-L. GUERMOND, P. MINEV, J. SHEN, Error analysis of pressure-correction schemes for the Navier-Stokes equations with open boundary conditions, SIAM J. Numer.Anal., 43 1 (2005) 239-258.   </ul> 
+
+
+
+
+<a name = "implementation"></a>
+
+<h3> Implementation </h3>
+
+我们对投影方法的实现遵循<i>verbatim</i>上面的描述。然而，我们必须注意到，与其他大多数有多个解分量的问题不同，我们没有使用矢量值的有限元。相反，我们对速度和压力的分量分别使用单独的有限元，并对这些分量使用不同的 <code>DoFHandler</code> 's。这样做的主要原因是，正如我们从方案的描述中看到的，速度和压力的 <code>dim</code> 分量是解耦的。因此，所有速度分量的方程看起来都是一样的，具有相同的系统矩阵，并能以%的速度平行求解。很明显，这种方法也有其缺点。例如，在集合矩阵和右手边时，我们需要保持几个 <code>DoFHandler</code> s和迭代器的同步；获得矢量值函数的固有量（如发散）变得有点尴尬，以及其他。
+
+<a name ="testcase"></a>
+
+<h3> The Testcase </h3>
+
+我们在这个程序中使用的测试案例包括围绕一个方形障碍物的流动。其几何形状如下。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-35.geometry.png" alt=""> 
+
+与 $H=4.1$ ，使几何形状略微不对称。
+
+我们在顶壁、底壁和障碍物上都施加了无滑动的边界条件。在左边，我们有流入的边界条件
+
+@f[
+  u =
+  \left( \begin{array}{c} 4 U_m y (H-y)/H^2 \\ 0 \end{array} \right),
+
+
+@f]
+
+与 $U_m = 1.5$ ，即流入的边界条件对应于这个配置的Poiseuille流。最后，在右边的垂直壁上，我们规定速度的垂直分量和压力都应该是零。最后的时间  $T=10$  。
+
+

@@ -1,0 +1,370 @@
+examples/step-3/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+程序的输出看起来如下。
+
+@code
+Number of active cells: 1024
+Number of degrees of freedom: 1089
+DEAL:cg::Starting value 0.121094
+DEAL:cg::Convergence step 48 value 5.33692e-13
+@endcode
+
+
+
+前两行是我们写给  <code>cout</code>  的内容。最后两行是CG求解器在没有我们的干预下生成的。前两行说明了迭代开始时的残差，而最后一行告诉我们求解器需要47次迭代才能使残差的规范值达到5.3e-13，即低于我们在 "solve "函数中设置的阈值1e-12。我们将在下一个程序中展示如何抑制这种输出，这种输出有时对调试很有用，但往往会使屏幕显示变得混乱。
+
+除了上面显示的输出，该程序还生成了文件 <code>solution.vtk</code> ，该文件为VTK格式，被当今许多可视化程序广泛使用--包括两个重量级的<a href="https://www.llnl.gov/visit">VisIt</a>和<a href="https://www.paraview.org">Paraview</a>，是当今最常使用的程序。
+
+使用VisIt，生成一张像这样的解决方案的图片并不是很困难。   <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-3.solution-3.png" alt="Visualization of the solution of step-3">
+    </td>
+  </tr>
+</table>  它同时显示了解和网格，根据每一点的解的值提升到 $x$  -  $y$ 平面之上。当然，这里的解并不特别令人兴奋，但这是拉普拉斯方程所代表的内容和我们为这个程序选择的右手边 $f(\mathbf x)=1$ 的结果。拉普拉斯方程描述了（在许多其他用途中）受外部（也是垂直）力作用的膜的垂直变形。在目前的例子中，膜的边界被夹在一个没有垂直变化的方形框架上；因此，一个恒定的力密度将直观地导致膜简单地向上隆起--就像上图所示。
+
+VisIt和Paraview都允许玩各种可视化的解决方案。几个视频讲座展示了如何使用这些程序。   @dealiiVideoLectureSeeAlso{11,32} 
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+如果你想用这个程序玩一玩，这里有几个建议。   </p> 
+
+ <ul>   <li>  改变几何图形和网格。在程序中，我们通过使用 <code>GridGenerator::hyper_cube</code> 函数生成了一个方形域和网格。然而， <code>GridGenerator</code> 也有大量的其他函数。试试L形域，环形域，或其他你在那里找到的域。     </li> 
+
+    <li>  改变边界条件。代码使用 Functions::ZeroFunction 函数来生成零边界条件。然而，你可能想用 <code>ConstantFunction&lt;2&gt;(1)</code> 而不是 <code>ZeroFunction&lt;2&gt;()</code> 尝试非零常数边界值，以获得单位Dirichlet边界值。在函数命名空间的文档中描述了更多的奇异函数，你可以选择一个来描述你的特定边界值。     </li> 
+
+    <li>  修改边界条件的类型。目前，发生的情况是，我们在周围使用迪里希特边界值，因为默认情况是所有边界部分的边界指标为零，然后我们告诉 VectorTools::interpolate_boundary_values() 函数，在所有指标为零的边界部分上将边界值插值为零。    <p>  如果我们给边界的部分分配不同的指标，我们可以改变这种行为。例如，在调用 GridGenerator::hyper_cube(): @code
+  triangulation.begin_active()->face(0)->set_boundary_id(1);
+  @endcode后立即尝试这样做。
+
+
+
+  这样做的目的是，首先要求三角剖分返回一个迭代器，指向第一个活动单元。当然，由于这是一个正方形的三角测量的粗略网格，此刻三角测量只有一个单元，而且它是活动的。接下来，我们要求单元格返回它的第一个面的迭代器，然后我们要求面将该面的边界指标重置为1。接下来的事情就是这样。当网格被细化时，子单元的面会继承其父母的边界指示器，也就是说，即使在最细的网格上，广场一侧的面的边界指示器为1。稍后，当我们要插值边界条件时， VectorTools::interpolate_boundary_values() 调用将只为那些边界指标为零的面产生边界值，而对那些具有不同边界指标的面则不予理会。这样做的目的是对前者施加Dirichlet边界条件，而对后者施加同质的Neumann条件（即解的法向导数为零，除非在变分等式的右侧添加额外的条款来处理潜在的非零Neumann条件）。如果你运行该程序，你会看到这一点。
+
+  另一种改变边界指标的方法是根据面中心的笛卡尔坐标来标注边界。   例如，我们可以通过检查单元格中心的y坐标是否在-1和1的公差（这里是1e-12）范围内，将沿上下边界的所有单元格标记为边界指示器1。在调用 GridGenerator::hyper_cube(), 后，像以前一样立即尝试这样做。   @code
+  for (auto &face : triangulation.active_face_iterators())
+    if (std::fabs(face->center()(1) - (-1.0)) < 1e-12 ||
+        std::fabs(face->center()(1) - (1.0)) < 1e-12)
+      face->set_boundary_id(1);
+  @endcode
+
+  虽然这段代码比以前长了一些，但它对复杂的几何形状很有用，因为它不需要脸部标签的知识。
+
+    <li> 最后一点的一个小变化是像上面那样设置不同的边界值，但随后为边界指标一使用不同的边界值函数。在实践中，你要做的是为边界指标一增加对 <code>interpolate_boundary_values</code> 的第二次调用。   @code
+  VectorTools::interpolate_boundary_values(dof_handler,
+					   1,
+					   ConstantFunction<2>(1.),
+					   boundary_values);
+  @endcode
+
+  如果你在这个函数的第一个调用之后立即进行这个调用，那么它将把边界指标为1的面的边界值内插到单位值，并将这些内插值与之前计算的边界指标为0的值合并。
+
+    <li>  观察收敛情况。我们将只讨论第7步中规范的计算误差，但很容易检查计算在这里已经收敛了。例如，我们可以在一个点上评估解的值，并比较不同%的全局细化的值（全局细化的步骤数在上面的 <code>LaplaceProblem::make_grid</code> 中设定）。为了评估某个点的解决方案，例如在 $(\frac 13, \frac 13)$ ，我们可以在 <code>LaplaceProblem::output_results</code> 函数中加入以下代码。   @code
+    std::cout << "Solution at (1/3,1/3): "
+              << VectorTools::point_value(dof_handler, solution,
+                                          Point<2>(1./3, 1./3))
+              << std::endl;
+  @endcode
+
+  对于1到9个全局细化步骤，我们就会得到以下的点值序列。     <table align="center" class="doxtable">
+    <tr> <th># of refinements</th> <th>$u_h(\frac 13,\frac13)$</th> </tr>
+    <tr> <td>1</td> <td>0.166667</td> </tr>
+    <tr> <td>2</td> <td>0.227381</td> </tr>
+    <tr> <td>3</td> <td>0.237375</td> </tr>
+    <tr> <td>4</td> <td>0.240435</td> </tr>
+    <tr> <td>5</td> <td>0.241140</td> </tr>
+    <tr> <td>6</td> <td>0.241324</td> </tr>
+    <tr> <td>7</td> <td>0.241369</td> </tr>
+    <tr> <td>8</td> <td>0.241380</td> </tr>
+    <tr> <td>9</td> <td>0.241383</td> </tr>
+  </table>  通过注意到每两个连续值之间的差异减少了大约4倍，我们可以猜测 "正确 "的值可能是 $u(\frac 13, \frac 13)\approx 0.241384$  。事实上，如果我们假设这是正确的值，我们可以证明上面的序列确实显示了 ${\cal
+  O}(h^2)$ 的收敛&mdash；理论上，收敛顺序应该是 ${\cal O}(h^2 |\log h|)$ ，但是领域和网格的对称性可能导致了观察到的更好的收敛顺序。
+
+  这方面的一个小变种是用二次元重复测试。你需要做的就是在构造函数中把有限元的多项式程度设置为2  <code>LaplaceProblem::LaplaceProblem</code>  。
+
+    <li>  平均值的收敛。一个不同的方法是计算解的平均数，以了解解是否真的收敛了（收敛到什么程度&mdash；我们无法判断它是否真的是正确的值！）。为此，在 <code>LaplaceProblem::output_results</code> 中添加以下代码：@code
+    std::cout << "Mean value: "
+              << VectorTools::compute_mean_value (dof_handler,
+						  QGauss<2>(fe.degree + 1),
+						  solution,
+						  0)
+              << std::endl;
+  @endcode
+
+  该函数的文档解释了第二和第四个参数的含义，而第一和第三个参数应该是很明显的。再次做同样的研究，我们改变了全局细化步骤的数量，我们得到以下结果。     <table align="center" class="doxtable">
+    <tr> <th># of refinements</th> <th>$\int_\Omega u_h(x)\; dx$</th> </tr>
+    <tr> <td>0</td> <td>0.09375000</td> </tr>
+    <tr> <td>1</td> <td>0.12790179</td> </tr>
+    <tr> <td>2</td> <td>0.13733440</td> </tr>
+    <tr> <td>3</td> <td>0.13976069</td> </tr>
+    <tr> <td>4</td> <td>0.14037251</td> </tr>
+    <tr> <td>5</td> <td>0.14052586</td> </tr>
+    <tr> <td>6</td> <td>0.14056422</td> </tr>
+    <tr> <td>7</td> <td>0.14057382</td> </tr>
+    <tr> <td>8</td> <td>0.14057622</td> </tr>
+  </table>  同样，两个相邻值之间的差异下降了约四倍，表明收敛为  ${\cal O}(h^2)$  。   </ul> 
+
+
+
+
+<h3>Using %HDF5 to output the solution and additional data</h3>
+
+%HDF5是一种常用的格式，可以被许多脚本语言（如R或Python）读取。让deal.II产生一些%HDF5文件并不困难，然后可以在外部脚本中使用，对该程序产生的一些数据进行后处理。这里有一些关于可能的想法。
+
+
+
+
+<h4> Changing the output to .h5</h4>
+
+为了充分利用自动化，我们首先需要为全局细化步骤的数量引入一个私有变量 <code>unsigned int n_refinement_steps </code> ，它将被用于输出文件名。在 <code>make_grid()</code> we then replace <code>triangulation.refine_global(5);</code> 中用
+
+@code
+n_refinement_steps = 5;
+triangulation.refine_global(n_refinement_steps);
+@endcode
+
+deal.II库有两个不同的%HDF5绑定，一个在HDF5命名空间（用于对接通用数据文件），另一个在DataOut（专门用于为解决方案的可视化写文件）。尽管HDF5 deal.II绑定支持串行和MPI，但%HDF5 DataOut绑定只支持并行输出。由于这个原因，我们需要初始化一个只有一个处理器的MPI通信器。这可以通过添加以下代码来实现。
+
+@code
+int main(int argc, char* argv[])
+{
+  Utilities::MPI::MPI_InitFinalize mpi_initialization(argc, argv, 1);
+  ...
+}
+@endcode
+
+接下来我们改变 `Step3::output_results()` 的输出例程，如DataOutBase命名空间文档中所述。
+
+@code
+const std::string filename_h5 = "solution_" + std::to_string(n_refinement_steps) + ".h5";
+DataOutBase::DataOutFilterFlags flags(true, true);
+DataOutBase::DataOutFilter data_filter(flags);
+data_out.write_filtered_data(data_filter);
+data_out.write_hdf5_parallel(data_filter, filename_h5, MPI_COMM_WORLD);
+@endcode
+
+然后，产生的文件可以被可视化，就像教程的原始版本产生的VTK文件一样；但是，由于%HDF5是一种更通用的文件格式，它也可以很容易地用脚本语言处理，用于其他目的。
+
+
+
+
+<h4> Adding the point value and the mean (see extension above) into the .h5 file</h4>
+
+在输出解决方案后，可以再次打开该文件以包括更多的数据集。  这使得我们可以将实验的所有必要信息保存在一个结果文件中，然后可以由一些后处理脚本来读取和处理。关于可能的输出选项，请看 HDF5::Group::write_dataset() 的进一步信息）。
+
+为了实现这一点，我们首先将必要的头文件纳入我们的文件。
+
+@code
+#include <deal.II/base/hdf5.h>
+@endcode
+
+在我们的输出例程的末尾添加以下几行，将关于某一点的解的值，以及解的平均值的信息添加到我们的%HDF5文件中。
+
+@code
+HDF5::File data_file(filename_h5, HDF5::File::FileAccessMode::open, MPI_COMM_WORLD);
+Vector<double> point_value(1);
+point_value[0] = VectorTools::point_value(dof_handler, solution,
+                                          Point<2>(1./3, 1./3));
+data_file.write_dataset("point_value", point_value);
+Vector<double> mean_value(1);
+mean_value[0] = VectorTools::compute_mean_value(dof_handler,
+                                                QGauss<2>(fe.degree + 1),
+                                                solution, 0);
+data_file.write_dataset("mean_value",mean_value);
+@endcode
+
+
+
+
+
+
+<h3> Using R and ggplot2 to generate plots</h3>
+
+上述放入%HDF5文件的数据，然后可以从脚本语言中使用，进行进一步的后处理。在下文中，让我们展示一下，特别是如何用<a href="https://en.wikipedia.org/wiki/R_(programming_language)">R
+programming language</a>这个在统计数据分析中广泛使用的语言来完成。(例如，类似的事情也可以在Python中完成。)如果你不熟悉R和ggplot2，你可以看看R的数据木工课程<a href="https://datacarpentry.org/R-ecology-lesson/index.html">here</a>。此外，由于大多数搜索引擎对 "R+主题 "这种形式的搜索很吃力，我们建议使用专门的服务<a
+href="http://rseek.org">RSeek </a>来代替。
+
+R和其他语言最突出的区别是，赋值运算符（`a = 5`）通常被写成`a <- 5`。由于后者被认为是标准的，我们将在我们的例子中也使用它。要在R语言中打开`.h5`文件，你必须安装<a href="https://bioconductor.org/packages/release/bioc/html/rhdf5.html">rhdf5</a>包，它是Bioconductor软件包的一部分。
+
+首先，我们将包括所有必要的包，并看看我们文件中的数据是如何结构化的。
+
+@code{.r}
+library(rhdf5)     # library for handling HDF5 files
+library(ggplot2)   # main plotting library
+library(grDevices) # needed for output to PDF
+library(viridis)   # contains good colormaps for sequential data
+
+
+refinement <- 5
+h5f <- H5Fopen(paste("solution_",refinement,".h5",sep=""))
+print(h5f)
+@endcode
+
+这给出了以下输出
+
+@code{.unparsed}
+HDF5 FILE
+   name /
+filename
+
+
+    name       otype  dclass     dim
+0 cells       H5I_DATASET INTEGER  x 1024
+1 mean_value  H5I_DATASET FLOAT   1
+2 nodes       H5I_DATASET FLOAT    x 1089
+3 point_value H5I_DATASET FLOAT   1
+4 solution    H5I_DATASET FLOAT    x 1089
+@endcode
+
+数据集可以通过  <code>h5f\$name</code>  访问。函数  <code>dim(h5f\$cells)</code>  给我们提供了用于存储我们单元格的矩阵的尺寸。我们可以看到以下三个矩阵，以及我们添加的两个额外数据点。   <ul>   <li>   <code>cells</code>  ：一个4x1024的矩阵，存储每个单元的（C++）顶点指数  <li>   <code>nodes</code>  ：一个2x1089的矩阵，存储我们单元顶点的位置值（x，y）  <li>   <code>solution</code>  : 一个1x1089的矩阵，存储我们的解决方案在每个顶点的值  </ul>  现在我们可以使用这些数据来生成各种图表。用ggplot2作图通常分为两步。首先，数据需要被处理并添加到一个  <code>data.frame</code>  。之后，构建一个 <code>ggplot</code> 对象，并通过向其添加绘图元素来进行操作。
+
+ <code>nodes</code> and <code>cells</code> 包含我们绘制网格所需的所有信息。下面的代码将所有的数据打包成一个数据框架，用于绘制我们的网格。
+
+@code{.r}
+# Counting in R starts at 1 instead of 0, so we need to increment all
+# vertex indices by one:
+cell_ids <- h5f$cells+1
+
+
+# Store the x and y positions of each vertex in one big vector in a
+# cell by cell fashion (every 4 entries belong to one cell):
+cells_x <- h5f$nodes[1,][cell_ids]
+cells_y <- h5f$nodes[2,][cell_ids]
+
+
+# Construct a vector that stores the matching cell by cell grouping
+# (1,1,1,1,2,2,2,2,...):
+groups <- rep(1:ncol(cell_ids),each=4)
+
+
+# Finally put everything into one dataframe:
+meshdata <- data.frame(x = cells_x, y = cells_y, id = groups)
+@endcode
+
+
+
+有了完成的数据框架，我们就有了绘制网格所需的一切。
+
+@code{.r}
+pdf (paste("grid_",refinement,".pdf",sep=""),width = 5,height = 5) # Open new PDF file
+plt <- ggplot(meshdata,aes(x=x,y=y,group=id))                      # Construction of our plot
+                                                                   # object, at first only data
+
+
+plt <- plt + geom_polygon(fill="white",colour="black")             # Actual plotting of the grid as polygons
+plt <- plt + ggtitle(paste("grid at refinement level #",refinement))
+
+
+print(plt)                                                         # Show the current state of the plot/add it to the pdf
+dev.off()                                                          # Close PDF file
+@endcode
+
+
+
+这个文件的内容看起来如下（不是很令人兴奋，但你会明白的）。   <table width="60%" align="center">
+  <tr>
+   <td align="center">
+     <img src="https://www.dealii.org/images/steps/developer/step-3.extensions.grid_5.png" alt="Grid after 5 refinement steps of step-3">
+   </td>
+  </tr>
+</table> 
+
+我们还可以将解决方案本身可视化，这看起来会更有趣。为了给我们的解决方案做一个二维伪色图，我们将使用  <code>geom_raster</code>  。这个函数需要一个结构化的网格，即在x和y方向上是均匀的。幸运的是，我们在这一点上的数据是以正确的方式结构化的。下面的代码将我们的曲面的伪彩色表示法绘制成一个新的PDF。
+
+@code{.r}
+pdf (paste("pseudocolor_",refinement,".pdf",sep=""),width = 5,height = 4.2) # Open new PDF file
+colordata <- data.frame(x = h5f$nodes[1,],y = h5f$nodes[2,] , solution = h5f$solution[1,])
+plt <- ggplot(colordata,aes(x=x,y=y,fill=solution))
+plt <- plt + geom_raster(interpolate=TRUE)
+plt <- plt + scale_fill_viridis()
+plt <- plt + ggtitle(paste("solution at refinement level #",refinement))
+
+
+print(plt)
+dev.off()
+H5Fclose(h5f) # Close the HDF5 file
+@endcode
+
+现在的情况是这样的。   <table width="60%" align="center">
+ <tr>
+   <td align="center">
+     <img src="https://www.dealii.org/images/steps/developer/step-3.extensions.pseudocolor_5.png" alt="Solution after 5 refinement steps of step-3">
+   </td>
+ </tr>
+</table> 
+
+为了绘制收敛曲线，我们需要从1开始用不同的 <code>n_refinement_steps</code> 值多次重新运行C++代码。由于每个文件只包含一个数据点，我们需要对它们进行循环，并将结果串联成一个矢量。
+
+@code{.r}
+n_ref <- 8   # Maximum refinement level for which results are existing
+
+
+# First we initiate all vectors with the results of the first level
+h5f   <- H5Fopen("solution_1.h5")
+dofs  <- dim(h5f$solution)[2]
+mean  <- h5f$mean_value
+point <- h5f$point_value
+H5Fclose(h5f)
+
+
+for (reflevel in 2:n_ref)
+{
+   h5f   <- H5Fopen(paste("solution_",reflevel,".h5",sep=""))
+   dofs  <- c(dofs,dim(h5f\$solution)[2])
+   mean  <- c(mean,h5f\$mean_value)
+   point <- c(point,h5f\$point_value)
+   H5Fclose(h5f)
+}
+@endcode
+
+由于我们对数值本身不感兴趣，而是对与 "精确 "解决方案相比的误差感兴趣，我们将假设我们的最高细化水平是该解决方案，并从数据中省略它。
+
+@code{.r}
+# Calculate the error w.r.t. our maximum refinement step
+mean_error  <- abs(mean[1:n_ref-1]-mean[n_ref])
+point_error <- abs(point[1:n_ref-1]-point[n_ref])
+
+
+# Remove the highest value from our DoF data
+dofs     <- dofs[1:n_ref-1]
+convdata <- data.frame(dofs = dofs, mean_value= mean_error, point_value = point_error)
+@endcode
+
+现在我们有所有的数据可以用来生成我们的图。在对数尺度上绘制误差往往是有用的，这在下面的代码中可以实现。
+
+@code
+pdf (paste("convergence.pdf",sep=""),width = 5,height = 4.2)
+plt <- ggplot(convdata,mapping=aes(x = dofs, y = mean_value))
+plt <- plt+geom_line()
+plt <- plt+labs(x="#DoFs",y = "mean value error")
+plt <- plt+scale_x_log10()+scale_y_log10()
+print(plt)
+
+
+plt <- ggplot(convdata,mapping=aes(x = dofs, y = point_value))
+plt <- plt+geom_line()
+plt <- plt+labs(x="#DoFs",y = "point value error")
+plt <- plt+scale_x_log10()+scale_y_log10()
+print(plt)
+
+
+dev.off()
+@endcode
+
+这就产生了下面的图，显示了均值和所选点的解值的误差如何很好地收敛到零。   <table style="width:50%" align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-3.extensions.convergence_mean.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-3.extensions.convergence_point.png" alt=""></td>
+  </tr>
+</table> 
+
+

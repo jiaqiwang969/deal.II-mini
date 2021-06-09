@@ -1,0 +1,253 @@
+examples/step-50/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当你使用以下命令运行该程序时
+
+@code
+mpirun -np 16 ./step-50  gmg_mf_2d.prm
+@endcode
+
+屏幕输出应该如下。
+
+@code
+Cycle 0:
+   Number of active cells:       12 (2 global levels)
+   Partition efficiency:         0.1875
+   Number of degrees of freedom: 65 (by level: 21, 65)
+   Number of CG iterations:      10
+   Global error estimate:        0.355373
+   Wrote solution_00.pvtu
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |    0.0163s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble right-hand side        |         1 |  0.000374s |       2.3% |
+| Estimate                        |         1 |  0.000724s |       4.4% |
+| Output results                  |         1 |   0.00277s |        17% |
+| Setup                           |         1 |   0.00225s |        14% |
+| Setup multigrid                 |         1 |   0.00181s |        11% |
+| Solve                           |         1 |   0.00364s |        22% |
+| Solve: 1 multigrid V-cycle      |         1 |  0.000354s |       2.2% |
+| Solve: CG                       |         1 |   0.00151s |       9.3% |
+| Solve: Preconditioner setup     |         1 |   0.00125s |       7.7% |
++---------------------------------+-----------+------------+------------+
+
+
+Cycle 1:
+   Number of active cells:       24 (3 global levels)
+   Partition efficiency:         0.276786
+   Number of degrees of freedom: 139 (by level: 21, 65, 99)
+   Number of CG iterations:      10
+   Global error estimate:        0.216726
+   Wrote solution_01.pvtu
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |    0.0169s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble right-hand side        |         1 |  0.000309s |       1.8% |
+| Estimate                        |         1 |   0.00156s |       9.2% |
+| Output results                  |         1 |   0.00222s |        13% |
+| Refine grid                     |         1 |   0.00278s |        16% |
+| Setup                           |         1 |   0.00196s |        12% |
+| Setup multigrid                 |         1 |    0.0023s |        14% |
+| Solve                           |         1 |   0.00565s |        33% |
+| Solve: 1 multigrid V-cycle      |         1 |  0.000349s |       2.1% |
+| Solve: CG                       |         1 |   0.00285s |        17% |
+| Solve: Preconditioner setup     |         1 |   0.00195s |        12% |
++---------------------------------+-----------+------------+------------+
+
+
+Cycle 2:
+   Number of active cells:       51 (4 global levels)
+   Partition efficiency:         0.41875
+   Number of degrees of freedom: 245 (by level: 21, 65, 225, 25)
+   Number of CG iterations:      11
+   Global error estimate:        0.112098
+   Wrote solution_02.pvtu
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |    0.0183s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assemble right-hand side        |         1 |  0.000274s |       1.5% |
+| Estimate                        |         1 |   0.00127s |       6.9% |
+| Output results                  |         1 |   0.00227s |        12% |
+| Refine grid                     |         1 |    0.0024s |        13% |
+| Setup                           |         1 |   0.00191s |        10% |
+| Setup multigrid                 |         1 |   0.00295s |        16% |
+| Solve                           |         1 |   0.00702s |        38% |
+| Solve: 1 multigrid V-cycle      |         1 |  0.000398s |       2.2% |
+| Solve: CG                       |         1 |   0.00376s |        21% |
+| Solve: Preconditioner setup     |         1 |   0.00238s |        13% |
++---------------------------------+-----------+------------+------------+
+.
+.
+.
+@endcode
+
+在这里，"solve() "函数的时间被分成三部分：设置多网格预处理程序，执行单一的多网格V型循环，以及CG求解器。被计时的V型循环对整个求解来说是不必要的，只是为了让人们了解AMG和GMG的不同成本。还应注意的是，当使用AMG求解器时，"工作量不平衡 "不包括在输出中，因为不需要粗网格的层次结构。
+
+本节中的所有结果都是在英特尔至强铂金8280（Cascade Lake）节点上收集的，这些节点有56个内核，每个节点有192GB，支持AVX-512指令，允许对8个双倍数进行矢量化（矢量化仅用于无矩阵计算）。代码是用gcc 7.1.0和intel-mpi 17.0.3编译的。Trilinos 12.10.1被用于基于矩阵的GMG/AMG计算。
+
+然后我们可以通过调用step-50目录下的输入文件来收集各种信息。使用这些文件，并调整网格细化步骤的数量，我们可以得出程序的扩展性如何的信息。
+
+下表给出了该程序在高达256M自由度和7168个处理器上的弱比例计时。(回顾一下，在增加处理器数量的同时，弱缩放保持每个处理器的自由度数量不变；也就是说，它考虑的是越来越大的问题。)这里， $\mathbb{E}$ 是介绍中的分区效率（也等于1.0/工作量不平衡），"Setup "是设置、设置多重网格、装配和装配多重网格的组合，"Prec "是预处理程序的设置。理想情况下，在每个问题大小上，各个求解器的所有时间都保持不变，但由于分区效率从最大问题大小到最小问题大小从0.371下降到0.161，我们期望看到GMG的时间大约增加 $0.371/0.161=2.3$ 倍。事实上，这与我们实际得到的情况非常接近。
+
+ <table align="center" class="doxtable">
+<tr>
+  <th colspan="4"></th>
+  <th></th>
+  <th colspan="4">MF-GMG</th>
+  <th></th>
+  <th colspan="4">MB-GMG</th>
+  <th></th>
+  <th colspan="4">AMG</th>
+</tr>
+<tr>
+  <th align="right">Procs</th>
+  <th align="right">Cycle</th>
+  <th align="right">DoFs</th>
+  <th align="right">$\mathbb{E}$</th>
+  <th></th>
+  <th align="right">Setup</th>
+  <th align="right">Prec</th>
+  <th align="right">Solve</th>
+  <th align="right">Total</th>
+  <th></th>
+  <th align="right">Setup</th>
+  <th align="right">Prec</th>
+  <th align="right">Solve</th>
+  <th align="right">Total</th>
+  <th></th>
+  <th align="right">Setup</th>
+  <th align="right">Prec</th>
+  <th align="right">Solve</th>
+  <th align="right">Total</th>
+</tr>
+<tr>
+  <td align="right">112</th>
+  <td align="right">13</th>
+  <td align="right">4M</th>
+  <td align="right">0.37</th>
+  <td></td>
+  <td align="right">0.742</th>
+  <td align="right">0.393</th>
+  <td align="right">0.200</th>
+  <td align="right">1.335</th>
+  <td></td>
+  <td align="right">1.714</th>
+  <td align="right">2.934</th>
+  <td align="right">0.716</th>
+  <td align="right">5.364</th>
+  <td></td>
+  <td align="right">1.544</th>
+  <td align="right">0.456</th>
+  <td align="right">1.150</th>
+  <td align="right">3.150</th>
+</tr>
+<tr>
+  <td align="right">448</th>
+  <td align="right">15</th>
+  <td align="right">16M</th>
+  <td align="right">0.29</th>
+  <td></td>
+  <td align="right">0.884</th>
+  <td align="right">0.535</th>
+  <td align="right">0.253</th>
+  <td align="right">1.672</th>
+  <td></td>
+  <td align="right">1.927</th>
+  <td align="right">3.776</th>
+  <td align="right">1.190</th>
+  <td align="right">6.893</th>
+  <td></td>
+  <td align="right">1.544</th>
+  <td align="right">0.456</th>
+  <td align="right">1.150</th>
+  <td align="right">3.150</th>
+</tr>
+<tr>
+  <td align="right">1,792</th>
+  <td align="right">17</th>
+  <td align="right">65M</th>
+  <td align="right">0.22</th>
+  <td></td>
+  <td align="right">1.122</th>
+  <td align="right">0.686</th>
+  <td align="right">0.309</th>
+  <td align="right">2.117</th>
+  <td></td>
+  <td align="right">2.171</th>
+  <td align="right">4.862</th>
+  <td align="right">1.660</th>
+  <td align="right">8.693</th>
+  <td></td>
+  <td align="right">1.654</th>
+  <td align="right">0.546</th>
+  <td align="right">1.460</th>
+  <td align="right">3.660</th>
+</tr>
+<tr>
+  <td align="right">7,168</th>
+  <td align="right">19</th>
+  <td align="right">256M</th>
+  <td align="right">0.16</th>
+  <td></td>
+  <td align="right">1.214</th>
+  <td align="right">0.893</th>
+  <td align="right">0.521</th>
+  <td align="right">2.628</th>
+  <td></td>
+  <td align="right">2.386</th>
+  <td align="right">7.260</th>
+  <td align="right">2.560</th>
+  <td align="right">12.206</th>
+  <td></td>
+  <td align="right">1.844</th>
+  <td align="right">1.010</th>
+  <td align="right">1.890</th>
+  <td align="right">4.744</th>
+</tr>
+</table> 
+
+另一方面，最后一组列中的代数多网格相对来说不受网格层次不平衡度增加的影响（因为它不使用网格层次），时间的增长反而是由文献中记载的其他因素驱动的（最明显的是，代数多网格方法的某些部分的算法复杂度似乎是 ${\cal O}(N
+\log N)$ ，而不是几何多网格的 ${\cal O}(N)$ ）。
+
+上表的短处是，无矩阵的几何多网格方法似乎是解决这个方程的最快方法，即使不是以很大的优势。另一方面，基于矩阵的方法始终是最差的。
+
+下图提供了每种方法的强大扩展结果，也就是说，我们在越来越多的处理器上解决同一个问题。具体来说，我们考虑在56至28672个处理器上，经过16个网格细化周期（32M DoFs）和19个周期（256M DoFs）后的问题。
+
+ <img width="600px" src="https://www.dealii.org/images/steps/developer/step-50-strong-scaling.png" alt=""> 
+
+虽然基于矩阵的GMG求解器和AMG的规模相似，求解时间也相似（至少在每个处理器有大量未知数的情况下--比如说，几万个），但无矩阵的GMG求解器的规模要好得多，在较粗的网格上，只用八分之一的处理器就能解决较细的问题，与AMG求解器的时间大致相当。反之，在相同数量的处理器上，它可以用大约八分之一的时间解决同样的问题。
+
+
+
+
+<h3> Possibilities for extensions </h3>
+
+<h4> Testing convergence and higher order elements </h4>
+
+有限元度目前是硬编码为2，见主类的模板参数。这很容易改变。为了测试，最好是切换到一个有参考解的测试问题。这样，你可以比较错误率。
+
+<h4> Coarse solver </h4>
+
+一个更有趣的例子是涉及到一个更复杂的粗大的网格（见步骤49的启发）。这种情况下的问题是，网格层次的最粗层实际上是相当大的，我们必须考虑如何有效地解决粗层问题。这对代数多网格方法来说不是一个问题，因为它们只是继续建立越来越粗的矩阵层次，而不管它们的几何来源）。
+
+在这里的程序中，我们只是简单地用共轭梯度法解决粗级问题，没有任何预处理程序。如果粗略问题真的很小，这是可以接受的--例如，如果粗略网格有一个单元，那么粗略网格问题在2d中有一个 $9\times 9$ 矩阵，在3d中有一个 $27\times 27$ 矩阵；对于我们在当前程序的 $L$ 形域上使用的粗略网格，这些大小在2d中是 $21\times 21$ ，在3d中有 $117\times 117$ 。但如果粗略的网格由数百或数千个单元组成，这种方法将不再起作用，并可能开始主导每个V型单元的整体运行时间。一个常见的方法是使用代数多网格预处理程序来解决粗网格问题；然而，这将需要组装粗矩阵（即使是无矩阵版本）作为AMG实现的输入。
+
+

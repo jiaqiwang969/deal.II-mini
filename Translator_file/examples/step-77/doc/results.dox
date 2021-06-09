@@ -1,0 +1,209 @@
+examples/step-77/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+当运行该程序时，你得到的输出看起来像这样。
+
+@code
+Mesh refinement step 0
+  Target_tolerance: 0.001
+
+
+  Computing residual vector... norm=0.231202
+  Computing Jacobian matrix
+  Factorizing Jacobian matrix
+  Solving linear system
+  Computing residual vector... norm=0.231202
+  Computing residual vector... norm=0.171585
+  Solving linear system
+  Computing residual vector... norm=0.171585
+  Computing residual vector... norm=0.127245
+  Computing residual vector... norm=0.0796471
+  Solving linear system
+  Computing residual vector... norm=0.0796471
+  Computing residual vector... norm=0.0625301
+  Solving linear system
+  Computing residual vector... norm=0.0625301
+  Computing residual vector... norm=0.0498864
+  Solving linear system
+  Computing residual vector... norm=0.0498864
+  Computing residual vector... norm=0.0407765
+  Solving linear system
+  Computing residual vector... norm=0.0407765
+  Computing residual vector... norm=0.0341589
+  Solving linear system
+  Computing residual vector... norm=0.0341589
+  Computing residual vector... norm=0.0292867
+  Solving linear system
+  Computing residual vector... norm=0.0292867
+  Computing residual vector... norm=0.0256309
+  Computing residual vector... norm=0.0223448
+  Solving linear system
+  Computing residual vector... norm=0.0223448
+  Computing residual vector... norm=0.0202797
+  Computing residual vector... norm=0.0183817
+  Solving linear system
+  Computing residual vector... norm=0.0183817
+  Computing residual vector... norm=0.0170464
+  Computing residual vector... norm=0.0157967
+  Computing Jacobian matrix
+  Factorizing Jacobian matrix
+  Solving linear system
+  Computing residual vector... norm=0.0157967
+  Computing residual vector... norm=0.0141572
+  Computing residual vector... norm=0.012657
+ Solving linear system
+  Computing residual vector... norm=0.012657
+  Computing residual vector... norm=0.0116863
+  Computing residual vector... norm=0.0107696
+  Solving linear system
+  Computing residual vector... norm=0.0107696
+  Computing residual vector... norm=0.0100986
+  Computing residual vector... norm=0.00944829
+  Computing residual vector... norm=0.00822576
+  Solving linear system
+  Computing residual vector... norm=0.00822576
+  Computing residual vector... norm=0.00781983
+  Computing residual vector... norm=0.00741619
+  Computing residual vector... norm=0.00661792
+  Solving linear system
+  Computing residual vector... norm=0.00661792
+  Computing residual vector... norm=0.00630571
+  Computing residual vector... norm=0.00599457
+  Computing residual vector... norm=0.00537663
+  Solving linear system
+  Computing residual vector... norm=0.00537663
+  Computing residual vector... norm=0.00512813
+  Computing residual vector... norm=0.00488033
+  Computing residual vector... norm=0.00438751
+  Computing residual vector... norm=0.00342052
+  Solving linear system
+  Computing residual vector... norm=0.00342052
+  Computing residual vector... norm=0.00326581
+  Computing residual vector... norm=0.00311176
+  Computing residual vector... norm=0.00280617
+  Computing residual vector... norm=0.00220992
+  Solving linear system
+  Computing residual vector... norm=0.00220992
+  Computing residual vector... norm=0.00209976
+  Computing residual vector... norm=0.00199943
+  Solving linear system
+  Computing residual vector... norm=0.00199942
+  Computing residual vector... norm=0.00190953
+  Computing residual vector... norm=0.00182005
+  Computing residual vector... norm=0.00164259
+  Computing residual vector... norm=0.00129652
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |     0.192s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| assembling the Jacobian         |         2 |    0.0141s |       7.4% |
+| assembling the residual         |        61 |     0.168s |        88% |
+| factorizing the Jacobian        |         2 |    0.0016s |      0.83% |
+| graphical output                |         1 |   0.00385s |         2% |
+| linear system solve             |        19 |    0.0013s |      0.68% |
++---------------------------------+-----------+------------+------------+
+
+
+
+Mesh refinement step 1
+  Target_tolerance: 0.0001
+
+
+  Computing residual vector... norm=0.0883422
+  Computing Jacobian matrix
+  Factorizing Jacobian matrix
+  Solving linear system
+  Computing residual vector... norm=0.0883422
+  Computing residual vector... norm=0.0607066
+  Solving linear system
+  Computing residual vector... norm=0.0607066
+  Computing residual vector... norm=0.0437266
+  Solving linear system
+  Computing residual vector... norm=0.0437266
+  Computing residual vector... norm=0.0327999
+  Solving linear system
+  Computing residual vector... norm=0.0327999
+  Computing residual vector... norm=0.0255418
+  Solving linear system
+  Computing residual vector... norm=0.0255417
+  Computing residual vector... norm=0.0206042
+  Solving linear system
+  Computing residual vector... norm=0.0206042
+  Computing residual vector... norm=0.0171602
+  Solving linear system
+  Computing residual vector... norm=0.0171602
+  Computing residual vector... norm=0.014689
+  Solving linear system
+
+
+[...]
+@endcode
+
+
+
+通过查看第一个网格上的输出的前几行，应该最容易解释这种方式。
+
+@code
+Mesh refinement step 0
+Mesh refinement step 0
+  Target_tolerance: 0.001
+
+
+  Computing residual vector... norm=0.231202
+  Computing Jacobian matrix
+  Factorizing Jacobian matrix
+  Solving linear system
+  Computing residual vector... norm=0.231202
+  Computing residual vector... norm=0.171585
+  Solving linear system
+  Computing residual vector... norm=0.171585
+  Computing residual vector... norm=0.127245
+  Computing residual vector... norm=0.0796471
+  Solving linear system
+  Computing residual vector... norm=0.0796471
+  ...
+@endcode
+
+现在的情况是这样的。
+
+- 在第一次残差计算中，KINSOL计算残差以查看是否达到了所需的公差。答案是否定的，所以它要求用户程序计算雅各布矩阵（然后该函数还通过SparseDirectUMFPACK对矩阵进行因子化）。
+
+- 然后KINSOL指示我们用这个矩阵和之前计算的残差向量来解决一个形式为 $J_k \, \delta U_k = -F_k$ 的线性系统。
+
+- 然后就是确定我们要在这个方向上走多远，也就是做线搜索。为此，KINSOL要求我们计算不同步长 $\alpha_k$ 的残差向量 $F(U_k + \alpha_k \delta U_k)$  。对于上面的第一步，它在尝试了两次后找到了一个可接受的 $\alpha_k$ ，第二次则需要尝试三次。
+
+- 在找到一个合适的更新解 $U_{k+1}$ 之后，这个过程被重复，只是现在KINSOL对当前的雅各布矩阵很满意，没有指示我们重新建立矩阵和它的因式分解，而是要求我们用同一个矩阵解决一个线性系统。
+
+在每个网格细化周期结束时，程序也会将解决方案写入VTU文件，它看起来如下。   <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-77.solution.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+
+该计划的主要收获信息如下。
+
+- 这个解和我们在步骤15中计算的解是一样的，也就是说，%SUNDIALS的KINSOL包的接口确实做了它们应该做的事。这不应该是一个惊喜，但重要的一点是，我们不必自己花时间去实现高级非线性求解器所依据的复杂算法。
+
+- KINSOL能够避免各种操作，比如在实际上没有必要的时候重建雅各布矩阵。将上述输出中的线性求解次数与我们重建雅各布矩阵和计算其因式分解的次数相比较，应该可以清楚地看到，这在计算时间上带来了非常可观的节省，而我们却不需要实现复杂的算法来确定何时需要重建这些信息。
+
+<a name="extensions"></a>
+
+<h3> Possibilities for extensions </h3>
+
+除了我们在这里考虑的小问题之外，稀疏的直接求解器需要太多的时间和内存--我们需要一个迭代求解器，就像我们在许多其他程序中使用的那样。然而，在目前的情况下，构建一个昂贵的预处理程序（例如，一个几何或代数多重网格方法）的权衡是不同的。由于我们可以在许多线性求解中重复使用同一个矩阵，我们也可以对预处理程序做同样的处理，与我们只在单一线性求解中使用预处理程序相比，在构建一个好的预处理程序上投入更多的工作更容易被证明，就像在许多其他情况下一样。
+
+但迭代求解器也提供了其他机会。例如（正如在介绍中简要讨论的那样），只要我们离实际的解还很远，我们可能不需要在早期的非线性迭代中解到非常高的精度（小公差）。这就是那里提到的Eisenstat-Walker技巧的基础。
+
+KINSOL提供了做线性解的函数，有一个需要达到的目标公差。我们在上面的程序中忽略了它，因为我们使用的直接求解器不需要公差，而是精确地求解线性系统（当然是四舍五入），但是迭代求解器可以利用这种信息--事实上也应该如此。
+
+

@@ -1,0 +1,194 @@
+examples/step-42/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+包含这个程序的目录还包含一些输入参数文件，可以用来创建各种不同的模拟。例如，用 <code>p1_adaptive.prm</code> 参数文件（用球作为障碍物，用盒子作为领域）在16个核心上运行该程序会产生这样的输出。
+
+@code
+    Using output directory 'p1adaptive/'
+    FE degree 1
+    transfer solution false
+
+
+Cycle 0:
+   Number of active cells: 512
+   Number of degrees of freedom: 2187
+
+
+  Newton iteration 1
+      Updating active set...
+         Size of active set: 1
+      Assembling system...
+      Solving system...
+         Error: 173.076 -> 1.64265e-06 in 7 Bicgstab iterations.
+      Accepting Newton solution with residual: 1.64265e-06
+
+
+   Newton iteration 2
+      Updating active set...
+         Size of active set: 1
+      Assembling system...
+      Solving system...
+         Error: 57.3622 -> 3.23721e-07 in 8 Bicgstab iterations.
+      Accepting Newton solution with residual: 24.9028
+      Active set did not change!
+
+
+   Newton iteration 3
+      Updating active set...
+         Size of active set: 1
+      Assembling system...
+      Solving system...
+         Error: 24.9028 -> 9.94326e-08 in 7 Bicgstab iterations.
+      Residual of the non-contact part of the system: 1.63333
+         with a damping parameter alpha = 1
+      Active set did not change!
+
+
+...
+
+
+  Newton iteration 6
+      Updating active set...
+         Size of active set: 1
+      Assembling system...
+      Solving system...
+         Error: 1.43188e-07 -> 3.56218e-16 in 8 Bicgstab iterations.
+      Residual of the non-contact part of the system: 4.298e-14
+         with a damping parameter alpha = 1
+      Active set did not change!
+      Writing graphical output... p1_adaptive/solution-00.pvtu
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |      1.13s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assembling                      |         6 |     0.463s |        41% |
+| Graphical output                |         1 |    0.0257s |       2.3% |
+| Residual and lambda             |         4 |    0.0754s |       6.7% |
+| Setup                           |         1 |     0.227s |        20% |
+| Setup: constraints              |         1 |    0.0347s |       3.1% |
+| Setup: distribute DoFs          |         1 |    0.0441s |       3.9% |
+| Setup: matrix                   |         1 |    0.0119s |       1.1% |
+| Setup: vectors                  |         1 |   0.00155s |      0.14% |
+| Solve                           |         6 |     0.246s |        22% |
+| Solve: iterate                  |         6 |    0.0631s |       5.6% |
+| Solve: setup preconditioner     |         6 |     0.167s |        15% |
+| update active set               |         6 |    0.0401s |       3.6% |
++---------------------------------+-----------+------------+------------+
+
+
+Peak virtual memory used, resident in kB: 541884 77464
+Contact force = 37.3058
+
+
+...
+
+
+Cycle 3:
+   Number of active cells: 14652
+   Number of degrees of freedom: 52497
+
+
+   Newton iteration 1
+      Updating active set...
+         Size of active set: 145
+      Assembling system...
+      Solving system...
+         Error: 296.309 -> 2.72484e-06 in 10 Bicgstab iterations.
+      Accepting Newton solution with residual: 2.72484e-06
+
+
+...
+
+
+   Newton iteration 10
+      Updating active set...
+         Size of active set: 145
+      Assembling system...
+      Solving system...
+         Error: 2.71541e-07 -> 1.5428e-15 in 27 Bicgstab iterations.
+      Residual of the non-contact part of the system: 1.89261e-13
+         with a damping parameter alpha = 1
+      Active set did not change!
+      Writing graphical output... p1_adaptive/solution-03.pvtu
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |      38.4s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| Assembling                      |        10 |      22.5s |        58% |
+| Graphical output                |         1 |     0.327s |      0.85% |
+| Residual and lambda             |         9 |      3.75s |       9.8% |
+| Setup                           |         1 |      4.83s |        13% |
+| Setup: constraints              |         1 |     0.578s |       1.5% |
+| Setup: distribute DoFs          |         1 |      0.71s |       1.8% |
+| Setup: matrix                   |         1 |     0.111s |      0.29% |
+| Setup: refine mesh              |         1 |      4.83s |        13% |
+| Setup: vectors                  |         1 |   0.00548s |     0.014% |
+| Solve                           |        10 |      5.49s |        14% |
+| Solve: iterate                  |        10 |       3.5s |       9.1% |
+| Solve: setup preconditioner     |        10 |      1.84s |       4.8% |
+| update active set               |        10 |     0.662s |       1.7% |
++---------------------------------+-----------+------------+------------+
+
+
+Peak virtual memory used, resident in kB: 566052 105788
+Contact force = 56.794
+
+
+...
+@endcode
+
+
+
+每个周期结束时的表格显示了最近一次网格细化周期的计算时间（这些数字当然是针对产生该输出的机器而言的）和程序不同部分的调用次数，如装配或计算残差。上面的一些数字可以通过将解决方案从一个网格转移到下一个网格来改善，我们在这里没有行使这个选项。当然，你也可以通过使用更多的处理器来使程序运行得更快，特别是在后期的细化周期中：附带的论文显示，至少有1000个内核的良好扩展性。
+
+在一个典型的运行中，你可以看到，对于每一个细化步骤，活动集--接触点--首先被迭代出来。之后，牛顿方法只需要解决塑性问题。对于更细的网格，在最后4或5次牛顿迭代中可以看到二次收敛。
+
+我们不会在这里详细讨论每个输入文件的情况。相反，让我们只展示解决方案的图片（如果单元格的正交点为零，塑性不等式处于活动状态，则域的左半部分被省略）。
+
+ <table align="center">
+  <tr>
+    <td>
+    <img src="https://www.dealii.org/images/steps/developer/step-42.CellConstitutionColorbar.png">
+    </td>
+    <td>
+    <img src="https://www.dealii.org/images/steps/developer/step-42.CellConstitutionBall2.png" alt="" width="70%">
+    </td>
+    <td valign="top">
+      &nbsp;
+    </td>
+    <td>
+    <img src="https://www.dealii.org/images/steps/developer/step-42.CellConstitutionLi2.png" alt="" alt="" width="70%">
+    </td>
+  </tr>
+</table> 
+
+图中显示了适应性细化以及细胞在与球接触过程中的塑化程度。请记住，我们考虑每个正交点的应力偏差部分的规范，以查看是否有弹性或塑性行为。蓝色意味着这个单元只包含弹性正交点，与所有正交点都被塑化的红色单元相反。在顶面的中间--网格最细的地方--非常仔细地看可以看到由障碍物引起的凹陷。这是 <code>move_mesh()</code> 函数的结果。然而，由于我们在这里考虑的障碍物的压痕非常小，所以很难辨别这种效果；我们可以玩玩将网格的顶点按计算出的位移的倍数进行位移。
+
+关于使用该程序可以获得的结果的进一步讨论，见本页面最上方提到的出版物。
+
+
+<a name="extensions"></a>
+
+<h1>Possibilities for extensions</h1>
+
+像往常一样，有多种可能性来扩展这个程序。从算法的角度来看，这个程序在写作时已经达到了我们所能达到的程度，使用了接触不等式、塑性非线性和线性求解器的最佳可用算法。然而，就更现实的情况而言，人们希望用这个程序做一些事情。   <ul>   <li>  将程序从静态扩展到准静态情况，也许可以通过选择后向欧拉模式来实现时间离散化。一些理论结果可以在Jörg Frohne的博士论文中找到，<i>FEM-Simulation
+der Umformtechnik metallischer Oberfl&auml;chen im Mikrokosmos</i>，德国锡根大学，2011。
+
+ <li> 考虑有摩擦力的接触问题也将是一个有趣的进步。在几乎每个机械过程中，摩擦都有很大的影响。  为了模拟这种情况，我们必须考虑到接触面的切向应力。摩擦也给我们的问题增加了另一个不等式，因为只要切向应力不超过某个极限，身体和障碍物通常会粘在一起，超过这个极限，两个身体就会互相滑过。
+
+ <li>  如果我们已经模拟了摩擦性接触，下一步要考虑的是接触区的发热。由两个物体之间的摩擦引起的热量会提高可变形物体的温度，并导致一些材料参数的变化。
+
+ <li>  对于接触以及塑性，实施更精确的、与问题相适应的误差估计器可能是有意义的。   </ul> 
+
+

@@ -1,0 +1,350 @@
+examples/step-6/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+程序的输出看起来如下。
+
+@code
+Cycle 0:
+   Number of active cells:       20
+   Number of degrees of freedom: 89
+Cycle 1:
+   Number of active cells:       44
+   Number of degrees of freedom: 209
+Cycle 2:
+   Number of active cells:       92
+   Number of degrees of freedom: 449
+Cycle 3:
+   Number of active cells:       200
+   Number of degrees of freedom: 921
+Cycle 4:
+   Number of active cells:       440
+   Number of degrees of freedom: 2017
+Cycle 5:
+   Number of active cells:       956
+   Number of degrees of freedom: 4425
+Cycle 6:
+   Number of active cells:       1916
+   Number of degrees of freedom: 8993
+Cycle 7:
+   Number of active cells:       3860
+   Number of degrees of freedom: 18353
+@endcode
+
+
+
+
+
+
+正如预期的那样，在每个周期中，单元格的数量大约增加了一倍。度数略多于单元数的四倍；人们期望在无限网格的两个空间维度上的系数正好是四（因为自由度之间的间隔是单元宽度的一半：每个边缘有一个额外的自由度，每个单元的中间有一个），但由于网格的有限尺寸和由悬挂节点和局部细化引入的额外自由度，它大于这个系数。
+
+
+
+
+程序在细化循环的每个周期都输出解决方案和网格。解决方案看起来如下。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-6.solution.9.2.png" alt=""> 
+
+关注该程序如何得出最终的网格是很有趣的。
+
+<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_0.svg" alt="初始网格：具有一个全局细化的五格圆形网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_1.svg" alt="第一个网格：具有两个全局细化的五格圆形网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_2.svg" alt="第二个网格：有一个自适应细化的五格圆形网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_3.svg" alt="第三个网格：有两个自适应细化的五格圆形网格，显示围绕内圆的聚类。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_4.svg" alt="第四个网格：具有三个自适应细化的五格圆形网格，显示了围绕内圈的聚类。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_5.svg" alt="第五个网格：具有四个自适应细化的五格圆形网格，显示了围绕内圈的聚类。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_6.svg" alt="第六个网格：具有五个自适应细化的五格圆形网格，显示了围绕内圈的聚类。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_7.svg" alt="最后一个网格：有六个自适应细化的五格圆形网格，显示大多数单元都聚集在内圆周围。" width="300" height="300"> </div> </div>
+
+
+可以清楚地看到，在解有扭结的区域，也就是离中心0.5的径向距离的圆，被精炼得最多。此外，解非常光滑和几乎平坦的中心区域几乎完全没有被细化，但这是由于我们没有考虑到那里的系数很大的事实。外面的区域被任意细化，因为那里的二阶导数是恒定的，因此细化主要是基于单元的大小和它们与最佳方形的偏差。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Solvers and preconditioners</h4>
+
+
+如果一个人要解决相当大的问题（比我们这里的问题大得多），有一件事总是值得一试的，那就是尝试不同的求解器或预处理器。在目前的情况下，线性系统是对称的和正定的，这使得CG算法几乎成了求解的典型选择。然而，我们在 <code>solve()</code> 函数中使用的SSOR预处理器是可以争夺的。
+
+在deal.II中，改变预处理程序是比较简单的。例如，通过改变现有的几行代码
+
+@code
+  PreconditionSSOR<SparseMatrix<double>> preconditioner;
+  preconditioner.initialize(system_matrix, 1.2);
+@endcode
+
+进入
+
+@code
+  PreconditionSSOR<SparseMatrix<double>> preconditioner;
+  preconditioner.initialize(system_matrix, 1.0);
+@endcode
+
+我们可以尝试SSOR的不同放松参数。通过使用
+
+@code
+  PreconditionJacobi<SparseMatrix<double>> preconditioner;
+  preconditioner.initialize(system_matrix);
+@endcode
+
+我们可以使用Jacobi作为预处理程序。而通过使用
+
+@code
+  SparseILU<double> preconditioner;
+  preconditioner.initialize(system_matrix);
+@endcode
+
+我们可以使用一个简单的不完全LU分解，不需要任何阈值处理或加强对角线（要使用这个预处理程序，你还必须把头文件 <code>deal.II/lac/sparse_ilu.h</code> 添加到文件顶部的包含列表中）。
+
+使用这些不同的预处理程序，我们可以比较所需的CG迭代次数（可通过 <code>solver_control.last_step()</code> 调用，见步骤4）以及所需的CPU时间（使用Timer类，例如在步骤28中讨论的），得到如下结果（左：迭代次数；右：CPU时间）。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-6.q2.dofs_vs_iterations.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-6.q2.dofs_vs_time.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+我们可以看到，在这个简单的问题上，所有的预处理程序的表现都差不多，迭代次数的增长是 ${\cal
+O}(N^{1/2})$ ，由于每次迭代需要大约 ${\cal
+O}(N)$ 次操作，总的CPU时间增长是 ${\cal
+O}(N^{3/2})$ （对于几个最小的网格，CPU时间小到没有记录）。请注意，尽管它是最简单的方法，但对于这个问题，雅可比是最快的。
+
+当有限元不是本程序构造函数中设定的双二次元，而是双线性的时候，情况会有一些变化。如果做此改变，结果如下。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-6.q1.dofs_vs_iterations.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-6.q1.dofs_vs_time.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+换句话说，虽然迭代次数和CPU时间的增加与以前一样，但Jacobi现在是需要迭代次数最多的方法；不过，由于它必须执行的操作很简单，所以它仍然是最快的方法。这并不是说Jacobi实际上是一个好的预处理方法--对于规模可观的问题来说，它绝对不是，其他方法会好得多--而实际上只是因为它的实现非常简单，可以补偿更多的迭代次数，所以它的速度很快。
+
+从这里得到的信息并不是预处理程序的简单性总是最好的。虽然这对目前的问题可能是正确的，但一旦我们转向更复杂的问题（弹性或斯托克斯，例如第8步或第22步），就绝对不是这样了。其次，所有这些预处理程序仍然会导致迭代次数随着自由度数 $N$ 的增加而增加，例如 ${\cal O}(N^\alpha)$ ；这反过来又会导致总工作量增加为 ${\cal O}(N^{1+\alpha})$ ，因为每次迭代都需要 ${\cal O}(N)$ 的工作。这种行为是不可取的：我们真的希望用 $N$ 个未知数解决线性系统，总工作量为 ${\cal O}(N)$ 个；有一类预处理程序可以实现这一点，即几何（step-16、step-37、step-39）或代数多网格（step-31、step-40和其他几个）预处理程序。然而，它们要比上述的预处理程序复杂得多。
+
+最后，要带回家的最后一个信息是，当上面显示的数据产生时（2018年），有10万个未知数的线性系统在台式机上很容易在大约一秒钟内解决，使相对简单的2d问题的解决甚至达到非常高的精度，甚至在过去也不是一个大任务。当时，三维问题的情况完全不同，但即使是这样，在过去的时间里也发生了很大的变化--尽管在三维中解决高精度的问题仍然是一个挑战。
+
+
+
+
+<h4>A better mesh</h4>
+
+如果你看一下上面的网格，你会发现即使域是单位盘，系数的跳动是沿着圆的，构成网格的单元也不能很好地跟踪这个几何体。原因在步骤1中已经暗示过了，在没有其他信息的情况下，Triangulation类只看到一堆粗略的网格单元，但当然不知道它们在一起看时可能代表什么样的几何形状。出于这个原因，我们需要告诉Triangulation在一个单元被细化时应该做什么：边缘中点和单元中点的新顶点应该位于哪里，以便子单元比父单元更好地代表所需的几何图形。
+
+为了直观地了解三角计算对几何体的实际了解，仅仅输出顶点的位置和为每条边画一条直线是不够的；相反，我们必须将内部线和边界线都输出为多段线，使它们看起来是弯曲的。我们可以通过对 <code>output_results</code> 的gnuplot部分做一个改变来做到这一点。
+
+@code
+{
+  GridOut       grid_out;
+  std::ofstream output("grid-" + std::to_string(cycle) + ".gnuplot");
+  GridOutFlags::Gnuplot gnuplot_flags(false, 5, /*curved_interior_cells*/true);
+  grid_out.set_flags(gnuplot_flags);
+  MappingQGeneric<dim> mapping(3);
+  grid_out.write_gnuplot(triangulation, output, &mapping);
+}
+@endcode
+
+
+
+在上面的代码中，我们已经对位于边界的面做了这个处理：由于我们使用了 GridGenerator::hyper_ball, ，它将一个SphericalManifold附着在域的边界上，所以这是自动发生的。为了使网格<i>interior</i>也能追踪到一个圆形域，我们需要更努力一些。首先，回顾一下我们的粗略网格由一个中心的方形单元和周围的四个单元组成。现在首先考虑一下，如果我们不仅将SphericalManifold对象连接到四个外部面，而且还连接到周边的四个单元以及它们的所有面，会发生什么。我们可以通过添加下面的片段来实现（测试一个单元的中心是否大于单元直径的一个小倍数，比如说十分之一，远离网格中心的单元直径，只对网格中心的正方形失效）。
+
+@code
+GridGenerator::hyper_ball(triangulation);
+// after GridGenerator::hyper_ball is called the Triangulation has
+// a SphericalManifold with id 0. We can use it again on the interior.
+const Point<dim> mesh_center;
+for (const auto &cell : triangulation.active_cell_iterators())
+  if (mesh_center.distance (cell->center()) > cell->diameter()/10)
+    cell->set_all_manifold_ids(0);
+
+
+triangulation.refine_global(1);
+@endcode
+
+
+
+经过几个全局细化的步骤，这将导致以下类型的网格。
+
+
+  <div class="onecolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_bad_grid_4.svg" alt="一些中央单元格几乎呈三角形的网格。" width="300" height="300"> </div> </div>
+
+这不是一个好的网格：中心单元已经被细化，位于原始中心单元<i>degenerate</i>的四个角的子单元：随着网格细化的继续，它们都倾向于三角形。这意味着从参考单元到实际单元的转换的Jacobian矩阵对这些单元来说是退化的，由于有限元解的所有误差估计都包含Jacobian矩阵的反值，你会在这些单元上得到非常大的误差，而且随着网格细化的极限，收敛顺序的损失，因为这些角落的单元在网格细化下变得越来越差。
+
+所以我们需要更聪明的东西。为此，考虑以下最初由Konstantin Ladutenko开发的解决方案。我们将使用以下代码。
+
+@code
+GridGenerator::hyper_ball(triangulation);
+
+
+const Point<dim> mesh_center;
+const double core_radius  = 1.0/5.0,
+             inner_radius = 1.0/3.0;
+
+
+// Step 1: Shrink the inner cell
+//
+// We cannot get a circle out of the inner cell because of
+// the degeneration problem mentioned above. Rather, shrink
+// the inner cell to a core radius of 1/5 that stays
+// sufficiently far away from the place where the
+// coefficient will have a discontinuity and where we want
+// to have cell interfaces that actually lie on a circle.
+// We do this shrinking by just scaling the location of each
+// of the vertices, given that the center of the circle is
+// simply the origin of the coordinate system.
+for (const auto &cell : triangulation.active_cell_iterators())
+  if (mesh_center.distance(cell->center()) < 1e-5)
+    {
+      for (const auto v : cell->vertex_indices())
+        cell->vertex(v) *= core_radius/mesh_center.distance(cell->vertex(v));
+    }
+
+
+// Step 2: Refine all cells except the central one
+for (const auto &cell : triangulation.active_cell_iterators())
+  if (mesh_center.distance(cell->center()) >= 1e-5)
+    cell->set_refine_flag();
+triangulation.execute_coarsening_and_refinement();
+
+
+// Step 3: Resize the inner children of the outer cells
+//
+// The previous step replaced each of the four outer cells
+// by its four children, but the radial distance at which we
+// have intersected is not what we want to later refinement
+// steps. Consequently, move the vertices that were just
+// created in radial direction to a place where we need
+// them.
+for (const auto &cell : triangulation.active_cell_iterators())
+  for (const auto v : cell->vertex_indices())
+    {
+      const double dist = mesh_center.distance(cell->vertex(v));
+      if (dist > core_radius*1.0001 && dist < 0.9999)
+        cell->vertex(v) *= inner_radius/dist;
+    }
+
+
+// Step 4: Apply curved manifold description
+//
+// As discussed above, we can not expect to subdivide the
+// inner four cells (or their faces) onto concentric rings,
+// but we can do so for all other cells that are located
+// outside the inner radius. To this end, we loop over all
+// cells and determine whether it is in this zone. If it
+// isn't, then we set the manifold description of the cell
+// and all of its bounding faces to the one that describes
+// the spherical manifold already introduced above and that
+// will be used for all further mesh refinement.
+for (const auto &cell : triangulation.active_cell_iterators())
+  {
+    bool is_in_inner_circle = false;
+    for (const auto v : cell->vertex_indices())
+      if (mesh_center.distance(cell->vertex(v)) < inner_radius)
+        {
+          is_in_inner_circle = true;
+          break;
+        }
+
+
+    if (is_in_inner_circle == false)
+    // The Triangulation already has a SphericalManifold with
+    // manifold id 0 (see the documentation of
+    // GridGenerator::hyper_ball) so we just attach it to the outer
+    // ring here:
+      cell->set_all_manifold_ids(0);
+  }
+@endcode
+
+
+
+然后，这段代码生成了以下更好的网格序列。
+
+<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_0_ladutenko.svg" alt="初始网格：带有一个全局细化的Ladutenko网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_1_ladutenko.svg" alt="第一个自适应细化的Ladutenko网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_2_ladutenko.svg" alt="第二个自适应细化的Ladutenko网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_3_ladutenko.svg" alt="第三个自适应细化Ladutenko网格。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_4_ladutenko.svg" alt="第四个自适应细化Ladutenko网格。细胞沿着内圈聚集。" width="300" height="300"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_6_grid_5_ladutenko.svg" alt="第五个自适应改进的拉杜腾科网格：细胞沿着内圈聚集。" width="300" height="300"> </div> </div>
+
+创建好的网格，特别是使它们适合你想要的几何形状，本身就是一个复杂的话题。你可以在步骤49、步骤53和步骤54中找到更多关于这个问题的内容，以及其他涉及这个问题的教程程序。步骤65展示了另一个不那么手动的方法来实现一个很适合这里的问题的网格。关于弯曲域的信息也可以在 @ref manifold "流形描述 "的文档模块中找到。
+
+为什么选择一个跟踪内部界面的网格是有意义的？有很多原因，但最重要的原因是我们在双线性表格中实际整合的内容。从概念上讲，我们想把 $A_{ij}^K=\int_K
+a(\mathbf x) \nabla \varphi_i(\mathbf x) \nabla \varphi_j(\mathbf x) ; dx$ 作为单元格 $K$ 对矩阵条目 $A_{ij}$ 的贡献来整合。我们无法精确计算，只能求助于正交法。我们知道，如果积分是平滑的，正交是准确的。这是因为正交法实质上是计算积分的多项式近似值，与积分在正交点上重合，然后计算这个多项式下的体积，作为原始积分下体积的近似值。如果积分在一个单元上是平滑的，这个多项式插值是准确的，但如果积分在一个单元上是不连续的，它通常是相当不准确的。
+
+因此，值得将细胞排列成这样的方式，使系数不连续的界面与细胞界面对齐。这样一来，系数在每个单元上都是恒定的，之后积分将是平滑的，其多项式近似和积分的正交近似都将是准确的。请注意，这样的排列方式在许多实际案例中很常见，因此deal.II提供了一些函数（如 @ref GlossMaterialId "material_id"）来帮助管理这种情况。请参考步骤28和步骤46，了解如何应用material ids的例子。
+
+最后，让我们考虑一个在空间中具有平滑和非均匀分布的系数的情况。我们可以再一次重复上面关于用正交法表示这种函数的所有讨论。所以，为了准确地模拟它，有几个现成的选择：你可以减少单元格的大小，增加正交公式中使用的多项式的阶数，选择一个更合适的正交公式，或进行这些步骤的组合。关键是，用正交多项式提供系数的空间依赖性的最佳拟合将导致PDE的更精确的有限元解。
+
+最后说明一下：前面几段的讨论表明，我们在这里有一种非常具体的方式来说明我们认为的好的网格--它应该与系数中的跳跃相一致。但人们也可以在一个更普遍的环境中提出这样的问题。给定一些具有光滑解和光滑系数的方程，我们能说一个好的网格是什么样子的吗？这个问题的答案在直觉上比数学上更容易表述。一个好的网格，其单元格大体上都像正方形（或立方体，在三维空间）。一个不好的网格会包含一些在某些方向上非常细长的单元，或者，更广泛地说，其中有一些单元的边缘既短又长。有很多方法可以给每个单元分配一个数字质量指数，以衡量该单元是 "好 "还是 "坏"；其中一些经常被选择，因为它们便宜且容易计算，而另一些则是基于收敛性证明中的内容。前者的一个例子是一个单元格的最长边与最短边的比率。在理想的情况下，这个比率是1；不好的单元格的值远远大于1。后者的例子是考虑从参考单元 $\hat K=[0,1]^d$ 到实际单元 $K$ 的映射的梯度（"Jacobian"）；这个梯度是一个矩阵，进入误差估计的一个量是参考单元上所有点的最大值，即这个矩阵的最大和最小的特征值的比率。同样不难看出，如果单元格 $K$ 是 $\hat K$ 的仿生图像，这个比率是恒定的，对于正方形和长方体来说是一个。
+
+在实践中，将这种质量衡量标准可视化可能是很有趣的。函数 GridTools::compute_aspect_ratio_of_cells() 提供了一种获得这种信息的方法。更好的是，可视化工具，如VisIt，通常允许你在可视化软件中对各种措施进行可视化；在VisIt的情况下，只需添加一个 "伪色 "图，并选择一个网格质量措施，而不是解决方案领域。
+
+
+
+
+<h4>Playing with the regularity of the solution</h4>
+
+从数学的角度来看，拉普拉斯方程的解决方案
+
+@f[
+
+
+  -\Delta u = f
+
+
+@f]
+
+在光滑有界的凸域上，已知其本身是光滑的。确切的光滑程度，即解所处的函数空间，取决于域的边界到底有多光滑，以及右手边的光滑程度。边界处可能会失去解的某些规律性，但一般来说，在域的紧凑子集中，解的可微性比右手边多一倍。特别是如果右手边满足 $f\in C^\infty(\Omega)$ ，那么 $u \in C^\infty(\Omega_i)$ ，其中 $\Omega_i$ 是 $\Omega$ 的任何紧凑子集（ $\Omega$ 是一个开放域，所以紧凑子集需要与 $\partial\Omega$ 保持一个正距离）。
+
+然而，我们为目前的例子选择的情况是不同的：我们看的是一个具有非常数系数的方程  $a(\mathbf x)$  。
+
+@f[
+
+
+  -\nabla \cdot (a \nabla u) = f.
+
+
+@f]
+
+这里，如果 $a$ 不光滑，那么无论 $f$ 如何，解也不会光滑。特别是，我们希望在 $a$ 沿直线（或沿三维平面）不连续的地方，解会有一个结点。这很容易看出来：例如，如果 $f$ 是连续的，那么 $f=-\nabla \cdot (a \nabla u)$ 也需要是连续的。这意味着 $a \nabla u$ 必须是可连续微分的（不存在扭结）。因此，如果 $a$ 有一个不连续，那么 $\nabla u$ 必须有一个相反的不连续，从而使两者完全抵消，它们的乘积得到一个没有不连续的函数。但是要使 $\nabla u$ 有一个不连续， $u$ 必须有一个结点。当然，这正是当前例子中所发生的情况，在解的图片中也很容易观察到。
+
+一般来说，如果系数 $a(\mathbf x)$ 沿着2D的直线或3D的平面是不连续的，那么解可能有一个结点，但解的梯度不会到无限大。这意味着，解至少还在<a href="https://en.wikipedia.org/wiki/Sobolev_space">Sobolev space</a> $W^{1,\infty}$ 中（也就是说，大致上是在导数有界的函数空间中）。另一方面，我们知道，在最极端的情况下--即域有重入角，右手边只满足 $f\in H^{-1}$ ，或者系数 $a$ 只在 $L^\infty$ 中--我们所能期望的是， $u\in H^1$ （即导数是可平方整除的函数的<a
+href="https://en.wikipedia.org/wiki/Sobolev_space#Sobolev_spaces_with_integer_k">Sobolev
+space</a>），是比 $W^{1,\infty}$ 大很多的空间 。要创造出解在空间 $H^{1+s}$ 中的案例并不十分困难，我们可以让 $s$ 变得像我们想要的那样小。这样的情况经常被用来测试自适应有限元方法，因为网格要解决导致解不再在 $W^{1,\infty}$ 中的奇异点。
+
+人们为此使用的典型例子叫做<i>Kellogg problem</i>（指 @cite Kel74 ），在常用的形式中，它的系数 $a(\mathbf x)$ 在平面的四个象限有不同的值（或在 ${\mathbb R}^3$ 的八个象限有不同的值）。确切的规则性程度（上述索博列夫空间索引中的 $s$ ）取决于 $a(\mathbf x)$ 的值在原点处聚集，通过选择足够大的跳跃，可以使解的规则性尽可能地接近 $H^1$  。
+
+为了实现这样的东西，可以用以下方法来代替系数函数（这里只显示2d情况）。
+
+@code
+template <int dim>
+double coefficient (const Point<dim> &p)
+{
+  if ((p[0] < 0) && (p[1] < 0))           // lower left quadrant
+    return 1;
+  else if ((p[0] >= 0) && (p[1] < 0))     // lower right quadrant
+    return 10;
+  else if ((p[0] < 0) && (p[1] >= 0))     // upper left quadrant
+    return 100;
+  else if ((p[0] >= 0) && (p[1] >= 0))    // upper right quadrant
+    return 1000;
+  else
+    {
+      Assert(false, ExcInternalError());
+      return 0;
+    }
+}
+@endcode
+
+(在结尾处添加 <code>Assert</code> ，以确保在我们到达那个点时，要么抛出一个异常，要么程序中止。
+
+--当然我们不应该这样做，但这是给自己上保险的好方法：我们都会犯错，因为有时没有想到所有的情况，例如检查 <code>p[0]</code> 是否小于和大于零，而不是大于或等于零，从而忘记了一些情况，否则会导致难以发现的错误。最后的 <code>return 0;</code> 只是为了避免编译器警告说函数没有在 <code>return</code> 语句中结束 -- 编译器无法看到由于前面的 <code>Assert</code> 语句，函数实际上永远不会到达那个点）。)
+
+通过玩弄这种四个或更多的扇形聚集在一起，并且在这些扇形上的系数有不同的值的情况，我们可以构造出解在原点有奇异点的情况。我们还可以看到在这种情况下网格是如何被细化的。
+
+

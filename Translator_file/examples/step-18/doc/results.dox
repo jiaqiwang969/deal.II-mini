@@ -1,0 +1,530 @@
+examples/step-18/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+如果使用调试模式，运行该程序需要很长时间；在我的i7台式机上需要大约11分钟。幸运的是，经过优化编译的版本要快得多；在同一台机器上用<tt>make release</tt>命令重新编译后，程序只需要大约1.5分钟，这个时间要合理得多。
+
+
+如果运行，该程序会打印出以下输出，解释它在这段时间内做了什么。
+
+@verbatim
+\$ time make run
+[ 66%] Built target \step-18
+[100%] Run \step-18 with Release configuration
+Timestep 1 at time 1
+  Cycle 0:
+    Number of active cells:       3712 (by partition: 3712)
+    Number of degrees of freedom: 17226 (by partition: 17226)
+    Assembling system... norm of rhs is 1.88062e+10
+    Solver converged in 103 iterations.
+    Updating quadrature point data...
+  Cycle 1:
+    Number of active cells:       12812 (by partition: 12812)
+    Number of degrees of freedom: 51738 (by partition: 51738)
+    Assembling system... norm of rhs is 1.86145e+10
+    Solver converged in 121 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 2 at time 2
+    Assembling system... norm of rhs is 1.84169e+10
+    Solver converged in 122 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 3 at time 3
+    Assembling system... norm of rhs is 1.82355e+10
+    Solver converged in 122 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 4 at time 4
+    Assembling system... norm of rhs is 1.80728e+10
+    Solver converged in 117 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 5 at time 5
+    Assembling system... norm of rhs is 1.79318e+10
+    Solver converged in 116 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 6 at time 6
+    Assembling system... norm of rhs is 1.78171e+10
+    Solver converged in 115 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 7 at time 7
+    Assembling system... norm of rhs is 1.7737e+10
+    Solver converged in 112 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 8 at time 8
+    Assembling system... norm of rhs is 1.77127e+10
+    Solver converged in 111 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 9 at time 9
+    Assembling system... norm of rhs is 1.78207e+10
+    Solver converged in 113 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 10 at time 10
+    Assembling system... norm of rhs is 1.83544e+10
+    Solver converged in 115 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+[100%] Built target run
+make run  176.82s user 0.15s system 198% cpu 1:28.94 total
+@endverbatim
+
+换句话说，它是在12,000个单元和大约52,000个未知数的情况下进行计算。不是很多，但对于一个耦合的三维问题来说，足以让计算机忙上一阵子。在一天结束的时候，这就是我们的输出。
+
+@verbatim
+\$ ls -l *vtu *visit
+
+
+-rw-r--r-- 1 drwells users 1706059 Feb 13 19:36 solution-0010.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:36 solution-0010.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:36 solution-0010.visit
+
+
+-rw-r--r-- 1 drwells users 1707907 Feb 13 19:36 solution-0009.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:36 solution-0009.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:36 solution-0009.visit
+
+
+-rw-r--r-- 1 drwells users 1703771 Feb 13 19:35 solution-0008.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0008.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0008.visit
+
+
+-rw-r--r-- 1 drwells users 1693671 Feb 13 19:35 solution-0007.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0007.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0007.visit
+
+
+-rw-r--r-- 1 drwells users 1681847 Feb 13 19:35 solution-0006.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0006.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0006.visit
+
+
+-rw-r--r-- 1 drwells users 1670115 Feb 13 19:35 solution-0005.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0005.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0005.visit
+
+
+-rw-r--r-- 1 drwells users 1658559 Feb 13 19:35 solution-0004.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0004.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0004.visit
+
+
+-rw-r--r-- 1 drwells users 1639983 Feb 13 19:35 solution-0003.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0003.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0003.visit
+
+
+-rw-r--r-- 1 drwells users 1625851 Feb 13 19:35 solution-0002.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:35 solution-0002.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:35 solution-0002.visit
+
+
+-rw-r--r-- 1 drwells users 1616035 Feb 13 19:34 solution-0001.000.vtu
+
+
+-rw-r--r-- 1 drwells users     761 Feb 13 19:34 solution-0001.pvtu
+
+
+-rw-r--r-- 1 drwells users      33 Feb 13 19:34 solution-0001.visit
+@endverbatim
+
+
+
+
+如果我们用VisIt或Paraview将这些文件可视化，我们就能看到我们的强制压缩对圆柱体造成的灾难的全貌（图像中的颜色编码了材料中的应力规范）。
+
+
+<div class="threecolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.sequential-0002.0000.png" alt="Time = 2" width="400"> </div> <div class="text" align="center"> Time = 2 </div> <div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.sequential-0005.0000.png" alt="时间=5" width="400"> </div> <div class="text" align="center"> 时间=5 </div> </div> <div class="father"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.sequential-0007.0000.png" alt="时间=7" width="400"> </div> <div class="text" align="center">时间=7 </div> </div> </div>
+
+
+<div class="threecolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.sequential-0008.0000.png" alt="Time = 8" width="400"> </div> <div class="text" align="center"> 时间 = 8 </div> </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.sequential-0009.0000.png" alt="时间=9" width="400"> </div> <div class="text" align="center"> 时间=9 </div> </div> <div class="father"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.sequential-0010.0000.png" alt="Time = 10" width="400"> </div> <div class="text" align="center"> Time = 10 </div> </div> </div>
+
+
+可以清楚地看到，当我们不断压缩圆柱体时，它开始在完全约束的底面附近弯曲，并在大约8个时间单位后，以方位对称的方式弯曲。
+
+
+虽然这个结果对于对称几何和加载来说似乎是合理的，但计算是否完全收敛还有待确定。为了确定是否收敛，我们再次运行程序，在开始时再进行一次全局细化，并将时间步长减半。这在单机上会花费很长的时间，所以我们使用了一个合适的工作站，在16个处理器上并行运行。现在输出的开头看起来像这样。
+
+@verbatim
+Timestep 1 at time 0.5
+  Cycle 0:
+    Number of active cells:       29696 (by partition: 1808+1802+1894+1881+1870+1840+1884+1810+1876+1818+1870+1884+1854+1903+1816+1886)
+    Number of degrees of freedom: 113100 (by partition: 6936+6930+7305+7116+7326+6869+7331+6786+7193+6829+7093+7162+6920+7280+6843+7181)
+    Assembling system... norm of rhs is 1.10765e+10
+    Solver converged in 209 iterations.
+    Updating quadrature point data...
+  Cycle 1:
+    Number of active cells:       102034 (by partition: 6387+6202+6421+6341+6408+6201+6428+6428+6385+6294+6506+6244+6417+6527+6299+6546)
+    Number of degrees of freedom: 359337 (by partition: 23255+21308+24774+24019+22304+21415+22430+22184+22298+21796+22396+21592+22325+22553+21977+22711)
+    Assembling system... norm of rhs is 1.35759e+10
+    Solver converged in 268 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 2 at time 1
+    Assembling system... norm of rhs is 1.34674e+10
+    Solver converged in 267 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 3 at time 1.5
+    Assembling system... norm of rhs is 1.33607e+10
+    Solver converged in 265 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+Timestep 4 at time 2
+    Assembling system... norm of rhs is 1.32558e+10
+    Solver converged in 263 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+
+
+[...]
+
+
+Timestep 20 at time 10
+    Assembling system... norm of rhs is 1.47755e+10
+    Solver converged in 425 iterations.
+    Updating quadrature point data...
+    Moving mesh...
+@endverbatim
+
+考虑到我们是在三维空间中，这是一个相当好的未知数的数量。这个程序的输出是每个时间步骤的16个文件。
+
+@verbatim
+\$ ls -l solution-0001*
+
+
+-rw-r--r-- 1 wellsd2 user 761065 Feb 13 21:09 solution-0001.000.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 759277 Feb 13 21:09 solution-0001.001.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 761217 Feb 13 21:09 solution-0001.002.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 761605 Feb 13 21:09 solution-0001.003.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 756917 Feb 13 21:09 solution-0001.004.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 752669 Feb 13 21:09 solution-0001.005.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 735217 Feb 13 21:09 solution-0001.006.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 750065 Feb 13 21:09 solution-0001.007.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 760273 Feb 13 21:09 solution-0001.008.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 777265 Feb 13 21:09 solution-0001.009.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 772469 Feb 13 21:09 solution-0001.010.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 760833 Feb 13 21:09 solution-0001.011.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 782241 Feb 13 21:09 solution-0001.012.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 748905 Feb 13 21:09 solution-0001.013.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 738413 Feb 13 21:09 solution-0001.014.vtu
+
+
+-rw-r--r-- 1 wellsd2 user 762133 Feb 13 21:09 solution-0001.015.vtu
+
+
+-rw-r--r-- 1 wellsd2 user   1421 Feb 13 21:09 solution-0001.pvtu
+
+
+-rw-r--r-- 1 wellsd2 user    364 Feb 13 21:09 solution-0001.visit
+@endverbatim
+
+
+
+
+这里首先是我们计算的网格，以及16个处理器的分区。
+
+
+<div class="twocolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-000mesh.png" alt="Discretization" width="400"> </div> <div class="text" align="center"> Discretization </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0002.p.png" alt="Parallel partitioning" width="400"> </div> <div class="text" align="center"> Parallel partitioning</div> </div> </div>
+
+
+最后，这里是与我们之前展示的更小的顺序情况相同的输出。
+
+<div class="threecolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0002.s.png" alt="Time = 2" width="400"> </div> <div class="text" align="center"> 时间 = 2 </div> </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0005.s.png" alt="时间=5" width="400"> </div> <div class="text" align="center"> 时间=5 </div> </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0007.s.png" alt="Time = 7" width="400"> </div> <div class="text" align="center"> Time = 7 </div> </div> </div>
+
+
+<div class="threecolumn" style="width: 80%"> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0008.s.png" alt="Time = 8" width="400"> </div> <div class="text" align="center"> 时间 = 8 </div> </div> <div class="parent"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0009.s.png" alt="Time = 9" width="400"> </div> <div class="text" align="center"> Time = 9 </div> </div> <div class="father"> <div class="img" align="center"> <img src="https://www.dealii.org/images/steps/developer/step-18.parallel-0010.s.png" alt="Time = 10" width="400"> </div> <div class="text" align="center"> Time = 10 </div> </div> </div>
+
+
+和以前一样，我们观察到，在高轴向压缩时，圆柱体开始弯曲，但这一次最终是在自己身上塌陷。与我们的第一次运行相反，在模拟结束时，变形模式变得不对称（中心隆起向侧面偏转）。该模型显然没有规定这一点（我们所有的力和边界偏转都是对称的），但这种效果可能在物理上是正确的：在现实中，身体材料属性的小不均匀性会导致它向一侧弯曲以逃避强制力；在数值模拟中，小的扰动，如数值舍入或迭代求解器对线性系统的不精确求解，也会产生同样的效果。在自适应计算中，另一个典型的不对称来源是每一步只细化一定的单元，这可能导致不对称的网格，即使原来的粗网格是对称的。
+
+
+如果将其与之前的运行相比较，结果在质和量上都有不同。因此，以前的计算肯定没有收敛，尽管我们不能肯定地说现在的计算有什么问题。我们需要一个更精细的计算来找出答案。然而，这一点可能是没有意义的：详细看一下最后一张图片，很明显，不仅我们选择的线性小变形模型是完全不够的，而且对于一个现实的模拟，我们还需要确保身体在变形过程中不相交（如果我们继续压缩圆柱体，我们会观察到一些自我相交）。如果没有这样的表述，我们就不能指望任何东西都有物理意义，即使它能产生漂亮的图片!
+
+
+
+
+<h3>Possibilities for extensions</h3>
+
+这个程序并没有真正解决一个在实践中有很多应用的方程：基于纯弹性规律的准静态材料变形几乎是无聊的。然而，该程序可以作为更有趣的实验的起点，而这确实是编写该程序的最初动机。这里有一些建议，说明这个程序缺少什么，以及它可以在什么方向上进行扩展。
+
+<h5>Plasticity models</h5>
+
+最明显的扩展是使用一个更现实的材料模型来处理大规模的静态变形。这方面的自然选择是塑性，其中应力和应变之间的非线性关系取代了方程<a href="#step_18.stress-strain">[stress-strain]</a>。塑性模型的编程通常相当复杂，因为应力-应变关系通常是非平滑的。可以认为材料只能承受一个最大的应力（屈服应力），之后它就会开始&ldquo;流动&rdquo;。这方面的数学描述可以以变分不等式的形式给出，也可以将其视为弹性能量的最小化
+
+@f[
+  E(\mathbf{u}) =
+  (\varepsilon(\mathbf{u}), C\varepsilon(\mathbf{u}))_{\Omega}
+
+
+  - (\mathbf{f}, \mathbf{u})_{\Omega} - (\mathbf{b}, \mathbf{u})_{\Gamma_N},
+
+
+@f]
+
+受制于约束条件
+
+@f[
+  f(\sigma(\mathbf{u})) \le 0
+
+
+@f]
+
+对应力的影响。这种扩展使得在每个时间步长中要解决的问题是非线性的，所以我们需要在每个时间步长中的另一个循环。
+
+在不进一步了解这个模型的细节的情况下，我们可以参考Simo和Hughes关于&ldquo;计算非弹性&rdquo;的优秀书籍，以全面了解解决塑性模型的计算策略。另外，在S. Commend, A. Truty, and Th. Zimmermann的文章中，对塑性的算法做了简单而简洁的描述。Zimmermann;  @cite CTZ04  。
+
+
+
+
+<h5>Stabilization issues</h5>
+
+我们选择的公式，即对位移矢量的所有分量使用分片（双，三）线性元素，并将应力视为依赖于位移的变量，对于大多数材料是合适的。然而，对于不可压缩或几乎不可压缩的材料，这种所谓的基于位移的公式变得不稳定，并表现出虚假的模式。虽然流体通常不是弹性的（在大多数情况下，应力取决于速度梯度，而不是位移梯度，但也有例外，如电流变流体），但也有少数固体是几乎不可压缩的，如橡胶。另一种情况是，许多塑性模型最终让材料变得不可压缩，尽管这不在本方案的范围之内。
+
+不可压缩性是由泊松比来表征的
+
+@f[
+  \nu = \frac{\lambda}{2(\lambda+\mu)},
+
+
+@f]
+
+其中 $\lambda,\mu$ 是材料的Lam&eacute; 常数。物理约束表明 $-1\le \nu\le \frac 12$ （该条件也来自于数学稳定性考虑）。如果 $\nu$ 接近 $\frac 12$ ，则材料变得不可压缩。在这种情况下，纯粹的基于位移的公式不再适合于解决这类问题，必须采用稳定化技术以获得稳定和准确的解决方案。上面引用的书和论文给出了如何做到这一点的指示，但在这个问题上也有大量的文献；在H.-Y. Duan和Q. Lin的论文的参考文献中可以找到一个获得该主题概述的良好开端。H.-Y. Duan and Q. Lin;  @cite DL05  。
+
+
+
+
+<h5>Refinement during timesteps</h5>
+
+在目前的形式下，程序只对初始网格进行若干次细化，然后就不再进行细化。对于任何一种现实的模拟，我们都希望将其扩展到每隔几步就对网格进行细化和粗化。事实上，这并不难做到，但如果你愿意的话，可以留待将来的教程程序或作为练习。
+
+我们必须克服的主要复杂问题是，我们必须将存储在旧网格单元的正交点中的数据转移到新网格中，最好是通过某种投影方案。这方面的一般方法是这样的。
+
+- 开始时，数据只在各个单元的正交点上可用，而不是作为一个到处定义的有限元场。
+
+- 所以让我们找到一个<i>is</i>处处定义的有限元场，这样我们以后就可以把它插到新网格的正交点上。一般来说，要找到一个与正交点中的数值完全匹配的连续有限元场是很困难的，因为这些场的自由度数与正交点的数量不匹配，这个全局场的节点值要么是过定的，要么是欠定的。但是找到一个与正交点数值相匹配的不连续场通常不是很困难；例如，如果你有一个QGauss(2)正交公式（即2d中每个单元4个点，3d中8个点），那么就可以使用FE_DGQ(1)类型的有限元，即双/三线性函数，因为这些函数在2d中每个单元有4个自由度，在3d中有8个自由度。
+
+- 有一些函数可以使这种从单个点到全局场的转换更简单。如果你使用QGauss(2)正交公式，下面这段伪代码应该会有所帮助。请注意，下面的投影矩阵的乘法需要一个标量分量的向量，也就是说，我们一次只能将一组标量从正交点转换成自由度，反之亦然。所以我们需要分别存储每个应力分量，这需要 <code>dim*dim</code> 个向量。我们将把这组向量存储在一个二维数组中，以便于用读出应力张量的方式来读出分量。   因此，我们将对每个单元的应力分量进行循环，并将这些值存储在全局历史域中。(前缀 <code>history_</code> 表示我们的工作与正交点中定义的历史变量有关。)   @code
+    FE_DGQ<dim>     history_fe (1);
+    DoFHandler<dim> history_dof_handler (triangulation);
+    history_dof_handler.distribute_dofs (history_fe);
+
+
+    std::vector< std::vector< Vector<double> > >
+                 history_field (dim, std::vector< Vector<double> >(dim)),
+                 local_history_values_at_qpoints (dim, std::vector< Vector<double> >(dim)),
+                 local_history_fe_values (dim, std::vector< Vector<double> >(dim));
+
+
+    for (unsigned int i=0; i<dim; i++)
+      for (unsigned int j=0; j<dim; j++)
+      {
+        history_field[i][j].reinit(history_dof_handler.n_dofs());
+        local_history_values_at_qpoints[i][j].reinit(quadrature.size());
+        local_history_fe_values[i][j].reinit(history_fe.n_dofs_per_cell());
+      }
+
+
+    FullMatrix<double> qpoint_to_dof_matrix (history_fe.dofs_per_cell,
+                                             quadrature.size());
+    FETools::compute_projection_from_quadrature_points_matrix
+              (history_fe,
+               quadrature, quadrature,
+               qpoint_to_dof_matrix);
+
+
+    typename DoFHandler<dim>::active_cell_iterator cell = dof_handler.begin_active(),
+                                                   endc = dof_handler.end(),
+                                                   dg_cell = history_dof_handler.begin_active();
+
+
+    for (; cell!=endc; ++cell, ++dg_cell)
+      {
+
+
+        PointHistory<dim> *local_quadrature_points_history
+          = reinterpret_cast<PointHistory<dim> *>(cell->user_pointer());
+
+
+        Assert (local_quadrature_points_history >= &quadrature_point_history.front(),
+                ExcInternalError());
+        Assert (local_quadrature_points_history < &quadrature_point_history.back(),
+                ExcInternalError());
+
+
+        for (unsigned int i=0; i<dim; i++)
+          for (unsigned int j=0; j<dim; j++)
+          {
+            for (unsigned int q=0; q<quadrature.size(); ++q)
+              local_history_values_at_qpoints[i][j](q)
+                = local_quadrature_points_history[q].old_stress[i][j];
+
+
+            qpoint_to_dof_matrix.vmult (local_history_fe_values[i][j],
+                                        local_history_values_at_qpoints[i][j]);
+
+
+            dg_cell->set_dof_values (local_history_fe_values[i][j],
+                                     history_field[i][j]);
+          }
+      }
+  @endcode
+
+
+
+- 现在我们有了一个全局场，我们可以像往常一样使用SolutionTransfer类来细化网格并转移history_field向量。这将把所有的东西从旧的网格插值到新的网格。
+
+- 在最后一步，我们必须将数据从现在插值的全局场返回到新网格上的正交点。下面的代码将做到这一点。   @code
+    FullMatrix<double> dof_to_qpoint_matrix (quadrature.size(),
+                                             history_fe.n_dofs_per_cell());
+    FETools::compute_interpolation_to_quadrature_points_matrix
+              (history_fe,
+               quadrature,
+               dof_to_qpoint_matrix);
+
+
+    typename DoFHandler<dim>::active_cell_iterator cell = dof_handler.begin_active(),
+                                                   endc = dof_handler.end(),
+                                                   dg_cell = history_dof_handler.begin_active();
+
+
+    for (; cell != endc; ++cell, ++dg_cell)
+    {
+      PointHistory<dim> *local_quadrature_points_history
+       = reinterpret_cast<PointHistory<dim> *>(cell->user_pointer());
+
+
+      Assert (local_quadrature_points_history >= &quadrature_point_history.front(),
+              ExcInternalError());
+      Assert (local_quadrature_points_history < &quadrature_point_history.back(),
+              ExcInternalError());
+
+
+      for (unsigned int i=0; i<dim; i++)
+        for (unsigned int j=0; j<dim; j++)
+        {
+          dg_cell->get_dof_values (history_field[i][j],
+                                   local_history_fe_values[i][j]);
+
+
+          dof_to_qpoint_matrix.vmult (local_history_values_at_qpoints[i][j],
+                                      local_history_fe_values[i][j]);
+
+
+          for (unsigned int q=0; q<quadrature.size(); ++q)
+            local_quadrature_points_history[q].old_stress[i][j]
+              = local_history_values_at_qpoints[i][j](q);
+      }
+  @endcode
+
+
+
+一旦我们并行运行程序，情况就变得有点复杂了，因为那时每个进程只为它在旧网格上拥有的单元存储这些数据。也就是说，如果你在正交点转移到全局向量之后，使用 <code>history_field</code> 的并行向量就可以做到这一点。
+
+
+
+
+<h5>Ensuring mesh regularity</h5>
+
+目前，程序没有尝试确保一个单元在时间步数结束时移动其顶点后，仍然具有有效的几何形状（即它的雅各布行列式是正的，并且在任何地方都远离零的界限）。事实上，设置边界值和强迫项并不难，这样就可以很快得到扭曲和倒置的单元。当然，在某些大变形的情况下，这在有限网格的情况下是不可避免的，但在其他一些情况下，通过适当的网格细化和/或减少时间步长，这应该是可以避免的。这个程序没有做到这一点，但是一个更复杂的版本肯定应该采用某种启发式方法来定义哪些单元的变形量是可以接受的，哪些是不可以的。
+
+

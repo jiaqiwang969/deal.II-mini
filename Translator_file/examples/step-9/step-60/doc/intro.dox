@@ -1,0 +1,213 @@
+examples/step-60/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Luca Heltai and Giovanni Alzetta, SISSA, Trieste.
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.1243280,https://zenodo.org/badge/DOI/10.5281/zenodo.1243280.svg} 
+
+
+
+
+<h1>Introduction</h1>
+
+<h3>Non-matching grid constraints through distributed Lagrange multipliers</h3>
+
+
+在本教程中，我们考虑两个域的情况， $\Omega$ 在 $R^{\text{spacedim}}$ 和 $\Gamma$ 在 $R^{\text{dim}}$ ，其中 $\Gamma$ 嵌入在 $\Omega$ （ $\Gamma \subseteq \Omega$  ）。我们想在 $\Omega$ 上解决一个偏微分方程，对问题的解决*在嵌入域* $\Gamma$ 上强制执行一些条件。
+
+有两种有趣的情况。
+
+- 嵌入域 $\Gamma$ 的几何维度`dim`与域 $\Omega$ 相同（`spacedim`），也就是说， $\Gamma$ 的spacedim维度不为零，或
+
+- 嵌入域 $\Gamma$ 的内在维度`dim`小于 $\Omega$ 的维度（`spacedim`），因此其spacedim维度为零；例如，它是一条嵌入二维域的曲线，或一个嵌入三维域的曲面。
+
+在这两种情况下，定义限制算子 $\gamma$ 为算子，给定 $\Omega$ 上的一个连续函数，返回其在 $\Gamma$ 上的（连续）限制，即：。
+
+\f[
+\gamma : C^0(\Omega) \mapsto C^0(\Gamma), \quad \text{ s.t. } \gamma u = u|_{\Gamma} \in C^0(\Gamma),
+\quad \forall u \in C^0(\Omega).
+\f]
+
+众所周知，当 $\gamma$ 的内在维度与 $\Omega$ 相同时，算子 $\gamma$ 可以扩展为 $H^1(\Omega)$ 上的连续算子，将 $H^1(\Omega)$ 的函数映射为 $H^1(\Gamma)$ 的函数。
+
+同样的道理，在一个不太规则的范围空间（即 $H^{1/2}(\Gamma)$ ）中，当 $\Gamma$ 的维度相对于 $\Omega$ 少一个，并且 $\Gamma$ 没有边界。在这第二种情况下，算子 $\gamma$ 也被称为*轨迹*算子，对于嵌入 $\Omega$ 中的Lipschitz同维度曲线和曲面 $\Gamma$ ，它有很好的定义（阅读<a
+href="https://en.wikipedia.org/wiki/Trace_operator">this wikipedia article</a>了解关于轨迹算子的进一步细节）。
+
+同维度的情况要复杂一些，一般来说，不可能构造一个连续的跟踪算子，甚至不可能从 $H^1(\Omega)$ 到 $L^2(\Gamma)$ ，当 $\Gamma$ 的维度在二维和三维中分别为零或一的时候。
+
+在本教程中，我们对 $\gamma$ 的进一步细节不感兴趣：我们认为扩展 $\gamma$ 是理所当然的，假设嵌入域的尺寸（`dim`）总是比嵌入域的尺寸（`spacedim`）小一或相等。
+
+我们要解决以下微分问题：给定 $g$ 上的一个足够规则的函数 $\Gamma$ ，找到 $u$ 的解。
+
+@f{eqnarray*}{
+
+
+- \Delta u + \gamma^T \lambda &=& 0  \text{ in } \Omega\\
+\gamma u &=& g  \text{ in } \Gamma \\
+u & = & 0 \text{ on } \partial\Omega.
+
+
+@f}
+
+
+
+这是一个约束问题，我们正在寻找一个谐波函数 $u$ ，满足 $\partial\Omega$ 上的同质边界条件，受制于使用拉格朗日乘法器的约束 $\gamma u = g$ 。
+
+这个问题有一个物理解释：谐波函数，即满足拉普拉斯方程的函数，可以被认为是边界值被规定的膜的位移。那么，目前的情况相当于找到一个膜的形状，对于这个膜来说，不仅边界上的位移，而且 $\Gamma$ 上的位移也是规定的。例如，如果 $\Gamma$ 是二维空间中的一条封闭曲线，那么这将是一个肥皂膜的模型，它被沿 $\partial \Omega$ 的一个线环以及沿 $\Gamma$ 的第二个线环固定住。在 $\Gamma$ 是整个区域的情况下，你可以把它看成是在障碍物上伸展的膜，其中 $\Gamma$ 是接触区域。如果接触面积不知道，我们就有一个不同的问题--称为 "障碍物问题"--在步骤41中进行建模）。
+
+作为第一个例子，我们研究 $\partial\Omega$ 上的零迪里切特边界条件。如果我们在 $\partial\Omega$ 上应用零诺伊曼边界条件或两者的混合，同样的方程也适用。
+
+通过引入两个无限维空间 $V(\Omega)$ 和 $Q^*(\Gamma)$ ，可以得出变分公式，分别用于解 $u$ 和拉格朗日乘子 $\lambda$ 。
+
+将第一个方程乘以 $v \in V(\Omega)$ ，第二个方程乘以 $q \in
+Q(\Gamma)$ ，在可能的情况下进行部分积分，并利用 $\partial\Omega$ 的边界条件，我们得到以下变量问题。
+
+给出 $g$ 上的一个足够规则的函数 $\Gamma$ ，求 $u$ 的解
+
+@f{eqnarray*}{
+(\nabla u, \nabla v)_{\Omega} + (\lambda, \gamma v)_{\Gamma} &=& 0 \qquad \forall v \in V(\Omega) \\
+(\gamma u, q)_{\Gamma} &=& (g,q)_{\Gamma} \qquad \forall q \in Q(\Gamma),
+
+
+@f}
+
+
+
+其中 $(\cdot, \cdot)_{\Omega}$ 和 $(\cdot, \cdot)_{\Gamma}$ 分别代表 $L^2$ 中的标量积和 $\Gamma$ 中的标量积 。
+
+对变量公式的检查告诉我们，空间 $V(\Omega)$ 可以被认为是 $H^1_0(\Omega)$ 。空间 $Q(\Gamma)$ ，在同维度为零的情况下，应取为 $H^1(\Gamma)$ ，而在同维度为一的情况下应取为 $H^{1/2}(\Gamma)$ 。
+
+因此函数 $g$ 应该在 $H^1(\Gamma)$ （对于同维度零的情况）或者 $H^{1/2}(\Gamma)$ （对于同维度一的情况）。这使得我们在 $Q^*(\Gamma)$ 中有一个拉格朗日乘数 $\lambda$ ，它是 $H^{-1}(\Gamma)$ 或 $H^{-1/2}(\Gamma)$ 。
+
+对于上述问题的离散化，有两种选择。可以选择匹配的离散化，即 $\Gamma$ 的三角化与 $\Omega$ 的三角化一致，也可以选择以完全独立的方式离散化这两个域。
+
+对于我们上面提出的简单问题，第一种选择显然更有意义：对 $\Omega$ 使用一个单一的三角形就足够了，然后根据 $\Gamma$ 施加某些约束。在步骤40中研究了这种方法的一个例子，解决方案必须保持在一个障碍物之上，这是在 $\Omega$ 上施加约束实现的。
+
+为了解决更复杂的问题，例如域 $\Gamma$ 与时间有关的问题，第二个选项可能是一个更可行的解决方案。处理不对齐的网格本身就很复杂：为了说明如何做，我们研究一个简单的问题。
+
+我们在此描述的技术在文献中使用了许多名称之一：<b>immersed finite element method</b>、<b>fictitious boundary method</b>、<b>distributed Lagrange multiplier method</b>等。其主要原理是，两个网格的离散化和两个有限元空间的离散化保持完整。完全独立。这种技术对于模拟流体与结构的相互作用问题特别有效，其中嵌入结构的配置是问题本身的一部分，人们要解决一个（可能是非线性）弹性问题，以确定 $\Gamma$ 的（与时间有关的）配置，以及 $\Omega
+\setminus \Gamma$ 的（可能是非线性）流动问题，加上流体和固体之间界面上的耦合条件。
+
+在这个教程程序中，我们把事情弄得简单一些，我们假设嵌入式领域的配置是以两种可能的方式之一给出的。
+
+- 作为一个变形映射 $\psi: \Gamma_0 \mapsto \Gamma \subseteq \Omega$ ，定义在 $\Gamma_0$ 的连续有限维空间上，对于任何一个点 $x \in \Gamma_0$ ，代表其在 $\Omega$ 的坐标 $\psi(x)$ 。
+
+- 作为 $x\in \Gamma_0$ 的位移映射 $\delta \psi(x) = \psi(x)-x$ ，代表任何一点 $x$ 的位移矢量，以使 $x$ 变形为其实际配置 $\psi(x) = x +\delta\psi(x)$ 。
+
+我们定义嵌入式参考域 $\Gamma_0$  `embedded_grid`：在这个三角形上，我们构建一个有限维空间（`embedded_configuration_dh`），通过FE_Q对象的有限元系统（`embedded_configuration_fe`）描述变形或位移。这个有限维度空间仅用于插值用户提供的函数（`embedded_configuration_function`），代表 $\psi$ （如果参数`use_displacement`被设置为 @p false) 或 $\delta\psi$ （如果参数`use_displacement`被设置为 @p true). 
+
+拉格朗日乘数 $\lambda$ 和用户提供的函数 $g$ 是通过另一个有限维度空间`embedded_dh`和另一个有限元素`embedded_fe`定义的，使用相同的参考域。为了考虑到域的变形，MappingFEField或MappingQEulerian对象被初始化为`embedded_configuration`向量。
+
+在嵌入空间中，一个标准的有限维空间`space_dh`被构建在嵌入网格`space_grid`上，使用有限元素`space_fe`，几乎逐字逐句地遵循步骤6中的方法。
+
+我们用以下方法表示空间 $V$ 和 $Q$ 的离散化
+
+\f[
+V_h(\Omega) = \text{span} \{v_i\}_{i=1}^n
+\f] 和
+
+\f[
+Q_h(\Gamma) = \text{span} \{q_i\}_{i=1}^m
+\f]，其中 $n$ 是`空间_dh`的尺寸， $m$ 是`嵌入_dh`的尺寸。
+
+一旦所有的有限维空间都被定义，上述问题的变异表述给我们留下了以下有限维方程组。
+
+\f[
+\begin{pmatrix}
+K & C^T \\
+C & 0
+\end{pmatrix}
+\begin{pmatrix}
+u \\
+\lambda
+\end{pmatrix}
+=
+\begin{pmatrix}
+0 \\
+G
+\end{pmatrix}
+\f]
+
+其中
+
+@f{eqnarray*}{
+K_{ij} &\dealcoloneq& (\nabla v_j, \nabla v_i)_\Omega   \qquad i,j=1,\dots,n \\
+C_{\alpha j} &\dealcoloneq& (v_j, q_\alpha)_\Gamma  \qquad j=1,\dots,n, \alpha = 1,\dots, m \\\\
+G_{\alpha} &\dealcoloneq& (g, q_\alpha)_\Gamma \qquad \alpha = 1,\dots, m.
+
+
+@f}
+
+
+
+虽然矩阵 $K$ 是 $\Omega$ 上泊松问题的标准刚度矩阵，而向量 $G$ 是 $g$ 上带有强制项的有限元问题的标准右手向量。矩阵 $C$ 或其转置 $C^T$ 是非标准的，因为它们是两个不匹配的网格上的信息。
+
+特别是，在计算 $C$ 的一个条目时出现的积分，是在 $\Gamma$ 上计算的。在有限元中，我们通常将这个积分分成来自用于离散化 $\Gamma$ 的三角形的所有单元的贡献，我们将 $K$ 上的积分转换为参考元素 $\hat K$ 上的积分，其中 $F_{K}$ 是从 $\hat K$ 到 $K$ 的映射，并且使用正交公式计算 $\hat K$ 上的积分。
+
+\f[
+C_{\alpha j} \dealcoloneq (v_j, q_\alpha)_\Gamma  = \sum_{K\in \Gamma} \int_{\hat K}
+\hat q_\alpha(\hat x) (v_j \circ F_{K}) (\hat x) J_K (\hat x) \mathrm{d} \hat x =
+\sum_{K\in \Gamma} \sum_{i=1}^{n_q}  \big(\hat q_\alpha(\hat x_i)  (v_j \circ F_{K}) (\hat x_i) J_K (\hat x_i) w_i \big)
+\f]
+
+计算这个和是不容易的，因为我们必须评估 $(v_j \circ F_{K})
+(\hat x_i)$  。一般来说，如果 $\Gamma$ 和 $\Omega$ 没有对齐，那么 $F_{K}(\hat x_i)$ 这个点相对于 $\Omega$ 来说是完全任意的，除非我们想出一个办法，在 $\Omega$ 上的任意点上插值 $V_h(\Omega)$ 的所有基函数，否则我们无法计算出矩阵 $C$ 的一个条目需要的积分。
+
+要评估 $(v_j \circ F_{K}) (\hat x_i)$ ，需要采取以下步骤（如下图所示）。
+
+- 对于 $\Gamma$ 中的一个给定单元 $K$ ，计算实点 $y_i \dealcoloneq F_{K} (\hat
+x_i)$ ，其中 $x_i$ 是用于 $K
+\subseteq \Gamma$ 上的积分的正交点之一。
+
+- 找到 $\Omega$ 中 $y_i$ 所在的单元。我们将称这个元素为 $T$  。
+
+- 为了评估基函数，使用映射 $G_T$ 的逆映射，将参考元素 $\hat T$ 转换为元素 $T$  :  $v_j(y_i) = \hat
+v_j \circ G^{-1}_{T} (y_i)$  。
+
+<p align="center"> <img src="https://www.dealii.org/images/steps/developer/step-60.C_interpolation.png" alt="">  </p> 
+
+上述三个步骤可以通过依次调用来计算。
+
+-  GridTools::find_active_cell_around_point(),  后面是
+
+-  Mapping::transform_real_to_unit_cell().  然后我们
+
+- 构建一个自定义的正交公式，包含参考单元格中的点，然后
+
+- 构建一个FEValues对象，具有给定的正交公式，并以第一步中获得的单元格为初始化。
+
+这就是deal.II函数 VectorTools::point_value() 在任意点上评估有限元场（而不仅仅是单个形状函数）时的做法；但在这种情况下，这将是低效的。
+
+一个更好的解决方案是使用一个方便的包装器来对一个点的集合执行前三个步骤。   GridTools::compute_point_locations(). 如果人们实际上对计算完整的耦合矩阵感兴趣，那么可以调用方法 NonMatching::create_coupling_mass_matrix(), ，该方法以有效的方式执行上述步骤，重复使用所有可能的数据结构，并将昂贵的步骤聚集在一起。这就是我们在本教程后面要使用的函数。
+
+我们通过迭代求解器来解决最终的鞍点问题，应用于Schur补数 $S$ （其构造例如在步骤20中描述），我们使用LinearOperator类构造 $S$ 。
+
+
+
+
+<h3>The testcase</h3>
+
+我们在这里解决的问题与步骤4相同，不同的是我们对一个嵌入域施加了一些约束  $\Gamma$  。该教程是以独立于维度的方式编写的，在结果部分我们展示了如何改变`dim`和`spacedim`。
+
+本教程是为`dim`等于1和`spacedim`等于2而编译的。如果你想在嵌入维度`spacedim`等于3的情况下运行程序，你很可能想改变 $\Gamma$ 的参考域，例如，你从文件中读到的东西，或者你后来变形为更有趣的封闭球体。
+
+在默认情况下， $\Gamma$ 的共维为1，本教程程序实现的是虚构边界法。事实证明，同样的技术也用在了变量沉浸式有限元方法中，上面定义的耦合算子 $C$ 在几乎所有这些非匹配方法中都是一样的。
+
+嵌入域被假定包括在 $\Omega$ 中，我们把它当作单位平方 $[0,1]^2$ 。虚域 $\Gamma$ 的定义可以通过参数文件修改，可以给出从参考区间 $[0,1]$ 到 $\Omega$ 中的一条曲线的映射。
+
+如果曲线是封闭的，那么结果将类似于在边界为 $\Gamma$ 的网格上运行同一问题。在非封闭的 $\Gamma$ 的情况下，程序也能愉快地运行，尽管在这些情况下，问题的数学表述更加困难，因为 $\Gamma$ 本身就有一个边界，相对于域 $\Omega$ 来说是二维的。
+
+
+
+
+<h3>References</h3>
+
+ <ul>   <li>  Glowinski, R., T.-W.Pan, T.I. Hesla, and D.D. Joseph.1999."分布式拉格朗日乘数/虚构域方法用于颗粒物流"。   International Journal of Multiphase Flow 25 (5).Pergamon: 755-94.
+
+ <li>  Boffi, D., L. Gastaldi, L. Heltai, and C.S. Peskin。2008."关于沉浸边界法的超弹性公式"。应用力学和工程中的计算机方法197（25-28）。
+
+ <li>  Heltai, L., and F. Costanzo.2012."浸没式有限元方法的变量实现"。应用力学和工程中的计算机方法》229-232。   </ul> 
+
+

@@ -1,0 +1,15 @@
+examples/step-45/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+创建的输出结果并不十分令人惊讶。我们只是看到，相对于左、下边界而言，解决方案是周期性的。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-45.periodic.png" alt=""> 
+
+如果没有周期性约束，我们最终会得到以下解决方案。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-45.non_periodic.png" alt=""> 
+
+

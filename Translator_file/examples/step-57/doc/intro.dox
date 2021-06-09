@@ -1,0 +1,362 @@
+examples/step-57/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Liang Zhao and Timo Heister.
+
+
+This material is based upon work partially supported by National Science
+Foundation grant DMS1522191 and the Computational Infrastructure in
+Geodynamics initiative (CIG), through the National Science Foundation under
+Award No. EAR-0949446 and The University of California-Davis.
+</i>
+
+ @dealiiTutorialDOI{10.5281/zenodo.484156,https://zenodo.org/badge/DOI/10.5281/zenodo.484156.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+<h3> Navier Stokes Equations </h3>
+
+在本教程中，我们展示了如何用牛顿方法求解不可压缩的纳维尔-斯托克斯方程（NSE）。我们在这里考虑的流动被假定是稳定的。在一个域 $\Omega \subset
+\mathbb{R}^{d}$ ， $d=2,3$ ，具有片状光滑边界 $\partial \Omega$ ，和一个给定的力场 $\textbf{f}$ ，我们寻求一个速度场 $\textbf{u}$ 和压力场 $\textbf{p}$ ，满足以下条件
+
+@f{eqnarray*}
+
+
+- \nu \Delta\textbf{u} + (\textbf{u} \cdot \nabla)\textbf{u} + \nabla p &=& \textbf{f}\\
+
+
+- \nabla \cdot \textbf{u} &=& 0.
+
+
+@f}
+
+
+
+与步骤22中讨论的斯托克斯方程不同，由于对流项的存在，NSE是一个非线性方程组  $(\textbf{u} \cdot
+\nabla)\textbf{u}$  。计算数值解的第一步是将系统线性化，这将用牛顿方法完成。在步骤35中讨论了一个随时间变化的问题，其中系统是使用最后一个时间步骤的解来线性化的，没有必要进行非线性解。
+
+<h3> Linearization of Navier-Stokes Equations </h3>
+
+我们定义一个非线性函数，其根是NSE的解，即
+
+@f{eqnarray*}
+F(\mathbf{u}, p) =
+  \begin{pmatrix}
+
+
+    - \nu \Delta\mathbf{u} + (\mathbf{u} \cdot \nabla)\mathbf{u} + \nabla p - \mathbf{f} \\
+
+
+    - \nabla \cdot \mathbf{u}
+  \end{pmatrix}.
+
+
+@f}
+
+
+
+假设初始猜测足以保证牛顿迭代的收敛性，并表示 $\textbf{x} = (\textbf{u}, p)$ ，牛顿对向量函数的迭代可以定义为
+
+@f{eqnarray*}
+  \textbf{x}^{k+1} = \textbf{x}^{k} - (\nabla F(\textbf{x}^{k}))^{-1} F(\textbf{x}^{k}),
+
+
+@f}
+
+
+
+其中 $\textbf{x}^{k+1}$ 是步骤 $k+1$ 中的近似解， $\textbf{x}^{k}$ 代表上一步的解， $\nabla
+F(\textbf{x}^{k})$ 是在 $\textbf{x}^{k}$ 处评估的雅各布矩阵。类似的迭代可以在步骤15中找到。
+
+牛顿迭代公式意味着新的解决方案是通过在旧的解决方案上增加一个更新项而得到的。我们不是评估雅各布矩阵并取其倒数，而是将更新项视为一个整体，即
+
+@f{eqnarray*}
+  \delta \textbf{x}^{k} = - (\nabla F(\textbf{x}^{k}))^{-1} F(\textbf{x}^{k}),
+
+
+@f}
+
+
+
+其中  $\textbf{x}^{k+1}=\textbf{x}^{k}+\delta \textbf{x}^{k}$  。
+
+我们可以通过求解系统找到更新项
+
+@f{eqnarray*}
+  \nabla F(\textbf{x}^{k}) \delta \textbf{x}^{k} = -F(\textbf{x}^{k}).
+
+
+@f}
+
+
+
+这里，前一个方程的左边代表 $F(\textbf{x})$ 沿 $\delta
+\textbf{x}^{k}$ 在 $\textbf{x}^{k}$ 的方向梯度。根据定义，方向性梯度由以下公式给出
+
+@f{eqnarray*}
+  & &\nabla F(\mathbf{u}^{k}, p^{k}) (\delta \mathbf{u}^{k}, \delta p^{k}) \\
+  \\
+  &=& \lim_{\epsilon \to 0} \frac{1}{\epsilon}
+      \left(
+        F(\mathbf{u}^{k} + \epsilon \delta \mathbf{u}^{k},
+          p^{k} + \epsilon \nabla \delta p^{k})
+
+
+      - F(\mathbf{u}^{k}, p^{k})
+      \right)\\
+  \\
+  &=& \lim_{\epsilon \to 0} \frac{1}{\epsilon}
+      \begin{pmatrix}
+
+
+        - \epsilon \nu \Delta \delta \mathbf{u}^{k}
+        + \epsilon \mathbf{u}^{k} \cdot \nabla \delta \mathbf{u}^{k}
+        + \epsilon \delta \mathbf{u}^{k} \cdot \nabla \mathbf{u}^{k}
+        + \epsilon^{2} \delta \mathbf{u}^{k} \cdot \nabla \delta \mathbf{u}^{k}
+        + \epsilon \nabla \delta p^{k}\\
+
+
+        - \epsilon \nabla \cdot \delta \mathbf{u}^{k}
+      \end{pmatrix} \\
+  \\
+  &=& \begin{pmatrix}
+
+
+        - \nu \Delta \delta \mathbf{u}^{k}
+        + \mathbf{u}^{k} \cdot \nabla \delta \mathbf{u}^{k}
+        + \delta \mathbf{u}^{k} \cdot \nabla \mathbf{u}^{k}
+        + \nabla \delta p^{k}\\
+
+
+        - \nabla \cdot \delta \mathbf{u}^{k}
+      \end{pmatrix}.
+
+
+@f}
+
+
+
+因此，我们得出了线性化系统。
+
+@f{eqnarray*}
+
+
+   -\nu \Delta \delta \mathbf{u}^{k}
+  + \mathbf{u}^{k} \cdot \nabla \delta \mathbf{u}^{k}
+  + \delta \mathbf{u}^{k} \cdot \nabla \mathbf{u}^{k}
+  + \nabla \delta p^{k}
+  = -F(\mathbf{x}^k), \\
+
+
+   -\nabla \cdot\delta \mathbf{u}^{k}
+  = \nabla \cdot \mathbf{u}^{k},
+
+
+@f}
+
+
+
+其中 $\textbf{u}^k$ 和 $p^k$ 是上一次迭代的解。此外，第二个方程的右边不是零，因为离散解不完全是无发散的（连续解是无发散的）。这里的右手边作为一个修正，导致速度的离散解沿着牛顿的迭代是无发散的。在这个线性系统中，唯一的未知数是更新项 $\delta \textbf{u}^{k}$ 和 $\delta p^{k}$ ，我们可以使用类似于步骤22中的策略（并以同样的方式推导出弱形式）。
+
+现在，可以用牛顿迭代法来解决更新项。
+
+<ol>  <li>  初始化。初始猜测  $u_0$  和  $p_0$  ，公差  $\tau$  ;  </li>   <li>  线性求解计算更新项  $\delta\textbf{u}^{k}$  和  $\delta p^k$  ;  </li>   <li>  更新近似。         $\textbf{u}^{k+1} = \textbf{u}^{k} + \delta\textbf{u}^{k}$  和  $p^{k+1} = p^{k} + \delta p^{k}$  ;  </li>   <li>  检查残差规范。   $E^{k+1} = \|F(\mathbf{u}^{k+1}, p^{k+1})\|$  :  <ul>   <li>  如果  $E^{k+1} \leq \tau$  , 停止。 </li>   <li>  如果  $E^{k+1} > \tau$  ，回到步骤2。 </li>   </ul>   </li>   </ol> 。
+
+<h3> Finding an Initial Guess </h3>
+
+初始猜测需要足够接近解决方案，牛顿方法才能收敛；因此，找到一个好的起始值对非线性求解器来说至关重要。
+
+当粘度 $\nu$ 较大时，通过解决带有粘度 $\nu$ 的斯托克斯方程可以得到一个好的初始猜测。虽然这取决于问题，但对于这里考虑的测试问题，这对 $\nu \geq 1/400$ 有效。
+
+然而，如果粘度较小，对流项 $(\mathbf{u}\cdot\nabla)\mathbf{u}$ 将占主导地位，如测试案例2的 $1/7500$ 。  在这种情况下，我们使用延续法建立一系列的辅助NSE，其粘度接近于目标NSE中的粘度。相应地，我们创建了一个带有 $\{\nu_{i}\}$ 的序列，如果 $\nu_{n}= \nu$ 较小，我们接受两个具有粘度的NSE $\nu_{i}$ 和 $\nu_{i+1}$ 的解是接近的。  然后，我们使用带有粘度的NSE的解 $\nu_{i}$ 作为带有 $\nu_{i+1}$ 的NSE的初始猜测。这可以被认为是一个从斯托克斯方程到我们要解决的NSE的阶梯。
+
+也就是说，我们首先解决一个斯托克斯问题
+
+@f{eqnarray*}
+
+
+  -\nu_{1} \Delta \textbf{u} + \nabla p &=& \textbf{f}\\
+
+
+  -\nabla \cdot \textbf{u} &=& 0
+
+
+@f}
+
+
+
+以获得最初的猜测，即
+
+@f{eqnarray*}
+
+
+  -\nu_{1} \Delta \textbf{u} + (\textbf{u} \cdot \nabla)\textbf{u} + \nabla p &=& \textbf{f},\\
+
+
+  -\nabla \cdot \textbf{u} &=& 0,
+
+
+@f}
+
+
+
+这也是延续法的初始猜测。这里 $\nu_{1}$ 相对较大，这样带粘度的斯托克斯问题的解 $\nu_{1}$ 就可以作为牛顿迭代中NSE的初始猜测。
+
+那么，对
+
+@f{eqnarray*}
+
+
+  -\nu_{i} \Delta \textbf{u} + (\textbf{u} \cdot \nabla)\textbf{u} + \nabla p &=& \textbf{f},\\
+
+
+  -\nabla \cdot \textbf{u} &=& 0.
+
+
+@f}
+
+
+
+的初始猜测。
+
+@f{eqnarray*}
+
+
+  -\nu_{i+1} \Delta \textbf{u} + (\textbf{u} \cdot \nabla)\textbf{u} + \nabla p &=& \textbf{f},\\
+
+
+  -\nabla \cdot \textbf{u} &=& 0.
+
+
+@f}
+
+
+
+这个过程是用实验确定的粘度序列 $\{\nu_i\}$ 来重复的，这样最终的解决方案可以作为牛顿迭代的起始猜测。
+
+<h3>The %Solver and Preconditioner </h3>
+
+在牛顿迭代的每一步，问题的结果是解决一个鞍点系统，其形式为
+
+@f{eqnarray*}
+    \begin{pmatrix}
+      A & B^{T} \\
+      B & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+      U \\
+      P
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      F \\
+      0
+    \end{pmatrix}.
+
+
+@f}
+
+
+
+这个系统矩阵的块状结构与步骤22中的相同。然而，左上角的矩阵 $A$ 不是对称的，因为有非线性项。我们可以不求解上述系统，而求解等效系统
+
+@f{eqnarray*}
+    \begin{pmatrix}
+      A + \gamma B^TW^{-1}B & B^{T} \\
+      B & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+      U \\
+      P
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      F \\
+      0
+    \end{pmatrix}
+
+
+@f}
+
+
+
+有一个参数  $\gamma$  和一个可逆矩阵  $W$  。这里 $\gamma B^TW^{-1}B$ 是Augmented Lagrangian项，详见[1]。
+
+用 $G$ 表示新系统的系统矩阵，用 $b$ 表示右手边，我们用右预处理 $P^{-1}$ 反复求解，即 $GP^{-1}y = b$  ，其中
+
+@f{eqnarray*}
+P^{-1} =
+  \begin{pmatrix}
+    \tilde{A} & B^T \\
+    0         & \tilde{S}
+  \end{pmatrix}^{-1}
+
+
+@f}
+
+
+
+与 $\tilde{A} = A + \gamma B^TW^{-1}B$ ， $\tilde{S}$ 是相应的舒尔补数 $\tilde{S} = B^T \tilde{A}^{-1} B$  。我们让 $W = M_p$ 其中 $M_p$ 是压力质量矩阵，那么 $\tilde{S}^{-1}$ 可以近似为
+
+@f{eqnarray*}
+\tilde{S}^{-1} \approx -(\nu+\gamma)M_p^{-1}.
+
+
+@f}
+
+
+
+详见[1]。
+
+我们将 $P^{-1}$ 分解为
+
+@f{eqnarray*}
+P^{-1} =
+  \begin{pmatrix}
+    \tilde{A}^{-1} & 0 \\
+    0              & I
+  \end{pmatrix}
+  \begin{pmatrix}
+    I & -B^T \\
+    0 & I
+  \end{pmatrix}
+  \begin{pmatrix}
+    I & 0 \\
+    0 & \tilde{S}^{-1}
+  \end{pmatrix}.
+
+
+@f}
+
+
+
+这里需要两个非精确求解器分别用于 $\tilde{A}^{-1}$ 和 $\tilde{S}^{-1}$ （见[1]）。由于压力质量矩阵是对称的和正定的，用ILU作为预处理程序的CG适合用于 $\tilde{S}^{-1}$ 。为了简单起见，我们对  $\tilde{A}^{-1}$  使用直接求解器UMFPACK。最后一个成分是与  $B^T$  的稀疏矩阵-向量乘积。我们不计算 $\tilde{A}$ 中增强拉格朗日项的矩阵乘积，而是集合Grad-Div稳定化 $(\nabla \cdot \phi _{i}, \nabla \cdot \phi _{j}) \approx (B^T
+M_p^{-1}B)_{ij}$ ，如[2]中所解释。
+
+<h3> Test Case </h3>
+
+我们使用盖子驱动的空腔流作为我们的测试案例，详情见[3]。计算域为单位平方，右手边为 $f=0$  。边界条件为
+
+@f{eqnarray*}
+  (u(x, y), v(x,y)) &=& (1,0) \qquad\qquad \textrm{if}\ y = 1 \\
+  (u(x, y), v(x,y)) &=& (0,0) \qquad\qquad \textrm{otherwise}.
+
+
+@f}
+
+
+
+在解决这个问题时，误差由非线性误差（来自牛顿迭代）和离散化误差（取决于网格大小）组成。非线性部分随着牛顿的每次迭代而减少，离散化误差随着网格的细化而减少。在这个例子中，粗网的解被转移到连续的细网中，并作为初始猜测使用。因此，非线性误差总是低于牛顿迭代的容忍度，离散化误差也随着每次网格细化而减少。
+
+在循环中，我们涉及三个求解器：一个用于 $\tilde{A}^{-1}$ ，一个用于 $M_p^{-1}$ 和一个用于 $Gx=b$  。前两个求解器在预处理程序中被调用，外部求解器给我们提供了更新项。总体收敛性由非线性残差控制；由于牛顿方法不需要精确的雅各布，我们采用FGMRES，外侧线性求解器的相对公差仅为1e-4。事实上，我们对这个系统采用了截断的牛顿解法。如步骤22所述，内部线性求解也不需要做得非常精确。这里我们使用CG，压力质量矩阵的相对公差为1e-6。正如预期的那样，我们仍然看到非线性残差收敛到了1e-14。另外，我们使用一个简单的线搜索算法来实现牛顿方法的全球化。
+
+腔体参考值 $\mathrm{Re}=400$ 和 $\mathrm{Re}=7500$ 分别来自[4]和[5]，其中 $\mathrm{Re}$ 是雷诺数，可以定位在[8]。这里的粘度是由 $1/\mathrm{Re}$ 定义的。尽管我们仍然可以找到 $\mathrm{Re}=10000$ 的解决方案，而且参考文献中也包含了用于比较的结果，但我们在这里的讨论仅限于 $\mathrm{Re}=7500$  。这是因为从 $\mathrm{Re}=8000$ 附近开始，解不再是静止的，而是变成了周期性的，详见[7]。
+
+<h3> References </h3> <醇>
+
+    <li>  An Augmented Lagrangian-Based Approach to the Oseen Problem, M. Benzi and M. Olshanskii, SIAM J. SCI. COMPUT.COMPUT.2006  <li>  Efficient augmented Lagrangian-type preconditioning for the Oseen problem using Grad-Div stabilization, Timo Heister and Gerd Rapin  <li>  http://www.cfd-online.com/Wiki/Lid-driven_cavity_problem  <li>  High-Re solution for incompressible flow using the Navier-Stokes equations and a Multigrid Method, U. Ghia, K. N. Ghia, and C. T. Shin  <li>  E. Erturk, T.C. Corke and C. Gokcol  <li>  三维不可压缩Navier-Stokes方程的隐式加权ENO方案，Yang等人，1998  <li>  二维盖子驱动的空腔问题再探讨，C. Bruneau和M. Saad，2006  <li>  https://en.wikipedia.org/wiki/Reynolds_number  </ol> 
+
+

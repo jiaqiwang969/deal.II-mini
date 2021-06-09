@@ -1,0 +1,437 @@
+examples/step-67/doc/intro.dox
+
+
+
+ <br> 
+
+<i>
+This program was contributed by Martin Kronbichler. Many ideas presented here
+are the result of common code development with Niklas Fehn, Katharina Kormann,
+Peter Munch, and Svenja Schoeder.
+
+
+This work was partly supported by the German Research Foundation (DFG) through
+the project "High-order discontinuous Galerkin for the exa-scale" (ExaDG)
+within the priority program "Software for Exascale Computing" (SPPEXA).
+</i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+本教程程序使用显式时间积分器求解流体力学的欧拉方程，其无矩阵框架应用于空间的高阶非连续Galerkin离散化。关于欧拉系统的细节和另一种隐式方法，我们也参考了第33步教程程序。你可能还想看看第69步，看看解决这些方程的另一种方法。
+
+
+
+
+<h3>The Euler equations</h3>
+
+欧拉方程是一个守恒定律，描述了一个可压缩的无粘性气体的运动。
+
+@f[
+\frac{\partial \mathbf{w}}{\partial t} + \nabla \cdot \mathbf{F}(\mathbf{w}) =
+\mathbf{G}(\mathbf w),
+
+
+@f]
+
+其中解向量的 $d+2$ 分量为 $\mathbf{w}=(\rho, \rho
+u_1,\ldots,\rho u_d,E)^{\mathrm T}$  。这里， $\rho$  表示流体密度， ${\mathbf u}=(u_1,\ldots, u_d)^\mathrm T$  表示流体速度， $E$  表示气体的能量密度。速度不直接求解，而是用变量 $\rho \mathbf{u}$ ，即线性动量（因为这是一个守恒量）。
+
+欧拉通量函数是一个 $(d+2)\times d$ 矩阵，定义为
+
+@f[
+  \mathbf F(\mathbf w)
+  =
+  \begin{pmatrix}
+  \rho \mathbf{u}\\
+  \rho \mathbf{u} \otimes \mathbf{u} + \mathbb{I}p\\
+  (E+p)\mathbf{u}
+  \end{pmatrix}
+
+
+@f]
+
+其中 $\mathbb{I}$ 为 $d\times d$ 身份矩阵， $\otimes$ 为外积；其组成部分分别表示质量、动量和能量通量。右手边的强制力由以下公式给出
+
+@f[
+  \mathbf G(\mathbf w)
+  =
+  \begin{pmatrix}
+  0\\
+  \rho\mathbf{g}\\
+  \rho \mathbf{u} \cdot \mathbf{g}
+  \end{pmatrix},
+
+
+@f]
+
+其中矢量 $\mathbf g$ 表示重力的方向和大小。然而，它也可以表示作用于流体的任何其他单位质量的外力。例如，想想外部电场对带电粒子所施加的静电力）。
+
+这三块方程，第二块涉及 $d$ 成分，描述了质量、动量和能量的守恒。压力不是一个解决方案的变量，但需要通过其他变量的 "闭合关系 "来表达；我们在此选择适合由两个原子组成的分子的气体的关系，在中等温度下，由 $p=(\gamma - 1) \left(E-\frac 12 \rho
+\mathbf{u}\cdot \mathbf{u}\right)$ 和常数 $\gamma = 1.4$ 给出。
+
+
+
+
+<h3>High-order discontinuous Galerkin discretization</h3>
+
+对于空间离散化，我们使用高阶非连续加勒金（DG）离散化，使用的解扩展形式为
+
+@f[
+\mathbf{w}_h(\mathbf{x}, t) =
+\sum_{j=1}^{n_\mathbf{dofs}} \boldsymbol{\varphi}_j(\mathbf{x}) {w}_j(t).
+
+
+@f]
+
+这里， $\boldsymbol{\varphi}_j$ 表示第 $j$ 个基函数，以矢量形式写出不同成分的独立形状函数，让 $w_j(t)$ 分别通过密度、动量和能量变量。在这种形式下，空间依赖性包含在形状函数中，时间依赖性包含在未知系数中  $w_j$  。与连续有限元方法中一些形状函数跨越元素边界不同，在DG方法中，形状函数是单个元素的局部，从一个元素到下一个元素是不连续的。从一个单元到其相邻单元的解的连接是由下面规定的数值通量来实现的。这允许一些额外的灵活性，例如，在数值方法中引入方向性，例如，上卷。
+
+DG方法是解决传输特性问题的流行方法，因为它们结合了低分散误差和勉强解决的尺度上的可控耗散。这使得它们在流体动力学领域的模拟中特别有吸引力，因为在这个领域中，需要代表广泛的活动尺度，不充分解决的特征很容易干扰重要的良好解决的特征。此外，高阶DG方法非常适用于现代硬件的正确实施。同时，DG方法也不是万能的。特别是当解出现不连续（冲击）时，就像欧拉方程在某些流态下的典型情况一样，高阶DG方法容易出现振荡解，就像所有不使用通量或坡度限制器的高阶方法一样。这是<a
+href="https://en.wikipedia.org/wiki/Godunov%27s_theorem">Godunov's theorem</a>的结果，即任何线性的总变差（TVD）方案（如基本的DG离散化）最多只能达到一阶精度。换句话说，由于DG方法的目标是高阶精度，因此它们不可能对出现冲击的解进行TVD。尽管有些人声称DG方法中的数值通量可以控制耗散，但除非问题中的<b>all</b>冲击与单元边界对齐，否则这一点的价值有限。任何穿过单元内部的冲击都会因为高阶多项式而再次产生振荡分量。在有限元和DG界，存在许多不同的方法来处理冲击，例如在有问题的单元上引入人工扩散（使用基于解的模态分解等的有问题单元指标），在子网格上转换为耗散性低阶有限体积方法，或者增加一些限制程序。考虑到这种情况下的大量可能性，再加上相当大的实施努力，我们在这里不考虑带有明显冲击的欧拉方程系统，而是集中在带有波浪状现象的亚音速流动系统。对于一个能很好地处理冲击的方法（但每个未知数的成本较高），我们可以参考step-69教程程序。
+
+对于DG公式的推导，我们将欧拉方程与测试函数 $\mathbf{v}$ 相乘，并对单个单元进行积分 $K$ ，从而得到
+
+@f[
+\left(\mathbf{v}, \frac{\partial \mathbf{w}}{\partial t}\right)_{K}
++ \left(\mathbf{v}, \nabla \cdot \mathbf{F}(\mathbf{w})\right)_{K} =
+\left(\mathbf{v},\mathbf{G}(\mathbf w)\right)_{K}.
+
+
+@f]
+
+
+
+然后我们对第二项进行分项积分，将分歧从解槽移到测试函数槽，并产生一个元素边界上的积分。
+
+@f[
+\left(\mathbf{v}, \frac{\partial \mathbf{w}}{\partial t}\right)_{K}
+
+
+- \left(\nabla \mathbf{v}, \mathbf{F}(\mathbf{w})\right)_{K}
++ \left<\mathbf{v}, \mathbf{n} \cdot \widehat{\mathbf{F}}(\mathbf{w})
+\right>_{\partial K} =
+\left(\mathbf{v},\mathbf{G}(\mathbf w)\right)_{K}.
+
+
+@f]
+
+在表面积分中，我们用术语 $\widehat{\mathbf{F}}(\mathbf w)$ 代替了术语 $\mathbf{F}(\mathbf w)$ ，即数值通量。数字通量的作用是连接相邻元素上的解，并弱化解的连续性。这保证了PDE的全局耦合反映在离散化中，尽管单元上有独立的基函数。通过将数值通量定义为来自内部面两侧的解的函数 $\widehat{\mathbf{F}}(\mathbf w^-,
+\mathbf w^+)$ 和 $\mathbf w^+$ ，包括与邻居的连接。我们要求的一个基本属性是，数值通量需要是<b>conservative</b>。也就是说，我们希望所有的信息（即质量、动量和能量）在一个面上离开一个单元时，都能完整地进入邻近的单元，反之亦然。这可以表示为 $\widehat{\mathbf{F}}(\mathbf w^-, \mathbf w^+) =
+\widehat{\mathbf{F}}(\mathbf w^+, \mathbf w^-)$ ，也就是说，数值通量从任何一边都评估为相同的结果。结合数值通量与所考虑的面的单位外法向量相乘的事实，即从两边指向相反的方向，我们看到守恒被满足了。数值通量的另一个观点是作为一个单值的中间状态，从两边微弱地连接解决方案。
+
+有大量的数值通量函数可用，也称为黎曼解算器。对于欧拉方程，存在所谓的精确黎曼求解器--意味着来自双方的状态以一种与欧拉方程沿线不连续的方式结合起来--以及近似黎曼求解器，它违反了一些物理特性，并依靠其他机制来使方案总体上准确。近似黎曼求解器的优点是计算起来比较便宜。大多数通量函数都起源于有限体积界，它们类似于单元（称为体积）内的多项式0度的DG方法。由于欧拉算子 $\mathbf{F}$ 的体积积分对于恒定解和检验函数会消失，所以数值通量必须完全代表物理算子，这也解释了为什么该界有大量的研究。对于DG方法，一致性是由单元内的高阶多项式保证的，这使得数值通量不再是一个问题，通常只影响收敛率，例如，对于度数为 $\mathcal O(h^p)$ 的多项式，解是否收敛为 $\mathcal O(h^{p+1/2})$ 或 $\mathcal
+O(h^{p+1})$ 的准则。因此，数值通量可以被看作是一种机制，用于选择更有利的耗散/分散特性或关于离散化和线性化算子的极值特征，这影响到显式时间积分器中最大的可接受的时间步长。
+
+在这个教程程序中，我们实现了两种通量的变体，可以通过程序中的开关来控制（当然，要使它们成为通过输入文件控制的运行时参数也很容易）。第一个通量是本地的Lax--Friedrichs通量
+
+@f[
+\hat{\mathbf{F}}(\mathbf{w}^-,\mathbf{w}^+) =
+\frac{\mathbf{F}(\mathbf{w}^-)+\mathbf{F}(\mathbf{w}^+)}{2} +
+   \frac{\lambda}{2}\left[\mathbf{w}^--\mathbf{w}^+\right]\otimes
+   \mathbf{n^-}.
+
+
+@f]
+
+
+
+在Lax--Friedrichs通量的原始定义中，使用了一个系数 $\lambda =
+\max\left(\|\mathbf{u}^-\|+c^-, \|\mathbf{u}^+\|+c^+\right)$ （对应于信息在界面两边移动的最大速度），说明两个状态之间的差异， $[\![\mathbf{w}]\!]$ 被欧拉通量中的最大特征值惩罚，即 $\|\mathbf{u}\|+c$  ，其中 $c=\sqrt{\gamma p / \rho}$  是音速。在下面的实现中，我们对惩罚项进行了一些修改，因为无论如何惩罚都是近似的。我们使用
+
+@f{align*}{
+\lambda
+&=
+\frac{1}{2}\max\left(\sqrt{\|\mathbf{u^-}\|^2+(c^-)^2},
+                     \sqrt{\|\mathbf{u}^+\|^2+(c^+)^2}\right)
+\\
+&=
+\frac{1}{2}\sqrt{\max\left(\|\mathbf{u^-}\|^2+(c^-)^2,
+                           \|\mathbf{u}^+\|^2+(c^+)^2\right)}.
+
+
+@f}
+
+额外的因子 $\frac 12$ 降低了惩罚强度（这导致特征值的负实部减少，从而增加了可接受的时间步长）。使用和内的平方允许我们减少昂贵的平方根操作的数量，对于原始的Lax--Friedrichs定义是4个，现在只需要一个。这种简化导致参数 $\lambda$ 的减少最多为2倍，因为 $\|\mathbf{u}\|^2+c^2 \leq
+\|\mathbf{u}\|^2+2 c |\mathbf{u}\| + c^2 = \left(\|\mathbf{u}\|+c\right)^2
+\leq 2 \left(\|\mathbf{u}\|^2+c^2\right)$ ，最后一个不等式来自杨氏不等式。
+
+第二个数值通量是由Harten、Lax和van Leer提出的，称为HLL通量。它考虑到欧拉方程的不同传播方向，取决于声速。它利用一些中间状态  $\bar{\mathbf{u}}$  和  $\bar{c}$  来定义两个分支  $s^\mathrm{p} = \max\left(0, \bar{\mathbf{u}}\cdot \mathbf{n} +
+\bar{c}\right)$  和  $s^\mathrm{n} = \min\left(0, \bar{\mathbf{u}}\cdot
+\mathbf{n} - \bar{c}\right)$  。从这些分支中，人们再定义出通量
+
+@f[
+\hat{\mathbf{F}}(\mathbf{w}^-,\mathbf{w}^+) =
+\frac{s^\mathrm{p} \mathbf{F}(\mathbf{w}^-)-s^\mathrm{n} \mathbf{F}(\mathbf{w}^+)}
+                   {s^\mathrm p - s^\mathrm{n} } +
+\frac{s^\mathrm{p} s^\mathrm{n}}{s^\mathrm{p}-s^\mathrm{n}}
+\left[\mathbf{w}^--\mathbf{w}^+\right]\otimes \mathbf{n^-}.
+
+
+@f]
+
+关于中间状态的定义  $\bar{\mathbf{u}}$  和  $\bar{c}$  ，已经提出了几个变种。最初提出的变体使用密度平均的速度定义，  $\bar{\mathbf{u}}
+= \frac{\sqrt{\rho^-} \mathbf{u}^- + \sqrt{\rho^+}\mathbf{u}^+}{\sqrt{\rho^-}
++ \sqrt{\rho^+}}$  。由于我们考虑的是没有冲击的欧拉方程，因此在本教程程序中，我们简单地使用算术平均值， $\bar{\mathbf{u}} = \frac{\mathbf{u}^- +
+\mathbf{u}^+}{2}$ 和 $\bar{c} = \frac{c^- + c^+}{2}$ ，与 $c^{\pm} =
+\sqrt{\gamma p^{\pm} / \rho^{\pm}}$ ，而把其他变体留给可能的扩展。我们还注意到，HLL通量在文献中被扩展为所谓的HLLC通量，其中C代表表示接触不连续的能力。
+
+在没有邻接状态 $\mathbf{w}^+$ 的边界上，通常的做法是从边界条件中推导出合适的外部值（详见关于DG方法的一般文献）。在这个教程程序中，我们考虑三种类型的边界条件，即<b>inflow boundary conditions</b>，其中所有分量都是规定的。
+
+@f[
+\mathbf{w}^+ = \begin{pmatrix} \rho_\mathrm{D}(t)\\
+(\rho \mathbf u)_{\mathrm D}(t) \\ E_\mathrm{D}(t)\end{pmatrix} \quad
+ \text{(Dirichlet)},
+
+
+@f]
+
+<b>subsonic outflow boundaries</b>，在这里我们不规定外部解，因为流场要离开域，而使用内部值；我们仍然需要规定能量，因为欧拉通量中还有一个传入特性。
+
+@f[
+\mathbf{w}^+ = \begin{pmatrix} \rho^-\\
+(\rho \mathbf u)^- \\ E_\mathrm{D}(t)\end{pmatrix} \quad
+ \text{(mixed Neumann/Dirichlet)},
+
+
+@f]
+
+和<b>wall boundary condition</b>，它们描述了无渗透配置。
+
+@f[
+\mathbf{w}^+ = \begin{pmatrix} \rho^-\\
+(\rho \mathbf u)^- - 2 [(\rho \mathbf u)^-\cdot \mathbf n] \mathbf{n}
+ \\ E^-\end{pmatrix}.
+
+
+@f]
+
+
+
+解的多项式展开最后被插入到弱形式，测试函数被基函数取代。这就得到了一个空间上离散、时间上连续的非线性系统，其未知系数的数量有限  $w_j$  ,  $j=1,\ldots,n_\text{dofs}$  。关于DG方法中多项式度数的选择，截至2019年，文献中并没有关于什么多项式度数最有效的共识，决定取决于问题。高阶多项式可以确保更好的收敛率，因此对于中等到高精确度要求的<b>smooth</b>解来说，高阶多项式更有优势。同时，自由度所在的体积与表面的比率，随着高阶的增加而增加，这使得数值通量的影响变弱，通常会减少耗散。然而，在大多数情况下，解决方案是不平滑的，至少与可以承受的分辨率相比是不平滑的。例如，在不可压缩流体力学、可压缩流体力学以及与之相关的波浪传播课题中都是如此。在这个前渐进制度中，误差大约与数值分辨率成正比，而其他因素，如分散误差或耗散行为变得更加重要。非常高阶的方法往往被排除在外，因为它们带有根据未知数衡量的更多限制性的CFL条件，而且当涉及到表示复杂几何形状时，它们也不那么灵活。因此，2到6的多项式度数在实践中是最受欢迎的，例如见 @cite FehnWallKronbichler2019 中的效率评估和其中引用的参考文献。
+
+<h3>Explicit time integration</h3>
+
+为了进行时间离散化，我们稍微重新排列了弱的形式，并在所有单元上求和。
+
+@f[
+\sum_{K \in \mathcal T_h} \left(\boldsymbol{\varphi}_i,
+\frac{\partial \mathbf{w}}{\partial t}\right)_{K}
+=
+\sum_{K\in \mathcal T_h}
+\left[
+\left(\nabla \boldsymbol{\varphi}_i, \mathbf{F}(\mathbf{w})\right)_{K}
+
+
+-\left<\boldsymbol{\varphi}_i,
+\mathbf{n} \cdot \widehat{\mathbf{F}}(\mathbf{w})\right>_{\partial K} +
+\left(\boldsymbol{\varphi}_i,\mathbf{G}(\mathbf w)\right)_{K}
+\right],
+
+
+@f]
+
+其中 $\boldsymbol{\varphi}_i$ 贯穿了从1到 $n_\text{dofs}$ 的所有基函数。
+
+我们现在用 $\mathcal M$ 表示质量矩阵，其条目为 $\mathcal M_{ij} =
+\sum_{K} \left(\boldsymbol{\varphi}_i,
+\boldsymbol{\varphi}_j\right)_K$ ，并用
+
+@f[
+\mathcal L_h(t,\mathbf{w}_h) = \left[\sum_{K\in \mathcal T_h}
+\left[
+\left(\nabla \boldsymbol{\varphi}_i, \mathbf{F}(\mathbf{w}_h)\right)_{K}
+
+
+- \left<\boldsymbol{\varphi}_i,
+\mathbf{n} \cdot \widehat{\mathbf{F}}(\mathbf{w}_h)\right>_{\partial K}
++ \left(\boldsymbol{\varphi}_i,\mathbf{G}(\mathbf w_h)\right)_{K}
+\right]\right]_{i=1,\ldots,n_\text{dofs}}.
+
+
+@f]
+
+给定一个与全局未知数矢量和使用中的有限元相关的函数 $\mathbf{w}_h$ ，对欧拉算子的右手边进行评估的算子。这个函数 $\mathcal L_h$ 是明确随时间变化的，因为在边界上评估的数值通量将涉及边界某些部分的随时间变化的数据 $\rho_\mathrm{D}$ 、 $(\rho \mathbf{u})_\mathrm{D}$ 和 $E_\mathbf{D}$ ，取决于边界条件的分配。有了这个符号，我们可以把空间上的离散、时间上的连续系统紧凑地写为
+
+@f[
+\mathcal M \frac{\partial \mathbf{w}_h}{\partial t} =
+\mathcal L_h(t, \mathbf{w}_h),
+
+
+@f]
+
+其中我们冒昧地用 $\mathbf{w}_h$ 表示全局解矢量（除了相应的有限元函数外）。等价地，上述系统的形式为
+
+@f[
+\frac{\partial \mathbf{w}_h}{\partial t} =
+\mathcal M^{-1} \mathcal L_h(t, \mathbf{w}_h).
+
+
+@f]
+
+
+
+对于用高阶非连续Galerkin方法离散的双曲系统，该系统的显式时间积分非常流行。这是由于质量矩阵 $\mathcal M$ 是块对角线的（每个块只对应于定义在同一单元上的同类变量），因此很容易倒置。在每个时间步长--或Runge-Kutta方案的阶段--我们只需要用给定的数据评估一次微分算子，然后应用质量矩阵的逆。另一方面，对于隐式时间步进，人们首先必须将方程线性化，然后迭代解决线性系统，这涉及到几个残差评估和至少十几个线性化算子的应用，正如在步骤33教程程序中所展示的那样。
+
+当然，显式时间步长的简单性是有代价的，即由于所谓的Courant-Friedrichs-Lewy（CFL）条件而产生的条件稳定性。它指出，时间步长不能大于离散微分算子的最快信息传播速度。用更现代的术语来说，传播速度对应于离散算子的最大特征值，反过来又取决于网格大小、多项式程度 $p$ 和欧拉算子的物理学，即 $\mathbf F(\mathbf w)$ 相对于 $\mathbf{w}$ 的线性化的特征值。在这个程序中，我们设定的时间步长如下。
+
+@f[
+\Delta t = \frac{\mathrm{Cr}}{p^{1.5}}\left(\frac{1}
+           {\max\left[\frac{\|\mathbf{u}\|}{h_u} + \frac{c}{h_c}\right]}\right),
+
+
+@f]
+
+
+
+在所有正交点和所有单元中取最大值。无量纲数 $\mathrm{Cr}$ 表示库朗数，可以选择最大稳定数 $\mathrm{Cr}_\text{max}$ ，其值取决于所选择的时间步进方法及其稳定性。用于多项式缩放的幂 $p^{1.5}$ 是启发式的，代表1到8之间的多项式度数最接近，例如，见 @cite SchoederKormann2018 。在更高的度数限制下， $p>10$ ， $p^2$ 的比例更准确，与通常用于内部惩罚方法的逆向估计有关。关于公式中使用的<i>effective</i>网格尺寸 $h_u$ 和 $h_c$ ，我们注意到对流传输是定向的。因此，一个合适的比例是使用速度方向的元素长度  $\mathbf u$  。下面的代码从参考单元到实际单元的雅各布系数的倒数得出这个比例，也就是说，我们近似于  $\frac{\|\mathbf{u}\|}{h_u} \approx \|J^{-1} \mathbf
+u\|_{\infty}$  。相反，声波具有各向同性的特点，这就是为什么我们使用最小的特征尺寸，由 $J$ 的最小奇异值代表，用于声学缩放  $h_c$  。最后，我们需要增加对流和声学限制，因为欧拉方程可以以速度传输信息  $\|\mathbf{u}\|+c$  。
+
+在这个教程程序中，我们使用<a
+href="https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods">explicit
+Runge--Kutta methods</a>的一个特定变体，一般来说，它使用以下更新程序，从时间 $t^n$ 的状态 $\mathbf{w}_h^{n}$ 到新时间 $t^{n+1}$ 的 $\Delta t = t^{n+1}-t^n$  。
+
+@f[
+\begin{aligned}
+\mathbf{k}_1 &= \mathcal M^{-1} \mathcal L_h\left(t^n, \mathbf{w}_h^n\right),
+\\
+\mathbf{k}_2 &= \mathcal M^{-1} \mathcal L_h\left(t^n+c_2\Delta t,
+                       \mathbf{w}_h^n + a_{21} \Delta t \mathbf{k}_1\right),
+\\
+&\vdots \\
+\mathbf{k}_s &= \mathcal M^{-1} \mathcal L_h\left(t^n+c_s\Delta t,
+  \mathbf{w}_h^n + \sum_{j=1}^{s-1} a_{sj} \Delta t \mathbf{k}_j\right),
+\\
+\mathbf{w}_h^{n+1} &= \mathbf{w}_h^n + \Delta t\left(b_1 \mathbf{k}_1 +
+b_2 \mathbf{k}_2 + \ldots + b_s \mathbf{k}_s\right).
+\end{aligned}
+
+
+@f]
+
+在 $\mathbf{k}_i$ 、 $i=1,\ldots,s$ 的阶段性方案中，向量 $s$ 是算子在某个中间状态下的评价，并通过某种线性组合用于定义阶段性结束值 $\mathbf{w}_h^{n+1}$ 。该方案中的标量系数 $c_i$ 、 $a_{ij}$ 和 $b_j$ 的定义，使得高阶方案满足某些条件，最基本的是 $c_i = \sum_{j=1}^{i-1}a_{ij}$  。参数通常以所谓的<a
+href="https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods#Explicit_Runge%E2%80%93Kutta_methods">Butcher
+tableau</a>的形式收集，它收集了定义该方案的所有系数。对于一个五级方案，它看起来是这样的。
+
+@f[
+\begin{array}{c|ccccc}
+0 \\
+c_2 & a_{21} \\
+c_3 & a_{31} & a_{32} \\
+c_4 & a_{41} & a_{42} & a_{43} \\
+c_5 & a_{51} & a_{52} & a_{53} & a_{54} \\
+\hline
+& b_1 & b_2 & b_3 & b_4 & b_5
+\end{array}
+
+
+@f]
+
+
+
+在这个教程程序中，我们使用显式Runge--Kutta方法的一个子集，即所谓的低存储Runge--Kutta方法（LSRK），它假定了系数的额外结构。在参考文献 @cite KennedyCarpenterLewis2000 所使用的变体中，假设使用的是Butcher tableaus的形式
+
+@f[
+\begin{array}{c|ccccc}
+0 \\
+c_2 & a_1 \\
+c_3 & b_1 & a_2 \\
+c_4 & b_1 & b_2 & a_3 \\
+c_5 & b_1 & b_2 & b_3 & a_4 \\
+\hline
+& b_1 & b_2 & b_3 & b_4 & b_5
+\end{array}
+
+
+@f]
+
+有了这样的定义，对  $\mathbf{w}_h^n$  的更新与中间值  $\mathbf{k}_i$  的信息共享存储。从 $\mathbf{w}^{n+1}=\mathbf{w}^n$ 和 $\mathbf{r}_1 = \mathbf{w}^n$ 开始，每个 $s$ 阶段的更新都简化为
+
+@f[
+\begin{aligned}
+\mathbf{k}_i &=
+\mathcal M^{-1} \mathcal L_h\left(t^n+c_i\Delta t, \mathbf{r}_{i} \right),\\
+\mathbf{r}_{i+1} &= \mathbf{w}_h^{n+1} + \Delta t \, a_i \mathbf{k}_i,\\
+\mathbf{w}_h^{n+1} &= \mathbf{w}_h^{n+1} + \Delta t \, b_i \mathbf{k}_i.
+\end{aligned}
+
+
+@f]
+
+除了连续更新的向量 $\mathbf w_h^{n+1}$ ，这个方案只需要两个辅助向量，即保存微分算子的评估的向量 $\mathbf{k}_i$ ，以及保存微分算子应用的右手边的向量 $\mathbf{r}_i$ 。在后续阶段  $i$  ，值  $\mathbf{k}_i$  和  $\mathbf{r}_i$  可以使用相同的存储。
+
+低存储量变体的主要优点是一方面减少了内存消耗（如果必须在内存中装入非常多的未知数，持有所有的 $\mathbf{k}_i$ 来计算随后的更新，对于 $s$ 来说已经是一个极限，在5到8之间--记得我们使用的是显式方案，所以我们不需要存储任何通常比几个向量大很多的矩阵），另一方面是减少内存访问。在这个程序中，我们对后一个方面特别感兴趣。由于运算符评估的成本只是简单地从内存中流转输入和输出向量的一小部分，我们必须考虑向量更新的成本，而低存储的变体可以提供传统显式Runge--Kutta方法两倍的吞吐量，原因就在于此，例如，见 @cite SchoederKormann2018 中的分析。
+
+除了参考文献 @cite KennedyCarpenterLewis2000 中的三阶、四阶和五阶精度的三个变体外，我们还使用了一个四阶精度的七级变体，该变体是为声学设置而优化的 @cite TseliosSimos2007  。声学问题是欧拉方程的亚音速制度的有趣方面之一，其中可压缩性导致了声波的传播；通常，人们使用围绕背景状态的线性化欧拉方程的进一步简化，或围绕固定框架的声波方程。
+
+
+
+
+<h3>Fast evaluation of integrals by matrix-free techniques</h3>
+
+这个程序中使用的主要成分是我们用来评估算子  $\mathcal L_h$  和反质量矩阵  $\mathcal M$  的快速无矩阵技术。实际上，<i>matrix-free</i>这个术语有点名不副实，因为我们是在处理一个非线性算子，并没有将反过来可以用矩阵表示的算子线性化。然而，作为稀疏矩阵-向量乘积的替代品，积分的快速评估已经变得很流行，如步骤-37和步骤-59所示，为此我们在交易二中创造了这个基础设施<i>matrix-free functionality</i>。此外，反质量矩阵确实是以无矩阵的方式应用的，详见下文。
+
+无矩阵基础设施使我们能够快速评估弱形式的积分。其成分是将解系数快速插值为正交点的值和导数，在正交点进行逐点运算（在这里我们实现了上述的微分算子），以及与所有测试函数相乘和对正交点求和。第一和第三部分利用了和因子化，并在步骤37的单元积分教程和步骤59的面积分教程中进行了广泛的讨论。唯一的区别是，我们现在处理的是一个 $d+2$ 分量的系统，而不是以前教程程序中的标量系统。在代码中，所有的变化是FEEvaluation和FEFaceEvaluation类的一个模板参数，即设置分量的数量。对向量的访问和以前一样，都由评价器透明地处理。我们还注意到，下面的代码中选择的带有单一评价器的变体并不是唯一的选择--我们也可以为单独的组件 $\rho$ 、 $\rho \mathbf u$ 和 $E$ 使用单独的评价器；鉴于我们对所有组件的处理是类似的（也反映在我们把方程作为一个矢量系统的方式），这里会更复杂。和以前一样，FEEvaluation类通过结合对几个单元（和面）的操作来提供显式的矢量化，涉及的数据类型称为VectorizedArray。由于这种类型的算术运算都是重载的，所以我们不必为它费心，除了通过函数接口对函数进行评估，我们需要同时为几个正交点的位置提供特殊的<i>vectorized</i>评估。
+
+这个程序中更大的变化是在正交点的操作。在这里，多分量评估器为我们提供了之前没有讨论过的返回类型。 FEEvaluation::get_value() 将为第37步的拉普拉斯返回一个标量（更准确地说，由于跨单元的矢量化，是一个VectorizedArray类型），现在它返回的类型是`Tensor<1,dim+2,VectorizedArray<Number>'。同样，梯度类型现在是`张量<1,dim+2,张量<1,dim,矢量化数组<Number>>`，其中外部张量收集了欧拉系统的`dim+2'分量，内部张量是各个方向的偏导数。例如，欧拉系统的通量 $\mathbf{F}(\mathbf{w})$ 就属于这种类型。为了减少我们为拼出这些类型而写的代码量，我们尽可能使用C++的`自动'关键字。
+
+从实施的角度来看，非线性并不是一个很大的困难。它是在我们表达欧拉弱形式的条款时自然引入的，例如以动量条款的形式  $\rho \mathbf{u}
+\otimes \mathbf{u}$  。为了得到这个表达式，我们首先从动量变量  $\rho \mathbf{u}$  推导出速度  $\mathbf{u}$  。鉴于 $\rho
+\mathbf{u}$ 和 $\rho$ 一样被表示为 $p$ 度的多项式，速度 $\mathbf{u}$ 是参考坐标 $\hat{\mathbf{x}}$ 的一个有理表达。当我们进行乘法 $(\rho
+\mathbf{u})\otimes \mathbf{u}$ 时，我们得到一个表达式，它是两个多项式的比值，分子中的多项式程度 $2p$ 和分母中的多项式程度 $p$ 。结合测试函数的梯度，分子中的积分度为 $3p$ ，分母中的积分度为 $p$ ，对于仿生单元，即平行四边形/平行四边形，已经有了积分。对于弧形单元，当积分乘以映射的雅各布系数时，会出现额外的多项式和有理表达式。在这一点上，人们通常需要放弃坚持精确的积分，而采取高斯（更确切地说，高斯-勒格伦德）正交提供的任何精度。这时的情况与拉普拉斯方程的情况类似，积分项包含非affince单元上的有理表达式，也只能进行近似积分。由于这些公式只对多项式进行精确积分，我们不得不以积分错误的形式忍受<a
+href="https://mathoverflow.net/questions/26018/what-are-variational-crimes-and-who-coined-the-term">variational
+crime</a>的影响。
+
+虽然对于椭圆问题来说，不精确的积分通常是可以容忍的，但对于双曲问题来说，不精确的积分会引起一些令人头痛的效应，这种效应称为<b>aliasing</b>。这个术语来自于信号处理，表达了不适当的、过于粗糙的采样情况。就正交而言，不适当的采样意味着我们使用的正交点与准确采样变系数积分所需的点相比太少。在DG文献中已经表明，别离误差会在<i>barely</i>解析模拟的数值解中引入非物理性的振荡。别名主要影响到粗略的分辨率--而采用相同方案的更细的网格则工作良好--这一事实并不令人惊讶，因为分辨率高的模拟往往在一个单元的长度尺度上是平滑的（即，它们在较高的多项式程度上有小的系数，由于正交点太少而被遗漏，而在较低的多项式程度上的主要解贡献仍然被很好地捕获--这只是泰勒定理的一个结果）。为了解决这个问题，DG文献中提出了各种方法。一种技术是过滤，它可以抑制与高次多项式度数有关的解成分。由于所选择的节点基不是分层的，这就意味着要从节点基转化为分层基（例如，基于Legendre多项式的模态基），其中单元内的贡献是按多项式程度划分的。在这个基础上，我们可以将与高度数相关的求解系数乘以一个小数，保持低度数不变（以避免破坏一致性），然后再转换回节点基础。然而，过滤器会降低该方法的准确性。另一个在某种意义上更简单的策略是使用更多的正交点来更准确地捕捉非线性项。每个坐标方向使用超过 $p+1$ 个正交点有时被称为过度积分或一致积分。后者在不可压缩的Navier-Stokes方程中最为常见，其中 $\mathbf{u}\otimes \mathbf{u}$ 非线性导致 $3p$ 度的多项式积分（当同时考虑测试函数时），只要元素的几何形状是仿生的，每个方向的 $\textrm{floor}\left(\frac{3p}{2}\right)+1$ 正交点就可以精确积分。在非多项式积分的欧拉方程的背景下，选择就不那么明确了。根据各种变量的变化， $\textrm{floor}\left(\frac{3p}{2}\right)+1$ 或 $2p+1$ 点（分别精确积分度为 $3p$ 或 $4p$ 的多项式）都很常见。
+
+为了反映程序中正交选择的这种可变性，我们把正交点的数量作为一个变量来指定，就像多项式的度数一样，并注意到人们会根据流量配置做出不同的选择。默认选择是 $p+2$ 点--比最小可能的 $p+1$ 点多一点。FEEvaluation和FEFaceEvaluation类允许通过模板参数无缝地改变点的数量，这样程序就不会因此而变得更复杂。
+
+
+
+
+<h3>Evaluation of the inverse mass matrix with matrix-free techniques</h3>
+
+最后一个要素是反质量矩阵的评估  $\mathcal
+M^{-1}$  。在具有显式时间积分的DG方法中，质量矩阵是块状对角线，因此很容易反转--人们只需要反转对角线块。然而，考虑到无矩阵的积分评估在成本上更接近于只访问向量，即使应用块对角矩阵（例如通过LU因子数组）也会比评估 $\mathcal L_h$ 贵几倍，仅仅是因为对于高阶有限元来说，仅仅存储和加载大小为`dofs_per_cell`x`dofs_per_cell`的矩阵是昂贵的。由于这显然是不可取的，部分社区已经转移到质量矩阵是对角线的基础，例如<i>L<sub>2</sub></i>正交Legendre基础，使用分层多项式或高斯四分法点上的拉格朗日多项式（这只是利用Legendre信息的另一种方式）。虽然对角线属性对于变形元素来说是失效的，但通过采取对角线质量矩阵而忽略其余部分（质量包络的变种，尽管不是步骤-48中利用的具有额外积分误差的变种）所产生的误差已被证明不会改变离散化精度。高斯正交点中的拉格朗日基础有时也被称为同位设置，因为多项式的结点与正交点重合（="同位"），避免了一些内插操作。鉴于我们想在 $\mathcal L_h$ 中对非线性项使用更多的正交点，然而，拼合属性就失去了。(更确切地说，在改变基础后，它仍然用于FEEvaluation和FEFaceEvaluation，见无矩阵论文  @cite KronbichlerKormann2019  。)
+
+在这个教程程序中，我们使用拼合思想来应用反质量矩阵，但有一个小的转折。与其在高斯四分法的点上通过拉格朗日多项式使用配位，我们更倾向于在高斯-洛巴托点上使用传统的拉格朗日基础，因为那些使面积分的评估变得便宜。这是因为对于高斯-洛巴托点来说，一些节点点位于单元格的面上，而且不难证明，在任何给定的面上，唯一具有非零值的形状函数正是其节点点实际上位于该面上的那些。当然，我们也可以像步骤48那样使用高斯-洛巴托正交（有一些额外的积分误差），但我们不想牺牲精度，因为这些正交公式通常比一般的高斯正交公式的阶数低。相反，我们使用参考文献 @cite KronbichlerSchoeder2016 中描述的一个想法，其中提出为了应用反质量矩阵而改变基础。让我们用 $S$ 表示在正交点评价的形状函数矩阵，形状函数在矩阵的行中，正交点在列中。那么，单元格 $K$ 上的质量矩阵由以下公式给出
+
+@f[
+\mathcal M^K = S J^K S^\mathrm T.
+
+
+@f]
+
+这里， $J^K$ 是以雅各布系数乘以正交权重（JxW）的行列式作为条目的对角矩阵。矩阵 $S$ 被构造为一维矩阵的克朗克积（张量积），例如，在三维中为
+
+@f[
+S = S_{\text{1D}}\otimes S_{\text{1D}}\otimes S_{\text{1D}},
+
+
+@f]
+
+这是基函数是一维形状函数的张量积，正交公式是一维正交公式的张量积的结果。对于多项式的数量等于正交点的数量的情况， $S J^K S^\mathrm T$ 中的所有矩阵都是方形的，同样，克朗克积中的 $S$ 的成分也是方形的。因此，人们可以对每个矩阵进行反转，形成整体的逆。
+
+@f[
+\left(\mathcal M^K\right)^{-1} = S_{\text{1D}}^{-\mathrm T}\otimes
+S_{\text{1D}}^{-\mathrm T}\otimes S_{\text{1D}}^{-\mathrm T}
+\left(J^K\right)^{-1}
+S_{\text{1D}}^{-1}\otimes S_{\text{1D}}^{-1}\otimes S_{\text{1D}}^{-1}.
+
+
+@f]
+
+这个公式的结构与用和因子化技术对积分进行正向评价的步骤完全相同（即交易.II的FEEvaluation和MatrixFree框架）。因此，我们可以利用相同的代码路径，采用不同的插值矩阵， $S_{\mathrm{1D}}^{-\mathrm{T}}$ 而不是 $S_{\mathrm{1D}}$  。
+
+类 MatrixFreeOperators::CellwiseInverseMassMatrix 实现了这个操作。它从有限元中包含的基（在这里是FE_DGQ）改变为高斯正交点中的拉格朗日基。在这里，可以评估对角线质量矩阵的逆值，这只是`JxW`因子的逆值（即正交权重乘以从参考坐标到实坐标的雅各布系数）。一旦这样做了，我们就可以变回标准的节点高斯-洛巴托基础。
+
+这种应用反质量矩阵的特殊方式的优点是成本类似于质量矩阵的正向应用，这比用超积分和面积分评估空间算子 $\mathcal L_h$ 更便宜。(我们将在<a href="#Results">results section</a>中用详细的时间信息证明这一点)。事实上，它是如此便宜，以至于在大多数现代架构上，它被读取源向量、读取对角线和写入目的向量的带宽所限制。用于结果部分的硬件可以使计算的速度至少比从内存流向量的速度快一倍。
+
+
+
+
+<h3>The test case</h3>
+
+在这个教程程序中，我们实现了两个测试案例。第一个案例是限于两个空间维度的收敛性测试。它运行一个所谓的等熵涡旋，它通过一个背景流场进行传输。第二个案例使用了一个更令人兴奋的设置。我们从一个浸在通道中的圆柱体开始，使用 GridGenerator::channel_with_cylinder() 函数。在这里，我们强加一个马赫数为 $\mathrm{Ma}=0.307$ 的亚音速初始场，在 $x$ 方向上速度不变。在顶壁和底壁以及圆柱体上，我们施加了一个无穿透（即切向流动）的条件。与初始条件相比，这种设置迫使气流重新定向，从而导致大的声波从圆柱体上传播出去。在上游方向，波的传播速度较慢（因为它必须逆着迎面而来的气体移动），包括密度和压力的不连续。在下游方向，由于声音的传播和流体的流动方向相同，传输速度较快，这在一定程度上抹去了不连续性。一旦声波碰到上下壁，声音就会被反射回来，形成一些漂亮的形状，如下图<a href="#Results">results section</a>所示。
+
+

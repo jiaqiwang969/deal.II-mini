@@ -1,0 +1,278 @@
+examples/step-51/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Program output</h3>
+
+我们首先看一下程序在二维运行时产生的输出。在下面的四张图片中，我们展示了多项式度数 $p=1$ 和程序的周期2、3、4和8的解决方案。在图中，我们将从内部数据（DG部分）产生的数据与骨架部分（ $\hat{u}$ ）叠加到同一图中。我们不得不生成两个不同的数据集，因为单元格和面孔代表不同的几何实体，它们的组合（在同一个文件中）在VTK输出的deal.II中不被支持。
+
+这些图像显示了HDG的明显特征：细胞的解决方案（彩色的表面）在细胞之间是不连续的。骨架变量上的解位于面的位置，并将局部部分联系起来。骨架解决方案在面与面之间的顶点上是不连续的，尽管它的值沿着同一坐标方向的线相当接近。骨架解可以被解释为两边之间的橡胶弹簧，它可以平衡解的跳跃（或者说，通量 $\kappa \nabla u
++ \mathbf{c} u$ ）。从左上角的图片可以看出，大体解经常出现过冲和欠冲，而骨架变量确实是对精确解更好的近似；这解释了为什么我们可以通过后处理步骤得到更好的解。
+
+随着网格的细化，单元之间的跳跃变得很小（我们代表一个平滑的解决方案），骨架解决方案接近内部部分。对于第8周期，两个变量没有明显的区别。我们还看到边界条件是如何弱化实施的，内部变量并不完全满足边界条件。在下部和左侧边界，我们设置了诺伊曼边界条件，而在右侧和顶部边界，我们设置了迪里希特条件。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.sol_2.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.sol_3.png" alt=""></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.sol_4.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.sol_8.png" alt=""></td>
+  </tr>
+</table> 
+
+接下来，我们看一下后处理的解决方案，还是在周期2、3、4和8。这是一个不连续的解决方案，局部由二阶多项式描述。虽然在第二周期的网格上，解决方案看起来不是很好，但在第三和第四周期，它看起来好得多。正如下面的收敛表所示，我们发现它也更快地收敛到了分析解。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.post_2.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.post_3.png" alt=""></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.post_4.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.post_8.png" alt=""></td>
+  </tr>
+</table> 
+
+最后，我们看一下 $p=3$ 在第二周期的解。尽管网格较粗，只有64个单元，但经过后处理的解在质量上与第8周期4,096个单元的线性解（未经过后处理）相似。这清楚地表明了高阶方法对于平滑解的优越性。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.sol_q3_2.png" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.post_q3_2.png" alt=""></td>
+  </tr>
+</table> 
+
+<h4>Convergence tables</h4>
+
+当程序运行时，它还会输出各自的步骤和收敛表的信息，并在最后输出各部分的误差。在2D中，收敛表看起来如下。
+
+@code
+Q1 elements, adaptive refinement:
+cells dofs   val L2    grad L2  val L2-post
+   16    80 1.804e+01 2.207e+01   1.798e+01
+   31   170 9.874e+00 1.322e+01   9.798e+00
+   61   314 7.452e-01 3.793e+00   4.891e-01
+  121   634 3.240e-01 1.511e+00   2.616e-01
+  238  1198 8.585e-02 8.212e-01   1.808e-02
+  454  2290 4.802e-02 5.178e-01   2.195e-02
+  898  4378 2.561e-02 2.947e-01   4.318e-03
+ 1720  7864 1.306e-02 1.664e-01   2.978e-03
+ 3271 14638 7.025e-03 9.815e-02   1.075e-03
+ 6217 27214 4.119e-03 6.407e-02   9.975e-04
+
+
+Q1 elements, global refinement:
+cells dofs      val L2        grad L2      val L2-post
+   16    80 1.804e+01    - 2.207e+01    - 1.798e+01    -
+   36   168 6.125e+00 2.66 9.472e+00 2.09 6.084e+00 2.67
+   64   288 9.785e-01 6.38 4.260e+00 2.78 7.102e-01 7.47
+  144   624 2.730e-01 3.15 1.866e+00 2.04 6.115e-02 6.05
+  256  1088 1.493e-01 2.10 1.046e+00 2.01 2.880e-02 2.62
+  576  2400 6.965e-02 1.88 4.846e-01 1.90 9.204e-03 2.81
+ 1024  4224 4.018e-02 1.91 2.784e-01 1.93 4.027e-03 2.87
+ 2304  9408 1.831e-02 1.94 1.264e-01 1.95 1.236e-03 2.91
+ 4096 16640 1.043e-02 1.96 7.185e-02 1.96 5.306e-04 2.94
+ 9216 37248 4.690e-03 1.97 3.228e-02 1.97 1.599e-04 2.96
+
+
+Q3 elements, global refinement:
+cells dofs      val L2        grad L2      val L2-post
+   16   160 3.613e-01    - 1.891e+00    - 3.020e-01    -
+   36   336 6.411e-02 4.26 5.081e-01 3.24 3.238e-02 5.51
+   64   576 3.480e-02 2.12 2.533e-01 2.42 5.277e-03 6.31
+  144  1248 8.297e-03 3.54 5.924e-02 3.58 6.330e-04 5.23
+  256  2176 2.254e-03 4.53 1.636e-02 4.47 1.403e-04 5.24
+  576  4800 4.558e-04 3.94 3.277e-03 3.96 1.844e-05 5.01
+ 1024  8448 1.471e-04 3.93 1.052e-03 3.95 4.378e-06 5.00
+ 2304 18816 2.956e-05 3.96 2.104e-04 3.97 5.750e-07 5.01
+ 4096 33280 9.428e-06 3.97 6.697e-05 3.98 1.362e-07 5.01
+ 9216 74496 1.876e-06 3.98 1.330e-05 3.99 1.788e-08 5.01
+@endcode
+
+
+
+
+我们可以看到网格细化后的误差减少，对于进行全局细化的情况，也可以看到收敛率。在 $L_2$ 准则下，标量变量和梯度变量的Q1元素的二次收敛率很明显，在 $L_2$ 准则下，后处理的标量变量的三次收敛率也是如此。注意HDG解决方案的这一明显特征。在典型的连续有限元中，阶 $p$ 的解的梯度收敛率只有 $p$ ，与实际解的 $p+1$ 相反。即使有限元的超收敛结果也是可用的（例如Zienkiewicz和Zhu首次提出的超收敛补丁恢复），但这些通常只限于结构化网格和其他特殊情况。对于Q3 HDG变量，标量变量和梯度在四阶收敛，后处理的标量变量在五阶收敛。
+
+在3D中观察到相同的收敛率。
+
+@code
+Q1 elements, adaptive refinement:
+cells   dofs    val L2    grad L2  val L2-post
+     8     144 7.122e+00 1.941e+01   6.102e+00
+    29     500 3.309e+00 1.023e+01   2.145e+00
+   113    1792 2.204e+00 1.023e+01   1.912e+00
+   379    5732 6.085e-01 5.008e+00   2.233e-01
+  1317   19412 1.543e-01 1.464e+00   4.196e-02
+  4579   64768 5.058e-02 5.611e-01   9.521e-03
+ 14596  199552 2.129e-02 3.122e-01   4.569e-03
+ 46180  611400 1.033e-02 1.622e-01   1.684e-03
+144859 1864212 5.007e-03 8.371e-02   7.364e-04
+451060 5684508 2.518e-03 4.562e-02   3.070e-04
+
+
+Q1 elements, global refinement:
+cells   dofs       val L2          grad L2       val L2-post
+     8     144 7.122e+00    - 1.941e+01     - 6.102e+00    -
+    27     432 5.491e+00 0.64 2.184e+01 -0.29 4.448e+00 0.78
+    64     960 3.646e+00 1.42 1.299e+01  1.81 3.306e+00 1.03
+   216    3024 1.595e+00 2.04 8.550e+00  1.03 1.441e+00 2.05
+   512    6912 6.922e-01 2.90 5.306e+00  1.66 2.511e-01 6.07
+  1728   22464 2.915e-01 2.13 2.490e+00  1.87 8.588e-02 2.65
+  4096   52224 1.684e-01 1.91 1.453e+00  1.87 4.055e-02 2.61
+ 13824  172800 7.972e-02 1.84 6.861e-01  1.85 1.335e-02 2.74
+ 32768  405504 4.637e-02 1.88 3.984e-01  1.89 5.932e-03 2.82
+110592 1354752 2.133e-02 1.92 1.830e-01  1.92 1.851e-03 2.87
+
+
+Q3 elements, global refinement:
+cells   dofs       val L2        grad L2      val L2-post
+     8     576 5.670e+00    - 1.868e+01    - 5.462e+00    -
+    27    1728 1.048e+00 4.16 6.988e+00 2.42 8.011e-01 4.73
+    64    3840 2.831e-01 4.55 2.710e+00 3.29 1.363e-01 6.16
+   216   12096 7.883e-02 3.15 7.721e-01 3.10 2.158e-02 4.55
+   512   27648 3.642e-02 2.68 3.305e-01 2.95 5.231e-03 4.93
+  1728   89856 8.546e-03 3.58 7.581e-02 3.63 7.640e-04 4.74
+  4096  208896 2.598e-03 4.14 2.313e-02 4.13 1.783e-04 5.06
+ 13824  691200 5.314e-04 3.91 4.697e-03 3.93 2.355e-05 4.99
+ 32768 1622016 1.723e-04 3.91 1.517e-03 3.93 5.602e-06 4.99
+110592 5419008 3.482e-05 3.94 3.055e-04 3.95 7.374e-07 5.00
+@endcode
+
+
+
+<h3>Comparison with continuous finite elements</h3>
+
+<h4>Results for 2D</h4>
+
+收敛表验证了介绍中所述的预期收敛率。现在，我们想在本教程的问题上展示一下HDG方法与普通有限元（连续Galkerin）方法相比的计算效率的快速比较。当然，与连续有限元相比，HDG方法对于传输为主的问题的稳定性方面在实践中也很重要，这是在平滑分析解的问题上看不到的方面。在下面的图片中，我们比较了 $L_2$ 误差作为自由度数的函数（左）和线性求解器中花费的计算时间（右），连续有限元（CG）和本教程中介绍的混合非连续Galerkin方法的两个空间维度。相对于教程中我们只使用无条件的BiCGStab，下面的数字中显示的时间使用了 TrilinosWrappers::PreconditionAMG. 中的Trilinos代数多网格预处理器 对于HDG部分，为了利用最细级别的矩阵中的块结构，我们使用了ChunkSparseMatrix周围的跟踪变量的包装器。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.2d_plain.png" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.2dt_plain.png" width="400" alt=""></td>
+  </tr>
+</table> 
+
+图中的结果显示，HDG方法在 $p=1$ 时比连续有限元慢，对立方体元素的速度差不多，对六阶元素的速度更快。然而，我们在上面已经看到，HDG方法实际上产生的解比原始变量所表示的更准确。因此，在下面两幅图中，我们转而显示HDG的后处理解的误差（例如用 $p=1^*$ 表示）。现在我们看到，对于 $p=3$ 和 $p=6$ ，在相同的工作量下，HDG有明显的优势，而对于 $p=1$ ，质量也差不多。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.2d_post.png" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.2dt_post.png" width="400" alt=""></td>
+  </tr>
+</table> 
+
+由于HDG方法实际产生的结果收敛为 $h^{p+2}$ ，我们应该将其与具有相同渐进收敛行为的连续Galerkin解决方案进行比较，即程度为 $p+1$ 的FE_Q。如果我们这样做，我们会得到下面的收敛曲线。我们看到，用二阶多项式的CG又明显优于用线型的HDG。然而，HDG对高阶的优势依然存在。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.2d_postb.png" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.2dt_postb.png" width="400" alt=""></td>
+  </tr>
+</table> 
+
+这些结果与一般的DG方法的特性是一致的。最佳性能通常不是在线性元素上实现的，而是在更高的阶数上，通常在 $p=3$ 左右。这是因为不连续解的体积-表面效应，有太多的解存在于表面，因此当元素为线性时，会出现重复工作。换句话说，尽管DG方法专注于不连续（因此看起来精度不高）的解的表示，但在相对高的阶数上使用时往往是最有效的。
+
+<h4>Results for 3D</h4>
+
+我们现在展示了同样的三维数字：第一行显示了自由度数和计算时间与标量变量 $L_2$ 中的 $u$ 误差的关系，在 $p$ 阶的CG和HDG，第二行显示了后处理的HDG方案，而不是原始方案，第三行比较了后处理的HDG方案与阶 $p+1$ 的CG。在三维中，体积-表面效应使得HDG的成本更高，对于线型来说，CG的解决方案显然比HDG更好。对于立方体，HDG和CG的质量相似，而HDG对于六阶多项式又更有效率。我们也可以使用FE_DGP和FE_FaceP的组合来代替（FE_DGQ, FE_FaceQ），它们不使用 $p$ 度的张量积多项式，而是<i>complete</i>度的Legendre多项式。在给定的网格尺寸下，FE_FaceP的骨架变量的自由度较少，但求解质量（误差与自由度数量的关系）与FE_FaceQ的结果非常相似。
+
+ <table align="center">
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.3d_plain.png" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.3dt_plain.png" width="400" alt=""></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.3d_post.png" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.3dt_post.png" width="400" alt=""></td>
+  </tr>
+  <tr>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.3d_postb.png" width="400" alt=""></td>
+    <td><img src="https://www.dealii.org/images/steps/developer/step-51.3dt_postb.png" width="400" alt=""></td>
+  </tr>
+</table> 
+
+关于效率比较的最后一点说明。我们试图使用通用的稀疏矩阵结构和类似的求解器（两者的最佳AMG预处理器，没有对任何一个AMG参数进行特别的调整），在一个玩具的例子上，对两种方法的成本与精度进行公平的描述。然而，应该注意的是，连续有限元的几何多网格（GMG）对于 $p=3$ 和 $p=6$ 来说，大约快了四到五个系数。截至2019年，HDG的最优复杂度迭代求解器仍在研究界开发中。另外，还有其他方面的CG的实现，如步骤37所示的快速无矩阵方法，使高阶连续元素更具竞争力。同样，本教程的作者也不清楚是否可以对HDG做出类似的改进。我们参考<a href="https://dx.doi.org/10.1137/16M110455X">Kronbichler
+and Wall (2018)</a>，了解最近的效率评估。
+
+
+
+
+<h3>Possibilities for improvements</h3>
+
+正如在介绍中已经提到的，一种可能性是实施文献中讨论的另一种后处理技术。
+
+第二项没有做得很好的是与这个程序的性能有关，这当然是实际应用中的一个问题（也要权衡(H)DG方法对传输为主的问题有更好的解决质量）。让我们来看看这个教程程序的计算时间和各个部分的份额。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <th>&nbsp;</th>
+    <th>&nbsp;</th>
+    <th>Setup</th>
+    <th>Assemble</th>
+    <th>Solve</th>
+    <th>Trace reconstruct</th>
+    <th>Post-processing</th>
+    <th>Output</th>
+  </tr>
+  <tr>
+    <th>&nbsp;</th>
+    <th>Total time</th>
+    <th colspan="6">Relative share</th>
+  </tr>
+  <tr>
+    <td align="left">2D, Q1, cycle 9, 37,248 dofs</td>
+    <td align="center">5.34s</td>
+    <td align="center">0.7%</td>
+    <td align="center">1.2%</td>
+    <td align="center">89.5%</td>
+    <td align="center">0.9%</td>
+    <td align="center">2.3%</td>
+    <td align="center">5.4%</td>
+  </tr>
+  <tr>
+    <td align="left">2D, Q3, cycle 9, 74,496 dofs</td>
+    <td align="center">22.2s</td>
+    <td align="center">0.4%</td>
+    <td align="center">4.3%</td>
+    <td align="center">84.1%</td>
+    <td align="center">4.1%</td>
+    <td align="center">3.5%</td>
+    <td align="center">3.6%</td>
+  </tr>
+  <tr>
+    <td align="left">3D, Q1, cycle 7, 172,800 dofs</td>
+    <td align="center">9.06s</td>
+    <td align="center">3.1%</td>
+    <td align="center">8.9%</td>
+    <td align="center">42.7%</td>
+    <td align="center">7.0%</td>
+    <td align="center">20.6%</td>
+    <td align="center">17.7%</td>
+  </tr>
+  <tr>
+    <td align="left">3D, Q3, cycle 7, 691,200 dofs</td>
+    <td align="center">516s</td>
+    <td align="center">0.6%</td>
+    <td align="center">34.5%</td>
+    <td align="center">13.4%</td>
+    <td align="center">32.8%</td>
+    <td align="center">17.1%</td>
+    <td align="center">1.5%</td>
+  </tr>
+</table> 
+
+从表中可以看出，解算器和汇编调用在程序的运行时间中占主导地位。这也清楚地表明，在哪些方面的改进是最有意义的。
+
+<ol>  <li>  更好的线性求解器。我们使用的是BiCGStab迭代求解器，没有预处理程序，迭代次数随着问题大小的增加而增加（Q1元素和全局细化的迭代次数在小尺寸时从35次开始，但在最大尺寸时增加到701次）。为了做得更好，例如可以使用Trilinos的代数多网格预处理程序，或者像<a
+  href="https://dx.doi.org/10.1137/16M110455X">Kronbichler and Wall
+  (2018)</a>中讨论的一些更高级的变体。对于以扩散为主的问题，比如目前的问题，只要我们不与MPI并行工作，就可以设计这样一个求解器，在最细的层次上使用更高效的ChunkSparseMatrix的矩阵-向量积。对于MPI并行化的计算，可以使用一个标准 TrilinosWrappers::SparseMatrix 。
+
+    <li>  通过预先组装那些不从一个单元改变到另一个单元的部件（那些既不包含可变系数也不包含依赖映射的项）来加快组装速度。   </ol> 
+
+

@@ -1,0 +1,428 @@
+examples/step-47/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Natasha Sharma, Guido Kanschat, Timo
+Heister, Wolfgang Bangerth, and Zhuoran Wang.
+
+
+The first author would like to acknowledge the support of NSF Grant
+No. DMS-1520862.
+Timo Heister and Wolfgang Bangerth acknowledge support through NSF
+awards DMS-1821210, EAR-1550901, and OAC-1835673.
+</i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这个程序处理的是<a
+href="https://en.wikipedia.org/wiki/Biharmonic_equation">biharmonic
+equation</a>。
+
+@f{align*}{
+  \Delta^2 u(\mathbf x) &= f(\mathbf x)
+  \qquad \qquad &&\forall \mathbf x \in \Omega.
+
+
+@f}
+
+这个方程出现在薄结构的建模中，如体育场的屋顶。当然，这些物体在现实中是三维的，其横向范围与垂直厚度的长宽比很大，但人们通常可以通过对内力在垂直方向上的变化作出假设，将这些结构非常准确地建模为二维的。这些假设导致了上面的方程式。
+
+该模型通常有两种不同的类型，取决于施加什么样的边界条件。第一种情况。
+
+@f{align*}{
+  u(\mathbf x) &= g(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega, \\
+  \Delta u(\mathbf x) &= h(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega,
+
+
+@f}
+
+对应于连接到高度为 $g(\mathbf x)$ 的墙顶的薄结构的边缘，这样作用在结构上的弯曲力为 $h(\mathbf x)$ ；在大多数物理情况下，我们会有 $h=0$ ，对应于结构只是坐在墙顶。
+
+在边界值的第二种可能情况下，我们将有
+
+@f{align*}{
+  u(\mathbf x) &= g(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega, \\
+  \frac{\partial u(\mathbf x)}{\partial \mathbf n} &= j(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega.
+
+
+@f}
+
+这相当于一个 "钳制 "的结构，对于这个结构来说，非零的 $j(\mathbf x)$ 意味着对水平面有一定的角度。
+
+就像拉普拉斯方程的迪里希特和诺依曼边界条件一样，当然有可能在边界的一部分有一种边界条件，而在其余部分有另一种。
+
+
+
+
+<h3> What's the issue? </h3>
+
+该方程的基本问题是它的解有四个导数。在我们在步骤3、步骤4和其他几个教程中处理的拉普拉斯方程的情况下，人们乘以一个测试函数，进行积分，通过部分积分，最后在测试函数和试验函数上只得到一个导数--对于全局连续的函数，人们可以做到这一点，但在单元之间的界面上可能有结点。导数可能不在界面上定义，但那是在一个较低维的流形上（所以不在积分值中显示出来）。
+
+但是对于双调子方程，如果按照同样的程序，在整个领域（即所有单元的联盟）上使用积分，最终会在测试函数和试验函数上各产生两个导数。如果使用通常的片状多项式函数，并在单元格界面上有结点，那么第一个导数将产生一个不连续的梯度，第二个导数在界面上有delta函数--但由于测试函数和试验函数的第二个导数都产生一个delta函数，我们将尝试对两个delta函数的乘积进行积分。例如，在1d中， $\varphi_i$ 是通常的片状线性 "帽子函数"，我们会得到这样的积分
+
+@f{align*}{
+  \int_0^L (\Delta \varphi_i) (\Delta \varphi_j)
+  =
+  \int_0^L
+  \frac 1h \left[\delta(x-x_{i-1}) - 2\delta(x-x_i) + \delta(x-x_{i+1})\right]
+  \frac 1h \left[\delta(x-x_{j-1}) - 2\delta(x-x_j) + \delta(x-x_{j+1})\right]
+
+
+@f}
+
+其中 $x_i$ 是定义形状函数 $\varphi_i$ 的节点位置， $h$ 是网格大小（假设为均匀）。问题是，积分中的delta函数是用以下关系定义的
+
+@f{align*}{
+  \int_0^L \delta(x-\hat x) f(x) \; dx
+  =
+  f(\hat x).
+
+
+@f}
+
+但这只有在以下情况下才行得通：(i)  $f(\cdot)$ 实际上在 $\hat x$ 处定义良好，(ii) 它是有限的。另一方面，以下形式的积分
+
+@f{align*}{
+\int_0^L \delta(x-x_i) \delta (x-x_i)
+
+
+@f}
+
+是没有意义的。类似的推理也可以适用于2D和3D的情况。
+
+换句话说。这种试图在整个领域内进行整合，然后再按部分进行整合的方法不可能成功。
+
+历史上，数值分析家试图通过发明 "C<sup>1</sup>连续 "的有限元来解决这个问题，也就是说，使用的形状函数不仅是连续的，而且还有连续的一导数。这是诸如阿吉里斯元素、克拉夫-托歇尔元素和其他元素的领域，这些元素都是在20世纪60年代末开发的。从二十一世纪的角度来看，它们的结构只能说是怪异的。如果想使用一般的网格，它们的实现也是非常麻烦的。因此，它们在很大程度上已经失去了作用，deal.II目前不包含这些形状函数的实现。
+
+
+
+
+<h3> What to do instead? </h3>
+
+那么，如何解决此类问题呢？这在一定程度上取决于边界条件。如果有第一组边界条件，即，如果方程是
+
+@f{align*}{
+  \Delta^2 u(\mathbf x) &= f(\mathbf x)
+  \qquad \qquad &&\forall \mathbf x \in \Omega, \\
+  u(\mathbf x) &= g(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega, \\
+  \Delta u(\mathbf x) &= h(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega,
+
+
+@f}
+
+那么下面的诀窍就能起作用（至少如果域是凸的，见下文）。正如我们通过引入第二个变量从常规拉普拉斯方程中得到步骤20的混合拉普拉斯方程一样，我们可以在这里引入一个变量 $v=\Delta u$ ，然后可以用下面的 "混合 "系统代替上面的方程。
+
+@f{align*}{
+
+
+  -\Delta u(\mathbf x) +v(\mathbf x) &= 0
+  \qquad \qquad &&\forall \mathbf x \in \Omega, \\
+
+
+  -\Delta v(\mathbf x) &= -f(\mathbf x)
+  \qquad \qquad &&\forall \mathbf x \in \Omega, \\
+  u(\mathbf x) &= g(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega, \\
+  v(\mathbf x) &= h(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega.
+
+
+@f}
+
+换句话说，我们最终得到的实质上是 $u,v$ 的两个耦合的拉普拉斯方程组，每个方程组都有迪里希勒型边界条件。我们知道如何解决这样的问题，使用第20步或第22步的技术为这个系统构造良好的求解器和预处理器应该不是很困难。所以这种情况很容易处理。
+
+ @note 值得指出的是，这只适用于边界有角的域，如果该域也是凸的--换句话说，如果没有重入角。   这听起来是一个相当随意的条件，但考虑到以下两个事实，它是有意义的。原始双调方程的解必须满足  $u\in H^2(\Omega)$  。另一方面，上面的混合系统重述表明， $u$ 和 $v$ 都满足 $u,v\in H^1(\Omega)$ ，因为这两个变量只解决一个泊松方程。换句话说，如果我们想确保混合问题的解 $u$ 也是原来的偏谐方程的解，那么我们需要能够以某种方式保证 $-\Delta u=v$ 的解实际上比只是 $H^1(\Omega)$ 更光滑。这一点可以作如下论证。对于凸域，<a href="https://en.wikipedia.org/wiki/Elliptic_operator#Elliptic_regularity_theorem">"elliptic
+  regularity"</a>意味着，如果右侧 $v\in H^s$ ，那么 $u\in H^{s+2}$ 如果域是凸的并且边界足够光滑。(如果域的边界足够光滑，也可以保证这一点--但边界没有角的域在现实生活中不是很实用。)   我们知道 $v\in H^1$ ，因为它解决了方程 $-\Delta v=f$ ，但我们仍然留下了边界凸性的条件；我们可以证明多边形的凸域足以保证在这种情况下 $u\in H^2$ （光滑的有界凸域将导致 $u\in H^3$ ，但我们不需要这么多规则）。另一方面，如果域不是凸的，我们就不能保证混合系统的解在 $H^2$ 中，因此可能会得到一个不能等于原始偏谐方程的解。
+
+更复杂的情况是，如果我们有 "钳制 "的边界条件，也就是说，如果方程看起来像这样。
+
+@f{align*}{
+  \Delta^2 u(\mathbf x) &= f(\mathbf x)
+  \qquad \qquad &&\forall \mathbf x \in \Omega, \\
+  u(\mathbf x) &= g(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega, \\
+  \frac{\partial u(\mathbf x)}{\partial \mathbf n} &= j(\mathbf x) \qquad \qquad
+  &&\forall \mathbf x \in \partial\Omega.
+
+
+@f}
+
+混合系统的相同技巧在这里不起作用，因为我们最终会对 $u$ 采用<i>both</i>的迪里切特和诺伊曼边界条件，但对 $v$ 则没有。
+
+
+在20世纪90年代和21世纪初，这一难题的解决方案随着非连续Galerkin方法的出现而到来。与使用<i>discontinuous</i>形状函数处理拉普拉斯方程，通过惩罚不连续的大小来获得每个形状函数上有一个导数的方程的方案一样，我们可以使用一个使用<i>continuous</i>（但不是 $C^1$ 连续）形状函数的方案，惩罚导数的跳跃来获得每个形状函数上有两个导数的方案。与拉普拉斯方程的内部惩罚（IP）方法相类似，这种用于双调方程的方案通常被称为 $C^0$ IP（或C0IP）方法，因为它使用 $C^0$ （连续但不连续可微）形状函数与内部惩罚公式。
+
+
+
+
+<h3> Derivation of the C0IP method </h3>
+
+我们以Susanne Brenner和Li-Yeng Sung在 "C  $^0$  多边形域上线性四阶边界值问题的内部惩罚方法" @cite Brenner2005 中提出的 $C^0$ IP方法为基础，该方法是针对具有 "钳制 "边界条件的双谐波方程而提出的。
+
+如前所述，这种方法依赖于使用 $C^0$ 拉格朗日有限元，其中 $C^1$ 的连续性要求被放宽，并被内部惩罚技术所取代。为了推导这个方法，我们考虑一个 $C^0$ 形状函数 $v_h$ ，它在 $\partial\Omega$ 上消失。我们引入符号 $ \mathbb{F} $ 作为 $\mathbb{T}$ 的所有面的集合， $ \mathbb{F}^b $ 作为边界面的集合， $ \mathbb{F}^i $ 作为内部面的集合，供下面进一步使用。由于 $v_h$ 的高阶导数在每个界面 $e\in \mathbb{F}$ 上有两个值（由两个单元 $K_{+},K_{-} \in \mathbb{T}$ 共享），我们通过在 $e$ 上定义以下单值函数来应对这一不连续性。
+
+@f{align*}{
+  \jump{\frac{\partial^k v_h}{\partial \mathbf n^k}}
+  &=
+  \frac{\partial^k v_h|_{K_+}}{\partial \mathbf n^k} \bigg |_e
+
+
+  - \frac{\partial^k v_h|_{K_-}}{\partial \mathbf n^k} \bigg |_e,
+  \\
+  \average{\frac{\partial^k v_h}{\partial \mathbf n^k}}
+  &=
+  \frac{1}{2}
+  \bigg( \frac{\partial^k v_h|_{K_+}}{\partial \mathbf n^k} \bigg |_e
+  + \frac{\partial^k v_h|_{K_-}}{\partial \mathbf n^k} \bigg |_e \bigg )
+
+
+@f}
+
+为 $k =1,2$ （即为梯度和二阶导数矩阵），其中 $\mathbf n$ 表示从 $K_+$ 指向 $K_-$ 的一个单位向量法线。在文献中，这些函数分别被称为 "跳跃 "和 "平均 "操作。
+
+为了得到 $C^0$ IP的近似值 $u_h$ ，我们将双调方程乘以 $v_h$ ，然后对 $\Omega$ 进行积分。如上所述，我们不能用这些形状函数对 $\Omega$ 的所有部分进行积分，但我们可以对每个单元进行积分，因为这些形状函数只是每个单元的多项式。因此，我们首先在每个网格单元 $K \in {\mathbb{T}}$ 上使用下面的分项积分公式。
+
+@f{align*}{
+  \int_K v_h (\Delta^2 w_h)
+  &= \int_K v_h (\nabla\cdot\nabla) (\Delta w_h)
+  \\
+  &= -\int_K \nabla v_h \cdot (\nabla \Delta w_h)
+     +\int_{\partial K} v_h (\nabla \Delta w_h \cdot \mathbf n).
+
+
+@f}
+
+在这一点上，我们有两个选择。我们可以再一次整合域项的 $\nabla\Delta w_h$ ，得到
+
+@f{align*}{
+  \int_K v_h (\Delta^2 w_h)
+  &= \int_K (\Delta v_h) (\Delta w_h)
+     +\int_{\partial K} v_h (\nabla \Delta w_h \cdot \mathbf n)
+
+
+     -\int_{\partial K} (\nabla v_h \cdot \mathbf n) \Delta w_h.
+
+
+@f}
+
+由于各种原因，这被证明是一个对我们的目的没有用处的变体。
+
+相反，我们要做的是认识到 $\nabla\Delta w_h = \text{grad}\,(\text{div}\,\text{grad}\, w_h)$  ，我们可以将这些操作重新排序为 $\nabla\Delta w_h = \text{div}\,(\text{grad}\,\text{grad}\, w_h)$ ，其中我们通常写成 $\text{grad}\,\text{grad}\, w_h = D^2 w_h$ ，表示这是第二导数的 "黑森 "矩阵。通过这样的重新排序，我们现在可以整合发散，而不是梯度算子，我们得到以下结果。
+
+@f{align*}{
+  \int_K v_h (\Delta^2 w_h)
+  &= \int_K (\nabla \nabla v_h) : (\nabla \nabla w_h)
+     +\int_{\partial K} v_h (\nabla \Delta w_h \cdot \mathbf n)
+
+
+     -\int_{\partial K} (\nabla v_h \otimes \mathbf n) : (\nabla\nabla w_h)
+  \\
+  &= \int_K (D^2 v_h) : (D^2 w_h)
+     +\int_{\partial K} v_h (\nabla \Delta w_h \cdot \mathbf n)
+
+
+     -\int_{\partial K} (\nabla v_h) \cdot (D^2 w_h \mathbf n).
+
+
+@f}
+
+这里，冒号表示对其左边和右边的矩阵的指数进行双缩，即两个张量之间的标量乘积。两个向量 $a \otimes b$ 的外积可以得到矩阵 $(a \otimes b)_{ij} = a_i b_j$  。
+
+然后，我们对所有单元格 $K \in  \mathbb{T}$ 进行求和，并考虑到这意味着每个内部面在求和中出现两次。因此，如果我们把所有的东西分成细胞内部的积分之和和细胞界面的单独之和，我们就可以使用上面定义的跳跃和平均运算符。还有两个步骤。首先，由于我们的形状函数是连续的，形状函数的梯度可能是不连续的，但连续性保证了实际上只有梯度的法向分量是不连续的，而切向分量是连续的。其次，当网格大小为零时，产生的离散公式并不稳定，为了得到一个稳定的公式，收敛到正确的解，我们需要增加以下条款。
+
+@f{align*}{
+
+
+-\sum_{e \in \mathbb{F}} \int_{e}
+  \average{\frac{\partial^2 v_h}{\partial \mathbf n^2}}
+  \jump{\frac{\partial u_h}{\partial \mathbf n}}
++ \sum_{e \in \mathbb{F}}
+  \frac{\gamma}{h_e}\int_e
+  \jump{\frac{\partial v_h}{\partial \mathbf n}}
+  \jump{\frac{\partial u_h}{\partial \mathbf n}}.
+
+
+@f}
+
+然后，在进行出现的取消后，我们得出以下双调子方程的C0IP表述：找到 $u_h$ ，使 $u_h =
+g$ 对 $\partial \Omega$ 和
+
+@f{align*}{
+\mathcal{A}(v_h,u_h)&=\mathcal{F}(v_h) \quad \text{holds for all test functions } v_h,
+
+
+@f}
+
+其中
+
+@f{align*}{
+\mathcal{A}(v_h,u_h):=&\sum_{K \in \mathbb{T}}\int_K D^2v_h:D^2u_h \ dx
+\\
+&
+
+
+ -\sum_{e \in \mathbb{F}} \int_{e}
+  \jump{\frac{\partial v_h}{\partial \mathbf n}}
+  \average{\frac{\partial^2 u_h}{\partial \mathbf n^2}} \ ds
+
+
+ -\sum_{e \in \mathbb{F}} \int_{e}
+ \average{\frac{\partial^2 v_h}{\partial \mathbf n^2}}
+ \jump{\frac{\partial u_h}{\partial \mathbf n}} \ ds
+\\
+&+ \sum_{e \in \mathbb{F}}
+ \frac{\gamma}{h_e}
+ \int_e
+ \jump{\frac{\partial v_h}{\partial \mathbf n}}
+ \jump{\frac{\partial u_h}{\partial \mathbf n}} \ ds,
+
+
+@f}
+
+和
+
+@f{align*}{
+\mathcal{F}(v_h)&:=\sum_{K \in \mathbb{T}}\int_{K} v_h f \ dx
+
+
+-
+\sum_{e \in \mathbb{F}, e\subset\partial\Omega}
+\int_e \average{\frac{\partial^2 v_h}{\partial \mathbf n^2}} j \ ds
++
+\sum_{e \in \mathbb{F}, e\subset\partial\Omega}
+\frac{\gamma}{h_e}
+\int_e \jump{\frac{\partial v_h}{\partial \mathbf n}} j \ ds.
+
+
+@f}
+
+这里， $\gamma$ 是惩罚参数，它既弱化了边界条件的执行
+
+@f{align*}{
+\frac{\partial u(\mathbf x)}{\partial \mathbf n} = j(\mathbf x)
+
+
+@f}
+
+在边界界面 $e \in \mathbb{F}^b$ 上，也确保在极限 $h\rightarrow 0$ 中， $u_h$ 收敛为 $C^1$ 连续函数。   $\gamma$ 被选择为足够大以保证方法的稳定性。我们将在下面的程序中讨论我们的选择。
+
+
+
+
+<h4>Convergence Rates </h4> 在多边形域上，双调方程的弱解 $u$ 存在于 $H^{2 +\alpha}(\Omega)$ 中，其中 $\alpha \in(1/2, 2]$ 是由 $\Omega$ 的角的内角决定。例如，只要 $\Omega$ 是凸的， $\alpha=1$ ； $\alpha$ 可能小于1，如果域有重心角，但如果所有内角之一接近 $\pi$ ， $\alpha$ 就接近于 $1$  。
+
+现在假设 $C^0$ IP解 $u_h$ 被 $C^0$ 形状函数近似，其程度为多项式 $p \ge 2$  。然后，上面概述的离散化产生了下面讨论的收敛率。
+
+
+<b>Convergence in the $C^0$ IP-norm</b>
+
+理想情况下，我们希望测量 "能量准则" $\|D^2(u-u_h)\|$ 中的收敛性。然而，这并不可行，因为同样地，离散解 $u_h$ 并没有两个（弱）导数。相反，我们可以定义一个离散的（ $C^0$  IP）半规范，"等同于 "能量规范，如下所示。
+
+@f{align*}{
+ |u_h|_{h}^2 :=
+ \sum\limits_{K \in \mathbb{T}} \big|u_h\big|_{H^2(K)}^2
+ +
+ \sum\limits_{e \in \mathbb{F} }
+ \frac{\gamma }{h_e} \left\|
+ \jump{\frac{\partial u_h}{\partial \mathbf n}} \right\|_{L^2(e)}^2.
+
+
+@f}
+
+
+
+在这个半规范中，上面提到的论文中的理论得出，我们可以期望
+
+@f{align*}{
+ |u-u_h|_{h}^2 = {\cal O}(h^{p-1}),
+
+
+@f}
+
+我们知道，拉普拉斯方程的通常离散化的收敛率是真实的，这与我们所期望的差不多。
+
+当然，只有在精确解足够平滑的情况下，这才是真的。事实上，如果 $f \in H^m(\Omega)$ 有 $m \ge 0$ ， $u \in H^{2+\alpha}(\Omega)$ 其中 $ 2 < 2+\alpha  \le m+4$ ，那么 $C^0$ IP方法的收敛率是 $\mathcal{O}(h^{\min\{p-1, \alpha\}})$ 。换句话说，只有当解平滑到 $\alpha\ge p-1$ 时，才能期待最佳收敛率；这只有在以下情况下才会发生：(i) 域是凸的，边界足够平滑，(ii)  $m\ge p-3$  。当然，在实践中，解决方案是什么就是什么（与我们选择的多项式程度无关），那么最后一个条件可以等同于说，如果 $p$ 不大，那么选择 $m$ 大肯定没有意义。换句话说， $p$ 唯一合理的选择是 $p\le
+m+3$ ，因为更大的多项式度数不会导致更高的收敛阶数。
+
+就本程序而言，我们有点懒得实际实现这个等价的语义规则--尽管这并不难，而且会成为一个很好的练习。相反，我们将简单地在程序中检查 "坏的" $H^2$ 语义规则是什么？
+
+@f{align*}{
+ \left(|u_h|^\circ_{H^2}\right)^2
+ :=
+ \sum\limits_{K \in \mathbb{T}} \big|u_h\big|_{H^2(K)}^2
+ =
+ \sum\limits_{K \in \mathbb{T}} \big|D^2 u_h\big|_{L_2}^2
+
+
+@f}
+
+产量。从理论的角度来看，这个准则的收敛率当然不可能比<i>worse</i>的收敛率高，因为它只包含了必要条件的一个子集，但至少可以想象到它会更好。还有一种情况是，即使程序中存在一个错误，我们也能得到最佳收敛率，而这个错误只会在 $|\cdot|_h$ 中出现的额外条款中显示出次优的收敛率。但是，人们可能希望，如果我们在破碎规范和下面讨论的规范中得到最优速率，那么这个程序确实是正确的。结果部分将证明，我们在所有显示的规范中都得到了最优率。
+
+
+<b>Convergence in the $L_2$-norm</b>
+
+在  $L_2$  -norm中的最佳收敛率是  $\mathcal{O}(h^{p+1})$  提供的  $p \ge 3$  。更多细节可以在  @cite Engel2002  的定理4.6中找到。
+
+下面的程序中默认的是选择 $p=2$ 。在这种情况下，该定理并不适用，事实上，人们只能得到 $\mathcal{O}(h^2)$ 而不是 $\mathcal{O}(h^3)$ ，我们将在结果部分展示。
+
+
+<b>Convergence in the $H^1$-seminorm</b>
+
+鉴于我们在最好的情况下对相当于 $H^2$ 半规范的规范期待 $\mathcal{O}(h^{p-1})$ ，对 $L_2$ 规范期待 $\mathcal{O}(h^{p+1})$ ，人们可能会问在 $H^1$ 半规范中会发生什么，它介于其他两种规范之间。一个合理的猜测是，我们应该期待 $\mathcal{O}(h^{p})$  。可能在某个地方有一篇论文证明了这一点，但我们在下面也验证了这个猜想在实验上是真实的。
+
+
+
+
+<h3>Other Boundary Conditions</h3>
+
+我们注意到，对于具有其他边界条件的偏谐方程--例如，对于第一组边界条件即 $u(\mathbf x) =
+g(\mathbf x)$ 和 $\Delta u(\mathbf x)= h(\mathbf x)$ 上的 $\partial\Omega$ --的IP方法的推导，可以通过对 $\mathcal{A}(\cdot,\cdot)$ 和 $\mathcal{F}(\cdot)$ 的适当修改得到，这些修改在书中的章节 @cite Brenner2011 中描述。
+
+
+
+
+<h3>The testcase</h3>
+
+剩下要描述的最后一步是这个程序的求解内容。像往常一样，三角函数是一个既好又坏的选择，因为它不在我们可能寻求解决方案的任何多项式空间中，同时又比实际解决方案通常更平滑（这里，它在 $C^\infty$ 中，而实际解决方案在凸多边形域上通常只在 $H^3$ 左右，如果域不是凸的，则在 $H^2$ 和 $H^3$ 之间）。但是，由于我们没有办法用相对简单的公式来描述现实问题的解决方案，所以我们就用下面的方法，在单位平方的域上 $\Omega$  。
+
+@f{align*}{
+  u = \sin(\pi x) \sin(\pi y).
+
+
+@f}
+
+因此，我们需要选择以下条件作为边界条件。
+
+@f{align*}{
+  g &= u|_{\partial\Omega} = \sin(\pi x) \sin(\pi y)|_{\partial\Omega},
+  \\
+  j &= \frac{\partial u}{\partial\mathbf n}|_{\partial\Omega}
+  \\
+    &= \left.\begin{pmatrix}
+                \pi\cos(\pi x) \sin(\pi y) \\
+                \pi\sin(\pi x) \cos(\pi y)
+             \end{pmatrix}\right|_{\partial\Omega} \cdot \mathbf n.
+
+
+@f}
+
+右手边很容易计算为
+
+@f{align*}{
+  f = \Delta^2 u = 4 \pi^4 \sin(\pi x) \sin(\pi y).
+
+
+@f}
+
+该程序有 `ExactSolution::Solution` 和 `ExactSolution::RightHandSide` 类来编码这一信息。
+
+

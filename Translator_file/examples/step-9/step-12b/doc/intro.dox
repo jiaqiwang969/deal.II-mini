@@ -1,0 +1,15 @@
+examples/step-12b/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这是第16步的一个变体，唯一的变化是我们使用MeshWorker框架和预制的LocalIntegrator辅助类，而不是使用FEInterfaceValues来组装面的术语。
+
+关于这个框架在实践中如何使用的细节，将作为本教程计划的一部分加以解释。
+
+<h3>The testcase</h3>
+
+我们在这里解决的问题与步骤12中的问题相同。
+
+

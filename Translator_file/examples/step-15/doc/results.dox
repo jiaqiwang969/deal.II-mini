@@ -1,0 +1,183 @@
+examples/step-15/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+程序的输出看起来如下。
+
+@code
+Mesh refinement step 0
+  Initial residual: 1.53143
+  Residual: 1.08746
+  Residual: 0.966748
+  Residual: 0.859602
+  Residual: 0.766462
+  Residual: 0.685475
+
+
+Mesh refinement step 1
+  Initial residual: 0.868959
+  Residual: 0.762125
+  Residual: 0.677792
+  Residual: 0.605762
+  Residual: 0.542748
+  Residual: 0.48704
+
+
+Mesh refinement step 2
+  Initial residual: 0.426445
+  Residual: 0.382731
+  Residual: 0.343865
+  Residual: 0.30918
+  Residual: 0.278147
+  Residual: 0.250327
+
+
+Mesh refinement step 3
+  Initial residual: 0.282026
+  Residual: 0.253146
+  Residual: 0.227414
+  Residual: 0.20441
+  Residual: 0.183803
+  Residual: 0.165319
+
+
+Mesh refinement step 4
+  Initial residual: 0.154404
+  Residual: 0.138723
+  Residual: 0.124694
+  Residual: 0.112124
+  Residual: 0.100847
+  Residual: 0.0907222
+
+
+....
+@endcode
+
+
+
+很明显，该方案会收敛，即使不是非常快。我们将在下面讨论加速该方法的策略。
+
+我们可以在每一组五次牛顿迭代之后，即在我们近似解决方案的每一个网格上，直观地看到解决方案。这就产生了以下一组图像。
+
+<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step_15_solution_1.png" alt="带等高线的零周期后的解决方案。" width="230" height="273"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_15_solution_2.png" alt="带等高线的一个周期后的解决方案。" width="230" height="273"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_15_solution_3.png" alt="带轮廓线的两个周期后的解决方案。" width="230" height="273"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step_15_solution_4.png" alt="带轮廓线的三个周期后的解决方案。" width="230" height="273"> </div> <div>
+
+可以清楚地看到，每次细化后的解决方案都能使表面最小化。解决方案收敛于人们想象中的肥皂泡，它位于一个像边界一样弯曲的线环内。同样可以看出，每次细化后，边界是如何被平滑化的。在粗略的网格上，边界看起来并不像正弦，而网格越细越像。
+
+网格主要是在边界附近被细化，在那里解的增加或减少很强烈，而在域的内部则被粗化，在那里没有什么有趣的事情发生，因为解没有什么变化。这里显示的是第九个解和网格。
+
+<div class="onecolumn" style="width: 60%"> <div> <img src="https://www.dealii.org/images/steps/developer/step_15_solution_9.png" alt="第九个周期的网格和解决方案与等高线。" width="507" height="507"> </div> </div>
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+该程序显示了一个非线性、静止问题的求解器的基本结构。然而，它的收敛速度不是特别快，这是有原因的。
+
+- 该程序总是采取0.1的步长。这就排除了牛顿方法通常选择的快速、二次收敛。
+
+- 它没有将非线性迭代与网格细化迭代联系起来。
+
+很明显，一个更好的方案必须解决这两点。我们将在下文中讨论它们。
+
+
+
+
+<h4> Step length control </h4>
+
+牛顿方法有两个众所周知的特性。
+
+- 它可能不会从任意选择的起点收敛。相反，一个起点必须足够接近解决方案以保证收敛。然而，我们可以通过使用 <i>step length</i> 0<  $\alpha^n\le
+  1$  的阻尼迭代来扩大牛顿方法的收敛区域。
+
+- 如果(i)步长选择为 $\alpha^n=1$ ，并且(ii)事实上在选择步长的情况下，它表现出快速收敛的二次方阶。
+
+这两个观察的结果是，一个成功的策略是为初始迭代选择 $\alpha^n<1$ ，直到迭代已经足够接近，允许以全步长收敛，这时我们要切换到 $\alpha^n=1$  。问题是如何以自动方式选择 $\alpha^n$ ，以满足这些标准。
+
+我们不想在这里回顾关于这个主题的文献，只是简单地提到有两种基本的方法来解决这个问题：回溯线搜索和信任区域方法。前者更广泛地用于偏微分方程，基本上是这样做的。
+
+- 计算一个搜索方向
+
+- 看看 $u^n + \alpha^n\;\delta u^n$ 与 $\alpha^n=1$ 产生的残差是否比 $u^n$ 单独产生的残差 "大大减少"。
+
+- 如果是这样，那么就采取  $\alpha^n=1$  。
+
+- 如果不是，用  $\alpha^n=2/3$  试试残差是否 "大大缩小"。
+
+- 如果是这样，则取 $\alpha^n=2/3$  。
+
+- 如果不是，用 $\alpha^n=(2/3)^2$ 试试残差是否 "大大缩小"。
+
+- 等等。当然，除了上面选择的 $2/3,
+(2/3)^2, \ldots$ ，我们还可以选择其他因素 $r, r^2, \ldots$ ，用于 $0<r<1$  。很明显，"回溯 "一词的来源是：我们尝试一个长的步骤，但如果不成功，我们就尝试一个更短的步骤，越来越短的步骤，等等。函数 <code>determine_step_length()</code> 的编写方式正是为了支持这种用例。
+
+我们是否接受一个特定的步长 $\alpha^n$ 取决于我们如何定义 "大大小于"。有很多方法，但不详细介绍，我们只说最常见的是使用沃尔夫和阿米约-戈尔德斯坦条件。对于这些，人们可以证明如下。
+
+- 总有一个步长 $\alpha^n$ 可以满足条件，也就是说，只要问题是凸的，迭代就不会卡住。
+
+- 如果我们足够接近解决方案，那么条件允许 $\alpha^n=1$  ，从而实现二次收敛。
+
+我们在此不再赘述，而是将这种算法的实现作为一个练习。然而，我们注意到，如果实施得当，大多数合理的非线性问题可以在5到15次牛顿迭代中得到解决，达到工程精度&mdash；比我们目前版本的程序所需要的次数要少得多，这是一个普遍现象。
+
+关于包括回溯在内的全局化方法的更多细节，例如可以在  @cite GNS08  和  @cite NW99  找到。
+
+然而，非常值得一提的是，在实践中，高效非线性求解器的实现与高效有限元方法的实现一样复杂。我们不应该试图通过自己实现所有的必要步骤来重新发明车轮。在 LineMinimization::line_search() 函数中已经有了大量的拼图，可以用来实现这一目的。但是，相反，就像在deal.II等库上构建有限元求解器一样，人们应该在[SUNDIALS](https://computing.llnl.gov/projects/sundials)等库上构建非线性求解器。事实上，deal.II有与SUNDIALS的接口，特别是通过 SUNDIALS::KINSOL 类与它的非线性求解器子包KINSOL的接口。将目前的问题建立在该接口上并不十分困难--事实上，这正是step-77所做的。
+
+
+
+
+<h4> Integrating mesh refinement and nonlinear and linear solvers </h4>
+
+我们目前在每个网格上正好做了5次迭代。但这是最优的吗？人们可以提出以下问题。
+
+- 也许在初始网格上做更多的迭代是值得的，因为那里的计算很便宜。
+
+- 另一方面，我们不希望在每个网格上做太多的迭代：是的，我们可以在每个网格上将残差驱动到零，但这只意味着非线性迭代误差远远小于离散化误差。
+
+- 我们应该用更高还是更低的精度来解决每个牛顿步骤中的线性系统？
+
+最终，这归结为我们需要将当前网格上的离散化误差与我们希望在特定网格上通过牛顿迭代实现的非线性残差，以及我们希望在每个牛顿迭代中通过CG方法实现的线性迭代结合起来。
+
+如何做到这一点，同样不是完全微不足道的，我们再次将其作为未来的练习。
+
+
+
+
+<h4> Using automatic differentiation to compute the Jacobian matrix </h4>
+
+正如介绍中所概述的，当解决一个形式为@f[
+    F(u) \dealcoloneq
+
+
+    -\nabla \cdot \left( \frac{1}{\sqrt{1+|\nabla u|^{2}}}\nabla u \right)
+    = 0
+  @f]的非线性问题时
+
+我们使用牛顿迭代，要求我们反复解决线性偏微分方程@f{align*}
+    F'(u^{n},\delta u^{n}) &=- F(u^{n})
+  @f}。
+
+这样，我们就可以计算出更新@f{align*}
+    u^{n+1}&=u^{n}+\alpha^n \delta u^{n}
+  @f}。
+
+与牛顿步骤的解 $\delta u^{n}$ 。对于这里的问题，我们可以用手计算导数 $F'(u,\delta u)$ ，得到@f[
+  F'(u,\delta u)
+  =
+
+
+  - \nabla \cdot \left( \frac{1}{\left(1+|\nabla u|^{2}\right)^{\frac{1}{2}}}\nabla
+  \delta u \right) +
+  \nabla \cdot \left( \frac{\nabla u \cdot
+  \nabla \delta u}{\left(1+|\nabla u|^{2}\right)^{\frac{3}{2}}} \nabla u
+  \right).
+  @f] 。
+
+但这已经是一个相当大的表达方式了，无论是推导还是实现都很麻烦。在某种意义上，它也是重复的。如果我们在代码的某个地方实现了 $F(u)$ 是什么，那么 $F'(u,\delta u)$ 就不是一个独立的信息，而是至少在原则上计算机应该能够自己推断出来的东西。如果这真的能发生，那不是很好吗？也就是说，如果我们真的只需要实现 $F(u)$ ，而 $F'(u,\delta u)$ 是以某种方式隐含完成的，那不是很好吗？这实际上是可能的，并以 "自动微分 "的名义运行。步骤-71讨论了这个概念的一般术语，步骤-72说明了如何在实践中应用于我们在这里考虑的问题。
+
+

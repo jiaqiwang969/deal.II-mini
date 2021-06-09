@@ -1,0 +1,215 @@
+examples/step-66/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+这个教程步骤的目的是演示用无矩阵框架解决一个非线性PDE。
+
+
+
+
+<h3>Program output</h3> 在两个进程上以释放模式运行程序，通过
+
+@code
+cmake . && make release && make && mpirun -n 2 ./step-66
+@endcode
+
+在控制台给出了以下输出
+
+@code
+================================================================================
+START DATE: 2021/5/18, TIME: 16:25:48
+
+
+--------------------------------------------------------------------------------
+Running with 2 MPI processes
+Vectorization over 4 doubles = 256 bits (AVX), VECTORIZATION_LEVEL=2
+Finite element space: FE_Q<2>(4)
+================================================================================
+
+
+--------------------------------------------------------------------------------
+Cycle 0
+
+
+--------------------------------------------------------------------------------
+Set up system...
+   Triangulation: 20 cells
+   DoFHandler:    337 DoFs
+
+
+Solve using Newton's method...
+   Nstep 1, errf = 0.00380835, errx = 3.61904, it = 7
+   Nstep 2, errf = 3.80167e-06, errx = 0.104353, it = 6
+   Nstep 3, errf = 3.97939e-12, errx = 0.00010511, it = 4
+   Nstep 4, errf = 2.28859e-13, errx = 1.07726e-10, it = 1
+Convergence step 4 value 2.28859e-13 (used wall time: 0.0096409 s)
+
+
+Time for setup+solve (CPU/Wall) 0.015617/0.0156447 s
+
+
+Output results...
+  H1 seminorm: 0.773426
+
+
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |    0.0286s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| assemble right hand side        |         4 |  9.71e-05s |      0.34% |
+| compute residual                |         4 |  0.000137s |      0.48% |
+| compute update                  |         4 |   0.00901s |        32% |
+| make grid                       |         1 |   0.00954s |        33% |
+| setup system                    |         1 |   0.00585s |        20% |
+| solve                           |         1 |   0.00966s |        34% |
++---------------------------------+-----------+------------+------------+
+
+
+.
+.
+.
+
+
+--------------------------------------------------------------------------------
+Cycle 6
+
+
+--------------------------------------------------------------------------------
+Set up system...
+   Triangulation: 81920 cells
+   DoFHandler:    1311745 DoFs
+
+
+Solve using Newton's method...
+   Nstep 1, errf = 5.90478e-05, errx = 231.427, it = 9
+   Nstep 2, errf = 5.89991e-08, errx = 6.67102, it = 6
+   Nstep 3, errf = 4.28813e-13, errx = 0.0067188, it = 4
+Convergence step 3 value 4.28813e-13 (used wall time: 4.82953 s)
+
+
+Time for setup+solve (CPU/Wall) 6.25094/6.37174 s
+
+
+Output results...
+  H1 seminorm: 0.773426
+
+
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |      9.04s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| assemble right hand side        |         3 |    0.0827s |      0.91% |
+| compute residual                |         3 |    0.0909s |         1% |
+| compute update                  |         3 |      4.65s |        51% |
+| setup system                    |         1 |      1.54s |        17% |
+| solve                           |         1 |      4.83s |        53% |
++---------------------------------+-----------+------------+------------+
+
+
+================================================================================
+START DATE: 2021/5/18, TIME: 16:26:00
+
+
+--------------------------------------------------------------------------------
+Running with 2 MPI processes
+Vectorization over 4 doubles = 256 bits (AVX), VECTORIZATION_LEVEL=2
+Finite element space: FE_Q<3>(4)
+================================================================================
+
+
+.
+.
+.
+
+
+--------------------------------------------------------------------------------
+Cycle 5
+
+
+--------------------------------------------------------------------------------
+Set up system...
+   Triangulation: 229376 cells
+   DoFHandler:    14729857 DoFs
+
+
+Solve using Newton's method...
+   Nstep 1, errf = 6.30096e-06, errx = 481.74, it = 8
+   Nstep 2, errf = 4.25607e-10, errx = 4.14315, it = 6
+   Nstep 3, errf = 7.29563e-13, errx = 0.000321775, it = 2
+Convergence step 3 value 7.29563e-13 (used wall time: 133.793 s)
+
+
+Time for setup+solve (CPU/Wall) 226.809/232.615 s
+
+
+Output results...
+  H1 seminorm: 0.588667
+
+
+
+
+
++---------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start    |       390s |            |
+|                                             |            |            |
+| Section                         | no. calls |  wall time | % of total |
++---------------------------------+-----------+------------+------------+
+| assemble right hand side        |         3 |      2.06s |      0.53% |
+| compute residual                |         3 |      2.46s |      0.63% |
+| compute update                  |         3 |       129s |        33% |
+| setup system                    |         1 |      98.8s |        25% |
+| solve                           |         1 |       134s |        34% |
++---------------------------------+-----------+------------+------------+
+@endcode
+
+
+
+我们在下图中展示了二维和三维问题的解决方案。
+
+<div class="twocolumn" style="width: 80%; text-align: center;"> <div> <img src="https://www.dealii.org/images/steps/developer/step-66.solution-2d.png" alt="二维格尔凡德问题的解决方案。" width = "100%"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-66.solution-3d.png" alt="三维格尔凡德问题的解决方案。" width = "100%"> </div> </div>
+
+
+
+
+<h3>Newton solver</h3> 在上面的程序输出中，我们发现一些关于牛顿迭代的有趣信息。每个细化周期的终端输出显示了牛顿方法的详细诊断，首先显示了牛顿步骤的数量和每一步的残差规范  $\|F(u_h^{n+1})\|$  ，牛顿更新的规范  $\|s_h^n\|$  ，和CG迭代的数量  <code>it</code>  。
+
+我们观察到，对于所有的情况，牛顿方法大约在三到四步内收敛，这显示了牛顿方法的全步长的二次收敛  $\alpha = 1$  。然而，请注意，对于一个选择不好的初始猜测 $u_h^0$ ，牛顿方法也会出现二次发散。通常情况下，如果你没有合适的初始猜测，你可以尝试几个阻尼的牛顿步骤，减少步长 $\alpha < 1$ ，直到牛顿步骤再次进入二次收敛域。这种阻尼和放松的牛顿步长确实需要一个更复杂的牛顿方法的实现，我们指定给你作为本教程的可能扩展。
+
+此外，我们看到，随着连续的网格细化和DoF数量的增加，CG迭代的数量近乎恒定。这当然是由于几何多棱镜的预处理，而且与其他使用这种方法的教程中的观察结果相似，例如步骤16和步骤37。仅举一例，在三维案例中，经过五次细化后，我们有大约1470万个分布式DoFs的四阶拉格朗日有限元，但CG迭代的次数仍然少于10次。
+
+此外，我们还应用了一个非常有用的优化，应该在此提及。在 <code>compute_update()</code> 函数中，我们在将持有牛顿更新的向量作为输出向量传递给求解器之前，明确地重置了它。在这种情况下，我们为CG方法使用了一个零的起始值，这比之前的牛顿更新、 <code>newton_update</code> 的实际内容在重置之前更合适，因此减少了几步CG迭代的次数。
+
+
+
+
+<h3>Possibilities for extensions</h3> 有几个可能的扩展是关于本代码的小更新fo以及对Gelfand问题更深入的数值调查。
+
+<h4>More sophisticated Newton iteration</h4> 除了步骤15中提到的牛顿迭代的步长控制版本外，我们还可以为牛顿迭代实施一个更灵活的停止标准。例如，我们可以取代残差的固定公差 <code>TOLf</code> and for the Newton updated <code>TOLx</code> ，并实现一个具有给定绝对和相对公差的混合误差控制，这样牛顿迭代就会成功，例如。
+
+@f{align*}{
+  \|F(u_h^{n+1})\| \leq \texttt{RelTol} \|u_h^{n+1}\| + \texttt{AbsTol}.
+
+
+@f}
+
+对于有许多非线性系统需要解决的更高级的应用，例如，在时间依赖性问题的每个时间步骤，事实证明，没有必要在每一个牛顿步骤甚至每个时间步骤中重新设置和组装雅各布系数。相反，在牛顿迭代中可以使用前一个步骤中的现有的Jacobian。然后，只有在例如牛顿迭代收敛过慢的情况下，才会重新建立雅各布系数。这样的想法产生了一个<a href="https://en.wikipedia.org/wiki/Quasi-Newton_method">quasi-Newton
+method</a>。诚然，当使用无矩阵框架时，无论如何都会省略雅各布式的组装，但通过这种方式，可以尝试优化几何多网格预处理的重新组装。请记住，每次来自旧牛顿步骤的解决方案必须分布到所有层面，并且必须重新初始化多重网格预处理器。
+
+<h4>Parallel scalability and thread parallelism</h4> 在step-37等人的结果部分，无矩阵框架在大量处理器上的并行可扩展性已经得到了非常令人印象深刻的证明。在我们这里考虑的非线性情况下，我们注意到瓶颈之一可能成为无矩阵雅可比算子及其多阶段算子在前一个牛顿步骤中的转移和评估，因为我们需要在每个步骤的所有阶段转移旧的解决方案。 @cite castelli2021numerical 中的第一个并行可扩展性分析显示，当问题规模足够大时，有相当好的强可扩展性。然而，为了得到可靠的结果，还需要进行更详细的分析。此外，到目前为止，这个问题只用MPI来解决，没有使用线程的共享内存并行化的可能性。因此，对于这个例子，你可以尝试用MPI和线程的混合并行化，如步骤-48中所述。
+
+<h4>Comparison to matrix-based methods</h4> 类似于步骤50和提到的步骤75的可能扩展，你可以说服自己哪个方法更快。
+
+<h4>Eigenvalue problem</h4> 我们可以考虑相应的特征值问题，这被称为布拉图问题。例如，如果我们定义一个固定的特征值  $\lambda\in[0,6]$  ，我们可以计算相应的离散特征函数。你会注意到，牛顿步骤的数量将随着 $\lambda$ 的增加而增加。为了减少牛顿步数，你可以使用以下技巧：从某个 $\lambda$ 开始，计算特征函数，增加 $\lambda=\lambda +
+\delta_\lambda$ ，然后使用之前的解作为牛顿迭代的初始猜测。最后你可以画出 $H^1(\Omega)$ 在特征值 $\lambda \mapsto \|u_h\|_{H^1(\Omega)}$ 上的正负值。对于进一步增加  $\lambda>7$  你观察到什么？
+
+

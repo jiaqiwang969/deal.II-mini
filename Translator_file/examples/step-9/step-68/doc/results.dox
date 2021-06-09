@@ -1,0 +1,88 @@
+examples/step-68/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+运行该程序的目录中默认包含一个参数文件的例子。如果你没有在命令行中指定参数文件作为参数，程序将默认尝试读取文件 "参数.prm"，并执行代码。
+
+在任何数量的核心上，模拟输出将看起来像。
+
+@code
+bash$ mpirun -np 4 ./step-68 parameters.prm
+Number of particles inserted: 606
+Repartitioning triangulation after particle generation
+Writing particle output file: analytical-particles-0
+Writing particle output file: analytical-particles-10
+Writing particle output file: analytical-particles-20
+Writing particle output file: analytical-particles-30
+...
+Number of particles inserted: 606
+Repartitioning triangulation after particle generation
+Writing particle output file: interpolated-particles-0
+Writing background field file: background-0
+Writing particle output file: interpolated-particles-10
+Writing background field file: background-10
+Writing particle output file: interpolated-particles-20
+Writing background field file: background-20
+Writing particle output file: interpolated-particles-30
+Writing background field file: background-30
+...
+Writing particle output file: interpolated-particles-1980
+Writing background field file: background-1980
+Writing particle output file: interpolated-particles-1990
+Writing background field file: background-1990
+Writing particle output file: interpolated-particles-2000
+Writing background field file: background-2000
+@endcode
+
+
+
+我们注意到，在默认情况下，模拟以分析速度运行粒子跟踪2000次，然后从头开始，以相同的时间运行速度插值的粒子跟踪。每隔10次迭代就会写出结果。
+
+<h3> Motion of the particles </h3>
+
+下面的动画显示了粒子在被流场吸引时的轨迹。我们看到，在流动的整个过程中，粒子又回到了它们的初始配置，这是预料之中的事。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="500" src="https://www.youtube.com/embed/EbgS5Ch35Xs"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+<h3> Dynamic load balancing </h3>
+
+下面的动画显示了动态负载平衡的影响。我们清楚地看到，子域自我调整以平衡每个子域的粒子数量。然而，完美的负载平衡并没有达到，部分原因是由于背景网格的粗糙性。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="500" src="https://www.youtube.com/embed/ubUcsR4ECj4"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+
+
+
+<h3>Possibilities for extensions</h3>
+
+这个程序强调了在deal.II中处理粒子的一些主要能力，特别是它们用于分布式并行模拟的能力。然而，这一步骤可以以多种方式进行扩展。
+
+- 可以使用高阶时间积分（例如使用Runge-Kutta 4方法）来提高精度，或者在相同精度下允许更大的时间步长。
+
+- 完整的运动方程（含惯性）可以为粒子求解。在这种情况下，粒子将需要有额外的属性，例如它们的质量，如步骤19，如果想考虑与流体的相互作用，还需要考虑它们的直径。
+
+- 耦合到流动求解器。这一步可以直接与任何解决斯托克斯方程（第32步，第70步）或纳维-斯托克斯方程（例如第57步）的并行程序相耦合。
+
+- 计算两个模型之间最终粒子位置的差异，可以量化内插误差对粒子运动的影响。
+
+

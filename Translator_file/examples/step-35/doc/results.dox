@@ -1,0 +1,139 @@
+examples/step-35/doc/results.dox
+
+<a name="results"></a>
+
+<h1>Results</h1>
+
+<a name="Re100"></a>
+
+<h3> Re = 100 </h3>
+
+我们用下面的 <code>parameter-file.prm</code> 来运行代码，它可以在与源代码相同的目录中找到。
+
+@verbatim
+  # First a global definition
+  # the type of method we want to use
+  set Method_Form = rotational
+
+
+  subsection Physical data
+    # In this subsection we declare the physical data
+    # The initial and final time, and the Reynolds number
+    set initial_time = 0.
+    set final_time   = 25.
+    set Reynolds     = 100
+  end
+
+
+  subsection Time step data
+    # In this subsection we declare the data that is to be used for time discretization,
+    # i.e. the time step dt
+    set dt = 5e-3
+  end
+
+
+  subsection Space discretization
+    # In this subsection we declare the data that is relevant to the space discretization
+    # we set the number of global refines the triangulation must have
+    # and the degree k of the pair Q_(k+1)--Q_k of velocity--pressure finite element spaces
+    set n_of_refines = 3
+    set pressure_fe_degree = 1
+  end
+
+
+  subsection Data solve velocity
+    # In this section we declare the parameters that are going to control the solution process
+    # for the velocity.
+    set max_iterations = 1000  # maximal number of iterations that GMRES must make
+    set eps            = 1e-6  # stopping criterion
+    set Krylov_size    = 30    # size of the Krylov subspace to be used in GMRES
+    set off_diagonals  = 60    # number of off diagonals that ILU must compute
+    set diag_strength  = 0.01  # diagonal strengthening value
+    set update_prec    = 10    # this number indicates how often the preconditioner must be updated
+  end
+
+
+  #The output frequency
+  set output = 50
+
+
+  #Finally we set the verbosity level
+  set verbose = false
+@endverbatim
+
+
+
+由于 <code>verbose</code> parameter is set to <code>false</code> ，除了程序当前工作的时间步数，我们没有得到任何形式的输出。如果我们把它设置为 <code>true</code> ，我们就会得到关于程序正在做什么以及每个迭代过程要做多少步才能收敛等信息。
+
+让我们绘制 $t=1,5,12,20,25$ （即时间步长200、1000、2400、4000和5000）的所得结果，其中左栏显示涡度，右栏显示速度场。
+
+ <table>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.vorticity.0.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.velocity.0.9.3.png" alt="" width="400"> </td>
+  </tr>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.vorticity.1.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.velocity.1.9.3.png" alt="" width="400"> </td>
+  </tr>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.vorticity.2.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.velocity.2.9.3.png" alt="" width="400"> </td>
+  </tr>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.vorticity.3.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.velocity.3.9.3.png" alt="" width="400"> </td>
+  </tr>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.vorticity.4.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_100.velocity.4.9.3.png" alt="" width="400"> </td>
+  </tr>
+</table> 
+
+图像很好地显示了障碍物后面涡流链的发展和延伸，涡度的符号表明这是一个左转或右转的涡流。
+
+
+<a name="Re500"></a>
+
+<h3> Re = 500 </h3>
+
+我们可以将参数文件中的雷诺数  $Re$  改为  $500$  。这样做，并在一定程度上减少时间步长，在时间 $t=20,40$ 时得到以下图像。
+
+ <table>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_500.vorticity.0.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_500.velocity.0.9.3.png" alt="" width="400"> </td>
+  </tr>
+  <tr>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_500.vorticity.1.9.3.png" alt="" width="400"> </td>
+    <td> <img src="https://www.dealii.org/images/steps/developer/step-35.Re_500.velocity.1.9.3.png" alt="" width="400"> </td>
+  </tr>
+</table> 
+
+对于这个较大的雷诺数，我们观察到不切实际的振荡，特别是涡度的振荡。离散化方案现在很难正确地解决流动问题，而流动应该仍然是层状的和有组织的。这些现象是典型的离散化方案，它们在溶解度不足的情况下缺乏稳健性，其中溶解度不足意味着用网格尺寸而不是几何体的物理尺寸计算的雷诺数很大。我们看一下放大的障碍物后面的区域，以及我们在那里的网格尺寸。
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-35.Re_500.zoom.9.3.png" alt="" width="400"> 
+
+我们可以通过在参数文件中多设置一个网格细化来重新运行模拟，从而轻松测试我们的假设。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-35.Re_500.zoom_2.9.3.png" alt="" width="400"> 
+
+事实上，现在的涡度场看起来更加平滑了。虽然我们可以预期进一步细化网格也会抑制剩余的振荡，但我们应该采取措施在粗略分辨率的限制下获得一个强大的方案，如下所述。
+
+
+<a name="extensions"></a>
+
+<h3> Possibilities for extensions </h3>
+
+这个程序可以在以下方向扩展。   <ul>   <li>  自适应网格细化。正如我们所看到的，我们在一个单一的固定网格上计算了所有的东西。   使用自适应网格细化可以导致精度的提高，同时不会明显增加计算时间。
+
+    <li>  自适应时间步长。虽然目前显然没有关于可变时间步长的投影方法的理论，但实践表明，它们的表现非常好。
+
+    <li>  高雷诺%数。正如我们从结果中看到的，增加雷诺数会大大改变离散化方案的行为。使用众所周知的稳定化技术，我们可以计算这个问题或其他许多问题中的流动，当雷诺数非常大，计算成本要求空间分辨率，而流动只能得到有限的解决，特别是对于三维湍流。
+
+    <li>  可变密度的不可压缩流。对于密度可变的不可压缩流的情况，有类似投影的方法。如果不同密度的流体混合在一起，例如淡水和盐水，或者酒精和水，这种流动就会发挥作用。
+
+    <li>  可压缩纳维-斯托克斯方程。这些方程适用于这样的情况：速度足够高，以至于流体变得可压缩，但速度不够快，以至于我们进入了一个粘度变得可以忽略的制度，纳维-斯托克斯方程需要被气体动力学的双曲欧拉方程取代。如果速度超过音速的三分之一，可压缩性就开始成为一个因素，所以它对几乎所有的地面交通工具来说都不是一个因素。另一方面，商业喷气式飞机的飞行速度约为音速的85%，机翼上的流动变得明显超音速，在这种情况下，可压缩的纳维尔-斯托克斯方程也不再适用。然而，在这两者之间的范围有重要的应用，如小型飞机或许多欧洲和东亚国家的快速列车。   </ul> 
+
+

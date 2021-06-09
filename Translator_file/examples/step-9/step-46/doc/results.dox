@@ -1,0 +1,238 @@
+examples/step-46/doc/results.dox
+
+<a name="Results"></a>
+
+<h1>Results</h1>
+
+<h3>2d results</h3>
+
+
+当运行该程序时，你应该得到如下输出。
+
+@code
+Refinement cycle 0
+   Number of active cells: 64
+   Number of degrees of freedom: 531
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 1
+   Number of active cells: 136
+   Number of degrees of freedom: 1260
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 2
+   Number of active cells: 436
+   Number of degrees of freedom: 3723
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 3
+   Number of active cells: 1072
+   Number of degrees of freedom: 7493
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 4
+   Number of active cells: 2632
+   Number of degrees of freedom: 15005
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 5
+   Number of active cells: 5944
+   Number of degrees of freedom: 29437
+   Assembling...
+   Solving...
+   Writing output...
+@endcode
+
+
+
+结果很容易被可视化。
+
+ <table width="80%" align="center">
+  <tr valign="top">
+    <td valign="top" align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-46.9.2.velocity-2d.png" alt="">
+      <p align="center">
+        Magnitude and vectors for the fluid velocity.
+      </p>
+    </td>
+    <td valign="top" align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-46.9.2.pressure-2d.png" alt="">
+      <p align="center">
+        Fluid pressure. The dynamic range has been truncated to cut off the
+        pressure singularities at the top left and right corners of the domain
+        as well as the top corners of the solid that forms re-entrant corners
+        into the fluid domain.
+      </p>
+    </td>
+    <td valign="top" align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-46.9.2.displacement-2d.png" alt="">
+      <p align="center">
+        Magnitude and vectors for the solid displacement.
+      </p>
+    </td>
+  </tr>
+</table> 
+
+这些图很容易解释：当水流在固体直立部分的左边向下、右边向上时，它产生的压力在左边高，在右边低，这些力量使固体的垂直部分向右弯曲。
+
+
+
+
+<h3>3d results</h3>
+
+通过将 <code>FluidStructureProblem</code> 类中的维度改为3，我们也可以运行同样的问题3D。你会得到如下的输出。
+
+@code
+Refinement cycle 0
+   Number of active cells: 512
+   Number of degrees of freedom: 11631
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 1
+   Number of active cells: 1716
+   Number of degrees of freedom: 48984
+   Assembling...
+   Solving...
+   Writing output...
+
+
+Refinement cycle 2
+   Number of active cells: 8548
+   Number of degrees of freedom: 245746
+   Assembling...
+   Solving...
+@endcode
+
+你会发现，最大的瓶颈是求解器。SparseDirectUmfpack在2016年的工作站上解决这个问题的最后一次迭代需要将近5个小时和大约80GB的内存（倒数第二次迭代只用了16分钟）。显然，这里需要一个更好的求解器，这个话题在下面讨论。
+
+结果也可以被可视化，并产生良好的图片。这里有一张，显示了速度的矢量图（橙色），实体位移（蓝色），以及实体区域的阴影。
+
+<p align="center">  <img src="https://www.dealii.org/images/steps/developer/step-46.9.2.3d.png" alt="">   </p>  。
+
+除了缺乏一个好的求解器之外，网格也有点不平衡：网格细化严重偏向于流体子域（在2D中，情况恰恰相反，促使我们对流体误差指标的权重更高）。显然，如果想继续做更多的三维计算，对两个子域中误差指标的相对重要性进行一些调整是很重要的。
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Linear solvers and preconditioners</h4>
+
+改进程序的一个明显的地方是使用一个更复杂的求解器&mdash；特别是一个能很好地扩展并能解决现实的三维问题的求解器。这在这里其实不难实现，因为从流体到固体的单向耦合。为此，假设我们将自由度重新排序，首先是所有的速度和压力自由度，然后是所有的位移（使用 DoFRenumbering::component_wise). 很容易实现），那么系统矩阵可以被分成以下的块状形式。
+
+@f[
+  A_\text{global}
+  =
+  \begin{pmatrix}
+    A_{\text{fluid}} & 0 \\
+    B & A_{\text{solid}}
+  \end{pmatrix}
+
+
+@f]
+
+其中 $A_{\text{fluid}}$ 是速度和压力的斯托克斯矩阵（它可以进一步细分为 $2\times 2$ 矩阵，如步骤22，尽管这对目前的目的不重要）， $A_{\text{solid}}$ 是位移的弹性方程的结果， $B$ 是来自界面条件的矩阵。现在注意到，这个矩阵
+
+@f[
+  A_\text{global}^{-1}
+  =
+  \begin{pmatrix}
+    A_{\text{fluid}}^{-1} & 0 \\
+
+
+    -A_\text{solid}^{-1} B
+      A_\text{fluid}^{-1} & A_{\text{solid}}^{-1}
+  \end{pmatrix}
+
+
+@f]
+
+是 $A_\text{global}$ 的逆数。应用这个矩阵只需要与 $A_\text{fluid}$ 和 $A_\text{solid}$ 各解一次，因为
+
+@f[
+  \begin{pmatrix}
+    p_x \\ p_y
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    A_{\text{fluid}}^{-1} & 0 \\
+
+
+    -A_\text{solid}^{-1} B
+      A_\text{fluid}^{-1} & A_{\text{solid}}^{-1}
+  \end{pmatrix}
+  \begin{pmatrix}
+    x \\ y
+  \end{pmatrix}
+
+
+@f]
+
+可以计算为 $p_x = A_{\text{fluid}}^{-1} x$ ，然后是 $p_y = A_{\text{solid}}^{-1} (y-Bp_x)$  。
+
+因此，人们可以预期，
+
+@f[
+  \widetilde{A_\text{global}^{-1}}
+  =
+  \begin{pmatrix}
+    \widetilde{A_{\text{fluid}}^{-1}} & 0 \\
+
+
+    -\widetilde{A_\text{solid}^{-1}} B
+      \widetilde{A_\text{fluid}^{-1}} & \widetilde{A_{\text{solid}}^{-1}}
+  \end{pmatrix}
+
+
+@f]
+
+如果  $\widetilde{A_{\text{fluid}}^{-1}}
+\approx A_{\text{fluid}}^{-1}, \widetilde{A_{\text{solid}}^{-1}}
+\approx A_{\text{solid}}^{-1}$  ，将是一个好的预处理程序。
+
+这意味着，我们只需要为斯托克斯和弹性方程分别提供良好的预处理。这些都是众所周知的：对于斯托克斯，我们可以使用step-22的结果部分所讨论的预处理程序；对于弹性，一个好的预处理程序将是一个几何或代数多重网格的单一V形周期。然而，还有更多的开放性问题。对于由两个子调节器构建的 "优化 "求解器块-三角调节器，经常出现的一点是，在为子调节器选择参数时，在单独解决两个问题时效果好的值，在组合成多物理学调节器时可能不是最佳值。  特别是，当单独解决固体或流体力学问题时，在收敛所需的迭代次数和每次迭代应用预调节器的成本之间进行平衡，可能导致人们为斯托克斯问题选择昂贵的预调节器，为弹性问题选择便宜的预调节器（或者反之）。  然而，当结合在一起时，还有一个额外的约束，即你希望两个子预处理程序以大致相同的速度收敛，否则便宜的预处理程序可能会增加全局的迭代次数，而昂贵的预处理程序则会增加每迭代的成本。例如，虽然单一的AMG V型循环本身是一个很好的弹性方法，但当结合到一个多物理问题时，可能会有动力使用一个完整的W型循环或多个循环来帮助降低总求解时间。
+
+
+
+
+<h4>Refinement indicators</h4>
+
+正如介绍中提到的，我们在这个程序中使用的细化指标是相当临时的。一个更好的会明白，解的梯度在界面上的跳跃并不是错误的指示，而是可以预期的，并且在积分跳跃项的时候忽略界面。然而，这并不是KellyErrorEstimator类所做的。另一个更大的问题是，这种估计器首先是否是一个好的策略：例如，如果我们想在位移的某个特定方面（例如实体右上角的位移）有最大的准确性，那么将流体和实体的误差指标放大到相同的程度是否合适？也许有必要用比固体更高的精度来解决流体问题，因为流体的解决方案直接影响到固体的解决方案？也许正好相反？
+
+因此，改进该程序的一个明显的可能性是实施一个更好的细化标准。关于这个话题有一些文献；各种可能的起点之一是Thomas Wick的论文 "Adaptive finite elements for monolithic fluid-structure interaction on a prolongated domain:应用于心脏瓣膜模拟"，2011年机械学计算机方法会议论文集（CMM-2011），2011年5月9-12日，波兰华沙。
+
+
+
+
+<h4>Verification</h4>
+
+上面的结果纯粹是定性的，因为没有证据表明我们的方案实际上是收敛的。因此，一个显而易见的事情是增加一些量化的措施来检查该方案至少收敛到<i>something</i>。例如，我们可以为每个细化周期输出实体的右上角突出到流体子域的部分的偏移。或者我们可以计算出流体对实体施加的净力向量或扭矩。
+
+
+
+
+<h4>Better models</h4>
+
+在现实中，大多数流体结构的相互作用问题是这样的：固体的运动确实影响了流体的流动。例如，空气在气箔周围的作用力导致它弯曲并改变其形状。同样地，一面旗帜在风中飘动，完全改变了它的形状。
+
+这种双向耦合的问题通常在任意拉格朗日欧拉（ALE）框架下处理，其中固体的位移以某种平滑的方式扩展到流体领域，而不是像我们在这里所做的那样以零为单位。然后，扩展的位移场被用来对我们计算流体流动的网格进行变形。此外，界面上流体的边界条件不再是速度为零；相反，在一个时间相关的程序中，流体速度必须等于沿界面的位移的时间导数。
+
+

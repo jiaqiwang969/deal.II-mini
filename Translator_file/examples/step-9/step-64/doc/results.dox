@@ -1,0 +1,49 @@
+examples/step-64/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+由于本教程的主要目的是演示如何使用 CUDAWrappers::MatrixFree 接口，而不是计算任何有用的东西本身，所以我们在这里只是显示预期的输出。
+
+@code
+Cycle 0
+   Number of active cells:       8
+   Number of degrees of freedom: 343
+  Solved in 27 iterations.
+  solution norm: 0.0205439
+
+
+Cycle 1
+   Number of active cells:       64
+   Number of degrees of freedom: 2197
+  Solved in 60 iterations.
+  solution norm: 0.0205269
+
+
+Cycle 2
+   Number of active cells:       512
+   Number of degrees of freedom: 15625
+  Solved in 114 iterations.
+  solution norm: 0.0205261
+
+
+Cycle 3
+   Number of active cells:       4096
+   Number of degrees of freedom: 117649
+  Solved in 227 iterations.
+  solution norm: 0.0205261
+@endcode
+
+
+
+在这里，我们可以做两个观察。首先，数值解的准则在收敛，大概是收敛到精确（但未知）解的准则。其次，每次细化网格时，迭代次数大约增加一倍。这与CG迭代次数随矩阵条件数的平方根增长的预期一致；而且我们知道二阶微分运算的矩阵条件数的增长方式是 ${\cal O}(h^{-2})$  。这当然是相当低效的，因为一个最佳解算器的迭代次数与问题的大小无关。但是要有这样一个求解器，就需要使用比我们在这里使用的身份矩阵更好的预处理。
+
+
+<a name="extensions"></a>
+
+<h3> Possibilities for extensions </h3>
+
+目前，这个程序完全没有使用预处理程序。这主要是因为构建一个高效的无矩阵预处理程序是不容易的。  然而，只需要相应矩阵的对角线的简单选择是很好的选择，这些也可以用无矩阵的方式计算。另外，也许更好的是，我们可以扩展教程，使用类似步骤37的切比雪夫平滑器的多重网格。
+
+

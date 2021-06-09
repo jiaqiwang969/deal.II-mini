@@ -1,0 +1,66 @@
+examples/step-43/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+这个程序的输出与第21步的输出其实没有什么不同：毕竟它解决的是同一个问题。更重要的是定量指标，如解决方案的准确性以及计算所需的时间。这些在本页顶部列出的两份出版物中都有详细记载，我们在此不再重复。
+
+也就是说，如果没有几张好的照片，任何教程程序都是不完整的，所以这里有一些三维运行的输出。
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-43.3d.velocity.png" alt="">
+	<p align="center">
+        Velocity vectors of flow through the porous medium with random
+        permeability model. Streaming paths of high permeability and resulting
+        high velocity are clearly visible.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-43.3d.streamlines.png" alt="">
+	<p align="center">
+        Streamlines colored by the saturation along the streamline path. Blue
+        streamlines indicate low saturations, i.e., the flow along these
+	streamlines must be slow or else more fluid would have been
+        transported along them. On the other hand, green paths indicate high
+        velocities since the fluid front has already reached further into the
+        domain.
+	</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-43.3d.saturation.png" alt="">
+	<p align="center">
+        Streamlines with a volume rendering of the saturation, showing how far
+        the fluid front has advanced at this time.
+	</p>
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-43.3d.mesh.png" alt="">
+	<p align="center">
+	Surface of the mesh showing the adaptive refinement along the front.
+	</p>
+    </td>
+  </tr>
+</table> 
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+人们对这个程序的主要反对意见是它仍然太慢了：在合理的细网格上的三维计算实在是太昂贵了，无法以合理的快速周转来进行常规计算。这与我们写step-31时的情况相似，这个程序从它那里得到了很多灵感。解决办法也是类似的，因为它也在那里。我们需要以类似于从第31步衍生出第32步的方式来并行化这个程序。事实上，步骤32中使用的所有技术也可以转移到这个程序中，使程序立即在几十或几百个处理器上运行。
+
+一个不同的方向是使该程序与许多其他多孔介质的应用更加相关。具体来说，一个途径是去找多孔介质流动模拟器的主要用户，即石油工业。在那里，该领域的应用以多相流（即超过我们这里的两相）为主，以及它们之间可能发生的反应（或任何其他相的质量交换方式，如通过溶解和从油相中冒出的气体）。此外，气体的存在往往会导致流体的可压缩性效应。这些效应通常共同组成了广泛使用的 "黑油模型"。在考虑储层中石油的控制性燃烧以提高压力和温度时，多相之间的真正反应也在油藏模型中发挥作用。不过，这些问题要复杂得多，留待今后的项目研究。
+
+最后，从数学的角度来看，我们得出了在某一时间步长重新计算速度/压力解的标准，其前提是我们要把在当前时间步长会得到的解与上次实际解这个系统时计算的解进行比较。然而，在程序中，每当我们没有重新计算解决方案时，我们并不只是使用之前计算的解决方案，而是从之前两次求解系统的结果中推算出来。因此，该标准被悲观地表述为：我们真正应该比较的是在当前时间步长得到的解与外推的解。在这方面重述该定理是一个练习。
+
+也有其他方法可以扩展这个程序的数学基础；例如，人们可以说，我们关心的不是速度，而实际上是饱和度。因此，人们可能会问，我们在这里用来决定 $\mathbf u$ 是否需要重新计算的标准是否合适；例如，人们可能会提出，决定一个错误的速度场事实上是否会影响饱和方程的解（以及影响的程度）也很重要。这自然会导致敏感性分析。
+
+从算法的角度来看，我们在这里使用了一个工程中经常使用的细化标准，即通过查看解的梯度。然而，如果你检查解决方案，你会发现它几乎在所有地方都迅速导致细化，甚至在明显没有必要的区域：因此经常使用并不需要暗示它是一个有用的标准开始。另一方面，用一个不同的、更好的标准来取代这个标准应该不是很困难。例如，许多其他程序中使用的KellyErrorEstimator类当然也应该适用于当前的问题。
+
+

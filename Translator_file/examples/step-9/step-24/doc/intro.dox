@@ -1,0 +1,393 @@
+examples/step-24/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这个项目是由德克萨斯A&amp;M大学的Xing Jin的一个学生项目发展而来。本程序的大部分工作是由她完成的。这个教程程序的部分工作得到了美国国家科学基金会DMS-0604778号拨款的资助。
+
+该计划是一个旨在模拟热声断层成像的项目的一部分。在热声断层成像中，脉冲电磁能量被送入生物问题。组织吸收一些这种能量，组织中吸收能量最多的那些部分通过热弹性膨胀产生热声波。对于成像来说，人们利用不同种类的组织，最重要的是健康和病变组织，吸收不同数量的能量，因此以不同的速度膨胀。实验装置是测量这些源在组织表面产生的压力波的振幅，并试图重建源的分布，这对吸收器的分布有指示作用，因此对不同种类的组织有指示作用。这个项目的一部分是将模拟数据与实际测量进行比较，因此必须解决 "正向问题"，即描述压力波在组织中传播的波浪方程。因此，这个程序是 @ref
+step_23 "step-23 "的延续，其中首次介绍了波浪方程。
+
+
+
+
+<h3>The problem</h3>
+
+在忽略热扩散的情况下，某个位置的温度可以表示为
+
+@f[
+\rho C_p \frac{\partial}{\partial t}T(t,\mathbf r) = H(t,\mathbf r)
+
+
+@f]
+
+
+
+这里 $\rho (\mathbf r) $ 是密度； $C_p (\mathbf r) $ 是比热； $\frac{\partial T}{\partial t}(t,\mathbf r)$ 是由于传递的微波能量引起的温升； $H(t,\mathbf r)$ 是加热函数，定义为由沉积的微波能量转化的每一时间和体积的热能。
+
+让我们假设组织具有异质的介电特性，但具有同质的声学特性。在声学均质介质中的基本声学生成方程可以描述如下：如果 $u$ 是矢量值的位移，那么组织肯定通过加速度对压力的变化做出反应。
+
+@f[
+\rho \frac{\partial^2}{\partial t^2}u(t,\mathbf r) =
+
+
+-\nabla p(t,\mathbf r).
+
+
+@f]
+
+此外，它因压力过大而收缩，并根据温度的变化而膨胀。
+
+@f[
+\nabla \cdot u(t,\mathbf r) = -\frac{p(t,\mathbf r)}{\rho c_0^2}+\beta T(t,\mathbf r) .
+
+
+@f]
+
+这里， $\beta$ 是一个热膨胀系数。
+
+现在让我们假设，加热只发生在比波在组织中传播短得多的时间尺度上（即加热组织的微波脉冲的时间长度远短于波穿过领域的时间）。在这种情况下，加热率 $H(t,\mathbf r)$ 可以写成 $H(t,\mathbf r) = a(\mathbf
+r)\delta(t)$ （其中 $a(\mathbf r)$ 是微波能量的吸收强度图， $\delta(t)$ 是狄拉克三角函数），与上述第一个方程一起将产生温度 $T(\mathbf r)$ 在时间 $t=0$ 的瞬时跳跃。利用这一假设，并将所有方程放在一起，我们可以将上述内容重写并合并为以下内容。
+
+@f[
+\Delta p-\frac{1}{c_0^2} \frac{\partial^2 p}{\partial t^2} = \lambda
+a(\mathbf r)\frac{d\delta(t)}{dt}
+
+
+@f]
+
+其中 $\lambda = - \frac{\beta}{C_p}$  。
+
+这个有点奇怪的方程，右边是狄拉克三角函数的导数，可以重写为一个初值问题，如下所示。
+
+@f{eqnarray*}
+\Delta \bar{p}- \frac{1}{c_0^2} \frac{\partial^2 \bar{p}}{\partial t^2} & = &
+0 \\
+\bar{p}(0,\mathbf r) &=& c_0^2 \lambda a(\mathbf r) = b(\mathbf r)  \\
+\frac{\partial\bar{p}(0,\mathbf r)}{\partial t} &=& 0.
+
+
+@f}
+
+(在本引言的最后，作为附录给出了这种转化为初值问题的推导)。
+
+在逆向问题中，人们希望恢复的是初始条件 $b(\mathbf r) = c_0^2 \lambda a(\mathbf r)$ ，因为它是微波能量的吸收强度图，因此可能是分辨健康和病变组织的指标。
+
+在实际应用中，热声源相对于介质来说是非常小的。  因此，热声波的传播路径可以被近似为从源头到无限远。此外，检测器离源头只有有限的距离。我们只需要评估热声波通过检测器时的数值，尽管它们确实继续超出。因此，这是一个我们只对无限介质的一小部分感兴趣的问题，我们不希望某个地方产生的波在我们认为有趣的领域的边界上被反射。相反，我们希望只模拟包含在感兴趣的领域内的那部分波场，而碰到该领域边界的波则不受干扰地通过边界。换句话说，我们希望边界能吸收撞击它的任何波。
+
+一般来说，这是一个困难的问题：好的吸收边界条件是非线性的和/或数值上非常昂贵。因此，我们选择了一个简单的一阶近似吸收边界条件，其内容为
+
+@f[
+\frac{\partial\bar{p}}{\partial\mathbf n} =
+
+
+-\frac{1}{c_0} \frac{\partial\bar{p}}{\partial t}
+
+
+@f]
+
+这里， $\frac{\partial\bar{p}}{\partial\mathbf n}$ 是边界处的法向导数。应该指出的是，这不是一个特别好的边界条件，但它是少数几个合理简单的实现条件之一。
+
+
+
+
+<h3>Weak form and discretization</h3>
+
+如同步骤23，首先引入第二个变量，定义为压力势的导数。
+
+@f[
+v = \frac{\partial\bar{p}}{\partial t}
+
+
+@f]
+
+
+
+有了第二个变量，我们就可以将正向问题转化为两个独立的方程式。
+
+@f{eqnarray*}
+\bar{p}_{t} - v & = & 0 \\
+\Delta\bar{p} - \frac{1}{c_0^2}\,v_{t} & = & f
+
+
+@f}
+
+具有初始条件。
+
+@f{eqnarray*}
+\bar{p}(0,\mathbf r) & = & b(r) \\
+v(0,\mathbf r)=\bar{p}_t(0,\mathbf r) & = & 0.
+
+
+@f}
+
+注意，我们在这里引入了一个右手边 $f(t,\mathbf r)$ ，以显示如何在一般情况下推导这些公式，尽管在应用于热声问题时 $f=0$  。
+
+然后，使用步骤23中介绍的一般 $\theta$ 方案，这个模型的半具体化、弱化版本是。
+
+@f{eqnarray*}
+\left(\frac{\bar{p}^n-\bar{p}^{n-1}}{k},\phi\right)_\Omega-
+\left(\theta v^{n}+(1-\theta)v^{n-1},\phi\right)_\Omega & = & 0   \\
+
+
+-\left(\nabla((\theta\bar{p}^n+(1-\theta)\bar{p}^{n-1})),\nabla\phi\right)_\Omega-
+\frac{1}{c_0}\left(\frac{\bar{p}^n-\bar{p}^{n-1}}{k},\phi\right)_{\partial\Omega} -
+\frac{1}{c_0^2}\left(\frac{v^n-v^{n-1}}{k},\phi\right)_\Omega & =
+& \left(\theta f^{n}+(1-\theta)f^{n-1}, \phi\right)_\Omega,
+
+
+@f}
+
+其中 $\phi$ 是一个任意的测试函数，我们使用了吸收边界条件来进行部分积分：吸收边界条件通过使用以下方法被纳入到弱形式之中
+
+@f[
+\int_\Omega\varphi \, \Delta p\; dx =
+
+
+-\int_\Omega\nabla \varphi \cdot \nabla p dx +
+\int_{\partial\Omega}\varphi \frac{\partial p}{\partial {\mathbf n}}ds.
+
+
+@f]
+
+
+
+由此，我们通过引入有限数量的形状函数得到离散模型，并得到
+
+@f{eqnarray*}
+M\bar{p}^{n}-k \theta M v^n & = & M\bar{p}^{n-1}+k (1-\theta)Mv^{n-1},\\
+
+
+(-c_0^2k \theta A-c_0 B)\bar{p}^n-Mv^{n} & = &
+(c_0^2k(1-\theta)A-c_0B)\bar{p}^{n-1}-Mv^{n-1}+c_0^2k(\theta F^{n}+(1-\theta)F^{n-1}).
+
+
+@f}
+
+这里的矩阵 $M$ 和 $A$ 与步骤23相同，而边界质量矩阵
+
+@f[
+	B_{ij} = \left(\varphi_i,\varphi_j\right)_{\partial\Omega}
+
+
+@f]
+
+是使用吸收性边界条件的结果。
+
+以上两个方程可以用矩阵形式重写，压力和它的导数是一个未知矢量。
+
+@f[
+\left(\begin{array}{cc}
+ M         &       -k\theta M \\
+c_0^2\,k\,\theta\,A+c_0\,B  &  M   \\
+               \end{array} \right)\\
+\left(\begin{array}{c}
+ \bar{p}^{n}    \\
+ \bar{v}^{n}
+              \end{array}\right)=\\
+\left(\begin{array}{l}
+ G_1  \\
+ G_2 -(\theta F^{n}+(1-\theta)F ^{n-1})c_{0}^{2}k \\
+                \end{array}\right)
+
+
+@f]
+
+
+
+其中
+
+@f[
+\left(\begin{array}{c}
+G_1 \\
+G_2 \\
+   \end{array} \right)=\\
+\left(\begin{array}{l}
+ M\bar{p}^{n-1}+k(1-\theta)Mv^{n-1}\\
+ (-c_{0}^{2}k (1-\theta)A+c_0 B)\bar{p}^{n-1} +Mv^{n-1}
+                \end{array}\right)
+
+
+@f]
+
+
+
+通过简单的转换，就可以得到压力势及其导数的两个方程，就像前面的教程程序一样。
+
+@f{eqnarray*}
+(M+(k\,\theta\,c_{0})^{2}A+c_0k\theta B)\bar{p}^{n} & = &
+G_{1}+(k\, \theta)G_{2}-(c_0k)^2\theta (\theta F^{n}+(1-\theta)F^{n-1}) \\
+Mv^n & = & -(c_0^2\,k\, \theta\, A+c_0B)\bar{p}^{n}+ G_2 -
+c_0^2k(\theta F^{n}+(1-\theta)F^{n-1})
+
+
+@f}
+
+
+
+
+
+
+<h3>What the program does</h3>
+
+与Step-23相比，本程序增加了对简单吸收边界条件的处理。此外，它还处理了从实际实验测量得到的数据。为此，我们需要在实验也评估了真实压力场的点上评估解决方案。我们将看到如何使用 VectorTools::point_value 函数在下文中进一步做到这一点。
+
+
+
+
+<h3>Appendix: PDEs with Dirac delta functions as right hand side and their transformation to an initial value problem</h3>
+
+在推导波浪方程的初值问题时，我们最初发现该方程有一个狄拉克三角函数的导数作为右手边。
+
+@f[
+\Delta p-\frac{1}{c_0^2} \frac{\partial^2 p}{\partial t^2} = \lambda
+a(\mathbf r)\frac{d\delta(t)}{dt}.
+
+
+@f]
+
+为了看看如何将这个单一的方程转化为具有初始条件的PDE的通常陈述，让我们假设物理上相当合理的介质最初处于静止状态，即 $p(t,\mathbf
+r)=\frac{\partial p(t,\mathbf r)}{\partial t}=0$ 为 $t<0$  。接下来，让我们对两边的时间形成不确定的积分。
+
+@f[
+\int^t \Delta p\; dt -\int^t \frac{1}{c_0^2} \frac{\partial^2 p}{\partial t^2}
+\; dt
+=
+\int^t \lambda a(\mathbf r)\frac{d\delta(t)}{dt} \;dt.
+
+
+@f]
+
+这立即引出了一个说法
+
+@f[
+P(t,\mathbf r) - \frac{1}{c_0^2} \frac{\partial p}{\partial t}
+=
+\lambda a(\mathbf r) \delta(t),
+
+
+@f]
+
+其中 $P(t,\mathbf r)$ 是这样的： $\frac{dP(t,\mathbf r)}{dt}=\Delta
+p$  。接下来，我们对 $t=-\epsilon$ 到 $t=+\epsilon$ 的时间进行（定）积分，以求得
+
+@f[
+\int_{-\epsilon}^{\epsilon} P(t,\mathbf r)\; dt
+
+
+- \frac{1}{c_0^2} \left[ p(\epsilon,\mathbf r) - p(-\epsilon,\mathbf r) \right]
+=
+\int_{-\epsilon}^{\epsilon} \lambda a(\mathbf r) \delta(t) \; dt.
+
+
+@f]
+
+如果我们利用三角洲函数的属性，即 $\int_{-\epsilon}^{\epsilon}
+\delta(t)\; dt = 1$ ，并假设 $P$ 是一个时间上的连续函数，我们发现当我们让 $\epsilon$ 归零时，我们发现
+
+@f[
+
+
+- \lim_{\epsilon\rightarrow 0}\frac{1}{c_0^2} \left[ p(\epsilon,\mathbf r) - p(-\epsilon,\mathbf r) \right]
+=
+\lambda a(\mathbf r).
+
+
+@f]
+
+换句话说，利用 $p(-\epsilon,\mathbf r)=0$ ，我们找回了初始条件
+
+@f[
+  \frac{1}{c_0^2} p(0,\mathbf r)
+  =
+  \lambda a(\mathbf r).
+
+
+@f]
+
+同时，我们知道，对于每一个 $t>0$ ，三角洲函数都是零，所以对于 $0<t<T$ ，我们得到的方程式是
+
+@f[
+\Delta p-\frac{1}{c_0^2} \frac{\partial^2 p}{\partial t^2} = 0.
+
+
+@f]
+
+因此，我们从原来有些奇怪的方程中得到了一个波浪方程和一个初始条件的表示。
+
+最后，由于我们这里有一个带有两个时间导数的方程，我们仍然需要第二个初始条件。为此，让我们回到方程中去
+
+@f[
+\Delta p-\frac{1}{c_0^2} \frac{\partial^2 p}{\partial t^2} = \lambda
+a(\mathbf r)\frac{d\delta(t)}{dt}.
+
+
+@f]
+
+并从 $t=-\epsilon$ 到 $t=+\epsilon$ 进行时间整合。这就导致了
+
+@f[
+P(\epsilon)-P(-\epsilon)
+
+
+-\frac{1}{c_0^2} \left[\frac{\partial p(\epsilon)}{\partial t} -
+                       \frac{\partial p(-\epsilon)}{\partial t}\right]
+ = \lambda a(\mathbf r) \int_{-\epsilon}^{\epsilon}\frac{d\delta(t)}{dt} \; dt.
+
+
+@f]
+
+使用部分整合的形式
+
+@f[
+  \int_{-\epsilon}^{\epsilon}\varphi(t)\frac{d\delta(t)}{dt} \; dt
+  =
+
+
+  -\int_{-\epsilon}^{\epsilon}\frac{d\varphi(t)}{dt} \delta(t)\; dt
+
+
+@f]
+
+在这里我们使用 $\delta(\pm \epsilon)=0$ 并插入 $\varphi(t)=1$ ，我们看到事实上
+
+@f[
+  \int_{-\epsilon}^{\epsilon}\frac{d\delta(t)}{dt} \; dt
+  =
+  0.
+
+
+@f]
+
+
+
+现在，让 $\epsilon\rightarrow 0$  。假设 $P$ 是一个时间上的连续函数，我们看到
+
+@f[
+  P(\epsilon)-P(-\epsilon) \rightarrow 0,
+
+
+@f]
+
+因此
+
+@f[
+  \frac{\partial p(\epsilon)}{\partial t} -
+                       \frac{\partial p(-\epsilon)}{\partial t}
+		       \rightarrow 0.
+
+
+@f]
+
+然而，我们已经假设 $\frac{\partial p(-\epsilon)}{\partial t}=0$  。因此，我们得到的第二个初始条件是
+
+@f[
+  \frac{\partial p(0)}{\partial t} = 0,
+
+
+@f]
+
+完成方程组。
+
+
