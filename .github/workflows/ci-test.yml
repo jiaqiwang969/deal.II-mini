@@ -11,9 +11,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: download the current deal.ii code
-      run: |
-        git clone https://github.com/dealii/dealii.git
     - name: info
       run: |
         g++ -v
@@ -21,8 +18,9 @@ jobs:
     - name: modules
       run: |
         sudo apt-get install libboost-all-dev doxygen python graphviz
-    - name: setup
+    - name: download and setup
       run: |
+        git clone https://github.com/dealii/dealii.git
         ./contrib/utilities/download_clang_format
     - name: change to transltator file
       run: |
