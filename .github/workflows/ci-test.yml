@@ -9,11 +9,14 @@ jobs:
     name: transltor for documentation
     runs-on: [ubuntu-18.04]
 
-    steps:
+    steps: download
     - uses: actions/checkout@v2
     - name: download the current deal.ii code
       run: |
         git clone https://github.com/dealii/dealii.git
+
+    steps: 
+    - uses: actions/checkout@v2       
     - name: setup
       run: |
         ./contrib/utilities/download_clang_format
