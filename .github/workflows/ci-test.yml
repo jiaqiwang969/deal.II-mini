@@ -21,6 +21,7 @@ jobs:
     - name: download and setup
       run: |
         git clone https://github.com/dealii/dealii.git
+        ls
         ./deaii/contrib/utilities/download_clang_format
     - name: change to transltator file
       run: |
