@@ -33,6 +33,10 @@ jobs:
         cp -rf Translator_file/deal.II dealii/include/
         mv dealii/doc/doxygen/headers Origin_file
         cp -rf Translator_file/headers dealii/doc/doxygen/
+        ls 
+        pwd
+        cd dealii
+        ls
     - name: configure
       run: |
         cd dealii
