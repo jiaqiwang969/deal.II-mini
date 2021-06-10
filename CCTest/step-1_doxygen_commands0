@@ -1,0 +1,102 @@
+(lp0
+S'#include <deal.II/grid/tria.h>'
+p1
+aS'#include <deal.II/grid/grid_generator.h>'
+p2
+aS'#include <deal.II/grid/grid_out.h>'
+p3
+aS'#include <iostream>'
+p4
+aS'#include <fstream>'
+p5
+aS'#include <cmath>'
+p6
+aS'using namespace dealii;'
+p7
+aS'void first_grid()'
+p8
+aS'{'
+p9
+aS'  Triangulation<2> triangulation;'
+p10
+aS'  GridGenerator::hyper_cube(triangulation);'
+p11
+aS'  triangulation.refine_global(4);'
+p12
+aS'  std::ofstream out("grid-1.svg");'
+p13
+aS'  GridOut       grid_out;'
+p14
+aS'  grid_out.write_svg(triangulation, out);'
+p15
+aS'  std::cout << "Grid written to grid-1.svg" << std::endl;'
+p16
+aS'}'
+p17
+aS'void second_grid()'
+p18
+ag9
+aS'  Triangulation<2> triangulation;'
+p19
+aS'  const Point<2> center(1, 0);'
+p20
+aS'  const double   inner_radius = 0.5, outer_radius = 1.0;'
+p21
+aS'  GridGenerator::hyper_shell('
+p22
+aS'    triangulation, center, inner_radius, outer_radius, 10);'
+p23
+aS'  for (unsigned int step = 0; step < 5; ++step)'
+p24
+aS'    {'
+p25
+aS'      for (auto &cell : triangulation.active_cell_iterators())'
+p26
+aS'        {'
+p27
+aS'          for (const auto v : cell->vertex_indices())'
+p28
+aS'            {'
+p29
+aS'              const double distance_from_center ='
+p30
+aS'                center.distance(cell->vertex(v));'
+p31
+aS'              if (std::fabs(distance_from_center - inner_radius) <='
+p32
+aS'                  1e-6 * inner_radius)'
+p33
+aS'                {'
+p34
+aS'                  cell->set_refine_flag();'
+p35
+aS'                  break;'
+p36
+aS'                }'
+p37
+aS'            }'
+p38
+aS'        }'
+p39
+aS'      triangulation.execute_coarsening_and_refinement();'
+p40
+aS'    }'
+p41
+aS'  std::ofstream out("grid-2.svg");'
+p42
+aS'  GridOut       grid_out;'
+p43
+aS'  grid_out.write_svg(triangulation, out);'
+p44
+aS'  std::cout << "Grid written to grid-2.svg" << std::endl;'
+p45
+ag17
+aS'int main()'
+p46
+ag9
+aS'  first_grid();'
+p47
+aS'  second_grid();'
+p48
+ag17
+a.

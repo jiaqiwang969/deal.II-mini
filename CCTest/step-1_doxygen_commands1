@@ -1,0 +1,12 @@
+(lp0
+S'<i>iterator</i>'
+p1
+aS'<a href=\n "http:en.wikipedia.org/wiki/Iterator#C.2B.2B">wikipedia</a>'
+p2
+aS'<i>all</i>'
+p3
+aS'@code{.cpp}\n     for (auto it = triangulation.active_cell_iterators().begin();\n          it != triangulation.active_cell_iterators().end();\n          ++it)\n       {\n         auto cell = *it;\n Then a miracle occurs...\n       }\n @endcode'
+p4
+aS'<a href="http:en.cppreference.com/w/cpp/language/range-for">range-\n based for loops</a>'
+p5
+a.

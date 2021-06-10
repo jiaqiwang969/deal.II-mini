@@ -573,7 +573,7 @@ namespace Step10
         table.omit_column_from_convergence_rate_evaluation("cells");
         table.omit_column_from_convergence_rate_evaluation("eval.pi");
         table.evaluate_all_convergence_rates(
-          ConvergenceTable::reduction_rate_log2);
+                                    ConvergenceTable::reduction_rate_log2);
 
         // Finally we set the precision and scientific mode for output of some
         // of the quantities...

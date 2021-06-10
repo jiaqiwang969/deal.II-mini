@@ -22,5 +22,6 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "functional": "cpp"
-    }
+    },
+    "commentTranslate.targetLanguage": "zh-CN"
 }

@@ -1,0 +1,54 @@
+(lp0
+S'@sect3{Include files}'
+p1
+aS'`std::sqrt`'
+p2
+aS'`std::fabs`'
+p3
+aS'<code>dealii</code>'
+p4
+aS'<code>dealii::</code>'
+p5
+aS'@sect3{Creating the first mesh}'
+p6
+aS'$4^4=256$'
+p7
+aS'@sect3{Creating the second mesh}'
+p8
+aS'step-53'
+p9
+aS'@ref manifold'
+p10
+aS'GridGenerator::hyper_shell'
+p11
+aS'GridGenerator::hyper_shell'
+p12
+aS'GridGenerator::hyper_ball),'
+p13
+aS'numbers::flat_manifold_id,'
+p14
+aS'@ref GlossManifoldIndicator'
+p15
+aS'GridGenerator::hyper_shell'
+p16
+aS'Triangulation::active_cell_iterators().'
+p17
+aS'Triangulation::active_cell_iterators().'
+p18
+aS'`Triangulation::active_cell_iterator`.'
+p19
+aS'@note'
+p20
+aS'@ref Iterators'
+p21
+aS'@ref CPP11'
+p22
+aS'step-4'
+p23
+aS'(std::abs(distance_from_center'
+p24
+aS'$10^{-6}$'
+p25
+aS'@sect3{The main function}'
+p26
+a.

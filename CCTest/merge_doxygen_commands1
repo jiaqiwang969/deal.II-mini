@@ -1,0 +1,462 @@
+(lp0
+S'<i>iterator</i>'
+p1
+aS'<a href=\n "http:en.wikipedia.org/wiki/Iterator#C.2B.2B">wikipedia</a>'
+p2
+aS'<i>all</i>'
+p3
+aS'@code{.cpp}\n     for (auto it = triangulation.active_cell_iterators().begin();\n          it != triangulation.active_cell_iterators().end();\n          ++it)\n       {\n         auto cell = *it;\n Then a miracle occurs...\n       }\n @endcode'
+p4
+aS'<a href="http:en.cppreference.com/w/cpp/language/range-for">range-\n based for loops</a>'
+p5
+aS'<i>Jacobian determinant\n times weight</i>'
+p6
+aS'<a\n href="https:github.com/dealii/dealii/wiki/Notes-on-visualizing-high-order-output">wiki\n page</a>'
+p7
+aS'<i>boundary</i>'
+p8
+aS'<a href="http:en.wikipedia.org/wiki/Anonymous_function">lambda\n function</a>'
+p9
+aS'<i>every</i>'
+p10
+aS'<i>all</i>'
+p11
+aS'<i>total</i>'
+p12
+aS'<i>all</i>'
+p13
+aS'<i>not</i>'
+p14
+aS'<i>all elements</i>'
+p15
+aS'<i>all</i>'
+p16
+aS'<i>complete</i>'
+p17
+aS'<i>all</i>'
+p18
+aS'<i>all</i>'
+p19
+aS'<i>some</i>'
+p20
+aS'<i>all</i>'
+p21
+aS'<i>every</i>'
+p22
+aS'<i>all</i>'
+p23
+aS'@code\n   *---*---*---*---*\n   \\   |   |   |   |\n    *--*---*---*---*\n   /   |   |   |   |\n   *---*---*---*---*\n @endcode'
+p24
+aS'@f[\n   \\sum_p (N e)\\delta(\\mathbf x-\\mathbf x_p),\n @f]'
+p25
+aS'@f{align*}{\n   F_i &= \\int_\\Omega \\varphi_i (\\mathbf x)\\left[\n                \\sum_p (N e)\\delta(\\mathbf x-\\mathbf x_p) \\right] dx\n   \\\\  &=  \\sum_p (N e) \\varphi_i(\\mathbf x_p).\n @f}'
+p26
+aS'@f{align*}{\n   F_i^K &= \\sum_{p, \\mathbf x_p\\in K} (N e) \\varphi_i(\\mathbf x_p),\n @f}'
+p27
+aS'<a href="#extensions">"possibilities for extensions" section</a>'
+p28
+aS'@f{align*}{\n           \\frac{{\\mathbf v}_i^{(n)}\n                 -{\\mathbf v}_i^{(n-1)}}{\\Delta t}\n           &= \\frac{e\\nabla V^{(n)}}{m}\n        \\\\ \\frac{{\\mathbf x}_i^{(n)}-{\\mathbf x}_i^{(n-1)}}\n                {\\Delta t} &= {\\mathbf v}_i^{(n)}.\n       @f}'
+p29
+aS'<i>distribute degrees of\n freedom</i>'
+p30
+aS'<i>wants</i>'
+p31
+aS'<i>is</i>'
+p32
+aS'<a href="#improved-ilu">section\n on improved ILU</a>'
+p33
+aS'@f{align*}{\n     A_{ij} &= a(\\varphi_i,\\varphi_j)\n     \\\\     &= \\underbrace{2(\\varepsilon(\\varphi_{i,\\textbf{u}}),\n                             \\varepsilon(\\varphi_{j,\\textbf{u}}))_{\\Omega}}\n                          _{(1)}\n             \\;\n               \\underbrace{- (\\textrm{div}\\; \\varphi_{i,\\textbf{u}},\n                              \\varphi_{j,p})_{\\Omega}}\n                          _{(2)}\n             \\;\n               \\underbrace{- (\\varphi_{i,p},\n                              \\textrm{div}\\;\n                              \\varphi_{j,\\textbf{u}})_{\\Omega}}\n                          _{(3)}\n   @f}'
+p34
+aS'@f{align*}{\n     M_{ij} &= \\underbrace{(\\varphi_{i,p},\n                            \\varphi_{j,p})_{\\Omega}}\n                          _{(4)},\n   @f}'
+p35
+aS'<a href="http:en.wikipedia.org/wiki/Considered_harmful">here</a>'
+p36
+aS'@code\n   void run ()\n   {\n     initialize;\n   start_time_iteration:\n     for (timestep=1...)\n     {\n        solve timestep;\n        if (timestep==1 && not happy with the result)\n        {\n          adjust some data structures;\n          goto start_time_iteration; simply try again\n        }\n        postprocess;\n     }\n   }\n @endcode'
+p37
+aS'@code\n   void run ()\n   {\n     initialize;\n     while (true)\n     {\n        solve timestep;\n        if (not happy with the result)\n           adjust some data structures;\n        else\n           break;\n     }\n     postprocess;\n\n\n\n\n\n\n\n\n     for (timestep=2...)\n     {\n        solve timestep;\n        postprocess;\n     }\n   }\n @endcode'
+p38
+aS'<i>in general</i>'
+p39
+aS'<i>hp</i>'
+p40
+aS'<i>hp</i>'
+p41
+aS"@f{eqnarray*} -\\nabla\n \\cdot(D_g(x) \\nabla \\phi_g(x)) + \\Sigma_{r,g}(x)\\phi_g(x) =\n \\chi_g\\sum_{g'=1}^G\\nu\\Sigma_{f,g'}(x)\\phi_{g'}(x) + \\sum_{g'\\ne\n g}\\Sigma_{s,g'\\to g}(x)\\phi_{g'}(x) + s_{\\mathrm{ext},g}(x) @f}"
+p42
+aS"@f{eqnarray*} -\\nabla \\cdot(D_g(x) \\nabla \\phi^{(n)}_g(x)) &+&\n \\Sigma_{r,g}(x)\\phi^{(n)}_g(x) \\\\ &=&\n \\chi_g\\sum_{g'=1}^{g-1}\\nu\\Sigma_{f,g'}(x)\\phi^{(n)}_{g'}(x) +\n \\chi_g\\sum_{g'=g}^G\\nu\\Sigma_{f,g'}(x)\\phi^{(n-1)}_{g'}(x) + \\sum_{g'\\ne\n g, g'<g}\\Sigma_{s,g'\\to g}(x)\\phi^{(n)}_{g'}(x) + \\sum_{g'\\ne g,\n g'>g}\\Sigma_{s,g'\\to g}(x)\\phi^{(n-1)}_{g'}(x) + s_{\\mathrm{ext},g}(x)\n @f}"
+p43
+aS"@f[\n F_i|_{K_{cc'\\cdots c^{(k)}}} = [B_c B_{c'} \\cdots B_{c^{(k)}}\n M_{K_{cc'\\cdots c^{(k)}}}]^{ij} \\phi_{g'}^j, @f]"
+p44
+aS"@f[\n F_i|_{K_{cc'\\cdots c^{(k)}}} = [(B_c B_{c'} \\cdots B_{c^{(k)}}\n M_{K_{cc'\\cdots c^{(k)}}})^T]^{ij} \\phi_{g'}^j, @f]"
+p45
+aS'<i>square</i>'
+p46
+aS'<i>active</i>'
+p47
+aS'<i>bitwise or operator</i>'
+p48
+aS'<i>exactly\n one bit set</i>'
+p49
+aS'<i>encodes a binary mask representing all of the operations you\n want to happen</i>'
+p50
+aS'<i>bitwise OR operation</i>'
+p51
+aS'<i>I want this AND that AND the\n other</i>'
+p52
+aS'@f{eqnarray*} P^{-1}\\left(\\begin{array}{cc} A &\n B^T \\\\ B & 0 \\end{array}\\right) = \\left(\\begin{array}{cc} I & A^{-1}\n B^T \\\\ 0 & I \\end{array}\\right), @f}'
+p53
+aS'<i>has</i>'
+p54
+aS'@f{align*}\n   \\left(\\begin{array}{cc}A^{-1} & B^T\n                        \\\\0 & S^{-1}\n \\end{array}\\right)\n @f}'
+p55
+aS'<i>%parallel <code>std::cout</code></i>'
+p56
+aS'<i>entire</i>'
+p57
+aS'<i>all</i>'
+p58
+aS'<i>bound</i>'
+p59
+aS'<i>accessor</i>'
+p60
+aS'<i>guess</i>'
+p61
+aS'@f{eqnarray*}\n R_i &=&\n \\left(\\frac{(\\mathbf{w}_{n+1} -\n \\mathbf{w}_n)_{\\text{component\\_i}}}{\\delta\n t},(\\mathbf{z}_i)_{\\text{component\\_i}}\\right)_K\n \\\\ &-& \\sum_{d=1}^{\\text{dim}} \\left(  \\theta \\mathbf{F}\n ({\\mathbf{w}^k_{n+1}})_{\\text{component\\_i},d} + (1-\\theta)\n \\mathbf{F} ({\\mathbf{w}_{n}})_{\\text{component\\_i},d}  ,\n \\frac{\\partial(\\mathbf{z}_i)_{\\text{component\\_i}}} {\\partial\n x_d}\\right)_K\n \\\\ &+& \\sum_{d=1}^{\\text{dim}} h^{\\eta} \\left( \\theta \\frac{\\partial\n (\\mathbf{w}^k_{n+1})_{\\text{component\\_i}}}{\\partial x_d} + (1-\\theta)\n \\frac{\\partial (\\mathbf{w}_n)_{\\text{component\\_i}}}{\\partial x_d} ,\n \\frac{\\partial (\\mathbf{z}_i)_{\\text{component\\_i}}}{\\partial x_d}\n \\right)_K\n \\\\ &-& \\left( \\theta\\mathbf{G}({\\mathbf{w}^k_n+1} )_{\\text{component\\_i}}\n + (1-\\theta)\\mathbf{G}({\\mathbf{w}_n})_{\\text{component\\_i}} ,\n (\\mathbf{z}_i)_{\\text{component\\_i}} \\right)_K ,\n @f}'
+p62
+aS'\\f[ \\int_K f(x) s(x) dx = \\sum_{i=1}^N w_i f(q_i) \\f]'
+p63
+aS'\\f[ \\int_K f(x) s(x) dx = \\int_K g(x) dx = \\sum_{i=1}^N\n   \\frac{w_i}{s(q_i)} g(q_i) \\f]'
+p64
+aS'\\f[ \\int_0^1 f(x)\\ln(x/\\alpha) dx = \\int_0^1 f(x)\\ln(x) dx - \\int_0^1\n  f(x) \\ln(\\alpha) dx.  \\f]'
+p65
+aS'@code\n   if (verbose) std::cout << "something";\n @endcode'
+p66
+aS'@code\n   verbose_cout << "something";\n @endcode'
+p67
+aS'@f[ p^{n+1} = p^n +\n \\phi^{n+1}, @f]'
+p68
+aS'@f[ p^{n+1} = p^n +\n \\phi^{n+1} - \\frac{1}{Re} \\nabla\\cdot u^{n+1}. @f]'
+p69
+aS'@code\n   DynamicSparsityPattern\n      dsp (dof_handler.n_dofs(),\n           dof_handler.n_dofs());\n   DoFTools::make_sparsity_pattern (dof_handler, dsp);\n   dsp.compress ();\n   stiffness_matrix.reinit (dsp);\n   mass_matrix.reinit (dsp);\n @endcode'
+p70
+aS'<i>function</i>'
+p71
+aS'<i>elements</i>'
+p72
+aS'@code\n src.update_ghost_values();\n local_apply(*this->data, dst, src, std::make_pair(0U,\n                                                   data.n_cell_batches()));\n dst.compress(VectorOperation::add);\n @endcode'
+p73
+aS'<i>all</i>'
+p74
+aS'<i>n</i>'
+p75
+aS'<i>i</i>'
+p76
+aS'<i>i</i>'
+p77
+aS'<a\n href="http:dx.doi.org/10.4208/cicp.101214.021015a">Kormann (2016),\n section 5.3</a>'
+p78
+aS'<i>surface</i>'
+p79
+aS'@f[ \\|u\\|_{1,h} =\n \\sum_{K\\in \\mathbb T_h} \\|\\nabla u\\|_K^2 + \\sum_{F \\in F_h^i}\n 4\\sigma_F\\|\\average{ u \\mathbf n}\\|^2_F + \\sum_{F \\in F_h^b}\n 2\\sigma_F\\|u\\|^2_F @f]'
+p80
+aS'<i>L<sup>2</sup></i>'
+p81
+aS'<i>L<sup>2</sup></i>'
+p82
+aS'@code\n #define FORCE_USE_OF_TRILINOS\n @endcode'
+p83
+aS'<i>own</i>'
+p84
+aS'<i>know</i>'
+p85
+aS'<i>ghost cells</i>'
+p86
+aS'<i>ghost nodes</i>'
+p87
+aS'<i>ghost elements of a vector</i>'
+p88
+aS'<h3>Equation data: boundary forces, boundary values, obstacles</h3>'
+p89
+aS'<i>local mesh</i>'
+p90
+aS'@code\n >     _______\n >    /  1    /|\n >   /______ / |\n >  |       | 8|\n >  |   8   | /\n >  |_______|/\n >      6\n @endcode'
+p91
+aS'<i>all</i>'
+p92
+aS'<i>against</i>'
+p93
+aS'<a href="http:en.wikipedia.org/wiki/Bulk_modulus">bulk\n modulus</a>'
+p94
+aS'<a\n href="http:en.wikipedia.org/wiki/Lam%C3%A9_parameters">Lam&eacute;\'s\n first parameter</a>'
+p95
+aS'@f{align*}\n \\underbrace{\\begin{bmatrix}\n   \\mathsf{\\mathbf{K}}_{uu}  & \\mathsf{\\mathbf{K}}_{u\\widetilde{p}} &\n   \\mathbf{0}\n   \\\\ \\mathsf{\\mathbf{K}}_{\\widetilde{p}u} & \\mathbf{0} &\n   \\mathsf{\\mathbf{K}}_{\\widetilde{p}\\widetilde{J}}\n   \\\\ \\mathbf{0} & \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{p}} &\n   \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{J}}\n \\end{bmatrix}}_{\\mathsf{\\mathbf{K}}(\\mathbf{\\Xi}_{\\textrm{i}})}\n      \\underbrace{\\begin{bmatrix}\n          d \\mathsf{u}\n      \\\\  d \\widetilde{\\mathsf{\\mathbf{p}}}\n      \\\\  d \\widetilde{\\mathsf{\\mathbf{J}}}\n      \\end{bmatrix}}_{d \\mathbf{\\Xi}}\n =\n \\underbrace{\\begin{bmatrix}\n  \\mathsf{\\mathbf{F}}_{u}(\\mathbf{u}_{\\textrm{i}})\n  \\\\ \\mathsf{\\mathbf{F}}_{\\widetilde{p}}(\\widetilde{p}_{\\textrm{i}})\n  \\\\ \\mathsf{\\mathbf{F}}_{\\widetilde{J}}(\\widetilde{J}_{\\textrm{i}})\n\\end{bmatrix}}_{ \\mathsf{\\mathbf{F}}(\\mathbf{\\Xi}_{\\textrm{i}}) } \\, .\n @f}'
+p96
+aS'@f{align*}\n    \\begin{bmatrix}\n       \\mathsf{\\mathbf{k}}_{uu}  &  \\mathsf{\\mathbf{k}}_{u\\widetilde{p}}\n       & \\mathbf{0}\n    \\\\ \\mathsf{\\mathbf{k}}_{\\widetilde{p}u} & \\mathbf{0}  &\n    \\mathsf{\\mathbf{k}}_{\\widetilde{p}\\widetilde{J}}\n    \\\\ \\mathbf{0}  &  \\mathsf{\\mathbf{k}}_{\\widetilde{J}\\widetilde{p}}  &\n    \\mathsf{\\mathbf{k}}_{\\widetilde{J}\\widetilde{J}} \\end{bmatrix}\n @f}'
+p97
+aS'@f{align*}\n    \\begin{bmatrix}\n       \\mathsf{\\mathbf{k}}_{\\textrm{con}}   &\n       \\mathsf{\\mathbf{k}}_{u\\widetilde{p}}    & \\mathbf{0}\n    \\\\ \\mathsf{\\mathbf{k}}_{\\widetilde{p}u} & \\mathbf{0} &\n    \\mathsf{\\mathbf{k}}_{\\widetilde{p}\\widetilde{J}}^{-1}\n    \\\\ \\mathbf{0} & \\mathsf{\\mathbf{k}}_{\\widetilde{J}\\widetilde{p}} &\n    \\mathsf{\\mathbf{k}}_{\\widetilde{J}\\widetilde{J}} \\end{bmatrix}\n @f}'
+p98
+aS'@f{align*}\n  \\mathsf{\\mathbf{K}}_{\\textrm{store}}\n\\dealcoloneq\n  \\begin{bmatrix}\n      \\mathsf{\\mathbf{K}}_{\\textrm{con}}      &\n      \\mathsf{\\mathbf{K}}_{u\\widetilde{p}}    & \\mathbf{0}\n  \\\\  \\mathsf{\\mathbf{K}}_{\\widetilde{p}u}    &       \\mathbf{0} &\n  \\mathsf{\\mathbf{K}}_{\\widetilde{p}\\widetilde{J}}^{-1}\n  \\\\  \\mathbf{0}      &\n  \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{p}}                &\n  \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{J}} \\end{bmatrix} \\, .\n @f}'
+p99
+aS'@f{align*}\n              d \\widetilde{\\mathsf{\\mathbf{p}}}\n              & =\n              \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{p}}^{-1}\n              \\bigl[\n                       \\mathsf{\\mathbf{F}}_{\\widetilde{J}}\n                       -\n                       \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{J}}\n                       d \\widetilde{\\mathsf{\\mathbf{J}}} \\bigr]\n              \\\\ d \\widetilde{\\mathsf{\\mathbf{J}}}\n              & =\n              \\mathsf{\\mathbf{K}}_{\\widetilde{p}\\widetilde{J}}^{-1}\n              \\bigl[\n                      \\mathsf{\\mathbf{F}}_{\\widetilde{p}}\n                      - \\mathsf{\\mathbf{K}}_{\\widetilde{p}u} d\n                      \\mathsf{\\mathbf{u}} \\bigr]\n               \\\\ \\Rightarrow d \\widetilde{\\mathsf{\\mathbf{p}}}\n              &= \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{p}}^{-1}\n              \\mathsf{\\mathbf{F}}_{\\widetilde{J}}\n              -\n              \\underbrace{\\bigl[\\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{p}}^{-1}\n              \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{J}}\n              \\mathsf{\\mathbf{K}}_{\\widetilde{p}\\widetilde{J}}^{-1}\\bigr]}_{\\overline{\\mathsf{\\mathbf{K}}}}\\bigl[\n              \\mathsf{\\mathbf{F}}_{\\widetilde{p}}\n              - \\mathsf{\\mathbf{K}}_{\\widetilde{p}u} d\n              \\mathsf{\\mathbf{u}} \\bigr]\n  @f}'
+p100
+aS'@f[\n              \\underbrace{\\bigl[ \\mathsf{\\mathbf{K}}_{uu} +\n              \\overline{\\overline{\\mathsf{\\mathbf{K}}}}~ \\bigr]\n              }_{\\mathsf{\\mathbf{K}}_{\\textrm{con}}} d\n              \\mathsf{\\mathbf{u}}\n              =\n          \\underbrace{\n              \\Bigl[\n              \\mathsf{\\mathbf{F}}_{u}\n                      - \\mathsf{\\mathbf{K}}_{u\\widetilde{p}} \\bigl[\n                      \\mathsf{\\mathbf{K}}_{\\widetilde{J}\\widetilde{p}}^{-1}\n                      \\mathsf{\\mathbf{F}}_{\\widetilde{J}}\n                      -\n                      \\overline{\\mathsf{\\mathbf{K}}}\\mathsf{\\mathbf{F}}_{\\widetilde{p}}\n                      \\bigr]\n              \\Bigr]}_{\\mathsf{\\mathbf{F}}_{\\textrm{con}}}\n  @f]'
+p101
+aS'@f[\n              \\overline{\\overline{\\mathsf{\\mathbf{K}}}} \\dealcoloneq\n                      \\mathsf{\\mathbf{K}}_{u\\widetilde{p}}\n                      \\overline{\\mathsf{\\mathbf{K}}}\n                      \\mathsf{\\mathbf{K}}_{\\widetilde{p}u} \\, .\n  @f]'
+p102
+aS'@f{align*}\n R=\\begin{pmatrix}\n 0&1\\\\-1&0\n \\end{pmatrix},\n \\quad\n b=\\begin{pmatrix}0&0\\end{pmatrix}.\n @f}'
+p103
+aS'@f{align*}\n R=\\begin{pmatrix}\n 0&1\\\\-1&0\n \\end{pmatrix},\n \\quad\n b=\\begin{pmatrix}0&0\\end{pmatrix}.\n @f}'
+p104
+aS'@f{align*}{\n    A^K_{ij} = \\int_K \\nabla^2\\varphi_i(x) : \\nabla^2\\varphi_j(x) dx\n @f}'
+p105
+aS'@f{align*}{\n    f^K_i = \\int_K \\varphi_i(x) f(x) dx\n @f}'
+p106
+aS'@f{align*}{\n  -\\sum_{e \\in \\mathbb{F}} \\int_{e}\n  \\jump{ \\frac{\\partial v_h}{\\partial \\mathbf n}}\n  \\average{\\frac{\\partial^2 u_h}{\\partial \\mathbf n^2}} \\ ds\n -\\sum_{e \\in \\mathbb{F}} \\int_{e}\n \\average{\\frac{\\partial^2 v_h}{\\partial \\mathbf n^2}}\n \\jump{\\frac{\\partial u_h}{\\partial \\mathbf n}} \\ ds\n + \\sum_{e \\in \\mathbb{F}}\n \\frac{\\gamma}{h_e}\n \\int_e\n \\jump{\\frac{\\partial v_h}{\\partial \\mathbf n}}\n \\jump{\\frac{\\partial u_h}{\\partial \\mathbf n}} \\ ds.\n @f}'
+p107
+aS'<a href="#Results">results\n section</a>'
+p108
+aS'<a\n href="https:en.cppreference.com/w/cpp/numeric/complex/norm">std::norm()</a>'
+p109
+aS'<a\n href="https:en.cppreference.com/w/cpp/numeric/complex/arg">std::arg</a>'
+p110
+aS'<b>value</b>'
+p111
+aS'<b>error\n indicator</b>'
+p112
+aS'@code\n # Example parameter file\n subsection first\n   subsection second\n     subsection third\n       subsection My Class\n        ... # all the parameters\n       end\n     end\n   end\n end\n @endcode'
+p113
+aS'@code\n # Example parameter file\n subsection first\n   subsection second\n     subsection third\n       subsection My Class\n         ... # all the parameters\n       end\n       subsection My Other Class\n         ... # all the parameters of MyOtherClass\n       end\n     end\n   end\n end\n @endcode'
+p114
+aS'@code\n # Example parameter file\n subsection first\n   subsection second\n     subsection third\n       subsection My Class\n         ... # all the parameters of MyClass\n         ... # notice My Class subsection does not end here\n         subsection My Other Class\n           ... # all the parameters of MyOtherClass\n         end # of subsection My Other Class\n       end # of subsection My Class\n     end\n   end\n end\n @endcode'
+p115
+aS'@f[\n   c_{ijkl}\n   =\n   \\lambda \\delta_{ij} \\delta_{kl} +\n   \\mu (\\delta_{ik} \\delta_{jl} + \\delta_{il} \\delta_{jk}).\n @f]'
+p116
+aS'@f{align*}\n F_x &=\n \\left\\{\n \\begin{array}{ll}\n   a \\exp(- (\\frac{(x-b_x)^2 }{ 2 \\sigma_x^2}+\\frac{(y-b_y)^2 }{ 2\n   \\sigma_y^2}))\n & \\text{if}\\, x_\\textrm{min} <x<x_\\textrm{max}\\, \\text{and}\\,\n y_\\textrm{min} <y<y_\\textrm{max}  \\\\ 0 & \\text{otherwise},\n \\end{array}\n \\right.\\\\ F_y &= 0\n @f}'
+p117
+aS'@f[\n  c = \\frac{K_e}{\\rho}\n @f]'
+p118
+aS'@f[\n  K_e = 4\\mu\\frac{\\lambda +\\mu}{\\lambda+2\\mu}\n @f]'
+p119
+aS'@f[\n  K_e = \\mu\\frac{3\\lambda +2\\mu}{\\lambda+\\mu}\n @f]'
+p120
+aS'@f[\n                           G_{ij}=\n                           \\frac{\\partial\\phi_i}{\\partial x_j}\n                           =\\partial_j \\phi_i\n                           @f]'
+p121
+aS'<a\n href="https:global.oup.com/academic/product/finite-elements-and-fast-iterative-solvers-9780199678808">\n Finite Elements and Fast Iterative Solvers: with Applications in\n Incompressible Fluid Dynamics by Elman, Silvester, and Wathen</a>'
+p122
+aS'<a\n href="https:link.springer.com/chapter/10.1007/978-3-540-34288-5_27">On\n Discontinuity-Capturing Methods for Convection-Diffusion\n Equations by Volker John and Petr Knobloch</a>'
+p123
+aS'<i>i</i>'
+p124
+aS'<i>j</i>'
+p125
+aS'<a\n href="https:github.com/dealii/dealii/wiki/Notes-on-visualizing-high-order-output">wiki\n page</a>'
+p126
+aS'<i>boundary</i>'
+p127
+aS'<i>Gelfand problem</i>'
+p128
+aS'<i>Gelfand\n problem</i>'
+p129
+aS'<i>Gelfand problem</i>'
+p130
+aS'<a\n href="https:en.wikipedia.org/wiki/Inline_function">inline</a>'
+p131
+aS'<i>exterior</i>'
+p132
+aS'<i>backflow</i>'
+p133
+aS'<i>lane</i>'
+p134
+aS'<a\n href="https:en.wikipedia.org/wiki/Mutator_method">getter/setter\n functions</a>'
+p135
+aS'<i>offline</i>'
+p136
+aS'<i>time step zero</i>'
+p137
+aS'\\f[ \\text{schlieren}[i] = e^{\\beta \\frac{ |\\nabla r_i|\n - \\min_j |\\nabla r_j| }{\\max_j |\\nabla r_j| - \\min_j |\\nabla r_j| } }, \\f]'
+p138
+aS'<a href="https:en.wikipedia.org/wiki/Schlieren">Schlieren</a>'
+p139
+aS'<a\n href="https:en.wikipedia.org/wiki/Sparse_matrix">compressed row\n storage (CSR)</a>'
+p140
+aS'<a href="https:en.wikipedia.org/wiki/Syntactic_sugar"> syntactic\n sugar</a>'
+p141
+aS'@f{align*}\n \\widehat{\\boldsymbol{\\nu}}_i \\dealcoloneq\n  \\frac{\\int_{\\partial\\Omega} \\phi_i \\widehat{\\boldsymbol{\\nu}} \\,\n  \\, \\mathrm{d}\\mathbf{s}}{\\big|\\int_{\\partial\\Omega} \\phi_i\n  \\widehat{\\boldsymbol{\\nu}} \\, \\mathrm{d}\\mathbf{s}\\big|}\n @f}'
+p142
+aS'<a href="http:www.cplusplus.com/reference/algorithm/for_each/">\n std::for_each</a>'
+p143
+aS'<i>projected</i>'
+p144
+aS'<i>primitive</i>'
+p145
+aS'@f{align*}\n   \\lambda^- = u - a\\,\\sqrt{1 + \\frac{\\gamma+1}{2\\gamma}\n   \\left(\\frac{p^\\ast-p}{p}\\right)_+}\n @f}'
+p146
+aS'@f{align*}\n   \\lambda^+ = u + a\\,\\sqrt{1 + \\frac{\\gamma+1}{2\\gamma}\n   \\left(\\frac{p^\\ast-p}{p}\\right)_+}\n @f}'
+p147
+aS'@f{align*}\n   \\lambda_{\\text{exp}} = \\max(u_i,u_j) + 5. \\max(a_i, a_j).\n @f}'
+p148
+aS'<i>neither</i>'
+p149
+aS'<i>nor</i>'
+p150
+aS'<b>Step 1</b>'
+p151
+aS'<b>Step 2</b>'
+p152
+aS'\\f[\n   \\tau_n \\dealcoloneq c_{\\text{cfl}}\\,\\min_{i\\in\\mathcal{V}}\n   \\left(\\frac{m_i}{-2\\,d_{ii}^{n}}\\right) \\, .\n \\f]'
+p153
+aS'<a\n   href="http:www.cplusplus.com/reference/atomic/atomic/"><code>std::atomic<double></code></a>'
+p154
+aS'<a\n href="http:www.cplusplus.com/reference/atomic/atomic/"><code>std::atomic<double></code></a>'
+p155
+aS'<i>compare exchange</i>'
+p156
+aS'<b>Step 3</b>'
+p157
+aS'\\f[\n   \\mathbf{U}_i^{n+1} = \\mathbf{U}_i^{n} - \\frac{\\tau_{\\text{max}} }{m_i}\n   \\sum_{j \\in \\mathcal{I}(i)} (\\mathbb{f}(\\mathbf{U}_j^{n}) -\n   \\mathbb{f}(\\mathbf{U}_i^{n})) \\cdot \\mathbf{c}_{ij} - d_{ij}\n   (\\mathbf{U}_j^{n} - \\mathbf{U}_i^{n})\n \\f]'
+p158
+aS'<b>Step 4</b>'
+p159
+aS'\\f[\n   \\mathbf{m}_i \\dealcoloneq \\mathbf{m}_i - (\\boldsymbol{\\nu}_i \\cdot\n   \\mathbf{m}_i) \\boldsymbol{\\nu}_i,\n \\f]'
+p160
+aS'<b>Step 5</b>'
+p161
+aS'\\f[ \\nabla r_j \\dealcoloneq \\frac{1}{\\int_{S_i} \\omega_i(\\mathbf{x}) \\,\n \\mathrm{d}\\mathbf{x}}\n  \\int_{S_i} r_h(\\mathbf{x}) \\omega_i(\\mathbf{x}) \\, \\mathrm{d}\\mathbf{x}\n \\ \\ \\ \\ \\ \\mathbf{(*)} \\f]'
+p162
+aS'\\f[ \\nabla r_j \\dealcoloneq \\frac{1}{m_i} \\sum_{j \\in \\mathcal{I}(i)} r_j\n  \\mathbf{c}_{ij} \\ \\ \\ \\ \\ \\mathbf{(**)} \\, . \\f]'
+p163
+aS'\\f[ \\text{schlieren}[i] = e^{\\beta \\frac{ |\\nabla r_i|\n - \\min_j |\\nabla r_j| }{\\max_j |\\nabla r_j| - \\min_j |\\nabla r_j| } }\n \\, . \\f]'
+p164
+aS'<a\n href="https:en.wikipedia.org/wiki/Asynchronous_I/O">asynchronous\n IO</a>'
+p165
+aS'<a\n href="https:en.cppreference.com/w/cpp/thread/async"><code>std::async()</code></a>'
+p166
+aS'<a\n href="https:en.cppreference.com/w/cpp/thread/future"><code>std::future</code></a>'
+p167
+aS'<a\n href="https:en.cppreference.com/w/cpp/language/lambda">capture</a>'
+p168
+aS'<a href="Resume">resume\n logic</a>'
+p169
+aS'<a\n href="https:en.cppreference.com/w/cpp/thread/async"><code>std::async</code></a>'
+p170
+aS'<a\n href="https:en.cppreference.com/w/cpp/thread/future"><code>std::future</code></a>'
+p171
+aS'<i>two-stage (name) lookup</i>'
+p172
+aS'@code\n struct ADNumberType\n {\n   double value; The value of the object\n   double derivatives[2]; Array of derivatives of the object with\n                 respect to x and y\n };\n @endcode'
+p173
+aS'@code\n ADNumberType sin(const ADNumberType &a)\n {\n   ADNumberType output;\n\n\n\n\n\n\n\n\n For the input argument "a", "a.value" is simply its value.\n   output.value = sin(a.value);\n\n\n\n\n\n\n\n\n We know that the derivative of sin(a) is cos(a), but we need\n to also consider the chain rule and that the input argument\n `a` is also differentiable with respect to the original\n independent variables `x` and `y`. So `a.derivatives[0]`\n and `a.derivatives[1]` respectively represent the partial\n derivatives of `a` with respect to its inputs `x` and `y`.\n   output.derivatives[0] = cos(a.value)*a.derivatives[0];\n   output.derivatives[1] = cos(a.value)*a.derivatives[1];\n\n\n\n\n\n\n\n\n   return output;\n }\n @endcode'
+p174
+aS'@code\n std::cout << "f(x,y) = " << f_sd << std::endl;\n @endcode'
+p175
+aS'@code\n std::cout << "df_dx_sd: " << df_dx_sd << std::endl;\n std::cout << "df_dy_sd: " << df_dy_sd << std::endl;\n std::cout << "d2f_dx_dx_sd: " << d2f_dx_dx_sd << std::endl;\n std::cout << "d2f_dx_dy_sd: " << d2f_dx_dy_sd << std::endl;\n std::cout << "d2f_dy_dx_sd: " << d2f_dy_dx_sd << std::endl;\n std::cout << "d2f_dy_dy_sd: " << d2f_dy_dy_sd << std::endl;\n @endcode'
+p176
+aS'@code{.sh}\n df_dx_sd: y*sin(y/x)/x**2\n df_dy_sd: -sin(y/x)/x\n d2f_dx_dx_sd: -y**2*cos(y/x)/x**4 - 2*y*sin(y/x)/x**3\n d2f_dx_dy_sd: sin(y/x)/x**2 + y*cos(y/x)/x**3\n d2f_dy_dx_sd: sin(y/x)/x**2 + y*cos(y/x)/x**3\n d2f_dy_dy_sd: -cos(y/x)/x**2\n @endcode'
+p177
+aS'@f[\n   \\psi_{0} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n = \\frac{1}{2} \\mu_{e} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n     \\left[ \\text{tr}(\\mathbf{C}) - d - 2 \\ln (\\text{det}(\\mathbf{F}))\n     \\right]\n + \\lambda_{e} \\ln^{2} \\left(\\text{det}(\\mathbf{F}) \\right)\n - \\frac{1}{2} \\mu_{0} \\mu_{r} \\text{det}(\\mathbf{F})\n     \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n     \\boldsymbol{\\mathbb{H}} \\right]\n @f]'
+p178
+aS'@f[\n  f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n = 1 + \\left[ \\frac{\\mu_{e}^{\\infty}}{\\mu_{e}} - 1 \\right]\n     \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n     \\boldsymbol{\\mathbb{H}}}\n       {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right) .\n @f]'
+p179
+aS'@f{align*}{\n   \\psi_{0} \\left( \\mathbf{C}, \\mathbf{C}_{v}, \\boldsymbol{\\mathbb{H}}\n   \\right)\n &= \\psi_{0}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n + \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)\n \\\\ \\psi_{0}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n &= \\frac{1}{2} \\mu_{e} f_{\\mu_{e}^{ME}} \\left( \\boldsymbol{\\mathbb{H}}\n \\right)\n     \\left[ \\text{tr}(\\mathbf{C}) - d - 2 \\ln (\\text{det}(\\mathbf{F}))\n     \\right]\n + \\lambda_{e} \\ln^{2} \\left(\\text{det}(\\mathbf{F}) \\right)\n - \\frac{1}{2} \\mu_{0} \\mu_{r} \\text{det}(\\mathbf{F})\n     \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n     \\boldsymbol{\\mathbb{H}} \\right]\n \\\\ \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)\n &= \\frac{1}{2} \\mu_{v} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n \\right)\n     \\left[ \\mathbf{C}_{v} : \\left[\n       \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n       \\mathbf{C} \\right] - d - \\ln\\left(\n       \\text{det}\\left(\\mathbf{C}_{v}\\right) \\right)  \\right]\n @f}'
+p180
+aS'@f[\n   f_{\\mu_{e}}^{ME} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n = 1 + \\left[ \\frac{\\mu_{e}^{\\infty}}{\\mu_{e}} - 1 \\right]\n     \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n     \\boldsymbol{\\mathbb{H}}}\n       {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right)\n @f]'
+p181
+aS'@f[\n   f_{\\mu_{v}}^{MVE} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n = 1 + \\left[ \\frac{\\mu_{v}^{\\infty}}{\\mu_{v}} - 1 \\right]\n     \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n     \\boldsymbol{\\mathbb{H}}}\n       {\\left(h_{v}^{\\text{sat}}\\right)^{2}} \\right),\n @f]'
+p182
+aS'@f[\n \\mathbf{C}_{v}^{(t)}\n = \\frac{1}{1 + \\frac{\\Delta t}{\\tau_{v}}} \\left[\n     \\mathbf{C}_{v}^{(t-1)}\n   + \\frac{\\Delta t}{\\tau_{v}}\n     \\left[\\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n     \\mathbf{C} \\right]^{-1}\n   \\right]\n @f]'
+p183
+aS'@code\n optimizer.register_symbols(Differentiation::SD::make_symbol_map(\n   mu_e_sd, mu_e_inf_sd, mu_e_h_sat_sd, lambda_e_sd,\n   mu_v_sd, mu_v_inf_sd, mu_v_h_sat_sd, tau_v_sd,\n   delta_t_sd, mu_r_sd,\n   H_sd, C_sd,\n   Q_t_sd, Q_t1_sd));\n @endcode'
+p184
+aS'@f[\n   \\psi_{0} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n = \\frac{1}{2} \\mu_{e} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n     \\left[ \\text{tr}(\\mathbf{C}) - d - 2 \\ln (\\text{det}(\\mathbf{F}))\n     \\right]\n + \\lambda_{e} \\ln^{2} \\left(\\text{det}(\\mathbf{F}) \\right)\n - \\frac{1}{2} \\mu_{0} \\mu_{r} \\text{det}(\\mathbf{F})\n     \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n     \\boldsymbol{\\mathbb{H}} \\right]\n @f]'
+p185
+aS'@f[\n  f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n = 1 + \\left[ \\frac{\\mu_{e}^{\\infty}}{\\mu_{e}} - 1 \\right]\n     \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n     \\boldsymbol{\\mathbb{H}}}\n       {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right) ,\n \\\\ \\text{det}(\\mathbf{F}) = \\sqrt{\\text{det}(\\mathbf{C})}\n @f]'
+p186
+aS'@f[\n  \\boldsymbol{\\mathbb{B}} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n  \\right)\n \\dealcoloneq - \\frac{d \\psi_{0}}{d \\boldsymbol{\\mathbb{H}}}\n = - \\frac{1}{2} \\mu_{e} \\left[ \\text{tr}(\\mathbf{C}) - d - 2 \\ln\n (\\text{det}(\\mathbf{F}))\n       \\right] \\frac{d f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}}\n       \\right)}{d \\boldsymbol{\\mathbb{H}}}\n + \\mu_{0} \\mu_{r} \\text{det}(\\mathbf{F}) \\left[ \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}}\n     \\right]\n @f]'
+p187
+aS'@f{align}\n  \\mathbf{S}^{\\text{tot}} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n  \\right)\n \\dealcoloneq 2 \\frac{d \\psi_{0} \\left( \\mathbf{C},\n \\boldsymbol{\\mathbb{H}} \\right)}{d \\mathbf{C}}\n &= \\mu_{e} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n     \\left[ \\frac{d\\,\\text{tr}(\\mathbf{C})}{d \\mathbf{C}}\n     - 2 \\frac{1}{\\text{det}(\\mathbf{F})}\n     \\frac{d\\,\\text{det}(\\mathbf{F})}{d \\mathbf{C}} \\right]\n + 4 \\lambda_{e} \\ln \\left(\\text{det}(\\mathbf{F}) \\right)\n     \\frac{1}{\\text{det}(\\mathbf{F})} \\frac{d\\,\\text{det}(\\mathbf{F})}{d\n     \\mathbf{C}}\n - \\mu_{0} \\mu_{r} \\left[\n     \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n     \\boldsymbol{\\mathbb{H}} \\right] \\frac{d\\,\\text{det}(\\mathbf{F})}{d\n     \\mathbf{C}} + \\text{det}(\\mathbf{F}) \\frac{d \\left[\n     \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n     \\boldsymbol{\\mathbb{H}}\n       \\right]}{d \\mathbf{C}} \\right]\n \\\\ &= \\mu_{e} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n     \\left[ \\mathbf{I} - \\mathbf{C}^{-1} \\right]\n + 2 \\lambda_{e} \\ln \\left(\\text{det}(\\mathbf{F}) \\right) \\mathbf{C}^{-1}\n - \\mu_{0} \\mu_{r} \\left[\n     \\frac{1}{2}  \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1}\n     \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\text{det}(\\mathbf{F})\n     \\mathbf{C}^{-1}\n - \\text{det}(\\mathbf{F})\n     \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\otimes\n       \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right]\n       \\right]\n @f}'
+p188
+aS'@f[\n   \\frac{d f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)}{d\n   \\boldsymbol{\\mathbb{H}}}\n = \\left[ \\frac{\\mu_{e}^{\\infty}}{\\mu_{e}} - 1 \\right]\n   \\text{sech}^{2} \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n   \\boldsymbol{\\mathbb{H}}}\n     {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right)\n   \\left[ \\frac{4} {\\left(h_{e}^{\\text{sat}}\\right)^{2}}\n   \\boldsymbol{\\mathbb{H}} \\right]\n @f]'
+p189
+aS'@f[\n   \\frac{d\\,\\text{tr}(\\mathbf{C})}{d \\mathbf{C}}\n = \\mathbf{I}\n \\quad \\text{(the second-order identity tensor)}\n @f]'
+p190
+aS'@f[\n   \\frac{d\\,\\text{det}(\\mathbf{F})}{d \\mathbf{C}}\n = \\frac{1}{2} \\text{det}(\\mathbf{F}) \\mathbf{C}^{-1}\n @f]'
+p191
+aS'@f[\n \\frac{d C^{-1}_{ab}}{d C_{cd}}\n = - \\text{sym} \\left( C^{-1}_{ac} C^{-1}_{bd} \\right)\n = -\\frac{1}{2} \\left[ C^{-1}_{ac} C^{-1}_{bd} + C^{-1}_{ad} C^{-1}_{bc}\n \\right]\n @f]'
+p192
+aS'@f[\n   \\frac{d \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n   \\boldsymbol{\\mathbb{H}} \\right]}{d \\mathbf{C}}\n = - \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\otimes\n   \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right]\n @f]'
+p193
+aS'@f[\n \\mathbb{D} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n = \\frac{d \\boldsymbol{\\mathbb{B}}}{d \\boldsymbol{\\mathbb{H}}}\n = - \\frac{1}{2} \\mu_{e} \\left[ \\text{tr}(\\mathbf{C}) - d - 2 \\ln\n (\\text{det}(\\mathbf{F}))\n     \\right] \\frac{d^{2} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}}\n     \\right)}{d \\boldsymbol{\\mathbb{H}} \\otimes d \\boldsymbol{\\mathbb{H}}}\n + \\mu_{0} \\mu_{r} \\text{det}(\\mathbf{F}) \\mathbf{C}^{-1}\n @f]'
+p194
+aS'@f{align}\n \\mathfrak{P}^{\\text{tot}} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n \\right) = - \\frac{d \\mathbf{S}^{\\text{tot}}}{d \\boldsymbol{\\mathbb{H}}}\n &= - \\mu_{e}\n     \\left[ \\frac{d\\,\\text{tr}(\\mathbf{C})}{d \\mathbf{C}}\n     - 2 \\frac{1}{\\text{det}(\\mathbf{F})}\n     \\frac{d\\,\\text{det}(\\mathbf{F})}{d \\mathbf{C}} \\right]\n       \\otimes \\frac{d f_{\\mu_{e} \\left( \\boldsymbol{\\mathbb{H}}\n       \\right)}}{d \\boldsymbol{\\mathbb{H}}}\n + \\mu_{0} \\mu_{r} \\left[\n     \\frac{d\\,\\text{det}(\\mathbf{F})}{d \\mathbf{C}} \\otimes\n       \\frac{d \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n       \\boldsymbol{\\mathbb{H}}\n         \\right]}{d \\boldsymbol{\\mathbb{H}}} \\right]\n + \\text{det}(\\mathbf{F})\n     \\frac{d^{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1}\n     \\cdot \\boldsymbol{\\mathbb{H}}\n       \\right]}{d \\mathbf{C} \\otimes d \\boldsymbol{\\mathbb{H}}}\n \\\\ &= - \\mu_{e}\n     \\left[ \\mathbf{I} - \\mathbf{C}^{-1} \\right] \\otimes\n       \\frac{d f_{\\mu_{e} \\left( \\boldsymbol{\\mathbb{H}} \\right)}}{d\n       \\boldsymbol{\\mathbb{H}}}\n + \\mu_{0} \\mu_{r} \\left[\n     \\text{det}(\\mathbf{F}) \\mathbf{C}^{-1} \\otimes\n       \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right]\n       \\right]\n + \\text{det}(\\mathbf{F})\n     \\frac{d^{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1}\n     \\cdot \\boldsymbol{\\mathbb{H}}\n       \\right]}{d \\mathbf{C} \\otimes \\mathbf{C} \\boldsymbol{\\mathbb{H}}}\n @f}'
+p195
+aS'@f{align}\n \\mathcal{H}^{\\text{tot}} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n \\right) = 2 \\frac{d \\mathbf{S}^{\\text{tot}}}{d \\mathbf{C}}\n &= 2 \\mu_{e} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n     \\left[ - \\frac{d \\mathbf{C}^{-1}}{d \\mathbf{C}} \\right]\n   + 4 \\lambda_{e} \\left[ \\mathbf{C}^{-1} \\otimes \\left[\n   \\frac{1}{\\text{det}(\\mathbf{F})} \\frac{d \\, \\text{det}(\\mathbf{F})}{d\n   \\mathbf{C}} \\right] + \\ln \\left(\\text{det}(\\mathbf{F}) \\right) \\frac{d\n   \\mathbf{C}^{-1}}{d \\mathbf{C}} \\right]\n \\\\ &- \\mu_{0} \\mu_{r}  \\left[\n  \\text{det}(\\mathbf{F}) \\mathbf{C}^{-1} \\otimes \\frac{d \\left[\n  \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n  \\boldsymbol{\\mathbb{H}} \\right]}{d \\mathbf{C}}\n + \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}} \\right] \\mathbf{C}^{-1} \\otimes \\frac{d \\,\n \\text{det}(\\mathbf{F})}{d \\mathbf{C}}\n + \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}} \\right] \\text{det}(\\mathbf{F}) \\frac{d\n \\mathbf{C}^{-1}}{d \\mathbf{C}}\n \\right]\n \\\\ &+ 2 \\mu_{0} \\mu_{r} \\left[ \\left[\n     \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\otimes\n       \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right]\n       \\right] \\otimes \\frac{d \\, \\text{det}(\\mathbf{F})}{d \\mathbf{C}}\n     - \\text{det}(\\mathbf{F})\n     \\frac{d^{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1}\n     \\cdot \\boldsymbol{\\mathbb{H}}\\right]}{d \\mathbf{C} \\otimes d\n     \\mathbf{C}}\n \\right]\n \\\\ &= 2 \\mu_{e} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n     \\left[ - \\frac{d \\mathbf{C}^{-1}}{d \\mathbf{C}} \\right]\n  + 4 \\lambda_{e} \\left[ \\frac{1}{2} \\mathbf{C}^{-1} \\otimes\n  \\mathbf{C}^{-1} + \\ln \\left(\\text{det}(\\mathbf{F}) \\right) \\frac{d\n  \\mathbf{C}^{-1}}{d \\mathbf{C}} \\right]\n \\\\ &- \\mu_{0} \\mu_{r}  \\left[\n  - \\text{det}(\\mathbf{F}) \\mathbf{C}^{-1} \\otimes \\left[ \\left[\n  \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\otimes\n   \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\right]\n + \\frac{1}{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}} \\right] \\text{det}(\\mathbf{F})  \\mathbf{C}^{-1}\n \\otimes \\mathbf{C}^{-1}\n + \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}} \\right] \\text{det}(\\mathbf{F}) \\frac{d\n \\mathbf{C}^{-1}}{d \\mathbf{C}}\n \\right]\n \\\\ &+ 2 \\mu_{0} \\mu_{r} \\left[ \\frac{1}{2} \\text{det}(\\mathbf{F}) \\left[\n     \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right] \\otimes\n       \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}} \\right]\n       \\right] \\otimes \\mathbf{C}^{-1}\n     - \\text{det}(\\mathbf{F})\n     \\frac{d^{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1}\n     \\cdot \\boldsymbol{\\mathbb{H}}\\right]}{d \\mathbf{C} \\otimes d\n     \\mathbf{C}}\n \\right]\n @f}'
+p196
+aS'@f[\n  \\frac{d^{2} f_{\\mu_{e}} \\left( \\boldsymbol{\\mathbb{H}} \\right)}{d\n  \\boldsymbol{\\mathbb{H}} \\otimes d \\boldsymbol{\\mathbb{H}}}\n = -2 \\left[ \\frac{\\mu_{e}^{\\infty}}{\\mu_{e}} - 1 \\right]\n   \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n   \\boldsymbol{\\mathbb{H}}}\n     {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right)\n   \\text{sech}^{2} \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n   \\boldsymbol{\\mathbb{H}}}\n     {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right)\n   \\left[ \\frac{4} {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\mathbf{I}\n   \\right]\n @f]'
+p197
+aS'@f[\n \\frac{d \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}}\n         \\right]}{d \\boldsymbol{\\mathbb{H}}}\n = 2 \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}}\n @f]'
+p198
+aS'@f[\n \\frac{d^{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}}\\right]}{d \\mathbf{C} \\otimes d\n \\boldsymbol{\\mathbb{H}}} \\Rightarrow \\frac{d^{2} \\left[ \\mathbb{H}_{e}\n C^{-1}_{ef} \\mathbb{H}_{f}\n       \\right]}{d C_{ab} d \\mathbb{H}_{c}}\n = - C^{-1}_{ac} C^{-1}_{be} \\mathbb{H}_{e} - C^{-1}_{ae} \\mathbb{H}_{e}\n C^{-1}_{bc}\n @f]'
+p199
+aS'@f{align}\n \\frac{d^{2} \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n \\boldsymbol{\\mathbb{H}}\\right]}{d \\mathbf{C} \\otimes d \\mathbf{C}}\n &= -\\frac{d \\left[\\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}}\n \\right] \\otimes\n       \\left[ \\mathbf{C}^{-1} \\cdot \\boldsymbol{\\mathbb{H}}\n       \\right]\\right]}{d \\mathbf{C}}\n \\\\ \\Rightarrow\n \\frac{d^{2} \\left[ \\mathbb{H}_{e} C^{-1}_{ef} \\mathbb{H}_{f}\n       \\right]}{d C_{ab} d C_{cd}}\n &= \\text{sym} \\left( C^{-1}_{ae} \\mathbb{H}_{e} C^{-1}_{cf}\n \\mathbb{H}_{f} C^{-1}_{bd}\n           + C^{-1}_{ce} \\mathbb{H}_{e} C^{-1}_{bf} \\mathbb{H}_{f}\n           C^{-1}_{ad} \\right)\n \\\\ &= \\frac{1}{2} \\left[\n      C^{-1}_{ae} \\mathbb{H}_{e} C^{-1}_{cf} \\mathbb{H}_{f} C^{-1}_{bd}\n    + C^{-1}_{ae} \\mathbb{H}_{e} C^{-1}_{df} \\mathbb{H}_{f} C^{-1}_{bc}\n    + C^{-1}_{ce} \\mathbb{H}_{e} C^{-1}_{bf} \\mathbb{H}_{f} C^{-1}_{ad}\n    + C^{-1}_{be} \\mathbb{H}_{e} C^{-1}_{df} \\mathbb{H}_{f} C^{-1}_{ac}\n   \\right]\n @f}'
+p200
+aS'@f[\n   \\psi_{0} \\left( \\mathbf{C}, \\mathbf{C}_{v}, \\boldsymbol{\\mathbb{H}}\n   \\right)\n = \\psi_{0}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n + \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)\n @f]'
+p201
+aS'@f[\n   \\psi_{0}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n = \\frac{1}{2} \\mu_{e} f_{\\mu_{e}^{ME}} \\left( \\boldsymbol{\\mathbb{H}}\n \\right)\n     \\left[ \\text{tr}(\\mathbf{C}) - d - 2 \\ln (\\text{det}(\\mathbf{F}))\n     \\right]\n + \\lambda_{e} \\ln^{2} \\left(\\text{det}(\\mathbf{F}) \\right)\n - \\frac{1}{2} \\mu_{0} \\mu_{r} \\text{det}(\\mathbf{F})\n     \\left[ \\boldsymbol{\\mathbb{H}} \\cdot \\mathbf{C}^{-1} \\cdot\n     \\boldsymbol{\\mathbb{H}} \\right]\n @f]'
+p202
+aS'@f[\n   \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n   \\boldsymbol{\\mathbb{H}} \\right)\n = \\frac{1}{2} \\mu_{v} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n \\right)\n     \\left[ \\mathbf{C}_{v} : \\left[\n       \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n       \\mathbf{C} \\right] - d - \\ln\\left(\n       \\text{det}\\left(\\mathbf{C}_{v}\\right) \\right)  \\right]\n @f]'
+p203
+aS'@f[\n   f_{\\mu_{e}}^{ME} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n = 1 + \\left[ \\frac{\\mu_{e}^{\\infty}}{\\mu_{e}} - 1 \\right]\n     \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n     \\boldsymbol{\\mathbb{H}}}\n       {\\left(h_{e}^{\\text{sat}}\\right)^{2}} \\right)\n @f]'
+p204
+aS'@f[\n   f_{\\mu_{v}}^{MVE} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n = 1 + \\left[ \\frac{\\mu_{v}^{\\infty}}{\\mu_{v}} - 1 \\right]\n     \\tanh \\left( 2 \\frac{\\boldsymbol{\\mathbb{H}} \\cdot\n     \\boldsymbol{\\mathbb{H}}}\n       {\\left(h_{v}^{\\text{sat}}\\right)^{2}} \\right)\n @f]'
+p205
+aS'@f[\n  \\dot{\\mathbf{C}}_{v} \\left( \\mathbf{C} \\right)\n = \\frac{1}{\\tau} \\left[\n       \\left[\\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n         \\mathbf{C}\\right]^{-1}\n     - \\mathbf{C}_{v} \\right]\n @f]'
+p206
+aS'@f[\n  \\boldsymbol{\\mathbb{B}} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n  \\boldsymbol{\\mathbb{H}} \\right)\n \\dealcoloneq - \\frac{\\partial \\psi_{0} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)}{\\partial \\boldsymbol{\\mathbb{H}}}\n \\Big\\vert_{\\mathbf{C}, \\mathbf{C}_{v}} \\equiv\n \\boldsymbol{\\mathbb{B}}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n \\right)\n + \\boldsymbol{\\mathbb{B}}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) =  - \\frac{d \\psi_{0}^{ME} \\left(\n \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)}{d \\boldsymbol{\\mathbb{H}}}\n    - \\frac{\\partial \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n    \\boldsymbol{\\mathbb{H}} \\right)}{\\partial \\boldsymbol{\\mathbb{H}}}\n @f]'
+p207
+aS'@f[\n  \\mathbf{S}^{\\text{tot}} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n  \\boldsymbol{\\mathbb{H}} \\right)\n \\dealcoloneq 2 \\frac{\\partial \\psi_{0} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)}{\\partial \\mathbf{C}}\n \\Big\\vert_{\\mathbf{C}_{v}, \\boldsymbol{\\mathbb{H}}} \\equiv\n \\mathbf{S}^{\\text{tot}, ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n \\right)\n + \\mathbf{S}^{\\text{tot}, MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}}\n     \\right)\n =  2 \\frac{d \\psi_{0}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}}\n \\right)}{d \\mathbf{C}}\n  + 2 \\frac{\\partial \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n  \\boldsymbol{\\mathbb{H}} \\right)}{\\partial \\mathbf{C}}\n @f]'
+p208
+aS'@f[\n   \\boldsymbol{\\mathbb{B}}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n   \\boldsymbol{\\mathbb{H}} \\right)\n = - \\frac{\\partial \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)}{\\partial \\boldsymbol{\\mathbb{H}}}\n \\Big\\vert_{\\mathbf{C}, \\mathbf{C}_{v}} = - \\frac{1}{2} \\mu_{v}\n     \\left[ \\mathbf{C}_{v} : \\left[\n       \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n       \\mathbf{C} \\right] - d - \\ln\\left(\n       \\text{det}\\left(\\mathbf{C}_{v}\\right) \\right)  \\right]\n       \\frac{\\partial f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n       \\right)}{\\partial \\boldsymbol{\\mathbb{H}}}\n @f]'
+p209
+aS'@f[\n   \\mathbf{S}^{\\text{tot}, MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n   \\boldsymbol{\\mathbb{H}}\n     \\right)\n = 2 \\frac{\\partial \\psi_{0}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)}{\\partial \\mathbf{C}}\n \\Big\\vert_{\\mathbf{C}_{v}, \\boldsymbol{\\mathbb{H}}} = \\mu_{v}\n f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n        \\left[  \\left[ \\mathbf{C}_{v} : \\mathbf{C} \\right] \\left[ -\n        \\frac{1}{d}\n        \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n        \\mathbf{C}^{-1} \\right]\n        + \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n        \\mathbf{C}_{v}\n  \\right]\n @f]'
+p210
+aS'@f[\n \\frac{\\partial f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n \\right)}{\\partial \\boldsymbol{\\mathbb{H}}} \\equiv \\frac{d\n f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}} \\right)}{d\n \\boldsymbol{\\mathbb{H}}} .\n @f]'
+p211
+aS'@f[\n \\mathbf{C}_{v}^{(t)} \\left( \\mathbf{C} \\right)\n = \\frac{1}{1 + \\frac{\\Delta t}{\\tau_{v}}} \\left[\n     \\mathbf{C}_{v}^{(t-1)}\n   + \\frac{\\Delta t}{\\tau_{v}}\n     \\left[\\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n     \\mathbf{C} \\right]^{-1}\n   \\right]\n @f]'
+p212
+aS'@f[\n \\mathbb{D} \\left( \\mathbf{C}, \\mathbf{C}_{v}, \\boldsymbol{\\mathbb{H}}\n \\right) = \\frac{d \\boldsymbol{\\mathbb{B}}}{d \\boldsymbol{\\mathbb{H}}}\n \\equiv \\mathbb{D}^{ME} \\left( \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n + \\mathbb{D}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = \\frac{d \\boldsymbol{\\mathbb{B}}^{ME}}{d\n \\boldsymbol{\\mathbb{H}}}\n + \\frac{d \\boldsymbol{\\mathbb{B}}^{MVE}}{d \\boldsymbol{\\mathbb{H}}}\n @f]'
+p213
+aS'@f[\n \\mathfrak{P}^{\\text{tot}} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = - \\frac{d \\mathbf{S}^{\\text{tot}}}{d\n \\boldsymbol{\\mathbb{H}}} \\equiv \\mathfrak{P}^{\\text{tot}, ME} \\left(\n \\mathbf{C}, \\boldsymbol{\\mathbb{H}} \\right)\n + \\mathfrak{P}^{\\text{tot}, MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = - \\frac{d \\mathbf{S}^{\\text{tot},\n ME}}{d \\boldsymbol{\\mathbb{H}}}\n - \\frac{d \\mathbf{S}^{\\text{tot}, MVE}}{d \\boldsymbol{\\mathbb{H}}}\n @f]'
+p214
+aS'@f[\n \\mathcal{H}^{\\text{tot}} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = 2 \\frac{d \\mathbf{S}^{\\text{tot}}}{d\n \\mathbf{C}} \\equiv \\mathcal{H}^{\\text{tot}, ME} \\left( \\mathbf{C},\n \\boldsymbol{\\mathbb{H}} \\right)\n + \\mathcal{H}^{\\text{tot}, MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = 2 \\frac{d \\mathbf{S}^{\\text{tot},\n ME}}{d \\mathbf{C}}\n + 2 \\frac{d \\mathbf{S}^{\\text{tot}, MVE}}{d \\mathbf{C}}\n @f]'
+p215
+aS'@f[\n \\mathbb{D}^{MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = - \\frac{1}{2} \\mu_{v}\n     \\left[ \\mathbf{C}_{v} : \\left[\n       \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n       \\mathbf{C} \\right] - d - \\ln\\left(\n       \\text{det}\\left(\\mathbf{C}_{v}\\right) \\right)  \\right]\n       \\frac{\\partial^{2} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n       \\right)}{\\partial \\boldsymbol{\\mathbb{H}} \\otimes\n       d \\boldsymbol{\\mathbb{H}}}\n @f]'
+p216
+aS'@f[\n \\mathfrak{P}^{\\text{tot}, MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right) = - \\mu_{v}\n        \\left[  \\left[ \\mathbf{C}_{v} : \\mathbf{C} \\right] \\left[ -\n        \\frac{1}{d}\n        \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n        \\mathbf{C}^{-1} \\right]\n        + \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n        \\mathbf{C}_{v}\n  \\right] \\otimes \\frac{d f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n  \\right)}{d \\boldsymbol{\\mathbb{H}}}\n @f]'
+p217
+aS'@f{align}\n \\mathcal{H}^{\\text{tot}, MVE} \\left( \\mathbf{C}, \\mathbf{C}_{v},\n \\boldsymbol{\\mathbb{H}} \\right)\n &= 2 \\mu_{v} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n   \\left[ - \\frac{1}{d}\n   \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n   \\mathbf{C}^{-1} \\right] \\otimes\n   \\left[ \\mathbf{C}_{v} + \\mathbf{C} : \\frac{d \\mathbf{C}_{v}}{d\n   \\mathbf{C}} \\right]\n \\\\ &+ 2 \\mu_{v} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n \\left[ \\mathbf{C}_{v} : \\mathbf{C} \\right]\n   \\left[\n     \\frac{1}{d^{2}}\n     \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n     \\mathbf{C}^{-1} \\otimes \\mathbf{C}^{-1}\n     - \\frac{1}{d}\n     \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}} \\frac{d\n     \\mathbf{C}^{-1}}{d \\mathbf{C}}\n   \\right]\n \\\\ &+ 2 \\mu_{v} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}} \\right)\n   \\left[\n     -\\frac{1}{d}\n     \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n     \\mathbf{C}_{v} \\otimes \\mathbf{C}^{-1}\n     + \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{-\\frac{2}{d}}\n     \\frac{d \\mathbf{C}_{v}}{d \\mathbf{C}}\n   \\right]\n @f}'
+p218
+aS'@f[\n \\frac{\\partial^{2} f_{\\mu_{v}^{MVE}} \\left( \\boldsymbol{\\mathbb{H}}\n \\right)}{\\partial \\boldsymbol{\\mathbb{H}} \\otimes\n d \\boldsymbol{\\mathbb{H}}} \\equiv \\frac{d^{2} f_{\\mu_{v}^{MVE}} \\left(\n \\boldsymbol{\\mathbb{H}} \\right)}{d \\boldsymbol{\\mathbb{H}} \\otimes d\n \\boldsymbol{\\mathbb{H}}}\n @f]'
+p219
+aS'@f[\n \\frac{d \\mathbf{C}_{v}}{d \\mathbf{C}}\n \\equiv \\frac{d \\mathbf{C}_{v}^{(t)}}{d \\mathbf{C}}\n  = \\frac{\\frac{\\Delta t}{\\tau_{v}} }{1 + \\frac{\\Delta t}{\\tau_{v}}}\n  \\left[\n     \\frac{1}{d}\n     \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{\\frac{2}{d}}\n     \\mathbf{C}^{-1} \\otimes \\mathbf{C}^{-1}\n    + \\left[\\text{det}\\left(\\mathbf{F}\\right)\\right]^{\\frac{2}{d}} \\frac{d\n    \\mathbf{C}^{-1}}{d \\mathbf{C}}\n   \\right] .\n @f]'
+p220
+aS'@f[\n \\mathbf{F} = \\begin{bmatrix}\n    \\frac{\\cos\\left(\\alpha\\right)}{\\sqrt{\\lambda_{3}}}\n & -\\frac{\\sin\\left(\\alpha\\right)}{\\sqrt{\\lambda_{3}}}\n & -\\tau R \\sqrt{\\lambda_{3}} \\sin\\left(\\Theta + \\alpha\\right)\n \\\\  \\frac{\\sin\\left(\\alpha\\right)}{\\sqrt{\\lambda_{3}}}\n & \\frac{\\cos\\left(\\alpha\\right)}{\\sqrt{\\lambda_{3}}}\n & -\\tau R \\sqrt{\\lambda_{3}} \\cos\\left(\\Theta + \\alpha\\right)\n \\\\  0 & 0 & \\lambda_{3}\n \\end{bmatrix}\n @f]'
+p221
+aS'@f[\n   F(U)_i^K \\dealcoloneq\n   \\int\\limits_K\\nabla \\varphi_i \\cdot \\left[ \\frac{1}{\\sqrt{1+|\\nabla\n   u|^{2}}} \\nabla u \\right] \\, dV ,\n @f]'
+p222
+aS'<b>very important</b>'
+p223
+aS'@f[\n    E\\left( U \\right)^K\n     \\dealcoloneq \\int\\limits_{K} \\Psi \\left( u \\right) \\, dV\n     \\approx \\sum\\limits_{q}^{n_{\\textrm{q-points}}} \\Psi \\left( u \\left(\n     \\mathbf{X}_{q} \\right) \\right) \\underbrace{\\vert J_{q} \\vert \\times\n     W_{q}}_{\\text{JxW(q)}}\n @f]'
+p224
+aS'@f[\n   \\Psi \\left( u \\right) = \\sqrt{1+|\\nabla u|^{2}} .\n @f]'
+p225
+aS'@f[\n   \\|u \\|_{1,h}^2 = \\sum_{K \\in \\Gamma_h} \\nu\\|\\nabla u \\|_K^2 +\n   \\sum_{f \\in F_i} \\sigma \\| [ u ] \\|_f^2 +\n   \\sum_{f \\in F_b} \\sigma  \\|u\\|_f^2.\n @f]'
+p226
+aS'@f[\n   \\|u -u_h \\|_{1,h}^2 = \\sum_{K \\in \\Gamma_h} \\nu\\|\\nabla (u_h - u)  \\|_K^2\n   + \\sum_{f \\in F_i} \\sigma  \\|[ u_h ] \\|_f^2 + \\sum_{f \\in F_b}\\sigma\n   \\|u_h-g_D\\|_f^2.\n @f]'
+p227
+aS'<i>support</i>'
+p228
+aS'<i>adds</i>'
+p229
+aS'@code\n [](const typename DoFHandler<dim>::active_cell_iterator &cell,\n    EstimateScratchData<dim> &                            scratch_data,\n    EstimateCopyData &)\n {\n   GradientEstimation::estimate_cell<dim>(cell, scratch_data);\n }\n @endcode'
+p230
+a.

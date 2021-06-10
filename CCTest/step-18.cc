@@ -1,22 +1,4 @@
-/* ---------------------------------------------------------------------
- *
- * Copyright (C) 2000 - 2021 by the deal.II authors
- *
- * This file is part of the deal.II library.
- *
- * The deal.II library is free software; you can use it, redistribute
- * it, and/or modify it under the terms of the GNU Lesser General
- * Public License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * The full text of the license can be found in the file LICENSE.md at
- * the top level directory of deal.II.
- *
- * ---------------------------------------------------------------------
 
- *
- * Author: Wolfgang Bangerth, University of Texas at Austin, 2000, 2004, 2005,
- * Timo Heister, 2013
- */
 
 
 // First the usual list of header files that have already been used in

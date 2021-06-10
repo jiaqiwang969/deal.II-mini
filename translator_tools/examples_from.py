@@ -115,13 +115,13 @@ with open(output_filename, 'w') as translation_file:
     translation_file.write(trtext)
 print('Output file:', output_filename)
 
-# Report the corrupted tokens
-if(corrupted == []):
-    print('No corrupted tokens. The translation is ready.')
-else:
-    print('Corrupted tokens detected:', end=' ')
-    for c in corrupted:
-        print(c, end=' ')
-    print()
-    print('To improve the output manually change the corrupted tokens in file',
-          args.filename, 'and run from.py again.')
+# # Report the corrupted tokens
+# if(corrupted == []):
+#     print('No corrupted tokens. The translation is ready.')
+# else:
+#     print('Corrupted tokens detected:', end=' ')
+#     for c in corrupted:
+#         print(c, end=' ')
+#     print()
+#     print('To improve the output manually change the corrupted tokens in file',
+#           args.filename, 'and run from.py again.')

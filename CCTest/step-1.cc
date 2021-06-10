@@ -1,24 +1,8 @@
-/* ---------------------------------------------------------------------
- *
- * Copyright (C) 1999 - 2021 by the deal.II authors
- *
- * This file is part of the deal.II library.
- *
- * The deal.II library is free software; you can use it, redistribute
- * it, and/or modify it under the terms of the GNU Lesser General
- * Public License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- * The full text of the license can be found in the file LICENSE.md at
- * the top level directory of deal.II.
- *
- * ---------------------------------------------------------------------
 
- */
 
 // @sect3{Include files}
 
-// The most fundamental class in the library is the Triangulation class, which
-// is declared here:
+// The most fundamental class in the library is the Triangulation class, which is declared here:
 #include <deal.II/grid/tria.h>
 // Here are some functions to generate standard grids:
 #include <deal.II/grid/grid_generator.h>
@@ -38,6 +22,7 @@
 // use of these names by <code>dealii::</code>, but that would quickly become
 // cumbersome and annoying. Rather, we simply import the entire deal.II
 // namespace for general use:
+
 using namespace dealii;
 
 // @sect3{Creating the first mesh}
