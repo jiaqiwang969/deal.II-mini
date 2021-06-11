@@ -638,7 +638,7 @@ namespace Step13
       const unsigned int dofs_per_cell = this->fe->n_dofs_per_cell(); 
       const unsigned int n_q_points    = this->quadrature->size(); 
 
- 
+      Vector<double>                       cell_rhs(dofs_per_cell);
       std::vector<double>                  rhs_values(n_q_points); 
       std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell); 
 

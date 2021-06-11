@@ -35,7 +35,7 @@
 
 #include <deal.II/dofs/dof_handler.h> 
 
- 
+#include <deal.II/fe/fe_dgq.h>
 #include <deal.II/fe/fe_system.h> 
 
 #include <deal.II/grid/grid_generator.h> 

@@ -89,7 +89,7 @@ namespace Step27
     Triangulation<dim> triangulation; 
 
  
- 
+    DoFHandler<dim>          dof_handler;
     hp::QCollection<dim>     quadrature_collection; 
     hp::QCollection<dim - 1> face_quadrature_collection; 
 
