@@ -28,7 +28,9 @@ jobs:
       run: |
         mkdir Origin_file
         mv dealii/examples Origin_file
+        cd translator_tools
         ./Examples.sh
+        cd ..
         cp -rf Origin_file/examples dealii
         ## 
         mv dealii/include/deal.II Origin_file
