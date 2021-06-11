@@ -356,6 +356,9 @@ namespace Step13
                             const Quadrature<dim> &   quadrature); 
         AssemblyScratchData(const AssemblyScratchData &scratch_data); 
 
+        FEValues<dim> fe_values;
+      };
+
  
  
 

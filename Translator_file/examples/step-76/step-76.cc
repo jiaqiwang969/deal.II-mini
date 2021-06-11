@@ -1120,7 +1120,7 @@ namespace Euler_DG
     return max_transport; 
   } 
 
- 
+  template <int dim>
   class EulerProblem 
   { 
   public: 

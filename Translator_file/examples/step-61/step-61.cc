@@ -149,7 +149,7 @@ namespace Step61
   public: 
     virtual double value(const Point<dim> & p, 
                          const unsigned int component = 0) const override; 
- 
+  };
 
   template <int dim> 
   double RightHandSide<dim>::value(const Point<dim> &p, 
