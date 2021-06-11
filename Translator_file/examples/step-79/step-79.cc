@@ -2096,12 +2096,8 @@ int main()
                 << "----------------------------------------------------" 
                 << std::endl; 
       std::cerr << "Unknown exception!" << std::endl 
-                << "Aborting!" << std::endl 
- 
- 
- 
- 
- 
-} 
-
-
+                << "Aborting!" << std::endl;
+      return 1;
+    }
+  return 0;
+}

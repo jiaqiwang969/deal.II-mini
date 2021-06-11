@@ -929,7 +929,7 @@ namespace Step74
   } 
 
 //  @sect3{The run() function}  
- 
+  template <int dim>
   void SIPGLaplace<dim>::run() 
   { 
     const unsigned int max_cycle = 
