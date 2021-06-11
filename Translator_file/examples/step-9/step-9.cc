@@ -646,11 +646,12 @@ namespace Step9
                         update_values | update_quadrature_points) 
     , solution(solution) 
     , error_per_cell(error_per_cell) 
+    , cell_midpoint_value(1)
+    , neighbor_midpoint_value(1)
  
+  {
  
- 
-
-// 我们分配一个向量来保存一个单元的所有活动邻居的迭代器。我们保留活动邻居的最大数量，以避免以后的重新分配。注意这个最大的活动邻居数是如何计算出来的。
+    // 我们分配一个向量来保存一个单元的所有活动邻居的迭代器。我们保留活动邻居的最大数量，以避免以后的重新分配。注意这个最大的活动邻居数是如何计算出来的。
 
     active_neighbors.reserve(GeometryInfo<dim>::faces_per_cell * 
                              GeometryInfo<dim>::max_children_per_face); 
@@ -668,9 +669,9 @@ namespace Step9
     , neighbor_midpoint_value(1) 
   {} 
 
-// 接下来是对 <code>GradientEstimation</code> 类的实现。第一个函数除了将工作委托给另一个函数外，并没有做什么，但在顶部有一点设置。
+  // 接下来是对 <code>GradientEstimation</code> 类的实现。第一个函数除了将工作委托给另一个函数外，并没有做什么，但在顶部有一点设置。
 
-// 在开始工作之前，我们要检查写入结果的向量是否有正确的大小。在编程中，忘记在调用处正确确定参数大小的错误是很常见的。因为没有发现这种错误所造成的损失往往是微妙的（例如，内存中某个地方的数据损坏，或者是无法重现的结果），所以非常值得努力去检查这些东西。
+  // 在开始工作之前，我们要检查写入结果的向量是否有正确的大小。在编程中，忘记在调用处正确确定参数大小的错误是很常见的。因为没有发现这种错误所造成的损失往往是微妙的（例如，内存中某个地方的数据损坏，或者是无法重现的结果），所以非常值得努力去检查这些东西。
 
   template <int dim> 
   void GradientEstimation::estimate(const DoFHandler<dim> &dof_handler, 

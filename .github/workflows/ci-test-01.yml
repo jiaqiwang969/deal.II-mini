@@ -1,0 +1,74 @@
+name: ci-test
+
+on: [push, pull_request]
+
+jobs:
+  linux-release-serial:
+    # simple serial release build using g++
+
+    name: transltor for documentation
+    runs-on: [ubuntu-18.04]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: info
+      run: |
+        g++ -v
+        cmake --version
+    - name: modules
+      run: |
+        sudo apt-get install libboost-all-dev doxygen python graphviz
+    - name: download and setup
+      run: |
+        git clone https://github.com/dealii/dealii.git
+        cd dealii
+        git reset --hard aba0ae59325f68fc30465bca96fbb5585347a2fd
+        ./contrib/utilities/download_clang_format
+    - name: test for transltor-examples,
+      run: |
+        mkdir Origin_file
+        mv dealii/examples Origin_file
+        cp -rf Translator_file/examples dealii
+        mv dealii/include/deal.II Origin_file
+        cp -rf Translator_file/deal.II dealii/include/
+        mv dealii/doc/doxygen/headers Origin_file
+        cp -rf Translator_file/headers dealii/doc/doxygen/
+        
+        #
+
+    - name: 
+      run: |
+        cd dealii
+        #rm -rf CMakeCache.txt dealii/CMakeFiles
+        cmake -D CMAKE_BUILD_TYPE=Release -D DEAL_II_CXX_FLAGS='-Werror' -D DEAL_II_EARLY_DEPRECATIONS=ON -DDEAL_II_COMPONENT_PYTHON_BINDINGS=ON -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+    # - name: archive
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: linux-serial-detailed.log
+    #     path: detailed.log
+    - name: build
+      run: |
+        cd dealii
+        make -j 2
+        make documentation
+
+    - name: Publish Doxygen documentation
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: dealii/doc
+        enable_jekyll: false
+        allow_empty_commit: false
+        force_orphan: true
+        publish_branch: gh-pages-ci-test
+    
+    - name: Publish Origin-file
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: Origin-file
+        enable_jekyll: false
+        allow_empty_commit: false
+        force_orphan: true
+        publish_branch: file-update
+

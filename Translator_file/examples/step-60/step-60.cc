@@ -390,9 +390,6 @@ namespace Step60
     add_parameter("Embedding space finite element degree", 
                   embedding_space_finite_element_degree); 
 
- 
-                  embedded_space_finite_element_degree); 
-
     add_parameter("Embedded configuration finite element degree", 
                   embedded_configuration_finite_element_degree); 
 

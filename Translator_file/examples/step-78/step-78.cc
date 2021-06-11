@@ -350,7 +350,6 @@ namespace BlackScholesSolver
                                     dsp, 
                                     constraints, 
                                     /*keep_constrained_dofs =  */ true);
-
     sparsity_pattern.copy_from(dsp); 
 
     mass_matrix.reinit(sparsity_pattern); 
