@@ -1132,7 +1132,7 @@ namespace Euler_DG
 
 // 与前面的函数类似，我们必须确保只在一个单元格批次的有效单元格上积累速度。
 
- 
+     for (unsigned int v = 0; v < data.n_active_entries_per_cell_batch(cell);
              ++v) 
           for (unsigned int d = 0; d < 3; ++d) 
             max_transport = std::max(max_transport, local_max[v]); 

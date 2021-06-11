@@ -299,16 +299,17 @@ namespace BlackScholesSolver
 
     double time; 
     double time_step; 
-
- 
- 
-    const unsigned int n_time_steps; 
+    
+    const double       theta;
+    const unsigned int n_cycles;
+    const unsigned int n_time_steps;
 
     DataOutStack<dim>        data_out_stack; 
     std::vector<std::string> solution_names; 
 
     ConvergenceTable convergence_table; 
   }; 
+
 // @sect3{The <code>BlackScholes</code> Implementation}  
 
 // 现在，我们进入主类的实现阶段。我们将为问题中使用的各种参数设置数值。选择这些是因为它们是这些参数的相当正常的值。尽管股票价格在现实中没有上限（事实上是无限的），但我们规定了一个上限，即行权价格的两倍。两倍于行权价的选择有些武断，但它足够大，可以看到解决方案的有趣部分。

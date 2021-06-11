@@ -296,7 +296,7 @@ namespace Step56
       const SparseMatrix<double> &     schur_complement_matrix, 
       const PreconditionerAType &      preconditioner_A, 
       const PreconditionerSType &      preconditioner_S, 
- 
+      const bool                       do_solve_A);
 
     void vmult(BlockVector<double> &dst, const BlockVector<double> &src) const; 
 
@@ -476,7 +476,8 @@ namespace Step56
 
     const FEValuesExtractors::Vector velocities(0); 
 
-如果我们应用重新排序来减少填充，//ILU的表现会更好。对于其他求解器来说，这样做并没有什么好处。
+//如果我们应用重新排序来减少填充，
+//ILU的表现会更好。对于其他求解器来说，这样做并没有什么好处。
 
     if (solver_type == SolverType::FGMRES_ILU) 
       { 

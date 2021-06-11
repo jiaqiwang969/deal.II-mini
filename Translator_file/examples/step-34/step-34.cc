@@ -787,7 +787,7 @@ namespace Step34
         convergence_table.set_scientific("L2(phi)", true); 
         convergence_table.set_scientific("Linfty(alpha)", true); 
 
- 
+        convergence_table.evaluate_convergence_rates(
           "L2(phi)", ConvergenceTable::reduction_rate_log2); 
         convergence_table.evaluate_convergence_rates( 
           "Linfty(alpha)", ConvergenceTable::reduction_rate_log2); 
