@@ -1,4 +1,4 @@
-
+CCTest_file/step-6.cc
 
 /* --------------------------------------------------------------------- 
  * 
@@ -162,10 +162,7 @@ void Step6<dim>::setup_system()
   DoFTools::make_sparsity_pattern(dof_handler, 
                                   dsp, 
                                   constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                  /*keep_constrained_dofs =  */ false);
 
 // 现在，矩阵的所有非零条目都是已知的（即那些来自定期组装矩阵的条目和那些通过消除约束引入的条目）。我们可以将我们的中间对象复制到稀疏模式中。
 

@@ -1,4 +1,4 @@
-
+CCTest_file/step-42.cc
 
 /* --------------------------------------------------------------------- 
  * 
@@ -774,7 +774,7 @@ namespace Step42
   void PlasticityContactProblem<dim>::setup_system() 
   { 
 
-// *设置道夫，并为本地拥有的相关道夫获取索引集  */ 
+/* 设置dofs，并为本地拥有的相关dofs获取索引集  */ 
 
     { 
       TimerOutput::Scope t(computing_timer, "Setup: distribute DoFs"); 
@@ -786,7 +786,7 @@ namespace Step42
                                               locally_relevant_dofs); 
     } 
 
-// /设置悬挂节点和Dirichlet约束 */ 
+/*设置悬挂节点和Dirichlet约束 */ 
 
  
     { 
@@ -804,7 +804,7 @@ namespace Step42
       compute_dirichlet_constraints(); 
     } 
 
-// *初始化向量和活动集  */ 
+/* 初始化向量和活动集  */ 
 
     { 
       TimerOutput::Scope t(computing_timer, "Setup: vectors"); 

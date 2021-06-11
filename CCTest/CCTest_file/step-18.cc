@@ -1,4 +1,4 @@
-
+CCTest_file/step-18.cc
 
 /* --------------------------------------------------------------------- 
  * 
@@ -457,13 +457,9 @@ namespace Step18
 
   template <int dim> 
   const SymmetricTensor<4, dim> TopLevel<dim>::stress_strain_tensor = 
-    get_stress_strain_tensor<dim>(/*lambda = */ 
-
-9.695e10, 
-
-//mu =  */ 
-
- 7.617e10)。
+    get_stress_strain_tensor<dim>(
+      /*lambda = */ 9.695e10, 
+      /*mu =  */  7.617e10)
 
 //  @sect4{The public interface}  
 
@@ -565,10 +561,7 @@ namespace Step18
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     sparsity_pattern, 
                                     hanging_node_constraints, 
-
-//保持约束性道夫  */ 
-
- 假的)。
+                                    /*保持约束性dofs  */ false)
 
     SparsityTools::distribute_sparsity_pattern(sparsity_pattern, 
                                                locally_owned_dofs, 

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+cd ../CCTest
+rm -rf CCTest_file/*
+awk '/CCTest_file\//{close(out); out = $1 } {print  > out}' merge_0_T.cc
 cd ..
 path=Translator_file/examples
 files=$(ls $path)

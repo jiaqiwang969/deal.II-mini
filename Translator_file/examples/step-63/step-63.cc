@@ -1,4 +1,4 @@
-
+CCTest_file/step-63.cc
 
 
 /* --------------------------------------------------------------------- 
@@ -151,7 +151,7 @@ namespace Step63
   void Settings::get_parameters(const std::string &prm_filename) 
   { 
 
-// *首先声明参数...   */ 
+/* 首先声明参数...   */ 
 
  
     ParameterHandler prm; 
@@ -526,10 +526,7 @@ namespace Step63
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                    /*keep_constrained_dofs =  */ false);
 
     sparsity_pattern.copy_from(dsp); 
     system_matrix.reinit(sparsity_pattern); 
@@ -556,10 +553,7 @@ namespace Step63
               DoFRenumbering::downstream(dof_handler, 
                                          level, 
                                          direction, 
-
-//dof_wise_renumbering =  */ 
-
- true）。)
+                                         /*dof_wise_renumbering =  */ true);
 
           } 
         else if (settings.dof_renumbering == 

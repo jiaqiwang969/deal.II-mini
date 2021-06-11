@@ -8044,13 +8044,9 @@ namespace Step18
 
   template <int dim> 
   const SymmetricTensor<4, dim> TopLevel<dim>::stress_strain_tensor = 
-    get_stress_strain_tensor<dim>(/*lambda = */ 
-
-9.695e10, 
-
-//mu =  */ 
-
- 7.617e10)。
+    get_stress_strain_tensor<dim>(
+      /*lambda = */ 9.695e10, 
+      /*mu =  */  7.617e10)
 
 //  @sect4{The public interface}  
 
@@ -8152,10 +8148,7 @@ namespace Step18
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     sparsity_pattern, 
                                     hanging_node_constraints, 
-
-//保持约束性道夫  */ 
-
- 假的)。
+                                    /*保持约束性dofs  */ false)
 
     SparsityTools::distribute_sparsity_pattern(sparsity_pattern, 
                                                locally_owned_dofs, 
@@ -9090,10 +9083,7 @@ namespace Step19
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                    /*keep_constrained_dofs =  */ false);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -9154,7 +9144,7 @@ namespace Step19
 //  @f} 
 //  注意最后一行不再包含一个积分，因此也没有出现 $dx$ ，这需要在我们的代码中出现`JxW`符号。
 // 
-// // 对于一个给定的单元 $K$ ，这个单元对右边的贡献是
+// 对于一个给定的单元 $K$ ，这个单元对右边的贡献是
 //  @f{align*}{
 //    F_i^K &= \sum_{p, \mathbf x_p\in K} (N e) \varphi_i(\mathbf x_p),
 //  @f}，
@@ -13978,10 +13968,7 @@ namespace Step26
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- true）。)
+                                    /*keep_constrained_dofs =  */ true);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -14233,7 +14220,7 @@ namespace Step26
   } 
 } // namespace Step26 
 
-// // 现在你已经看到了这个函数的作用，让我们再来看看  <code>goto</code>  的问题。从本质上讲，代码所做的事情是这样的。
+// 现在你已经看到了这个函数的作用，让我们再来看看  <code>goto</code>  的问题。从本质上讲，代码所做的事情是这样的。
 // @code
 //    void run ()
 //    {
@@ -31511,7 +31498,7 @@ namespace Step42
   void PlasticityContactProblem<dim>::setup_system() 
   { 
 
-// *设置道夫，并为本地拥有的相关道夫获取索引集  */ 
+/* 设置dofs，并为本地拥有的相关dofs获取索引集  */ 
 
     { 
       TimerOutput::Scope t(computing_timer, "Setup: distribute DoFs"); 
@@ -31523,7 +31510,7 @@ namespace Step42
                                               locally_relevant_dofs); 
     } 
 
-// /设置悬挂节点和Dirichlet约束 */ 
+/*设置悬挂节点和Dirichlet约束 */ 
 
  
     { 
@@ -31541,7 +31528,7 @@ namespace Step42
       compute_dirichlet_constraints(); 
     } 
 
-// *初始化向量和活动集  */ 
+/* 初始化向量和活动集  */ 
 
     { 
       TimerOutput::Scope t(computing_timer, "Setup: vectors"); 
@@ -42151,10 +42138,8 @@ void LaplaceProblem<dim, degree>::estimate()
                         MeshWorker::assemble_own_cells | 
                           MeshWorker::assemble_ghost_faces_both | 
                           MeshWorker::assemble_own_interior_faces_once, 
+                          /*boundary_worker=*/nullptr, face_worker);
 
-// *boundary_worker=  */ 
-
- nullptr。
 
  
 
@@ -48531,13 +48516,9 @@ namespace Step59
                this, 
                dst, 
                src, 
-
-//*zero_dst =  */ 
-
- true,
-
- 
-               MatrixFree<dim, number>::DataAccessOnFaces::gradients); 
+               /* zero_dst =  */ true,
+               MatrixFree<dim, number>::DataAccessOnFaces::gradients,
+               MatrixFree<dim, number>::DataAccessOnFaces::gradients);
   } 
 
 // 由于拉普拉斯是对称的，`Tvmult()`（多网格平滑界面需要）操作被简单地转发给`vmult()`的情况。
@@ -49411,10 +49392,7 @@ void Step6<dim>::setup_system()
   DoFTools::make_sparsity_pattern(dof_handler, 
                                   dsp, 
                                   constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                  /*keep_constrained_dofs =  */ false);
 
 // 现在，矩阵的所有非零条目都是已知的（即那些来自定期组装矩阵的条目和那些通过消除约束引入的条目）。我们可以将我们的中间对象复制到稀疏模式中。
 
@@ -52981,7 +52959,7 @@ namespace Step63
   void Settings::get_parameters(const std::string &prm_filename) 
   { 
 
-// *首先声明参数...   */ 
+/* 首先声明参数...   */ 
 
  
     ParameterHandler prm; 
@@ -53356,10 +53334,7 @@ namespace Step63
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                    /*keep_constrained_dofs =  */ false);
 
     sparsity_pattern.copy_from(dsp); 
     system_matrix.reinit(sparsity_pattern); 
@@ -53386,10 +53361,7 @@ namespace Step63
               DoFRenumbering::downstream(dof_handler, 
                                          level, 
                                          direction, 
-
-//dof_wise_renumbering =  */ 
-
- true）。)
+                                         /*dof_wise_renumbering =  */ true);
 
           } 
         else if (settings.dof_renumbering == 
@@ -58248,8 +58220,8 @@ namespace Step69
 // 我们必须手工创建 "本地 "稀疏模式。因此，我们在所有本地拥有的和重影的单元上循环（见  @ref  GlossArtificialCell），并提取与单元DOF相关的（全局）  <code>dof_indices</code>  ，并使用  <code>partitioner->global_to_local(index)</code>  重新编号。
 
 // 在本地拥有的DOF的情况下，这种重新编号包括应用一个移位（即我们减去一个偏移量），这样，现在它们将成为整数区间 $[0,$ 中的一个数字。
-// <code>n_locally_owned</code>  
-// $)$  . 然而，在重影道次的情况下（即不是本地拥有的），情况就完全不同了，因为与重影道次相关的全局指数（一般来说）不会是一个连续的整数集。
+// <code>n_locally_owned</code>   $)$  .
+//然而，在重影道次的情况下（即不是本地拥有的），情况就完全不同了，因为与重影道次相关的全局指数（一般来说）不会是一个连续的整数集。
 
       DynamicSparsityPattern dsp(n_locally_relevant, n_locally_relevant); 
 
@@ -58262,11 +58234,8 @@ namespace Step69
           if (cell->is_artificial()) 
             continue; 
 
-// /我们将单元格上的全局dof指数集转换为
-
-           /* corresponding "local" index range on the MPI process: */ 
-
-
+          /* We transform the set of global dof indices on the cell to the
+           * corresponding "local" index range on the MPI process: */
           cell->get_dof_indices(dof_indices); 
           std::transform(dof_indices.begin(), 
                          dof_indices.end(), 
@@ -58788,7 +58757,7 @@ namespace Step69
                   const double                 p_star) 
     { 
 
-/* 执行Guermond-Popov-2016 中的公式（3.7）。  */ 
+      /* Implements formula (3.7) in Guermond-Popov-2016 */
 
 
       constexpr double gamma = ProblemDescription<1>::gamma; 
@@ -58811,9 +58780,8 @@ namespace Step69
     lambda3_plus(const std::array<double, 4> &riemann_data, const double p_star) 
     { 
 
-// 执行Guermond-Popov-2016  */ 
+      /* Implements formula (3.8) in Guermond-Popov-2016 */
 
- 中的公式（3.8）。
       constexpr double gamma = ProblemDescription<1>::gamma; 
       const auto       u     = riemann_data[1]; 
       const auto       p     = riemann_data[2]; 
@@ -58843,7 +58811,7 @@ namespace Step69
       const double denominator = 
         a_i * std::pow(p_i / p_j, -1. * (gamma - 1.) / 2. / gamma) + a_j * 1.; 
 
-// /Guermond-Popov-2016 */ 
+/* Guermond-Popov-2016 */ 
 
 中的公式（4.3）。
       const double p_star = 
@@ -58852,7 +58820,7 @@ namespace Step69
       const double lambda1 = lambda1_minus(riemann_data_i, p_star); 
       const double lambda3 = lambda3_plus(riemann_data_j, p_star); 
 
-// /Guermond-Popov-2016中的公式（2.11）  */ 
+/* Guermond-Popov-2016中的公式（2.11）  */ 
 
       return std::max(positive_part(lambda3), negative_part(lambda1)); 
     } 
@@ -58922,9 +58890,8 @@ namespace Step69
     : ParameterAcceptor(subsection) 
   { 
 
-// /我们把插槽 InitialValues<dim>::parse_parameters_callback 连接到
-
-       the ParameterAcceptor::parse_parameters_call_back signal: */ 
+    /* We wire up the slot InitialValues<dim>::parse_parameters_callback to
+       the ParameterAcceptor::parse_parameters_call_back signal: */
 
 
     ParameterAcceptor::parse_parameters_call_back.connect( 
@@ -62491,30 +62458,25 @@ namespace Step71
 
 // 
 // @code
-//  ADNumberType sin(const ADNumberType &a)
-//  {
-//    ADNumberType output;
-
-
-
-// //  For the input argument "a", "a.value" is simply its value.
-// //    output.value = sin(a.value);
-
-// //  We know that the derivative of sin(a) is cos(a), but we need
-// //  to also consider the chain rule and that the input argument
-// //  `a` is also differentiable with respect to the original
-// //  independent variables `x` and `y`. So `a.derivatives[0]`
-// //  and `a.derivatives[1]` respectively represent the partial
-// //  derivatives of `a` with respect to its inputs `x` and `y`.
-//    output.derivatives[0] = cos(a.value)*a.derivatives[0];
-//    output.derivatives[1] = cos(a.value)*a.derivatives[1];
-
-
-
-
-//    return output;
-//  }
-//  @endcode
+// ADNumberType sin(const ADNumberType &a)
+// {
+//   ADNumberType output;
+//
+//   // For the input argument "a", "a.value" is simply its value.
+//   output.value = sin(a.value);
+//
+//   // We know that the derivative of sin(a) is cos(a), but we need
+//   // to also consider the chain rule and that the input argument
+//   // `a` is also differentiable with respect to the original
+//   // independent variables `x` and `y`. So `a.derivatives[0]`
+//   // and `a.derivatives[1]` respectively represent the partial
+//   // derivatives of `a` with respect to its inputs `x` and `y`.
+//   output.derivatives[0] = cos(a.value)*a.derivatives[0];
+//   output.derivatives[1] = cos(a.value)*a.derivatives[1];
+//
+//   return output;
+// }
+// @endcode
 
 // 当然，所有这些也可以用于二阶甚至高阶导数。
 
@@ -64482,7 +64444,7 @@ namespace Step71
 //  \boldsymbol{\mathbb{H}}}
 //  @f]
 //  ，从演化定律来看，
-// //  @f[
+//  @f[
 //  \frac{d \mathbf{C}_{v}}{d \mathbf{C}}
 //  \equiv \frac{d \mathbf{C}_{v}^{(t)}}{d \mathbf{C}}
 //   = \frac{\frac{\Delta t}{\tau_{v}} }{1 + \frac{\Delta t}{\tau_{v}}}
@@ -68574,11 +68536,7 @@ namespace Step75
           refine_modifier(triangulation); 
         hp::Refinement::limit_p_level_difference(dof_handler, 
                                                  prm.max_p_level_difference, 
-
-//包含=  */ 
-
- min_fe_index）。)
-
+                                                 /*包含=  */ min_fe_index);
       }, 
       boost::signals2::at_front); 
   } 
@@ -71466,10 +71424,7 @@ namespace BlackScholesSolver
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- true）。)
+                                    /*keep_constrained_dofs =  */ true);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -74222,10 +74177,7 @@ namespace Step8
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                    /*keep_constrained_dofs =  */ false);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -74840,10 +74792,7 @@ namespace Step9
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     hanging_node_constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                    /*keep_constrained_dofs =  */ false);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -75214,7 +75163,7 @@ namespace Step9
 // 这里是通过计算梯度的有限差分近似值来估计局部误差的函数。该函数首先计算当前单元的活动邻居列表，然后为每个邻居计算介绍中描述的数量。之所以有这样的顺序，是因为在局部细化网格的情况下，要找到一个给定的邻居并不是一蹴而就的事情。原则上，一个优化的实现可以在一个步骤中找到邻域和取决于它们的量，而不是先建立一个邻域列表，然后在第二步中找到它们的贡献，但是我们很乐意将此作为一个练习。正如之前所讨论的，传递给 WorkStream::run 的工作者函数是在保留所有临时对象的 "scratch "对象上工作。这样，我们就不需要在每次为给定单元调用工作的函数内创建和初始化那些昂贵的对象了。这样的参数被作为第二个参数传递。第三个参数是一个 "copy-data "对象（更多信息见 @ref threads ），但我们在这里实际上没有使用这些对象。由于 WorkStream::run() 坚持传递三个参数，我们声明这个函数有三个参数，但简单地忽略了最后一个参数。
 
 // （从美学角度看，这是不令人满意的。它可以通过使用一个匿名（lambda）函数来避免。如果你允许的话，让我们在这里展示一下如何做。首先，假设我们已经声明这个函数只接受两个参数，省略了未使用的最后一个参数。现在， WorkStream::run 仍然想用三个参数来调用这个函数，所以我们需要找到一种方法来 "忘记 "调用中的第三个参数。简单地像上面那样把指针传给 WorkStream::run 这个函数是做不到的--编译器会抱怨一个声明为有两个参数的函数在调用时有三个参数。然而，我们可以通过将以下内容作为第三个参数传递给 WorkStream::run(): 来做到这一点 
-// //@code
+// @code
 //  [](const typename DoFHandler<dim>::active_cell_iterator &cell,
 //     EstimateScratchData<dim> &                            scratch_data,
 //     EstimateCopyData &)

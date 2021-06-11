@@ -1,4 +1,4 @@
-
+CCTest_file/step-26.cc
 
 /* --------------------------------------------------------------------- 
  * 
@@ -203,10 +203,7 @@ namespace Step26
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- true）。)
+                                    /*keep_constrained_dofs =  */ true);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -458,7 +455,7 @@ namespace Step26
   } 
 } // namespace Step26 
 
-// // 现在你已经看到了这个函数的作用，让我们再来看看  <code>goto</code>  的问题。从本质上讲，代码所做的事情是这样的。
+// 现在你已经看到了这个函数的作用，让我们再来看看  <code>goto</code>  的问题。从本质上讲，代码所做的事情是这样的。
 // @code
 //    void run ()
 //    {

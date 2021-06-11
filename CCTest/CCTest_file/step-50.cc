@@ -1,4 +1,4 @@
-
+CCTest_file/step-50.cc
 
 /* --------------------------------------------------------------------- 
  * 
@@ -1289,10 +1289,8 @@ void LaplaceProblem<dim, degree>::estimate()
                         MeshWorker::assemble_own_cells | 
                           MeshWorker::assemble_ghost_faces_both | 
                           MeshWorker::assemble_own_interior_faces_once, 
+                          /*boundary_worker=*/nullptr, face_worker);
 
-// *boundary_worker=  */ 
-
- nullptr。
 
  
 

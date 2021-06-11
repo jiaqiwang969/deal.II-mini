@@ -1,4 +1,4 @@
-
+CCTest_file/step-19.cc
 
 /* --------------------------------------------------------------------- 
  * 
@@ -298,10 +298,7 @@ namespace Step19
     DoFTools::make_sparsity_pattern(dof_handler, 
                                     dsp, 
                                     constraints, 
-
-//keep_constrained_dofs =  */ 
-
- false）。)
+                                    /*keep_constrained_dofs =  */ false);
 
     sparsity_pattern.copy_from(dsp); 
 
@@ -362,7 +359,7 @@ namespace Step19
 //  @f} 
 //  注意最后一行不再包含一个积分，因此也没有出现 $dx$ ，这需要在我们的代码中出现`JxW`符号。
 // 
-// // 对于一个给定的单元 $K$ ，这个单元对右边的贡献是
+// 对于一个给定的单元 $K$ ，这个单元对右边的贡献是
 //  @f{align*}{
 //    F_i^K &= \sum_{p, \mathbf x_p\in K} (N e) \varphi_i(\mathbf x_p),
 //  @f}，
