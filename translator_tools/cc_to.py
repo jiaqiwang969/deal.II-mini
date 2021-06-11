@@ -124,7 +124,7 @@ with open(doxygen_commands2, 'wb') as fp:
 
 
 
-# # # 最后将换行户转化为空格
+# # # 最后将换行转化为空格
 regex = r"(?<=[^\n\*])(\n)(?=[^-\*])"
 subst = ""
 text = re.sub(regex, subst, text, 0, re.MULTILINE)
