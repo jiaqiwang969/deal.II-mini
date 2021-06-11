@@ -1135,7 +1135,8 @@ namespace Euler_DG
 
     LinearAlgebra::distributed::Vector<Number> solution; 
 
- 
+    ConditionalOStream pcout;
+
 
 #ifdef DEAL_II_WITH_P4EST 
     parallel::distributed::Triangulation<dim> triangulation; 
