@@ -1,0 +1,16 @@
+<map id="SolverBase&lt; VectorType &gt;" name="SolverBase&lt; VectorType &gt;">
+<area shape="rect" id="node3" href="$classEigenInverse.html" title="EigenInverse\&lt; VectorType \&gt;" alt="" coords="399,5,605,32"/>
+<area shape="rect" id="node4" href="$classEigenPower.html" title="EigenPower\&lt; VectorType \&gt;" alt="" coords="403,56,601,83"/>
+<area shape="rect" id="node5" href="$classSolverBFGS.html" title="SolverBFGS\&lt; VectorType \&gt;" alt="" coords="403,107,601,133"/>
+<area shape="rect" id="node6" href="$classSolverBicgstab.html" title="SolverBicgstab\&lt; VectorType \&gt;" alt="" coords="392,157,612,184"/>
+<area shape="rect" id="node7" href="$classSolverCG.html" title="SolverCG\&lt; VectorType \&gt;" alt="" coords="411,208,593,235"/>
+<area shape="rect" id="node8" href="$classSolverFGMRES.html" title="SolverFGMRES\&lt; VectorType \&gt;" alt="" coords="393,259,611,285"/>
+<area shape="rect" id="node9" href="$classSolverFIRE.html" title="SolverFIRE\&lt; VectorType \&gt;" alt="" coords="406,309,598,336"/>
+<area shape="rect" id="node10" href="$classSolverGMRES.html" title="SolverGMRES\&lt; VectorType \&gt;" alt="" coords="397,360,607,387"/>
+<area shape="rect" id="node11" href="$classSolverIDR.html" title="SolverIDR\&lt; VectorType \&gt;" alt="" coords="409,411,595,437"/>
+<area shape="rect" id="node12" href="$classSolverMinRes.html" title="SolverMinRes\&lt; VectorType \&gt;" alt="" coords="397,461,607,488"/>
+<area shape="rect" id="node13" href="$classSolverQMRS.html" title="SolverQMRS\&lt; VectorType \&gt;" alt="" coords="401,512,603,539"/>
+<area shape="rect" id="node14" href="$classSolverRelaxation.html" title="SolverRelaxation\&lt; Vector\lType \&gt;" alt="" coords="408,563,596,605"/>
+<area shape="rect" id="node15" href="$classSolverRichardson.html" title="SolverRichardson\&lt; Vector\lType \&gt;" alt="" coords="407,629,597,670"/>
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="5,309,100,336"/>
+</map>

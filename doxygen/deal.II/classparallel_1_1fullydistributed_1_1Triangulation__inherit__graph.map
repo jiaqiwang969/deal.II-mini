@@ -1,0 +1,6 @@
+<map id="parallel::fullydistributed::Triangulation&lt; dim, spacedim &gt;" name="parallel::fullydistributed::Triangulation&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classparallel_1_1DistributedTriangulationBase.html" title="parallel::DistributedTriangulation\lBase\&lt; dim, spacedim \&gt;" alt="" coords="8,259,243,300"/>
+<area shape="rect" id="node3" href="$classparallel_1_1TriangulationBase.html" title="parallel::TriangulationBase\l\&lt; dim, spacedim \&gt;" alt="" coords="28,169,223,211"/>
+<area shape="rect" id="node4" href="$classTriangulation.html" title="Triangulation\&lt; dim,\l spacedim \&gt;" alt="" coords="50,80,201,121"/>
+<area shape="rect" id="node5" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="78,5,173,32"/>
+</map>

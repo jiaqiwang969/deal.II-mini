@@ -1,0 +1,9 @@
+<map id="PETScWrappers" name="PETScWrappers">
+<area shape="rect" id="node1" href="$group__Vectors.html" title="Vector classes" alt="" coords="635,72,749,99"/>
+<area shape="rect" id="node2" href="$group__SLEPcWrappers.html" title="SLEPcWrappers" alt="" coords="631,141,753,168"/>
+<area shape="rect" id="node3" href="$group__VMemory.html" title="Vector memory management" alt="" coords="585,192,799,219"/>
+<area shape="rect" id="node4" href="$group__LAC.html" title="Linear algebra classes" alt="" coords="5,192,172,219"/>
+<area shape="rect" id="node6" href="$group__feaccess.html" title="Finite element access\l/FEValues classes" alt="" coords="611,243,773,285"/>
+<area shape="rect" id="node7" href="$group__Matrix1.html" title="Basic matrices" alt="" coords="633,385,751,412"/>
+<area shape="rect" id="node8" href="$group__Solvers.html" title="Linear solver classes" alt="" coords="613,436,771,463"/>
+</map>

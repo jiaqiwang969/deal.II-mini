@@ -1,0 +1,7 @@
+<map id="TrilinosWrappers::SolverBase::AdditionalData" name="TrilinosWrappers::SolverBase::AdditionalData">
+<area shape="rect" id="node2" href="$structTrilinosWrappers_1_1SolverBicgstab_1_1AdditionalData.html" title="TrilinosWrappers::Solver\lBicgstab::AdditionalData" alt="" coords="232,5,415,47"/>
+<area shape="rect" id="node3" href="$structTrilinosWrappers_1_1SolverCG_1_1AdditionalData.html" title="TrilinosWrappers::Solver\lCG::AdditionalData" alt="" coords="234,71,413,112"/>
+<area shape="rect" id="node4" href="$structTrilinosWrappers_1_1SolverCGS_1_1AdditionalData.html" title="TrilinosWrappers::Solver\lCGS::AdditionalData" alt="" coords="234,136,413,177"/>
+<area shape="rect" id="node5" href="$structTrilinosWrappers_1_1SolverGMRES_1_1AdditionalData.html" title="TrilinosWrappers::Solver\lGMRES::AdditionalData" alt="" coords="234,201,413,243"/>
+<area shape="rect" id="node6" href="$structTrilinosWrappers_1_1SolverTFQMR_1_1AdditionalData.html" title="TrilinosWrappers::Solver\lTFQMR::AdditionalData" alt="" coords="234,267,413,308"/>
+</map>

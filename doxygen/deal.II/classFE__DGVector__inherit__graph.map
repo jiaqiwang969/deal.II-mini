@@ -1,0 +1,12 @@
+<map id="FE_DGVector&lt; PolynomialType, dim, spacedim &gt;" name="FE_DGVector&lt; PolynomialType, dim, spacedim &gt;">
+<area shape="rect" id="node6" href="$classFE__DGVector.html" title="FE_DGVector\&lt; Polynomials\lRaviartThomas\&lt; dim \&gt;,\l dim, spacedim \&gt;" alt="" coords="1118,5,1318,61"/>
+<area shape="rect" id="node8" href="$classFE__DGVector.html" title="FE_DGVector\&lt; Polynomials\lBDM\&lt; dim \&gt;, dim, spacedim \&gt;" alt="" coords="1105,86,1331,127"/>
+<area shape="rect" id="node10" href="$classFE__DGVector.html" title="FE_DGVector\&lt; Polynomials\lNedelec\&lt; dim \&gt;, dim, spacedim \&gt;" alt="" coords="1093,151,1343,193"/>
+<area shape="rect" id="node2" href="$classFE__PolyTensor.html" title="FE_PolyTensor\&lt; dim,\l spacedim \&gt;" alt="" coords="412,86,571,127"/>
+<area shape="rect" id="node3" href="$classFiniteElement.html" title="FiniteElement\&lt; dim,\l spacedim \&gt;" alt="" coords="208,86,363,127"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="35,64,129,91"/>
+<area shape="rect" id="node5" href="$classFiniteElementData.html" title="FiniteElementData\&lt;\l dim \&gt;" alt="" coords="5,115,159,157"/>
+<area shape="rect" id="node7" href="$classFE__DGRaviartThomas.html" title="FE_DGRaviartThomas\l\&lt; dim, spacedim \&gt;" alt="" coords="1421,13,1583,54"/>
+<area shape="rect" id="node9" href="$classFE__DGBDM.html" title="FE_DGBDM\&lt; dim, spacedim \&gt;" alt="" coords="1392,93,1612,120"/>
+<area shape="rect" id="node11" href="$classFE__DGNedelec.html" title="FE_DGNedelec\&lt; dim,\l spacedim \&gt;" alt="" coords="1421,151,1583,193"/>
+</map>

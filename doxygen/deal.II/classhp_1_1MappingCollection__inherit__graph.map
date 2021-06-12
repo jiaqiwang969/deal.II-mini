@@ -1,0 +1,8 @@
+<map id="hp::MappingCollection&lt; dim, spacedim &gt;" name="hp::MappingCollection&lt; dim, spacedim &gt;">
+<area shape="rect" id="node5" href="$classhp_1_1MappingCollection.html" title="hp::MappingCollection\l\&lt; dim, ::FEValues\&lt; dim,\l spacedim \&gt; ::space_dimension \&gt;" alt="" coords="1185,5,1429,61"/>
+<area shape="rect" id="node6" href="$classhp_1_1MappingCollection.html" title="hp::MappingCollection\l\&lt; dim, FEValuesType::\lspace_dimension \&gt;" alt="" coords="1224,85,1391,141"/>
+<area shape="rect" id="node7" href="$classhp_1_1MappingCollection.html" title="hp::MappingCollection\l\&lt; dim, ::FEFaceValues\l\&lt; dim, spacedim \&gt; ::space\l_dimension \&gt;" alt="" coords="1208,166,1407,237"/>
+<area shape="rect" id="node2" href="$classhp_1_1Collection.html" title="hp::Collection\&lt; Mapping\l\&lt; dim, spacedim \&gt; \&gt;" alt="" coords="563,93,744,134"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="5,104,100,131"/>
+<area shape="rect" id="node4" href="$classhp_1_1Collection.html" title="hp::Collection\&lt; T \&gt;" alt="" coords="149,129,299,156"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="Input" name="Input">
+<area shape="rect" id="node1" href="$group__IO.html" title="Input/Output" alt="" coords="5,31,108,57"/>
+<area shape="rect" id="node2" href="$group__output.html" title="Graphical output" alt="" coords="384,5,515,32"/>
+<area shape="rect" id="node3" href="$group__grid.html" title="Grids and Triangulations" alt="" coords="360,56,539,83"/>
+</map>

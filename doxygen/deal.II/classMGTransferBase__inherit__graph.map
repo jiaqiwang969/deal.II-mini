@@ -1,0 +1,16 @@
+<map id="MGTransferBase&lt; VectorType &gt;" name="MGTransferBase&lt; VectorType &gt;">
+<area shape="rect" id="node3" href="$classMGLevelGlobalTransfer.html" title="MGLevelGlobalTransfer\l\&lt; VectorType \&gt;" alt="" coords="655,5,827,47"/>
+<area shape="rect" id="node5" href="$classMGTransferGlobalCoarsening.html" title="MGTransferGlobalCoarsening\l\&lt; VectorType \&gt;" alt="" coords="635,71,846,112"/>
+<area shape="rect" id="node6" href="$classMGTransferBase.html" title="MGTransferBase\&lt; LinearAlgebra\l::distributed::Vector\&lt; Number \&gt; \&gt;" alt="" coords="617,136,864,177"/>
+<area shape="rect" id="node9" href="$classMGTransferBase.html" title="MGTransferBase\&lt; BlockVector\l\&lt; number \&gt; \&gt;" alt="" coords="631,201,850,243"/>
+<area shape="rect" id="node11" href="$classMGTransferBase.html" title="MGTransferBase\&lt; LinearAlgebra\l::distributed::BlockVector\l\&lt; Number \&gt; \&gt;" alt="" coords="625,267,857,323"/>
+<area shape="rect" id="node13" href="$classMGTransferBase.html" title="MGTransferBase\&lt; Vector\l\&lt; number \&gt; \&gt;" alt="" coords="649,348,832,389"/>
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="5,171,100,198"/>
+<area shape="rect" id="node4" href="$classMGTransferPrebuilt.html" title="MGTransferPrebuilt\l\&lt; VectorType \&gt;" alt="" coords="948,5,1093,47"/>
+<area shape="rect" id="node7" href="$classMGLevelGlobalTransfer_3_01LinearAlgebra_1_1distributed_1_1Vector_3_01Number_01_4_01_4.html" title="MGLevelGlobalTransfer\l\&lt; LinearAlgebra::distributed\l::Vector\&lt; Number \&gt; \&gt;" alt="" coords="918,129,1123,185"/>
+<area shape="rect" id="node8" href="$classMGTransferMatrixFree.html" title="MGTransferMatrixFree\l\&lt; dim, Number \&gt;" alt="" coords="1177,136,1340,177"/>
+<area shape="rect" id="node10" href="$classMGTransferBlock.html" title="MGTransferBlock\&lt; number \&gt;" alt="" coords="915,209,1126,235"/>
+<area shape="rect" id="node12" href="$classMGTransferBlockMatrixFree.html" title="MGTransferBlockMatrixFree\l\&lt; dim, Number \&gt;" alt="" coords="921,275,1120,316"/>
+<area shape="rect" id="node14" href="$classMGTransferBlockSelect.html" title="MGTransferBlockSelect\l\&lt; number \&gt;" alt="" coords="935,344,1106,385"/>
+<area shape="rect" id="node15" href="$classMGTransferSelect.html" title="MGTransferSelect\&lt; number \&gt;" alt="" coords="913,410,1128,437"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="Linear algebra classes" name="Linear algebra classes">
+<area shape="rect" id="node1" href="$group__Vectors.html" title="Vector classes" alt="" coords="269,5,384,32"/>
+<area shape="rect" id="node2" href="$group__SLEPcWrappers.html" title="SLEPcWrappers" alt="" coords="266,56,387,83"/>
+<area shape="rect" id="node3" href="$group__VMemory.html" title="Vector memory management" alt="" coords="220,107,433,133"/>
+<area shape="rect" id="node4" href="$group__LAOperators.html" title="Linear Operators \&lt;h3\&gt;\lLinear Operator\&lt;/h3\&gt;" alt="" coords="241,158,413,199"/>
+<area shape="rect" id="node6" href="$group__PETScWrappers.html" title="PETScWrappers" alt="" coords="265,224,388,251"/>
+<area shape="rect" id="node7" href="$group__Preconditioners.html" title="Preconditioners and\l Relaxation Operators" alt="" coords="245,275,408,317"/>
+<area shape="rect" id="node8" href="$group__Sparsity.html" title="Sparsity patterns" alt="" coords="260,341,393,368"/>
+<area shape="rect" id="node9" href="$group__Matrices.html" title="Matrix classes" alt="" coords="269,392,384,419"/>
+<area shape="rect" id="node10" href="$group__Solvers.html" title="Linear solver classes" alt="" coords="247,443,406,469"/>
+<area shape="rect" id="node11" href="$group__TrilinosWrappers.html" title="TrilinosWrappers" alt="" coords="262,493,391,520"/>
+</map>

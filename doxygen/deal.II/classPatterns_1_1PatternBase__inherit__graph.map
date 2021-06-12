@@ -1,0 +1,13 @@
+<map id="Patterns::PatternBase" name="Patterns::PatternBase">
+<area shape="rect" id="node2" href="$classPatterns_1_1Anything.html" title="Patterns::Anything" alt="" coords="241,5,383,32"/>
+<area shape="rect" id="node3" href="$classPatterns_1_1DirectoryName.html" title="Patterns::DirectoryName" alt="" coords="221,56,403,83"/>
+<area shape="rect" id="node4" href="$classPatterns_1_1Double.html" title="Patterns::Double" alt="" coords="247,107,377,133"/>
+<area shape="rect" id="node5" href="$classPatterns_1_1FileName.html" title="Patterns::FileName" alt="" coords="240,157,384,184"/>
+<area shape="rect" id="node6" href="$classPatterns_1_1Integer.html" title="Patterns::Integer" alt="" coords="247,208,377,235"/>
+<area shape="rect" id="node7" href="$classPatterns_1_1List.html" title="Patterns::List" alt="" coords="259,259,365,285"/>
+<area shape="rect" id="node8" href="$classPatterns_1_1Map.html" title="Patterns::Map" alt="" coords="257,309,367,336"/>
+<area shape="rect" id="node9" href="$classPatterns_1_1MultipleSelection.html" title="Patterns::MultipleSelection" alt="" coords="215,360,409,387"/>
+<area shape="rect" id="node10" href="$classPatterns_1_1Selection.html" title="Patterns::Selection" alt="" coords="241,411,383,437"/>
+<area shape="rect" id="node12" href="$classPatterns_1_1Tuple.html" title="Patterns::Tuple" alt="" coords="253,461,371,488"/>
+<area shape="rect" id="node11" href="$classPatterns_1_1Bool.html" title="Patterns::Bool" alt="" coords="457,411,569,437"/>
+</map>

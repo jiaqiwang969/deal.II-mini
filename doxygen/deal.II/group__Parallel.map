@@ -1,0 +1,4 @@
+<map id="Parallel computing" name="Parallel computing">
+<area shape="rect" id="node2" href="$group__distributed.html" title="A module discussing the use of parallelism on distributed memory 集群。 " alt="" coords="196,5,421,47"/>
+<area shape="rect" id="node3" href="$group__threads.html" title="A module discussing the use of parallelism on shared memory 机器。参见详细的文档和 目录 ，下面是该模�..." alt="" coords="215,71,402,127"/>
+</map>

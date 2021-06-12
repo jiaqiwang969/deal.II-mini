@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['advection',['Advection',['../namespaceLocalIntegrators_1_1Advection.html',1,'LocalIntegrators']]],
+  ['cudawrappers',['CUDAWrappers',['../namespaceLinearAlgebra_1_1CUDAWrappers.html',1,'LinearAlgebra']]],
+  ['distributed',['distributed',['../namespaceLegacy_1_1parallel_1_1distributed.html',1,'Legacy::parallel::distributed'],['../namespaceLinearAlgebra_1_1distributed.html',1,'LinearAlgebra::distributed']]],
+  ['divergence',['Divergence',['../namespaceLocalIntegrators_1_1Divergence.html',1,'LocalIntegrators']]],
+  ['elasticity',['Elasticity',['../namespaceLocalIntegrators_1_1Elasticity.html',1,'LocalIntegrators']]],
+  ['epetrawrappers',['EpetraWrappers',['../namespaceLinearAlgebra_1_1EpetraWrappers.html',1,'LinearAlgebra']]],
+  ['functions',['Functions',['../namespaceLegacy_1_1Functions.html',1,'Legacy']]],
+  ['graddiv',['GradDiv',['../namespaceLocalIntegrators_1_1GradDiv.html',1,'LocalIntegrators']]],
+  ['kernel',['kernel',['../namespaceLinearAlgebra_1_1CUDAWrappers_1_1kernel.html',1,'LinearAlgebra::CUDAWrappers']]],
+  ['l2',['L2',['../namespaceLocalIntegrators_1_1L2.html',1,'LocalIntegrators']]],
+  ['lacexceptions',['LACExceptions',['../namespaceLACExceptions.html',1,'']]],
+  ['lapacksupport',['LAPACKSupport',['../namespaceLAPACKSupport.html',1,'']]],
+  ['laplace',['Laplace',['../namespaceLocalIntegrators_1_1Laplace.html',1,'LocalIntegrators']]],
+  ['legacy',['Legacy',['../namespaceLegacy.html',1,'']]],
+  ['linearalgebra',['LinearAlgebra',['../namespaceLinearAlgebra.html',1,'']]],
+  ['linearalgebradealii',['LinearAlgebraDealII',['../namespaceLinearAlgebraDealII.html',1,'']]],
+  ['linearalgebrapetsc',['LinearAlgebraPETSc',['../namespaceLinearAlgebraPETSc.html',1,'']]],
+  ['linearalgebratrilinos',['LinearAlgebraTrilinos',['../namespaceLinearAlgebraTrilinos.html',1,'']]],
+  ['lineminimization',['LineMinimization',['../namespaceLineMinimization.html',1,'']]],
+  ['localintegrators',['LocalIntegrators',['../namespaceLocalIntegrators.html',1,'']]],
+  ['maxwell',['Maxwell',['../namespaceLocalIntegrators_1_1Maxwell.html',1,'LocalIntegrators']]],
+  ['mpi',['MPI',['../namespaceLinearAlgebraPETSc_1_1MPI.html',1,'LinearAlgebraPETSc::MPI'],['../namespaceLinearAlgebraTrilinos_1_1MPI.html',1,'LinearAlgebraTrilinos::MPI']]],
+  ['parallel',['parallel',['../namespaceLegacy_1_1parallel.html',1,'Legacy']]],
+  ['patches',['Patches',['../namespaceLocalIntegrators_1_1Patches.html',1,'LocalIntegrators']]],
+  ['tpetrawrappers',['TpetraWrappers',['../namespaceLinearAlgebra_1_1TpetraWrappers.html',1,'LinearAlgebra']]]
+];

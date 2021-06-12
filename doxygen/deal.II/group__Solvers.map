@@ -1,0 +1,8 @@
+<map id="Linear solver classes" name="Linear solver classes">
+<area shape="rect" id="node1" href="$group__Vectors.html" title="Vector classes" alt="" coords="623,5,737,32"/>
+<area shape="rect" id="node2" href="$group__VMemory.html" title="Vector memory management" alt="" coords="573,56,787,83"/>
+<area shape="rect" id="node3" href="$group__LAC.html" title="Linear algebra classes" alt="" coords="5,107,172,133"/>
+<area shape="rect" id="node4" href="$group__PETScWrappers.html" title="PETScWrappers" alt="" coords="619,107,741,133"/>
+<area shape="rect" id="node5" href="$group__Preconditioners.html" title="Preconditioners and\l Relaxation Operators" alt="" coords="599,158,761,199"/>
+<area shape="rect" id="node6" href="$group__feaccess.html" title="Finite element access\l/FEValues classes" alt="" coords="599,223,761,265"/>
+</map>

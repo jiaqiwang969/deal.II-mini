@@ -1,0 +1,7 @@
+<map id="mg::SmootherRelaxation&lt; RelaxationType, VectorType &gt;" name="mg::SmootherRelaxation&lt; RelaxationType, VectorType &gt;">
+<area shape="rect" id="node2" href="$classMGLevelObject.html" title="MGLevelObject\&lt; Relaxation\lType \&gt;" alt="" coords="17,171,221,212"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="72,5,166,32"/>
+<area shape="rect" id="node4" href="$classMGLevelObject.html" title="MGLevelObject\&lt; Object \&gt;" alt="" coords="23,81,215,108"/>
+<area shape="rect" id="node6" href="$classMGSmootherBase.html" title="MGSmootherBase\&lt; VectorType \&gt;" alt="" coords="240,81,478,108"/>
+<area shape="rect" id="node5" href="$classMGSmoother.html" title="MGSmoother\&lt; VectorType \&gt;" alt="" coords="250,178,457,205"/>
+</map>

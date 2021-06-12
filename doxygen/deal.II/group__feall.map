@@ -1,0 +1,9 @@
+<map id="Finite elements" name="Finite elements">
+<area shape="rect" id="node1" href="$group__febase.html" title="Base classes" alt="" coords="242,5,349,32"/>
+<area shape="rect" id="node3" href="$group__vector__valued.html" title="Handling vector valued\l problems" alt="" coords="209,57,382,98"/>
+<area shape="rect" id="node4" href="$group__feaccess.html" title="Finite element access\l/FEValues classes" alt="" coords="214,122,377,163"/>
+<area shape="rect" id="node5" href="$group__mapping.html" title="Mappings between reference\l and real cell" alt="" coords="190,187,401,229"/>
+<area shape="rect" id="node6" href="$group__FE__vs__Mapping__vs__FEValues.html" title="How Mapping, FiniteElement, and" alt="" coords="176,253,415,280"/>
+<area shape="rect" id="node7" href="$group__fe.html" title="Finite element space\l descriptions" alt="" coords="217,305,374,346"/>
+<area shape="rect" id="node8" href="$group__UpdateFlags.html" title="The interplay of UpdateFlags,\l Mapping, and" alt="" coords="188,370,403,411"/>
+</map>
