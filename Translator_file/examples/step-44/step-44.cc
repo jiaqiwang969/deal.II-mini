@@ -1963,7 +1963,8 @@ namespace Step44
 
     const bool apply_dirichlet_bc = (it_nr == 0); 
 
-此外，//在一个时间段内的第一次牛顿迭代之后，约束条件保持不变，只要不清除 @p constraints 对象，我们就不需要修改或重建它们。
+//此外，
+//在一个时间段内的第一次牛顿迭代之后，约束条件保持不变，只要不清除 @p constraints 对象，我们就不需要修改或重建它们。
 
     if (it_nr > 1) 
       { 

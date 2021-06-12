@@ -346,7 +346,7 @@ template <int dim>
 
     MappingQ1<dim> mapping; 
 
- 
+    AffineConstraints<double> constraints;
     using SystemMatrixType = 
       LaplaceOperator<dim, degree_finite_element, double>; 
     SystemMatrixType system_matrix; 
