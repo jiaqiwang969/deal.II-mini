@@ -90,6 +90,7 @@ namespace Step27
 
  
     DoFHandler<dim>          dof_handler;
+    hp::FECollection<dim>    fe_collection;
     hp::QCollection<dim>     quadrature_collection; 
     hp::QCollection<dim - 1> face_quadrature_collection; 
 
