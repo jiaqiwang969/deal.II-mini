@@ -1,0 +1,56 @@
+name: Ubuntu
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+env:
+  CTEST_OUTPUT_ON_FAILURE: 1
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+jobs:
+  build:
+    runs-on: [self-hosted]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: "**/cpm_modules"
+          key: ${{ github.workflow }}-cpm-modules-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
+
+      - name: download and setup of dealii
+        run: |
+         git clone https://github.com/dealii/dealii.git
+         cd dealii
+         cp -rf hello tests/
+         rm -rf examples/step-*[!1]*
+         rm -rf examples/step-11
+
+ 
+      - name: configure
+        run: |
+         cd dealii
+         cmake -D CMAKE_BUILD_TYPE=Debug -DEAL_II_SETUP_COVERAGE=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+         #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug
+
+      - name: build
+        run: |
+         cd dealii
+         cmake --build build -j40
+
+      - name: test
+        run: |
+          cd dealii
+          make setup_tests_hello
+          ctest --build-config Debug
+      - name: collect code coverage
+        run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
