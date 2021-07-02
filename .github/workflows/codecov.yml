@@ -34,6 +34,10 @@ jobs:
          cp -rf ../hello tests/
          rm -rf examples/step-*[!1]*
          rm -rf examples/step-11
+         rm -rf include
+         rm -rf source
+         cp -rf ../include .
+         cp -rf ../source .
 
  
       - name: configure
