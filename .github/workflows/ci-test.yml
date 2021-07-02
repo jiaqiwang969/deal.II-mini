@@ -23,7 +23,7 @@ jobs:
         git clone https://github.com/dealii/dealii.git
         cd dealii
         #git reset --hard aba0ae59325f68fc30465bca96fbb5585347a2fd
-        ./contrib/utilities/download_clang_format
+        #./contrib/utilities/download_clang_format
     - name: test for transltor-examples,
       run: |
         #mkdir Origin_file
@@ -53,7 +53,7 @@ jobs:
       run: |
         cd dealii
         make setup_tests_hello
-        ctest
+        ctest 
         bash <(curl -s https://codecov.io/bash)
 
 
