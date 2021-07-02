@@ -22,17 +22,18 @@ jobs:
       run: |
         git clone https://github.com/dealii/dealii.git
         cd dealii
-        git reset --hard aba0ae59325f68fc30465bca96fbb5585347a2fd
+        #git reset --hard aba0ae59325f68fc30465bca96fbb5585347a2fd
         ./contrib/utilities/download_clang_format
     - name: test for transltor-examples,
       run: |
-        mkdir Origin_file
-        mv dealii/examples Origin_file
-        cp -rf Translator_file/examples dealii
-        mv dealii/include/deal.II Origin_file
-        cp -rf Translator_file/deal.II dealii/include/
-        mv dealii/doc/doxygen/headers Origin_file
-        cp -rf Translator_file/headers dealii/doc/doxygen/
+        #mkdir Origin_file
+        #mv dealii/examples Origin_file
+        #cp -rf Translator_file/examples dealii
+        #mv dealii/include/deal.II Origin_file
+        cp -rf hello dealii/tests/
+        #cp -rf Translator_file/deal.II dealii/include/
+        #mv dealii/doc/doxygen/headers Origin_file
+        #cp -rf Translator_file/headers dealii/doc/doxygen/
     - name: 
       run: |
         cd dealii
@@ -47,25 +48,12 @@ jobs:
       run: |
         cd dealii
         make -j 2
-        make documentation
 
-    - name: Publish Doxygen documentation
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: dealii/doc
-        enable_jekyll: false
-        allow_empty_commit: false
-        force_orphan: true
-        publish_branch: gh-pages-ci-test
-    
-    - name: Publish Origin-file
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: Origin-file
-        enable_jekyll: false
-        allow_empty_commit: false
-        force_orphan: true
-        publish_branch: file-update
+    - name: test
+      run: |
+        cd dealii
+        make setup_tests_hello
+        ctest
+        bash <(curl -s https://codecov.io/bash)
+
 
