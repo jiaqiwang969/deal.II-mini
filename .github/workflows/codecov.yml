@@ -37,6 +37,7 @@ jobs:
          #rm -rf examples/step-*[!1]*
          #rm -rf examples/step-11
          rm -rf examples/step-*
+         rm -rf examples/doxygen
          rm -rf include
          rm -rf source
          cp -rf ../include .
