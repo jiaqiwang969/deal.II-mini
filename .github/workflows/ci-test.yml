@@ -7,7 +7,7 @@ jobs:
     # simple serial release build using g++
 
     name: transltor for documentation
-    runs-on: [ubuntu-18.04]
+    runs-on: [self-hosted]
 
     steps:
     - uses: actions/checkout@v2
@@ -17,7 +17,7 @@ jobs:
         cmake --version
     - name: modules
       run: |
-        sudo apt-get install libboost-all-dev doxygen python graphviz
+        sudo apt-get install libboost-all-dev doxygen python graphviz numdiff
     - name: download and setup
       run: |
         git clone https://github.com/dealii/dealii.git
@@ -47,7 +47,7 @@ jobs:
     - name: build
       run: |
         cd dealii
-        make -j 2
+        make -j 40
 
     - name: test
       run: |
