@@ -38,7 +38,7 @@ jobs:
       run: |
         cd dealii
         #rm -rf CMakeCache.txt dealii/CMakeFiles
-        cmake -D CMAKE_BUILD_TYPE=Release -D DEAL_II_CXX_FLAGS='-Werror' -D DEAL_II_EARLY_DEPRECATIONS=ON -DDEAL_II_COMPONENT_PYTHON_BINDINGS=ON -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+        cmake -D CMAKE_BUILD_TYPE=Release -D DEAL_II_CXX_FLAGS='-Werror' -D DEAL_II_EARLY_DEPRECATIONS=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
     # - name: archive
     #   uses: actions/upload-artifact@v1
     #   with:
