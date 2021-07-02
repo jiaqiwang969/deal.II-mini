@@ -215,8 +215,8 @@
 
 /* cmake/modules/FindPETSC.cmake */
 /* #undef DEAL_II_PETSC_WITH_COMPLEX */
-/* #undef DEAL_II_PETSC_WITH_HYPRE */
-/* #undef DEAL_II_PETSC_WITH_MUMPS */
+#define DEAL_II_PETSC_WITH_HYPRE
+#define DEAL_II_PETSC_WITH_MUMPS
 
 /* cmake/modules/FindSUNDIALS.cmake */
 #define DEAL_II_SUNDIALS_WITH_IDAS
