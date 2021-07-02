@@ -6,7 +6,7 @@ jobs:
   linux-release-serial:
     # simple serial release build using g++
 
-    name: transltor for documentation
+    name: dealii-mini
     runs-on: [self-hosted]
 
     steps:
@@ -17,7 +17,7 @@ jobs:
         cmake --version
     - name: modules
       run: |
-        sudo apt-get install libboost-all-dev doxygen python graphviz numdiff
+        #sudo apt-get install libboost-all-dev doxygen python graphviz numdiff
     - name: download and setup
       run: |
         git clone https://github.com/dealii/dealii.git
