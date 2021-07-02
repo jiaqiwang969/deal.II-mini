@@ -31,7 +31,7 @@ jobs:
         run: |
          git clone https://github.com/dealii/dealii.git
          cd dealii
-         cp -rf hello tests/
+         cp -rf ../hello tests/
          rm -rf examples/step-*[!1]*
          rm -rf examples/step-11
 
@@ -39,18 +39,18 @@ jobs:
       - name: configure
         run: |
          cd dealii
-         cmake -D CMAKE_BUILD_TYPE=Debug -DEAL_II_SETUP_COVERAGE=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+         cmake -D CMAKE_BUILD_TYPE=Debug -D DEAL_II_SETUP_COVERAGE=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
          #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug
 
       - name: build
         run: |
          cd dealii
-         cmake --build build -j40
+         make -j 48
 
       - name: test
         run: |
           cd dealii
           make setup_tests_hello
-          ctest --build-config Debug
+          ctest 
       - name: collect code coverage
         run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
