@@ -5,10 +5,12 @@ on:
     branches:
       - master
       - main
+      - make_mini
   pull_request:
     branches:
       - master
       - main
+      - make_mini
 
 env:
   CTEST_OUTPUT_ON_FAILURE: 1
