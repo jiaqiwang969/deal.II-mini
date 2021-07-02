@@ -26,19 +26,14 @@ jobs:
         #./contrib/utilities/download_clang_format
     - name: test for transltor-examples,
       run: |
-        #mkdir Origin_file
-        #mv dealii/examples Origin_file
-        #cp -rf Translator_file/examples dealii
-        #mv dealii/include/deal.II Origin_file
         cp -rf hello dealii/tests/
-        #cp -rf Translator_file/deal.II dealii/include/
-        #mv dealii/doc/doxygen/headers Origin_file
-        #cp -rf Translator_file/headers dealii/doc/doxygen/
+        rm -rf dealii/example/step-*[!1]*
+        rm -rf dealii/example/step-11
     - name: 
       run: |
         cd dealii
         #rm -rf CMakeCache.txt dealii/CMakeFiles
-        cmake -D CMAKE_BUILD_TYPE=Release -D DEAL_II_CXX_FLAGS='-Werror' -D DEAL_II_EARLY_DEPRECATIONS=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+        cmake -D CMAKE_BUILD_TYPE=Debug -DEAL_II_SETUP_COVERAGE=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
     # - name: archive
     #   uses: actions/upload-artifact@v1
     #   with:
