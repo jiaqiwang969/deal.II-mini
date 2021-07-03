@@ -22,8 +22,8 @@
 using namespace dealii;
 
 
-#define green redbud::io::state::manual << redbud::io::hfg::green
-#define red   redbud::io::state::manual << redbud::io::hfg::red
+#define green dealii::redbud::io::state::manual << dealii::redbud::io::hfg::green
+#define red   dealii::redbud::io::state::manual << dealii::redbud::io::hfg::red
 
 
 // TestCase 类
