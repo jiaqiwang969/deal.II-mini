@@ -1,8 +1,120 @@
 ﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+DEAL::[===============================================================]
+DEAL::[------------------ Run container test : set -------------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 4 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 3 4 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 2 3 4 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.emplace_hint(s1.begin(), 0) : 
+DEAL:: s1 : 0 1 2 3 4 5
+DEAL:: s1.erase(s1.begin()) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.erase(0) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.erase(1) : 
+DEAL:: s1 : 2 3 4 5
+DEAL:: s1.erase(s1.begin(), s1.end()) : 
+DEAL:: s1 :
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1 2
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1 2 3
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1 2 3 4
+DEAL:: s1.insert(a, a + 5) : 
+DEAL:: s1 : 0 1 2 3 4 5
+DEAL:: s1.insert(5) : 
+DEAL:: s1 : 0 1 2 3 4 5
+DEAL:: s1.insert(s1.end(), 5) : 
+DEAL:: s1 : 0 1 2 3 4 5
+DEAL:: s1.count(5) : 1
+DEAL:: *s1.find(3) : 3
+DEAL:: *s1.lower_bound(3) : 3
+DEAL:: *s1.upper_bound(3) : 4
+DEAL:: s1.equal_range(3) : from 3 to 4
+DEAL:: s1.erase(s1.begin()) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.erase(1) : 
+DEAL:: s1 : 2 3 4 5
+DEAL:: s1.erase(s1.begin(), s1.find(3)) : 
+DEAL:: s1 : 3 4 5
+DEAL:: s1.clear() : 
+DEAL:: s1 :
+DEAL:: s1.swap(s5) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: *s1.begin() : 1
+DEAL:: *s1.rbegin() : 5
+DEAL:: s1.empty() : false
+DEAL:: s1.size() : 5
+DEAL:: s1.max_size() : 18446744073709551615
+DEAL::OK
+DEAL::[===============================================================]
+DEAL::[---------------- Run container test : multiset ----------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 4 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 3 4 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 2 3 4 5
+DEAL:: s1.emplace(i) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.emplace_hint(s1.begin(), 0) : 
+DEAL:: s1 : 0 1 2 3 4 5
+DEAL:: s1.erase(s1.begin()) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.erase(0) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: s1.erase(1) : 
+DEAL:: s1 : 2 3 4 5
+DEAL:: s1.erase(s1.begin(), s1.end()) : 
+DEAL:: s1 :
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1 2
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1 2 3
+DEAL:: s1.insert(i) : 
+DEAL:: s1 : 0 1 2 3 4
+DEAL:: s1.insert(a, a + 5) : 
+DEAL:: s1 : 0 1 1 2 2 3 3 4 4 5
+DEAL:: s1.insert(5) : 
+DEAL:: s1 : 0 1 1 2 2 3 3 4 4 5 5
+DEAL:: s1.insert(s1.end(), 5) : 
+DEAL:: s1 : 0 1 1 2 2 3 3 4 4 5 5 5
+DEAL:: s1.count(5) : 3
+DEAL:: *s1.find(3) : 3
+DEAL:: *s1.lower_bound(3) : 3
+DEAL:: *s1.upper_bound(3) : 4
+DEAL:: s1.equal_range(3) : from 3 to 4
+DEAL:: s1.erase(s1.begin()) : 
+DEAL:: s1 : 1 1 2 2 3 3 4 4 5 5 5
+DEAL:: s1.erase(1) : 
+DEAL:: s1 : 2 2 3 3 4 4 5 5 5
+DEAL:: s1.erase(s1.begin(), s1.find(3)) : 
+DEAL:: s1 : 3 3 4 4 5 5 5
+DEAL:: s1.clear() : 
+DEAL:: s1 :
+DEAL:: s1.swap(s5) : 
+DEAL:: s1 : 1 2 3 4 5
+DEAL:: *s1.begin() : 1
+DEAL:: *s1.rbegin() : 5
+DEAL:: s1.empty() : false
+DEAL:: s1.size() : 5
+DEAL:: s1.max_size() : 18446744073709551615

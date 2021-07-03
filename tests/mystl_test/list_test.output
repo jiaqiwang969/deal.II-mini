@@ -1,8 +1,84 @@
 ﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+DEAL::[===============================================================]
+DEAL::[------------------ Run container test : list ------------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: l1.assign(8, 8) : 
+DEAL:: l1 : 8 8 8 8 8 8 8 8
+DEAL:: l1.assign(a, a + 5) : 
+DEAL:: l1 : 1 2 3 4 5
+DEAL:: l1.assign({ 1,2,3,4,5,6 }) : 
+DEAL:: l1 : 1 2 3 4 5 6
+DEAL:: l1.insert(l1.end(), 6) : 
+DEAL:: l1 : 1 2 3 4 5 6 6
+DEAL:: l1.insert(l1.end(), 2, 7) : 
+DEAL:: l1 : 1 2 3 4 5 6 6 7 7
+DEAL:: l1.insert(l1.begin(), a, a + 5) : 
+DEAL:: l1 : 1 2 3 4 5 1 2 3 4 5 6 6 7 7
+DEAL:: l1.push_back(2) : 
+DEAL:: l1 : 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2
+DEAL:: l1.push_front(1) : 
+DEAL:: l1 : 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2
+DEAL:: l1.emplace(l1.begin(),1) : 
+DEAL:: l1 : 1 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2
+DEAL:: l1.emplace_front(0) : 
+DEAL:: l1 : 0 1 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2
+DEAL:: l1.emplace_back(10) : 
+DEAL:: l1 : 0 1 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2 10
+DEAL:: l1.size() : 19
+DEAL:: l1.pop_front() : 
+DEAL:: l1 : 1 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2 10
+DEAL:: l1.pop_back() : 
+DEAL:: l1 : 1 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2
+DEAL:: l1.erase(l1.begin()) : 
+DEAL:: l1 : 1 1 2 3 4 5 1 2 3 4 5 6 6 7 7 2
+DEAL:: l1.erase(l1.begin(), l1.end()) : 
+DEAL:: l1 :
+DEAL:: l1.size() : 0
+DEAL:: l1.resize(10) : 
+DEAL:: l1 : 0 0 0 0 0 0 0 0 0 0
+DEAL:: l1.resize(5, 1) : 
+DEAL:: l1 : 0 0 0 0 0
+DEAL:: l1.resize(8, 2) : 
+DEAL:: l1 : 0 0 0 0 0 2 2 2
+DEAL:: l1.size() : 8
+DEAL:: l1.splice(l1.end(), l4) : 
+DEAL:: l1 : 0 0 0 0 0 2 2 2 1 2 3 4 5
+DEAL:: l1.splice(l1.begin(), l5, l5.begin()) : 
+DEAL:: l1 : 0 0 0 0 0 0 2 2 2 1 2 3 4 5
+DEAL:: l1.splice(l1.end(), l6, l6.begin(), ++l6.begin()) : 
+DEAL:: l1 : 0 0 0 0 0 0 2 2 2 1 2 3 4 5 0
+DEAL:: l1.size() : 15
+DEAL:: l1.remove(0) : 
+DEAL:: l1 : 2 2 2 1 2 3 4 5
+DEAL:: l1.remove_if(is_odd) : 
+DEAL:: l1 : 2 2 2 2 4
+DEAL:: l1.size() : 5
+DEAL:: l1.assign({ 9,5,3,3,7,1,3,2,2,0,10 }) : 
+DEAL:: l1 : 9 5 3 3 7 1 3 2 2 0 10
+DEAL:: l1.size() : 11
+DEAL:: l1.sort() : 
+DEAL:: l1 : 0 1 2 2 3 3 3 5 7 9 10
+DEAL:: l1.unique() : 
+DEAL:: l1 : 0 1 2 3 5 7 9 10
+DEAL:: l1.unique([&](int a, int b) {return b == a + 1; }) : 
+DEAL:: l1 : 0 2 5 7 9
+DEAL:: l1.merge(l7) : 
+DEAL:: l1 : 0 1 2 2 3 4 5 5 6 7 7 8 9 9
+DEAL:: l1.sort(mystl::greater<int>()) : 
+DEAL:: l1 : 9 9 8 7 7 6 5 5 4 3 2 2 1 0
+DEAL:: l1.merge(l8, mystl::greater<int>()) : 
+DEAL:: l1 : 9 9 8 7 7 6 5 5 4 3 2 2 1 1 1 1 1 1 0
+DEAL:: l1.reverse() : 
+DEAL:: l1 : 0 1 1 1 1 1 1 2 2 3 4 5 5 6 7 7 8 9 9
+DEAL:: l1.clear() : 
+DEAL:: l1 :
+DEAL:: l1.swap(l9) : 
+DEAL:: l1 : 1 1 1 1 1
+DEAL:: *l1.begin() : 1
+DEAL:: *l1.rbegin() : 1
+DEAL:: l1.front() : 1
+DEAL:: l1.back() : 1
+DEAL:: l1.empty() : false
+DEAL:: l1.size() : 5
+DEAL:: l1.max_size() : 18446744073709551615
+DEAL::OK

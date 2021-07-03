@@ -32,14 +32,14 @@ void p_queue_print(mystl::priority_queue<int> p)
 //  queue 的遍历输出
 #define QUEUE_COUT(q) do {                       \
     std::string q_name = #q;                     \
-    deallog << " " << q_name << " :";          \
+    deallog << " " << q_name << " :";            \
     queue_print(q);                              \
 } while(0)
 
 // priority_queue 的遍历输出
 #define P_QUEUE_COUT(p) do {                     \
     std::string p_name = #p;                     \
-    deallog << " " << p_name << " :";          \
+    deallog << " " << p_name << " :";            \
     p_queue_print(p);                            \
 } while(0)
 
@@ -100,19 +100,19 @@ void queue_test()
   QUEUE_FUN_AFTER(q1, q1.clear());
   PASSED;
 #if PERFORMANCE_TEST_ON
-  deallog << "[--------------------- Performance Testing ---------------------]" << std::endl;
-  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
-  deallog << "|         push        |";
+  std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
+  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  std::cout << "|         push        |";
 #if LARGER_TEST_DATA_ON
   CON_TEST_P1(queue<int>, push, rand(), LEN1 _LL, LEN2 _LL, LEN3 _LL);
 #else
   CON_TEST_P1(queue<int>, push, rand(), LEN1 _L, LEN2 _L, LEN3 _L);
 #endif
-  deallog << std::endl;
-  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  std::cout << std::endl;
+  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
   PASSED;
 #endif
-  deallog << "[----------------- End container test : queue ------------------]" << std::endl;
+  std::cout << "[----------------- End container test : queue ------------------]" << std::endl;
 }
 
 void priority_test()

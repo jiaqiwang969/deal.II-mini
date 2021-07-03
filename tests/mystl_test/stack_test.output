@@ -1,8 +1,32 @@
 ﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+DEAL::[===============================================================]
+DEAL::[----------------- Run container test : stack ------------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: After s1.push(1) :
+DEAL:: s1 : 1
+DEAL:: After s1.push(2) :
+DEAL:: s1 : 2 1
+DEAL:: After s1.push(3) :
+DEAL:: s1 : 3 2 1
+DEAL:: After s1.pop() :
+DEAL:: s1 : 2 1
+DEAL:: After s1.emplace(4) :
+DEAL:: s1 : 4 2 1
+DEAL:: After s1.emplace(5) :
+DEAL:: s1 : 5 4 2 1
+DEAL:: s1.empty() : false
+DEAL:: s1.size() : 4
+DEAL:: s1.top() : 5
+DEAL:: After s1.pop() :
+DEAL:: s1 : 4 2 1
+DEAL:: After s1.pop() :
+DEAL:: s1 : 2 1
+DEAL:: After s1.pop() :
+DEAL:: s1 : 1
+DEAL:: After s1.pop() :
+DEAL:: s1 :
+DEAL:: After s1.swap(s4) :
+DEAL:: s1 : 5 4 3 2 1
+DEAL:: After s1.clear() :
+DEAL:: s1 :
+DEAL::OK

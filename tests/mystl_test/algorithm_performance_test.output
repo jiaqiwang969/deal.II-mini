@@ -1,8 +1,587 @@
 ﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+DEAL::============================================
+ Run TestCase:copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:copy_test
+DEAL::============================================
+ Run TestCase:copy_backward_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:copy_backward_test
+DEAL::============================================
+ Run TestCase:copy_if_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:copy_if_test
+DEAL::============================================
+ Run TestCase:copy_n_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:copy_n_test
+DEAL::============================================
+ Run TestCase:move_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:move_test
+DEAL::============================================
+ Run TestCase:move_backward_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:move_backward_test
+DEAL::============================================
+ Run TestCase:equal_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:equal_test
+DEAL::============================================
+ Run TestCase:fill_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:fill_test
+DEAL::============================================
+ Run TestCase:fill_n_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:fill_n_test
+DEAL::============================================
+ Run TestCase:iter_swap_test
+DEAL:: EXPECT_PTR_EQ succeeded!
+ EXPECT_PTR_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:iter_swap_test
+DEAL::============================================
+ Run TestCase:lexicographical_compare_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:lexicographical_compare_test
+DEAL::============================================
+ Run TestCase:max_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:max_test
+DEAL::============================================
+ Run TestCase:min_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:min_test
+DEAL::============================================
+ Run TestCase:mismatch_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  6.00000 / 6.00000 Cases passed. ( 100.000% )
+ End TestCase:mismatch_test
+DEAL::============================================
+ Run TestCase:make_heap_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:make_heap_test
+DEAL::============================================
+ Run TestCase:pop_heap_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  10.0000 / 10.0000 Cases passed. ( 100.000% )
+ End TestCase:pop_heap_test
+DEAL::============================================
+ Run TestCase:push_heap_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  7.00000 / 7.00000 Cases passed. ( 100.000% )
+ End TestCase:push_heap_test
+DEAL::============================================
+ Run TestCase:sort_heap_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:sort_heap_test
+DEAL::============================================
+ Run TestCase:set_difference_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:set_difference_test
+DEAL::============================================
+ Run TestCase:set_intersection_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:set_intersection_test
+DEAL::============================================
+ Run TestCase:set_symmetric_difference_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:set_symmetric_difference_test
+DEAL::============================================
+ Run TestCase:set_union_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:set_union_test
+DEAL::============================================
+ Run TestCase:accumulate_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:accumulate_test
+DEAL::============================================
+ Run TestCase:adjacent_difference_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:adjacent_difference_test
+DEAL::============================================
+ Run TestCase:inner_product_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:inner_product_test
+DEAL::============================================
+ Run TestCase:iota_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:iota_test
+DEAL::============================================
+ Run TestCase:partial_sum_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:partial_sum_test
+DEAL::============================================
+ Run TestCase:adjacent_find_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:adjacent_find_test
+DEAL::============================================
+ Run TestCase:all_of_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:all_of_test
+DEAL::============================================
+ Run TestCase:any_of_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:any_of_test
+DEAL::============================================
+ Run TestCase:binary_search_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:binary_search_test
+DEAL::============================================
+ Run TestCase:count_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:count_test
+DEAL::============================================
+ Run TestCase:count_if_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:count_if_test
+DEAL::============================================
+ Run TestCase:equal_range_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:equal_range_test
+DEAL::============================================
+ Run TestCase:find_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:find_test
+DEAL::============================================
+ Run TestCase:find_end_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:find_end_test
+DEAL::============================================
+ Run TestCase:find_first_of_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:find_first_of_test
+DEAL::============================================
+ Run TestCase:find_if_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:find_if_test
+DEAL::============================================
+ Run TestCase:find_if_not_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:find_if_not_test
+DEAL::============================================
+ Run TestCase:for_each_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:for_each_test
+DEAL::============================================
+ Run TestCase:generate_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ FAILE  1.00000 / 1.00000 Cases passed. ( 100.000% )
+ End TestCase:generate_test
+DEAL::============================================
+ Run TestCase:generate_n_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ FAILE  1.00000 / 1.00000 Cases passed. ( 100.000% )
+ End TestCase:generate_n_test
+DEAL::============================================
+ Run TestCase:includes_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:includes_test
+DEAL::============================================
+ Run TestCase:inplace_merge_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:inplace_merge_test
+DEAL::============================================
+ Run TestCase:is_heap_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:is_heap_test
+DEAL::============================================
+ Run TestCase:is_sorted_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:is_sorted_test
+DEAL::============================================
+ Run TestCase:lower_bound_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:lower_bound_test
+DEAL::============================================
+ Run TestCase:max_elememt_test
+DEAL:: EXPECT_PTR_EQ succeeded!
+ EXPECT_PTR_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:max_elememt_test
+DEAL::============================================
+ Run TestCase:median_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:median_test
+DEAL::============================================
+ Run TestCase:merge_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:merge_test
+DEAL::============================================
+ Run TestCase:min_elememt_test
+DEAL:: EXPECT_PTR_EQ succeeded!
+ EXPECT_PTR_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:min_elememt_test
+DEAL::============================================
+ Run TestCase:is_permutation_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:is_permutation_test
+DEAL::============================================
+ Run TestCase:next_permutation_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  13.0000 / 13.0000 Cases passed. ( 100.000% )
+ End TestCase:next_permutation_test
+DEAL::============================================
+ Run TestCase:none_of_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:none_of_test
+DEAL::============================================
+ Run TestCase:nth_element_test
+DEAL:: EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ EXPECT_TRUE succeeded!
+ FAILE  8.00000 / 8.00000 Cases passed. ( 100.000% )
+ End TestCase:nth_element_test
+DEAL::============================================
+ Run TestCase:partial_sort_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:partial_sort_test
+DEAL::============================================
+ Run TestCase:partial_sort_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:partial_sort_copy_test
+DEAL::============================================
+ Run TestCase:partition_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:partition_test
+DEAL::============================================
+ Run TestCase:partition_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:partition_copy_test
+DEAL::============================================
+ Run TestCase:prev_permutation_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  13.0000 / 13.0000 Cases passed. ( 100.000% )
+ End TestCase:prev_permutation_test
+DEAL::============================================
+ Run TestCase:random_shuffle_test
+DEAL:: EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ EXPECT_CON_NE succeeded!
+ FAILE  10.0000 / 10.0000 Cases passed. ( 100.000% )
+ End TestCase:random_shuffle_test
+DEAL::============================================
+ Run TestCase:remove_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:remove_test
+DEAL::============================================
+ Run TestCase:remove_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:remove_copy_test
+DEAL::============================================
+ Run TestCase:remove_copy_if_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:remove_copy_if_test
+DEAL::============================================
+ Run TestCase:remove_if_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ FAILE  1.00000 / 1.00000 Cases passed. ( 100.000% )
+ End TestCase:remove_if_test
+DEAL::============================================
+ Run TestCase:replace_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:replace_test
+DEAL::============================================
+ Run TestCase:replace_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:replace_copy_test
+DEAL::============================================
+ Run TestCase:replace_copy_if_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:replace_copy_if_test
+DEAL::============================================
+ Run TestCase:replace_if_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:replace_if_test
+DEAL::============================================
+ Run TestCase:reverse_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:reverse_test
+DEAL::============================================
+ Run TestCase:reverse_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:reverse_copy_test
+DEAL::============================================
+ Run TestCase:rotate_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:rotate_test
+DEAL::============================================
+ Run TestCase:rotate_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:rotate_copy_test
+DEAL::============================================
+ Run TestCase:search_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  4.00000 / 4.00000 Cases passed. ( 100.000% )
+ End TestCase:search_test
+DEAL::============================================
+ Run TestCase:search_n_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  5.00000 / 5.00000 Cases passed. ( 100.000% )
+ End TestCase:search_n_test
+DEAL::============================================
+ Run TestCase:sort_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  3.00000 / 3.00000 Cases passed. ( 100.000% )
+ End TestCase:sort_test
+DEAL::============================================
+ Run TestCase:swap_ranges_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:swap_ranges_test
+DEAL::============================================
+ Run TestCase:transform_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:transform_test
+DEAL::============================================
+ Run TestCase:unique_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:unique_test
+DEAL::============================================
+ Run TestCase:unique_copy_test
+DEAL:: EXPECT_CON_EQ succeeded!
+ EXPECT_CON_EQ succeeded!
+ FAILE  2.00000 / 2.00000 Cases passed. ( 100.000% )
+ End TestCase:unique_copy_test
+DEAL::============================================
+ Run TestCase:upper_bound_test
+DEAL:: EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ EXPECT_EQ succeeded!
+ FAILE  5.00000 / 5.00000 Cases passed. ( 100.000% )
+ End TestCase:upper_bound_test
+DEAL::============================================
+ Total TestCase : 81.0000
+DEAL:: Total Passed : 81.0000
+DEAL:: Total Failed : 0.00000

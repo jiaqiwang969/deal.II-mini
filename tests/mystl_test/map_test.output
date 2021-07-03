@@ -1,8 +1,121 @@
 ﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+DEAL::[===============================================================]
+DEAL::[------------------ Run container test : map -------------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <4,4> <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <3,3> <4,4> <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.emplace_hint(m1.begin(), 0, 0) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(m1.begin()) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(0) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(1) :
+DEAL:: m1 : <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(m1.begin(), m1.end()) :
+DEAL:: m1 :
+DEAL:: After m1.insert(PAIR(i, i)) :
+DEAL:: m1 : <0,0>
+DEAL:: After m1.insert(PAIR(i, i)) :
+DEAL:: m1 : <0,0> <1,1>
+DEAL:: After m1.insert(PAIR(i, i)) :
+DEAL:: m1 : <0,0> <1,1> <2,2>
+DEAL:: After m1.insert(PAIR(i, i)) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3>
+DEAL:: After m1.insert(PAIR(i, i)) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3> <4,4>
+DEAL:: After m1.insert(v.begin(), v.end()) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3> <4,4>
+DEAL:: After m1.insert(m1.end(), PAIR(5, 5)) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: m1.count(1) : 1
+DEAL:: *m1.find(3) : <3,3>
+DEAL:: *m1.lower_bound(3) : <3,3>
+DEAL:: *m1.upper_bound(2) : <3,3>
+DEAL:: m1.equal_range(2) : from <2, 2> to <3, 3>
+DEAL:: After m1.erase(m1.begin()) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(1) :
+DEAL:: m1 : <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(m1.begin(), m1.find(3)) :
+DEAL:: m1 : <3,3> <4,4> <5,5>
+DEAL:: After m1.clear() :
+DEAL:: m1 :
+DEAL:: After m1.swap(m9) :
+DEAL:: m1 : <1,1> <2,3> <3,2>
+DEAL:: *m1.begin() : <1,1>
+DEAL:: *m1.rbegin() : <3,2>
+DEAL:: m1[1] : 1
+DEAL:: After m1[1] = 3 :
+DEAL:: m1 : <1,3> <2,3> <3,2>
+DEAL:: m1.at(1) : 3
+DEAL:: m1.empty() : false
+DEAL:: m1.size() : 3
+DEAL:: m1.max_size() : 18446744073709551615
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <4,4> <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <3,3> <4,4> <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.emplace(i, i) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.emplace_hint(m1.begin(), 0, 0) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(m1.begin()) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(0) :
+DEAL:: m1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(1) :
+DEAL:: m1 : <2,2> <3,3> <4,4> <5,5>
+DEAL:: After m1.erase(m1.begin(), m1.end()) :
+DEAL:: m1 :
+DEAL:: After m1.insert(mystl::make_pair(i, i)) :
+DEAL:: m1 : <0,0>
+DEAL:: After m1.insert(mystl::make_pair(i, i)) :
+DEAL:: m1 : <0,0> <1,1>
+DEAL:: After m1.insert(mystl::make_pair(i, i)) :
+DEAL:: m1 : <0,0> <1,1> <2,2>
+DEAL:: After m1.insert(mystl::make_pair(i, i)) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3>
+DEAL:: After m1.insert(mystl::make_pair(i, i)) :
+DEAL:: m1 : <0,0> <1,1> <2,2> <3,3> <4,4>
+DEAL:: After m1.insert(v.begin(), v.end()) :
+DEAL:: m1 : <0,0> <0,0> <1,1> <1,1> <2,2> <2,2> <3,3> <3,3> <4,4> <4,4>
+DEAL:: After m1.insert(PAIR(5, 5)) :
+DEAL:: m1 : <0,0> <0,0> <1,1> <1,1> <2,2> <2,2> <3,3> <3,3> <4,4> <4,4> <5,5>
+DEAL:: After m1.insert(m1.end(), PAIR(5, 5)) :
+DEAL:: m1 : <0,0> <0,0> <1,1> <1,1> <2,2> <2,2> <3,3> <3,3> <4,4> <4,4> <5,5> <5,5>
+DEAL:: m1.count(3) : 2
+DEAL:: *m1.find(3) : <3,3>
+DEAL:: *m1.lower_bound(3) : <3,3>
+DEAL:: *m1.upper_bound(2) : <3,3>
+DEAL:: m1.equal_range(2) : from <2, 2> to <3, 3>
+DEAL:: After m1.erase(m1.begin()) :
+DEAL:: m1 : <0,0> <1,1> <1,1> <2,2> <2,2> <3,3> <3,3> <4,4> <4,4> <5,5> <5,5>
+DEAL:: After m1.erase(1) :
+DEAL:: m1 : <0,0> <2,2> <2,2> <3,3> <3,3> <4,4> <4,4> <5,5> <5,5>
+DEAL:: After m1.erase(m1.begin(), m1.find(3)) :
+DEAL:: m1 : <3,3> <3,3> <4,4> <4,4> <5,5> <5,5>
+DEAL:: After m1.clear() :
+DEAL:: m1 :
+DEAL:: After m1.swap(m9) :
+DEAL:: m1 : <1,1> <2,3> <3,2>
+DEAL:: After m1.insert(PAIR(3, 3)) :
+DEAL:: m1 : <1,1> <2,3> <3,2> <3,3>
+DEAL:: *m1.begin() : <1,1>
+DEAL:: *m1.rbegin() : <3,3>
+DEAL:: m1.empty() : false
+DEAL:: m1.size() : 4
+DEAL:: m1.max_size() : 18446744073709551615
+DEAL::OK

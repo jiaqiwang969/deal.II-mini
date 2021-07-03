@@ -97,19 +97,19 @@ void map_test()
   FUN_VALUE(m1.max_size());
   PASSED;
 #if PERFORMANCE_TEST_ON
-  deallog << "[--------------------- Performance Testing ---------------------]" << std::endl;
-  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
-  deallog << "|       emplace       |";
+  std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
+  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  std::cout << "|       emplace       |";
 #if LARGER_TEST_DATA_ON
   MAP_EMPLACE_TEST(map, LEN1 _L, LEN2 _L, LEN3 _L);
 #else
   MAP_EMPLACE_TEST(map, LEN1 _M, LEN2 _M, LEN3 _M);
 #endif
-  deallog << std::endl;
-  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  std::cout << std::endl;
+  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
   PASSED;
 #endif
-  deallog << "[------------------ End container test : map -------------------]" << std::endl;
+  std::cout << "[------------------ End container test : map -------------------]" << std::endl;
 }
 
 void multimap_test()

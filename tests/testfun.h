@@ -669,7 +669,7 @@ EXPECT_CON_EQ(v1, v3)   ok
   do                                                  \
   {                                                   \
     std::string fun_name = #fun;                      \
-    deallog << fun_name << " : " << fun << std::endl; \
+    deallog << " " << fun_name << " : " << fun << std::endl; \
   } while (0)
 
 // 输出测试数量级
