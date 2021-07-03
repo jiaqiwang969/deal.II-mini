@@ -30,3 +30,8 @@ ignore:
   - "dealii/doc"
   - "dealii/examples"
   - "dealii/tests"
+
+fixes:
+  - "before/::after/"  # move path   e.g., "before/path" => "after/path"
+  - "::after/"         # move root   e.g., "path/" => "after/path/"
+  - "before/::"        # reduce root e.g., "before/path/" => "path/"
