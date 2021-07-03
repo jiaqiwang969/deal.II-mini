@@ -26,7 +26,7 @@
 
 #include <deal.II/base/logstream.h>
 // all include files you need here
-
+using namespace dealii;
 
 // Function to initialize deallog. Normally, it should be called at
 // the beginning of main() like
