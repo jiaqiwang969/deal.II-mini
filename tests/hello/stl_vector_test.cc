@@ -20,32 +20,8 @@
 #include <deal.II/mystl/vector.h>
 
 #include "../tests.h"
+#include "../testfun.h"
 
-
-#define FUN_AFTER(con, fun) do {                         \
-  std::string fun_name = #fun;                           \
-  deallog << " " << fun_name << " : " << std::endl;          \
-  fun;                                                   \
-  COUT(con);                                             \
-} while(0)
-
-// 遍历输出容器
-#define COUT(container) do {                             \
-  std::string con_name = #container;                     \
-  deallog << " " << con_name << " :";                  \
-  for (auto it : container)                              \
-    deallog << " " << it;                              \
-  deallog << std::endl;                                   \
-} while(0)
-
-
-// 输出容器调用函数的值
-#define FUN_VALUE(fun) do {                              \
-  std::string fun_name = #fun;                           \
-  deallog << " " << fun_name << " : " << fun << std::endl;   \
-} while(0)
-
-void 
 test()
 {
   int a[] = { 1,2,3,4,5 };
@@ -120,6 +96,7 @@ test()
 
   deallog << "OK" << std::endl;
 }
+
 
 
 //   PASSED;

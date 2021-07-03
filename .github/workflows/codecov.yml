@@ -34,7 +34,9 @@ jobs:
          #git clone https://github.com/dealii/dealii.git
          cp -rf ~/dealii-download/dealii .
          cd dealii
-         cp -rf ../hello tests/
+         cp -rf ../tests/hello tests/ 
+         cp -rf ../tests/tests.h tests/
+         cp -rf ../tests/testfun.h tests/
          #rm -rf examples/step-*[!1]*
          #rm -rf examples/step-11
          rm -rf examples/step-*
