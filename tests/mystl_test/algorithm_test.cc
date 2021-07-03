@@ -8,7 +8,7 @@
 
 #include <deal.II/mystl/algorithm.h>
 #include <deal.II/mystl/vector.h>
-#include "../test.h"
+#include "../testfun.h"
 
 #ifdef max
 #pragma message("#undefing marco max")

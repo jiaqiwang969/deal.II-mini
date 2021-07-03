@@ -5,7 +5,7 @@
 
 #include <deal.II/mystl/unordered_map.h>
 #include "map_test.h"
-#include "../test.h"
+#include "../testfun.h"
 
 void unordered_map_test()
 {

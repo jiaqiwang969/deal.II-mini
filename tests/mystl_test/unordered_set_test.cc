@@ -4,7 +4,7 @@
 
 #include <deal.II/mystl/unordered_set.h>
 #include <deal.II/mystl/set_test.h>
-#include "../test.h"
+#include "../testfun.h"
 
 void unordered_set_test()
 {

@@ -4,7 +4,7 @@
 #include <deque>
 
 #include <deal.II/mystl/deque.h>
-#include "../test.h"
+#include "../testfun.h"
 
 
 

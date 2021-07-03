@@ -6,7 +6,7 @@
 
 #include <deal.II/mystl/map.h>
 #include <deal.II/mystl/vector.h>
-#include "../test.h"
+#include "../testfun.h"
 
 
 // pair 的宏定义

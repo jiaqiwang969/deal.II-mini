@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <deal.II/mystl/algorithm.h>
-#include "../test.h"
+#include "../testfun.h"
 
 // 函数性能测试宏定义
 #define FUN_TEST1(mode, fun, count)                                                     \

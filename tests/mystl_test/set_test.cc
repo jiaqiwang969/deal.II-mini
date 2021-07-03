@@ -4,7 +4,7 @@
 #include <set>
 
 #include <deal.II/mystl/set.h>
-#include "../test.h"
+#include "../testfun.h"
 
 
 

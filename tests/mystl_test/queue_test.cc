@@ -5,7 +5,7 @@
 #include <queue>
 
 #include <deal.II/mystl/queue.h>
-#include "../test.h"
+#include "../testfun.h"
 
 
 
