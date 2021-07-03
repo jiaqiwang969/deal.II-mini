@@ -61,5 +61,5 @@ jobs:
           cd dealii
           make setup_tests_hello
           ctest 
-      - name: collect code coverage
-        #run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+      #- name: collect code coverage
+       # run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
