@@ -319,9 +319,9 @@ EXPECT_STRNE(" ", s1);    通过
       UnitTest::GetInstance()->CurrentTestCase->nFailed++;        \
       std::cout << red << " EXPECT_STRED failed!\n";              \
       if(s1 == NULL) std::cout << " Expect: NULL\n";              \
-      else std::cout << " Expect:\"" << s1 << "\std::endl;             \
+      else std::cout << " Expect:\"" << s1 << "\"\n";             \
       if(s2 == NULL) std::cout << " Actual: NULL\n";              \
-      else std::cout << " Actual:\"" << s2 << "\std::endl;             \
+      else std::cout << " Actual:\"" << s2 << "\"\n";             \
     }                                                             \
   }                                                               \
   else if (strcmp(s1, s2) == 0) {                                 \
@@ -332,8 +332,8 @@ EXPECT_STRNE(" ", s1);    通过
     UnitTest::GetInstance()->CurrentTestCase->nTestResult = 0;    \
     UnitTest::GetInstance()->CurrentTestCase->nFailed++;          \
     std::cout << red << " EXPECT_STRED failed!\n";                \
-    std::cout << red << " Expect:\"" << s1 << "\std::endl;             \
-    std::cout << red << " Actual:\"" << s2 << "\std::endl;             \
+    std::cout << red << " Expect:\"" << s1 << "\"\n";             \
+    std::cout << red << " Actual:\"" << s2 << "\"\n";             \
 }} while(0)
 
 #define EXPECT_STRNE(s1, s2) do {                                 \
@@ -347,9 +347,9 @@ EXPECT_STRNE(" ", s1);    通过
       UnitTest::GetInstance()->CurrentTestCase->nFailed++;        \
       std::cout << red << " EXPECT_STRNE failed!\n";              \
       if(s1 == NULL) std::cout << " Expect: NULL\n";              \
-      else std::cout << " Expect:\"" << s1 << "\std::endl;             \
+      else std::cout << " Expect:\"" << s1 << "\"\n";             \
       if(s2 == NULL) std::cout << " Actual: NULL\n";              \
-      else std::cout << " Actual:\"" << s2 << "\std::endl;             \
+      else std::cout << " Actual:\"" << s2 << "\"\n";             \
     }                                                             \
   }                                                               \
   else if (strcmp(s1, s2) != 0) {                                 \
@@ -360,8 +360,8 @@ EXPECT_STRNE(" ", s1);    通过
     UnitTest::GetInstance()->CurrentTestCase->nTestResult = 0;    \
     UnitTest::GetInstance()->CurrentTestCase->nFailed++;          \
     std::cout << red << " EXPECT_STRNE failed!\n";                \
-    std::cout << red << " Expect:\"" << s1 << "\std::endl;             \
-    std::cout << red << " Actual:\"" << s2 << "\std::endl;             \
+    std::cout << red << " Expect:\"" << s1 << "\"\n";             \
+    std::cout << red << " Actual:\"" << s2 << "\"\n";             \
 }} while(0)
 
 /*
