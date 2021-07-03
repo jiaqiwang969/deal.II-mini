@@ -62,11 +62,11 @@ test()
   *p = 10;
   *++p = 20;
   p[1] = 30;
-  std::cout << " After change v1.data() :" << "\n";
+  deallog << " After change v1.data() :" << std::endl;
   COUT(v1);
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(v1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(v1.size());
   FUN_VALUE(v1.max_size());
   FUN_VALUE(v1.capacity());
