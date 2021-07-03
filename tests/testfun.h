@@ -18,6 +18,7 @@
 #ifndef dealii_testfun_h
 #define dealii_testfun_h
 
+#include "tests.h"
 #include <deal.II/base/config.h>
 
 #include <ctime>
