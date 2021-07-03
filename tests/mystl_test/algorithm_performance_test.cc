@@ -24,7 +24,7 @@
     std::snprintf(buf, sizeof(buf), "%d", n);                                           \
     std::string t = buf;                                                                \
     t += "ms   |";                                                                      \
-    deallog << std::setw(WIDE) << t;                                                    \
+    std::cout << std::setw(WIDE) << t;                                                    \
     delete[] arr;                                                                       \
   } while (0)
 
@@ -46,42 +46,42 @@
     std::snprintf(buf, sizeof(buf), "%d", n);                                           \
     std::string t = buf;                                                                \
     t += "ms   |";                                                                      \
-    deallog << std::setw(WIDE) << t;                                                    \
+    std::cout << std::setw(WIDE) << t;                                                    \
     delete[] arr;                                                                       \
   } while (0)
 
 void binary_search_test()
 {
-  deallog << "[------------------- function : binary_search ------------------]" << std::endl;
-  deallog << "| orders of magnitude |";
+  std::cout << "[------------------- function : binary_search ------------------]" << std::endl;
+  std::cout << "| orders of magnitude |";
   TEST_LEN(LEN1, LEN2, LEN3, WIDE);
-  deallog << "|         std         |";
+  std::cout << "|         std         |";
   FUN_TEST2(std, binary_search, LEN1);
   FUN_TEST2(std, binary_search, LEN2);
   FUN_TEST2(std, binary_search, LEN3);
-  deallog << std::endl
+  std::cout << std::endl
           << "|        mystl        |";
   FUN_TEST2(mystl, binary_search, LEN1);
   FUN_TEST2(mystl, binary_search, LEN2);
   FUN_TEST2(mystl, binary_search, LEN3);
-  deallog << std::endl;
+  std::cout << std::endl;
 }
 
 void sort_test()
 {
-  deallog << "[----------------------- function : sort -----------------------]" << std::endl;
-  deallog << "| orders of magnitude |";
+  std::cout << "[----------------------- function : sort -----------------------]" << std::endl;
+  std::cout << "| orders of magnitude |";
   TEST_LEN(LEN1, LEN2, LEN3, WIDE);
-  deallog << "|         std         |";
+  std::cout << "|         std         |";
   FUN_TEST1(std, sort, LEN1);
   FUN_TEST1(std, sort, LEN2);
   FUN_TEST1(std, sort, LEN3);
-  deallog << std::endl
+  std::cout << std::endl
           << "|        mystl        |";
   FUN_TEST1(mystl, sort, LEN1);
   FUN_TEST1(mystl, sort, LEN2);
   FUN_TEST1(mystl, sort, LEN3);
-  deallog << std::endl;
+  std::cout << std::endl;
 }
 
 void algorithm_performance_test()
