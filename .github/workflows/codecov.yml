@@ -48,7 +48,7 @@ jobs:
       - name: configure
         run: |
          cd dealii
-         cmake -D CMAKE_BUILD_TYPE=Debug -D DEAL_II_SETUP_COVERAGE=ON  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+         cmake -D CMAKE_BUILD_TYPE=Debug  .
          #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug
 
       - name: build
@@ -62,4 +62,4 @@ jobs:
           make setup_tests_hello
           ctest 
       - name: collect code coverage
-        run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+        #run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
