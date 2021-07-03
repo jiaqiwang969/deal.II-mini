@@ -25,6 +25,10 @@
 void
 test()
 {
+  deallog << "[===============================================================]" << std:endl;
+  deallog << "[----------------- Run container test : vector -----------------]" << std:endl;
+  deallog << "[-------------------------- API test ---------------------------]\n";
+  
   int a[] = { 1,2,3,4,5 };
   mystl::vector<int> v1;
   mystl::vector<int> v2(10);
@@ -94,31 +98,28 @@ test()
   FUN_AFTER(v1, v1.shrink_to_fit());
   FUN_VALUE(v1.size());
   FUN_VALUE(v1.capacity());
-
   deallog << "OK" << std::endl;
+  PASSED;
+  
+  
+#if PERFORMANCE_TEST_ON
+  std::cout << "[--------------------- Performance Testing ---------------------]\n";
+  std::cout << "|---------------------|-------------|-------------|-------------|\n";
+  std::cout << "|      push_back      |";
+#if LARGER_TEST_DATA_ON
+  CON_TEST_P1(vector<int>, push_back, rand(), LEN1 _LL, LEN2 _LL, LEN3 _LL);
+#else
+  CON_TEST_P1(vector<int>, push_back, rand(), LEN1 _L, LEN2 _L, LEN3 _L);
+#endif
+  std::cout << "\n";
+  std::cout << "|---------------------|-------------|-------------|-------------|\n";
+  PASSED;
+#endif
+  std::cout << "[----------------- End container test : vector -----------------]\n";
+
+
+
 }
-
-
-
-//   PASSED;
-// #if PERFORMANCE_TEST_ON
-//   std::cout << "[--------------------- Performance Testing ---------------------]\n";
-//   std::cout << "|---------------------|-------------|-------------|-------------|\n";
-//   std::cout << "|      push_back      |";
-// #if LARGER_TEST_DATA_ON
-//   CON_TEST_P1(vector<int>, push_back, rand(), LEN1 _LL, LEN2 _LL, LEN3 _LL);
-// #else
-//   CON_TEST_P1(vector<int>, push_back, rand(), LEN1 _L, LEN2 _L, LEN3 _L);
-// #endif
-//   std::cout << "\n";
-//   std::cout << "|---------------------|-------------|-------------|-------------|\n";
-//   PASSED;
-// #endif
-//   std::cout << "[----------------- End container test : vector -----------------]\n";
-
-
-
-
 
 
 
