@@ -1,6 +1,4 @@
-﻿#ifndef MYSTL_STRING_TEST_H_
-#define MYSTL_STRING_TEST_H_
-
+﻿
 // string test : 测试 string 的接口和 insert 的性能
 
 #include <string>
@@ -12,9 +10,9 @@
 
 void string_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[----------------- Run container test : string -----------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[----------------- Run container test : string -----------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   const char* s = "abcdefg";
   mystl::string str;
   mystl::string str1(5, 'a');
@@ -46,9 +44,9 @@ void string_test()
   FUN_VALUE(str.at(2));
   STR_COUT(str.data());
   STR_COUT(str.c_str());
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(str.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(str.size());
   FUN_VALUE(str.length());
   FUN_VALUE(str.capacity());
@@ -174,12 +172,12 @@ void string_test()
   FUN_VALUE(str.capacity());
   STR_FUN_AFTER(str3, str3 = "test");
   STR_FUN_AFTER(str4, str4 = " ok!");
-  std::cout << " str3 + '!' : " << str3 + '!' << std::endl;
-  std::cout << " '#' + str3 : " << '#' + str3 << std::endl;
-  std::cout << " str3 + \" success\" : " << str3 + " success" << std::endl;
-  std::cout << " \"My \" + str3 : " << "My " + str3 << std::endl;
-  std::cout << " str3 + str4 : " << str3 + str4 << std::endl;
-  PASSED;
+  deallog << " str3 + '!' : " << str3 + '!' << std::endl;
+  deallog << " '#' + str3 : " << '#' + str3 << std::endl;
+  deallog << " str3 + \" success\" : " << str3 + " success" << std::endl;
+  deallog << " \"My \" + str3 : " << "My " + str3 << std::endl;
+  deallog << " str3 + str4 : " << str3 + str4 << std::endl;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -197,5 +195,12 @@ void string_test()
 }
 
 
-#endif // !MYSTL_STRING_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  string_test();
+}

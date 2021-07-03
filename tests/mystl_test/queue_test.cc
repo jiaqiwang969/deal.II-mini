@@ -1,5 +1,4 @@
-﻿#ifndef MYSTL_QUEUE_TEST_H_
-#define MYSTL_QUEUE_TEST_H_
+﻿
 
 // queue test : 测试 queue, priority_queue 的接口和它们 push 的性能
 
@@ -14,55 +13,55 @@ void queue_print(mystl::queue<int> q)
 {
   while (!q.empty())
   {
-    std::cout << " " << q.front();
+    deallog << " " << q.front();
     q.pop();
   }
-  std::cout << std::endl;
+  deallog << std::endl;
 }
 
 void p_queue_print(mystl::priority_queue<int> p)
 {
   while (!p.empty())
   {
-    std::cout << " " << p.top();
+    deallog << " " << p.top();
     p.pop();
   }
-  std::cout << std::endl;
+  deallog << std::endl;
 }
 
 //  queue 的遍历输出
 #define QUEUE_COUT(q) do {                       \
     std::string q_name = #q;                     \
-    std::cout << " " << q_name << " :";          \
+    deallog << " " << q_name << " :";          \
     queue_print(q);                              \
 } while(0)
 
 // priority_queue 的遍历输出
 #define P_QUEUE_COUT(p) do {                     \
     std::string p_name = #p;                     \
-    std::cout << " " << p_name << " :";          \
+    deallog << " " << p_name << " :";          \
     p_queue_print(p);                            \
 } while(0)
 
 #define QUEUE_FUN_AFTER(con, fun) do {           \
   std::string fun_name = #fun;                   \
-  std::cout << " After " << fun_name << " :\n";  \
+  deallog << " After " << fun_name << " :\n";  \
   fun;                                           \
   QUEUE_COUT(con);                               \
 } while(0)
 
 #define P_QUEUE_FUN_AFTER(con, fun) do {         \
   std::string fun_name = #fun;                   \
-  std::cout << " After " << fun_name << " :\n";  \
+  deallog << " After " << fun_name << " :\n";  \
   fun;                                           \
   P_QUEUE_COUT(con);                             \
 } while(0)
 
 void queue_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[----------------- Run container test : queue ------------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[----------------- Run container test : queue ------------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 1,2,3,4,5 };
   mystl::deque<int> d1(5);
   mystl::queue<int> q1;
@@ -87,9 +86,9 @@ void queue_test()
   QUEUE_FUN_AFTER(q1, q1.pop());
   QUEUE_FUN_AFTER(q1, q1.emplace(4));
   QUEUE_FUN_AFTER(q1, q1.emplace(5));
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(q1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(q1.size());
   FUN_VALUE(q1.front());
   FUN_VALUE(q1.back());
@@ -101,26 +100,26 @@ void queue_test()
   QUEUE_FUN_AFTER(q1, q1.clear());
   PASSED;
 #if PERFORMANCE_TEST_ON
-  std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
-  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
-  std::cout << "|         push        |";
+  deallog << "[--------------------- Performance Testing ---------------------]" << std::endl;
+  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  deallog << "|         push        |";
 #if LARGER_TEST_DATA_ON
   CON_TEST_P1(queue<int>, push, rand(), LEN1 _LL, LEN2 _LL, LEN3 _LL);
 #else
   CON_TEST_P1(queue<int>, push, rand(), LEN1 _L, LEN2 _L, LEN3 _L);
 #endif
-  std::cout << std::endl;
-  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  deallog << std::endl;
+  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
   PASSED;
 #endif
-  std::cout << "[----------------- End container test : queue ------------------]" << std::endl;
+  deallog << "[----------------- End container test : queue ------------------]" << std::endl;
 }
 
 void priority_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[------------- Run container test : priority_queue -------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[------------- Run container test : priority_queue -------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 1,2,3,4,5 };
   mystl::vector<int> v1(5);
   mystl::priority_queue<int> p1;
@@ -146,9 +145,9 @@ void priority_test()
   P_QUEUE_FUN_AFTER(p1, p1.emplace(7));
   P_QUEUE_FUN_AFTER(p1, p1.emplace(2));
   P_QUEUE_FUN_AFTER(p1, p1.emplace(8));
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(p1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(p1.size());
   FUN_VALUE(p1.top());
   while (!p1.empty())
@@ -175,5 +174,12 @@ void priority_test()
 }
 
 
-#endif // !MYSTL_QUEUE_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  queue_test();
+}

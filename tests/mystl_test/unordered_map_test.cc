@@ -1,6 +1,4 @@
-﻿#ifndef MYSTL_UNORDERED_MAP_TEST_H_
-#define MYSTL_UNORDERED_MAP_TEST_H_
-
+﻿
 // unordered_map test : 测试 unordered_map, unordered_multimap 的接口与它们 insert 的性能
 
 #include <unordered_map>
@@ -9,13 +7,11 @@
 #include "map_test.h"
 #include "../test.h"
 
-
-
 void unordered_map_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[-------------- Run container test : unordered_map -------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[-------------- Run container test : unordered_map -------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   mystl::vector<PAIR> v;
   for (int i = 0; i < 5; ++i)
     v.push_back(PAIR(5 - i, 5 - i));
@@ -33,9 +29,9 @@ void unordered_map_test()
   um11 = um6;
   mystl::unordered_map<int, int> um12;
   um12 = std::move(um6);
-  mystl::unordered_map<int, int> um13{ PAIR(1,1),PAIR(2,3),PAIR(3,3) };
+  mystl::unordered_map<int, int> um13{PAIR(1, 1), PAIR(2, 3), PAIR(3, 3)};
   mystl::unordered_map<int, int> um14;
-  um14 = { PAIR(1,1),PAIR(2,3),PAIR(3,3) };
+  um14 = {PAIR(1, 1), PAIR(2, 3), PAIR(3, 3)};
 
   MAP_FUN_AFTER(um1, um1.emplace(1, 1));
   MAP_FUN_AFTER(um1, um1.emplace_hint(um1.begin(), 1, 2));
@@ -45,9 +41,9 @@ void unordered_map_test()
   MAP_FUN_AFTER(um1, um1.erase(um1.begin()));
   MAP_FUN_AFTER(um1, um1.erase(um1.begin(), um1.find(3)));
   MAP_FUN_AFTER(um1, um1.erase(1));
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(um1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(um1.size());
   FUN_VALUE(um1.bucket_count());
   FUN_VALUE(um1.max_bucket_count());
@@ -58,9 +54,9 @@ void unordered_map_test()
   MAP_VALUE(*um1.begin());
   FUN_VALUE(um1.at(1));
   FUN_VALUE(um1[1]);
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(um1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(um1.size());
   FUN_VALUE(um1.max_size());
   FUN_VALUE(um1.bucket_count());
@@ -79,34 +75,34 @@ void unordered_map_test()
   MAP_VALUE(*um1.find(3));
   auto first = *um1.equal_range(3).first;
   auto second = *um1.equal_range(3).second;
-  std::cout << " um1.equal_range(3) : from <" << first.first << ", " << first.second
-    << "> to <" << second.first << ", " << second.second << ">" << std::endl;
+  deallog << " um1.equal_range(3) : from <" << first.first << ", " << first.second
+          << "> to <" << second.first << ", " << second.second << ">" << std::endl;
   FUN_VALUE(um1.load_factor());
   FUN_VALUE(um1.max_load_factor());
   MAP_FUN_AFTER(um1, um1.max_load_factor(1.5f));
   FUN_VALUE(um1.max_load_factor());
-  PASSED;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
-  std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
-  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
-  std::cout << "|       emplace       |";
+  deallog << "[--------------------- Performance Testing ---------------------]" << std::endl;
+  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  deallog << "|       emplace       |";
 #if LARGER_TEST_DATA_ON
   MAP_EMPLACE_TEST(unordered_map, LEN1 _M, LEN2 _M, LEN3 _M);
 #else
   MAP_EMPLACE_TEST(unordered_map, LEN1 _S, LEN2 _S, LEN3 _S);
 #endif
-  std::cout << std::endl;
-  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  deallog << std::endl;
+  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
   PASSED;
 #endif
-  std::cout << "[-------------- End container test : unordered_map -------------]" << std::endl;
+  deallog << "[-------------- End container test : unordered_map -------------]" << std::endl;
 }
 
 void unordered_multimap_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[----------- Run container test : unordered_multimap -----------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[----------- Run container test : unordered_multimap -----------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   mystl::vector<PAIR> v;
   for (int i = 0; i < 5; ++i)
     v.push_back(PAIR(5 - i, 5 - i));
@@ -124,9 +120,9 @@ void unordered_multimap_test()
   um11 = um6;
   mystl::unordered_multimap<int, int> um12;
   um12 = std::move(um6);
-  mystl::unordered_multimap<int, int> um13{ PAIR(1,1),PAIR(2,3),PAIR(3,3) };
+  mystl::unordered_multimap<int, int> um13{PAIR(1, 1), PAIR(2, 3), PAIR(3, 3)};
   mystl::unordered_multimap<int, int> um14;
-  um14 = { PAIR(1,1),PAIR(2,3),PAIR(3,3) };
+  um14 = {PAIR(1, 1), PAIR(2, 3), PAIR(3, 3)};
 
   MAP_FUN_AFTER(um1, um1.emplace(1, 1));
   MAP_FUN_AFTER(um1, um1.emplace_hint(um1.begin(), 1, 2));
@@ -136,9 +132,9 @@ void unordered_multimap_test()
   MAP_FUN_AFTER(um1, um1.erase(um1.begin()));
   MAP_FUN_AFTER(um1, um1.erase(um1.begin(), um1.find(3)));
   MAP_FUN_AFTER(um1, um1.erase(1));
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(um1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(um1.size());
   FUN_VALUE(um1.bucket_count());
   FUN_VALUE(um1.max_bucket_count());
@@ -147,9 +143,9 @@ void unordered_multimap_test()
   MAP_FUN_AFTER(um1, um1.clear());
   MAP_FUN_AFTER(um1, um1.swap(um7));
   MAP_VALUE(*um1.begin());
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(um1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(um1.size());
   FUN_VALUE(um1.max_size());
   FUN_VALUE(um1.bucket_count());
@@ -168,13 +164,13 @@ void unordered_multimap_test()
   MAP_VALUE(*um1.find(3));
   auto first = *um1.equal_range(3).first;
   auto second = *um1.equal_range(3).second;
-  std::cout << " um1.equal_range(3) : from <" << first.first << ", " << first.second
-    << "> to <" << second.first << ", " << second.second << ">" << std::endl;
+  deallog << " um1.equal_range(3) : from <" << first.first << ", " << first.second
+          << "> to <" << second.first << ", " << second.second << ">" << std::endl;
   FUN_VALUE(um1.load_factor());
   FUN_VALUE(um1.max_load_factor());
   MAP_FUN_AFTER(um1, um1.max_load_factor(1.5f));
   FUN_VALUE(um1.max_load_factor());
-  PASSED;
+  deallog << "OK" << std::endl;;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -191,6 +187,10 @@ void unordered_multimap_test()
   std::cout << "[----------- End container test : unordered_multimap -----------]" << std::endl;
 }
 
+int main()
+{
+  initlog();
 
-#endif // !MYSTL_UNORDERED_MAP_TEST_H_
-
+  unordered_map_test();
+  unordered_multimap_test();
+}

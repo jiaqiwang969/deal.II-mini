@@ -1,5 +1,4 @@
-﻿#ifndef MYSTL_LIST_TEST_H_
-#define MYSTL_LIST_TEST_H_
+﻿
 
 // list test : 测试 list 的接口与 insert, sort 的性能
 
@@ -15,9 +14,9 @@ bool is_odd(int x) { return x & 1; }
 
 void list_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[------------------ Run container test : list ------------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[------------------ Run container test : list ------------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 1,2,3,4,5 };
   mystl::list<int> l1;
   mystl::list<int> l2(5);
@@ -76,12 +75,12 @@ void list_test()
   FUN_VALUE(*l1.rbegin());
   FUN_VALUE(l1.front());
   FUN_VALUE(l1.back());
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(l1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(l1.size());
   FUN_VALUE(l1.max_size());
-  PASSED;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -107,5 +106,12 @@ void list_test()
 }
 
 
-#endif // !MYSTL_LIST_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  list_test();
+}

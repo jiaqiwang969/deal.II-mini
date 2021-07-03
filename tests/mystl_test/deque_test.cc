@@ -1,6 +1,4 @@
-﻿#ifndef MYSTL_DEQUE_TEST_H_
-#define MYSTL_DEQUE_TEST_H_
-
+﻿
 // deque test : 测试 deque 的接口和 push_front/push_back 的性能
 
 #include <deque>
@@ -12,9 +10,9 @@
 
 void deque_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[----------------- Run container test : deque ------------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[----------------- Run container test : deque ------------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 1,2,3,4,5 };
   mystl::deque<int> d1;
   mystl::deque<int> d2(5);
@@ -60,12 +58,12 @@ void deque_test()
   FUN_VALUE(d1.back());
   FUN_VALUE(d1.at(1));
   FUN_VALUE(d1[2]);
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(d1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(d1.size());
   FUN_VALUE(d1.max_size());
-  PASSED;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -91,5 +89,12 @@ void deque_test()
 }
 
 
-#endif // !MYSTL_DEQUE_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  deque_test();
+}

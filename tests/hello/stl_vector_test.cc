@@ -101,8 +101,9 @@ test()
   deallog << "OK" << std::endl;
   PASSED;
   
-  
-#if PERFORMANCE_TEST_ON
+ // Performance Testing 暂时无法写入到output中，原因时间可变，影响ctest测试结果
+ // 如果想看该测试结果到话，可以进入到 .debug 文件，运行可执行文件查看。
+#if PERFORMANCE_TEST_ON 
   std::cout << "[--------------------- Performance Testing ---------------------]\n";
   std::cout << "|---------------------|-------------|-------------|-------------|\n";
   std::cout << "|      push_back      |";

@@ -1,5 +1,4 @@
-﻿#ifndef MYSTL_MAP_TEST_H_
-#define MYSTL_MAP_TEST_H_
+﻿
 
 // map test : 测试 map, multimap 的接口与它们 insert 的性能
 
@@ -16,15 +15,15 @@
 // map 的遍历输出
 #define MAP_COUT(m) do { \
     std::string m_name = #m; \
-    std::cout << " " << m_name << " :"; \
-    for (auto it : m)    std::cout << " <" << it.first << "," << it.second << ">"; \
-    std::cout << std::endl; \
+    deallog << " " << m_name << " :"; \
+    for (auto it : m)    deallog << " <" << it.first << "," << it.second << ">"; \
+    deallog << std::endl; \
 } while(0)
 
 // map 的函数操作
 #define MAP_FUN_AFTER(con, fun) do { \
     std::string str = #fun; \
-    std::cout << " After " << str << " :" << std::endl; \
+    deallog << " After " << str << " :" << std::endl; \
     fun; \
     MAP_COUT(con); \
 } while(0)
@@ -33,14 +32,14 @@
 #define MAP_VALUE(fun) do { \
     std::string str = #fun; \
     auto it = fun; \
-    std::cout << " " << str << " : <" << it.first << "," << it.second << ">\n"; \
+    deallog << " " << str << " : <" << it.first << "," << it.second << ">\n"; \
 } while(0)
 
 void map_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[------------------ Run container test : map -------------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[------------------ Run container test : map -------------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   mystl::vector<PAIR> v;
   for (int i = 0; i < 5; ++i)
     v.push_back(PAIR(i, i));
@@ -79,7 +78,7 @@ void map_test()
   MAP_VALUE(*m1.upper_bound(2));
   auto first = *m1.equal_range(2).first;
   auto second = *m1.equal_range(2).second;
-  std::cout << " m1.equal_range(2) : from <" << first.first << ", " << first.second
+  deallog << " m1.equal_range(2) : from <" << first.first << ", " << first.second
     << "> to <" << second.first << ", " << second.second << ">" << std::endl;
   MAP_FUN_AFTER(m1, m1.erase(m1.begin()));
   MAP_FUN_AFTER(m1, m1.erase(1));
@@ -91,33 +90,33 @@ void map_test()
   FUN_VALUE(m1[1]);
   MAP_FUN_AFTER(m1, m1[1] = 3);
   FUN_VALUE(m1.at(1));
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(m1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(m1.size());
   FUN_VALUE(m1.max_size());
   PASSED;
 #if PERFORMANCE_TEST_ON
-  std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
-  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
-  std::cout << "|       emplace       |";
+  deallog << "[--------------------- Performance Testing ---------------------]" << std::endl;
+  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  deallog << "|       emplace       |";
 #if LARGER_TEST_DATA_ON
   MAP_EMPLACE_TEST(map, LEN1 _L, LEN2 _L, LEN3 _L);
 #else
   MAP_EMPLACE_TEST(map, LEN1 _M, LEN2 _M, LEN3 _M);
 #endif
-  std::cout << std::endl;
-  std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
+  deallog << std::endl;
+  deallog << "|---------------------|-------------|-------------|-------------|" << std::endl;
   PASSED;
 #endif
-  std::cout << "[------------------ End container test : map -------------------]" << std::endl;
+  deallog << "[------------------ End container test : map -------------------]" << std::endl;
 }
 
 void multimap_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[---------------- Run container test : multimap ----------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[---------------- Run container test : multimap ----------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   mystl::vector<PAIR> v;
   for (int i = 0; i < 5; ++i)
     v.push_back(PAIR(i, i));
@@ -157,7 +156,7 @@ void multimap_test()
   MAP_VALUE(*m1.upper_bound(2));
   auto first = *m1.equal_range(2).first;
   auto second = *m1.equal_range(2).second;
-  std::cout << " m1.equal_range(2) : from <" << first.first << ", " << first.second
+  deallog << " m1.equal_range(2) : from <" << first.first << ", " << first.second
     << "> to <" << second.first << ", " << second.second << ">" << std::endl;
   MAP_FUN_AFTER(m1, m1.erase(m1.begin()));
   MAP_FUN_AFTER(m1, m1.erase(1));
@@ -167,12 +166,12 @@ void multimap_test()
   MAP_FUN_AFTER(m1, m1.insert(PAIR(3, 3)));
   MAP_VALUE(*m1.begin());
   MAP_VALUE(*m1.rbegin());
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(m1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(m1.size());
   FUN_VALUE(m1.max_size());
-  PASSED;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -190,5 +189,13 @@ void multimap_test()
 }
 
 
-#endif // !MYSTL_MAP_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  map_test();
+  multimap_test();
+}

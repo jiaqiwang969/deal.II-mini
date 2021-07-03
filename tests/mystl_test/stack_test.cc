@@ -1,6 +1,4 @@
-﻿#ifndef MYSTL_STACK_TEST_H_
-#define MYSTL_STACK_TEST_H_
-
+﻿
 // stack test : 测试 stack 的接口 和 push 的性能
 
 #include <stack>
@@ -14,31 +12,31 @@ void stack_print(mystl::stack<int> s)
 {
   while (!s.empty())
   {
-    std::cout << " " << s.top();
+    deallog << " " << s.top();
     s.pop();
   }
-  std::cout << std::endl;
+  deallog << std::endl;
 }
 
 // stack 的遍历输出
 #define STACK_COUT(s) do {                       \
     std::string s_name = #s;                     \
-    std::cout << " " << s_name << " :";          \
+    deallog << " " << s_name << " :";            \
     stack_print(s);                              \
 } while(0)
 
 #define STACK_FUN_AFTER(con, fun) do {           \
   std::string fun_name = #fun;                   \
-  std::cout << " After " << fun_name << " :\n";  \
+  deallog << " After " << fun_name << " :\n";    \
   fun;                                           \
   STACK_COUT(con);                               \
 } while(0)
 
 void stack_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[----------------- Run container test : stack ------------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[----------------- Run container test : stack ------------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 1,2,3,4,5 };
   mystl::deque<int> d1(5);
   mystl::stack<int> s1;
@@ -63,9 +61,9 @@ void stack_test()
   STACK_FUN_AFTER(s1, s1.pop());
   STACK_FUN_AFTER(s1, s1.emplace(4));
   STACK_FUN_AFTER(s1, s1.emplace(5));
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(s1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(s1.size());
   FUN_VALUE(s1.top());
   while (!s1.empty())
@@ -74,7 +72,7 @@ void stack_test()
   }
   STACK_FUN_AFTER(s1, s1.swap(s4));
   STACK_FUN_AFTER(s1, s1.clear());
-  PASSED;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -92,5 +90,12 @@ void stack_test()
 }
 
 
-#endif // !MYSTL_STACK_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  stack_test();
+}

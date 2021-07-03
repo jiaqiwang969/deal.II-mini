@@ -1,6 +1,4 @@
-﻿#ifndef MYSTL_SET_TEST_H_
-#define MYSTL_SET_TEST_H_
-
+﻿
 // set test : 测试 set, multiset 的接口与它们 insert 的性能
 
 #include <set>
@@ -12,9 +10,9 @@
 
 void set_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[------------------ Run container test : set -------------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[------------------ Run container test : set -------------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 5,4,3,2,1 };
   mystl::set<int> s1;
   mystl::set<int, mystl::greater<int>> s2;
@@ -52,7 +50,7 @@ void set_test()
   FUN_VALUE(*s1.upper_bound(3));
   auto first = *s1.equal_range(3).first;
   auto second = *s1.equal_range(3).second;
-  std::cout << " s1.equal_range(3) : from " << first << " to " << second << std::endl;
+  deallog << " s1.equal_range(3) : from " << first << " to " << second << std::endl;
   FUN_AFTER(s1, s1.erase(s1.begin()));
   FUN_AFTER(s1, s1.erase(1));
   FUN_AFTER(s1, s1.erase(s1.begin(), s1.find(3)));
@@ -60,12 +58,12 @@ void set_test()
   FUN_AFTER(s1, s1.swap(s5));
   FUN_VALUE(*s1.begin());
   FUN_VALUE(*s1.rbegin());
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(s1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(s1.size());
   FUN_VALUE(s1.max_size());
-  PASSED;
+  deallog << "OK" << std::endl;
 #if PERFORMANCE_TEST_ON
   std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -84,9 +82,9 @@ void set_test()
 
 void multiset_test()
 {
-  std::cout << "[===============================================================]" << std::endl;
-  std::cout << "[---------------- Run container test : multiset ----------------]" << std::endl;
-  std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+  deallog << "[===============================================================]" << std::endl;
+  deallog << "[---------------- Run container test : multiset ----------------]" << std::endl;
+  deallog << "[-------------------------- API test ---------------------------]" << std::endl;
   int a[] = { 5,4,3,2,1 };
   mystl::multiset<int> s1;
   mystl::multiset<int, mystl::greater<int>> s2;
@@ -124,7 +122,7 @@ void multiset_test()
   FUN_VALUE(*s1.upper_bound(3));
   auto first = *s1.equal_range(3).first;
   auto second = *s1.equal_range(3).second;
-  std::cout << " s1.equal_range(3) : from " << first << " to " << second << std::endl;
+  deallog << " s1.equal_range(3) : from " << first << " to " << second << std::endl;
   FUN_AFTER(s1, s1.erase(s1.begin()));
   FUN_AFTER(s1, s1.erase(1));
   FUN_AFTER(s1, s1.erase(s1.begin(), s1.find(3)));
@@ -132,9 +130,9 @@ void multiset_test()
   FUN_AFTER(s1, s1.swap(s5));
   FUN_VALUE(*s1.begin());
   FUN_VALUE(*s1.rbegin());
-  std::cout << std::boolalpha;
+  deallog << std::boolalpha;
   FUN_VALUE(s1.empty());
-  std::cout << std::noboolalpha;
+  deallog << std::noboolalpha;
   FUN_VALUE(s1.size());
   FUN_VALUE(s1.max_size());
   PASSED;
@@ -155,5 +153,13 @@ void multiset_test()
 }
 
 
-#endif // !MYSTL_SET_TEST_H_
 
+
+int
+main()
+{
+  initlog();
+
+  set_test();
+  multiset_test();
+}

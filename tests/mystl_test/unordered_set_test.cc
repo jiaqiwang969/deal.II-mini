@@ -1,21 +1,16 @@
-﻿#ifndef MYSTL_UNORDERED_SET_TEST_H_
-#define MYSTL_UNORDERED_SET_TEST_H_
-
-// unordered_set test : 测试 unordered_set, unordered_multiset 的接口与它们 insert 的性能
+﻿// unordered_set test : 测试 unordered_set, unordered_multiset 的接口与它们 insert 的性能
 
 #include <unordered_set>
 
 #include <deal.II/mystl/unordered_set.h>
-#include "set_test.h"
+#include <deal.II/mystl/set_test.h>
 #include "../test.h"
 
-
-
-      void unordered_set_test()
-      {
-        std::cout << "[===============================================================]" << std::endl;
-        std::cout << "[-------------- Run container test : unordered_set -------------]" << std::endl;
-        std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+void unordered_set_test()
+{
+        deallog << "[===============================================================]" << std::endl;
+        deallog << "[-------------- Run container test : unordered_set -------------]" << std::endl;
+        deallog << "[-------------------------- API test ---------------------------]" << std::endl;
         int a[] = {5, 4, 3, 2, 1};
         mystl::unordered_set<int> us1;
         mystl::unordered_set<int> us2(520);
@@ -43,9 +38,9 @@
         FUN_AFTER(us1, us1.erase(us1.begin()));
         FUN_AFTER(us1, us1.erase(us1.begin(), us1.find(3)));
         FUN_AFTER(us1, us1.erase(1));
-        std::cout << std::boolalpha;
+        deallog << std::boolalpha;
         FUN_VALUE(us1.empty());
-        std::cout << std::noboolalpha;
+        deallog << std::noboolalpha;
         FUN_VALUE(us1.size());
         FUN_VALUE(us1.bucket_count());
         FUN_VALUE(us1.max_bucket_count());
@@ -54,9 +49,9 @@
         FUN_AFTER(us1, us1.clear());
         FUN_AFTER(us1, us1.swap(us7));
         FUN_VALUE(*us1.begin());
-        std::cout << std::boolalpha;
+        deallog << std::boolalpha;
         FUN_VALUE(us1.empty());
-        std::cout << std::noboolalpha;
+        deallog << std::noboolalpha;
         FUN_VALUE(us1.size());
         FUN_VALUE(us1.max_size());
         FUN_VALUE(us1.bucket_count());
@@ -73,12 +68,13 @@
         FUN_VALUE(*us1.find(3));
         auto first = *us1.equal_range(3).first;
         auto second = *us1.equal_range(3).second;
-        std::cout << " us1.equal_range(3) : from " << first << " to " << second << std::endl;
+        deallog << " us1.equal_range(3) : from " << first << " to " << second << std::endl;
         FUN_VALUE(us1.load_factor());
         FUN_VALUE(us1.max_load_factor());
         FUN_AFTER(us1, us1.max_load_factor(1.5f));
         FUN_VALUE(us1.max_load_factor());
-        PASSED;
+        deallog << "OK" << std::endl;
+
 #if PERFORMANCE_TEST_ON
         std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
         std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -93,13 +89,13 @@
         PASSED;
 #endif
         std::cout << "[-------------- End container test : unordered_set -------------]" << std::endl;
-      }
+}
 
-      void unordered_multiset_test()
-      {
-        std::cout << "[===============================================================]" << std::endl;
-        std::cout << "[------------ Run container test : unordered_multiset ----------]" << std::endl;
-        std::cout << "[-------------------------- API test ---------------------------]" << std::endl;
+void unordered_multiset_test()
+{
+        deallog << "[===============================================================]" << std::endl;
+        deallog << "[------------ Run container test : unordered_multiset ----------]" << std::endl;
+        deallog << "[-------------------------- API test ---------------------------]" << std::endl;
         int a[] = {5, 4, 3, 2, 1};
         mystl::unordered_multiset<int> us1;
         mystl::unordered_multiset<int> us2(520);
@@ -127,9 +123,9 @@
         FUN_AFTER(us1, us1.erase(us1.begin()));
         FUN_AFTER(us1, us1.erase(us1.begin(), us1.find(3)));
         FUN_AFTER(us1, us1.erase(1));
-        std::cout << std::boolalpha;
+        deallog << std::boolalpha;
         FUN_VALUE(us1.empty());
-        std::cout << std::noboolalpha;
+        deallog << std::noboolalpha;
         FUN_VALUE(us1.size());
         FUN_VALUE(us1.bucket_count());
         FUN_VALUE(us1.max_bucket_count());
@@ -138,9 +134,9 @@
         FUN_AFTER(us1, us1.clear());
         FUN_AFTER(us1, us1.swap(us7));
         FUN_VALUE(*us1.begin());
-        std::cout << std::boolalpha;
+        deallog << std::boolalpha;
         FUN_VALUE(us1.empty());
-        std::cout << std::noboolalpha;
+        deallog << std::noboolalpha;
         FUN_VALUE(us1.size());
         FUN_VALUE(us1.max_size());
         FUN_VALUE(us1.bucket_count());
@@ -157,12 +153,13 @@
         FUN_VALUE(*us1.find(3));
         auto first = *us1.equal_range(3).first;
         auto second = *us1.equal_range(3).second;
-        std::cout << " us1.equal_range(3) : from " << first << " to " << second << std::endl;
+        deallog << " us1.equal_range(3) : from " << first << " to " << second << std::endl;
         FUN_VALUE(us1.load_factor());
         FUN_VALUE(us1.max_load_factor());
         FUN_AFTER(us1, us1.max_load_factor(1.5f));
         FUN_VALUE(us1.max_load_factor());
-        PASSED;
+        deallog << "OK" << std::endl;
+
 #if PERFORMANCE_TEST_ON
         std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
         std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
@@ -177,7 +174,12 @@
         PASSED;
 #endif
         std::cout << "[------------ End container test : unordered_multiset ----------]" << std::endl;
-      }
+}
 
+int main()
+{
+        initlog();
 
-#endif // !MYSTL_UNORDERED_SET_TEST_H_
+        unordered_set_test();
+        unordered_multiset_test();
+}

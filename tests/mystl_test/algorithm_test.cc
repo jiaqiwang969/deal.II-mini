@@ -1,5 +1,4 @@
-﻿#ifndef MYSTL_ALGORITHM_TEST_H_
-#define MYSTL_ALGORITHM_TEST_H_
+﻿
 
 // 算法测试: 包含了 mystl 的 81 个算法测试
 
@@ -11,8 +10,6 @@
 #include <deal.II/mystl/vector.h>
 #include "../test.h"
 
-
-
 #ifdef max
 #pragma message("#undefing marco max")
 #undef max
@@ -23,27 +20,24 @@
 #undef min
 #endif // min
 
-
-
-
 // 一些可能会用到的辅助数据和函数
-int  for_each_sum = 0;
+int for_each_sum = 0;
 
-int  gen() { return 5; }
-int  r(int i) { return (i * 5 + 1) % 9; }
+int gen() { return 5; }
+int r(int i) { return (i * 5 + 1) % 9; }
 bool is_odd(int i) { return i & 1; }
 bool is_even(int i) { return !(i & 1); }
 void arr_sum(int i) { for_each_sum += i; }
-bool cmp(const int& a, const int& b) { return b < a; }
-int  unary_op(const int& x) { return x + 1; }
-int  binary_op(const int& x, const int& y) { return x + y; }
+bool cmp(const int &a, const int &b) { return b < a; }
+int unary_op(const int &x) { return x + 1; }
+int binary_op(const int &x, const int &y) { return x + y; }
 
 // 以下为 80 个函数的简单测试
 
 // algobase test:
 TEST(copy_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9,10 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   int exp[5], act[5];
   std::copy(arr1, arr1 + 5, exp);
   mystl::copy(arr1, arr1 + 5, act);
@@ -55,9 +49,9 @@ TEST(copy_test)
 
 TEST(copy_backward_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  std::vector<int> exp{ 0,0,0,0,0,6,7,8,9,10 };
-  int act[] = { 0,0,0,0,0,6,7,8,9,10 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  std::vector<int> exp{0, 0, 0, 0, 0, 6, 7, 8, 9, 10};
+  int act[] = {0, 0, 0, 0, 0, 6, 7, 8, 9, 10};
   std::copy_backward(arr1, arr1 + 5, exp.begin() + 5);
   mystl::copy_backward(arr1, arr1 + 5, act + 5);
   EXPECT_CON_EQ(exp, act);
@@ -68,7 +62,7 @@ TEST(copy_backward_test)
 
 TEST(copy_if_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9,10 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   int exp[5], act[5];
   std::copy_if(arr1, arr1 + 10, exp, is_odd);
   mystl::copy_if(arr1, arr1 + 10, act, is_odd);
@@ -80,7 +74,7 @@ TEST(copy_if_test)
 
 TEST(copy_n_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9,10 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   int exp[10], act[10];
   std::copy_n(arr1, 10, exp);
   mystl::copy_n(arr1, 10, act);
@@ -92,8 +86,8 @@ TEST(copy_n_test)
 
 TEST(move_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 2, 3, 4, 5};
   int exp[5], act[5];
   std::move(arr1, arr1 + 5, exp);
   mystl::move(arr2, arr2 + 5, act);
@@ -103,8 +97,8 @@ TEST(move_test)
 
 TEST(move_backward_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 2, 3, 4, 5};
   int exp[5], act[5];
   std::move_backward(arr1, arr1 + 5, exp + 5);
   mystl::move_backward(arr2, arr2 + 5, act + 5);
@@ -114,10 +108,10 @@ TEST(move_backward_test)
 
 TEST(equal_test)
 {
-  std::vector<int> v1{ 1,2,3,4,5 };
-  std::vector<int> v2{ 1,2,3,4,5,6 };
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,2,3,4,6 };
+  std::vector<int> v1{1, 2, 3, 4, 5};
+  std::vector<int> v2{1, 2, 3, 4, 5, 6};
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 2, 3, 4, 6};
   EXPECT_EQ(std::equal(v1.begin(), v1.end(), v2.begin()),
             mystl::equal(v1.begin(), v1.end(), v2.begin()));
   EXPECT_EQ(std::equal(arr1, arr1 + 5, arr2),
@@ -171,11 +165,11 @@ TEST(iter_swap_test)
 
 TEST(lexicographical_compare_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 0,2,4,6,8 };
-  int arr3[] = { 1,2,3,4,5 };
-  int arr4[] = { 1,2,3,4,5,6 };
-  int arr5[] = { 2,3,4 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {0, 2, 4, 6, 8};
+  int arr3[] = {1, 2, 3, 4, 5};
+  int arr4[] = {1, 2, 3, 4, 5, 6};
+  int arr5[] = {2, 3, 4};
   EXPECT_EQ(std::lexicographical_compare(arr1, arr1 + 5, arr2, arr2 + 5),
             mystl::lexicographical_compare(arr1, arr1 + 5, arr2, arr2 + 5));
   EXPECT_EQ(std::lexicographical_compare(arr1, arr1 + 5, arr3, arr3 + 5),
@@ -208,10 +202,10 @@ TEST(min_test)
 
 TEST(mismatch_test)
 {
-  int arr1[] = { 1,1,2,2,3,4,5 };
-  int arr2[] = { 1,1,2,2,3,3,3 };
-  int arr3[] = { 0,1,2,2,3,4,5 };
-  int arr4[] = { 1,1,2,2,3,4,5 };
+  int arr1[] = {1, 1, 2, 2, 3, 4, 5};
+  int arr2[] = {1, 1, 2, 2, 3, 3, 3};
+  int arr3[] = {0, 1, 2, 2, 3, 4, 5};
+  int arr4[] = {1, 1, 2, 2, 3, 4, 5};
   auto p1 = std::mismatch(arr1, arr1 + 7, arr2);
   auto p2 = mystl::mismatch(arr1, arr1 + 7, arr2);
   auto p3 = std::mismatch(arr1, arr1 + 7, arr3);
@@ -229,12 +223,12 @@ TEST(mismatch_test)
 // heap_algo test
 TEST(make_heap_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr3[] = { 2,1,6,5,4,9,8,7,6 };
-  int arr4[] = { 2,1,6,5,4,9,8,7,6 };
-  int arr5[] = { 1,1,2,2,3,3,4,4,5,5 };
-  int arr6[] = { 1,1,2,2,3,3,4,4,5,5 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr3[] = {2, 1, 6, 5, 4, 9, 8, 7, 6};
+  int arr4[] = {2, 1, 6, 5, 4, 9, 8, 7, 6};
+  int arr5[] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
+  int arr6[] = {1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
   std::make_heap(arr1, arr1 + 9);
   mystl::make_heap(arr2, arr2 + 9);
   std::make_heap(arr3, arr3 + 9);
@@ -248,8 +242,8 @@ TEST(make_heap_test)
 
 TEST(pop_heap_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::make_heap(arr1, arr1 + 9);
   std::make_heap(arr2, arr2 + 9);
   for (int i = 9; i > 0; --i)
@@ -258,8 +252,8 @@ TEST(pop_heap_test)
     mystl::pop_heap(arr2, arr2 + i);
     EXPECT_CON_EQ(arr1, arr2);
   }
-  int arr3[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr4[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr3[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr4[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::make_heap(arr3, arr3 + 9, std::greater<int>());
   std::make_heap(arr4, arr4 + 9, std::greater<int>());
   std::pop_heap(arr3, arr3 + 9, std::greater<int>());
@@ -269,8 +263,8 @@ TEST(pop_heap_test)
 
 TEST(push_heap_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::make_heap(arr1, arr1 + 4);
   std::make_heap(arr2, arr2 + 4);
   for (int i = 4; i <= 9; ++i)
@@ -279,8 +273,8 @@ TEST(push_heap_test)
     mystl::push_heap(arr2, arr2 + i);
     EXPECT_CON_EQ(arr1, arr2);
   }
-  int arr3[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr4[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr3[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr4[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::make_heap(arr3, arr3 + 9, std::greater<int>());
   std::make_heap(arr4, arr4 + 9, std::greater<int>());
   std::push_heap(arr3, arr3 + 9, std::greater<int>());
@@ -290,10 +284,10 @@ TEST(push_heap_test)
 
 TEST(sort_heap_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr3[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr4[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr3[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr4[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::make_heap(arr1, arr1 + 9);
   std::make_heap(arr2, arr2 + 9);
   std::make_heap(arr3, arr3 + 9, std::greater<int>());
@@ -309,10 +303,10 @@ TEST(sort_heap_test)
 // set_algo test
 TEST(set_difference_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6 };
-  int arr3[] = { 1,2,3 };
-  int exp[6] = { 0 }, act[6] = { 0 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6};
+  int arr3[] = {1, 2, 3};
+  int exp[6] = {0}, act[6] = {0};
   std::set_difference(arr1, arr1 + 9, arr2, arr2 + 6, exp);
   mystl::set_difference(arr1, arr1 + 9, arr2, arr2 + 6, act);
   EXPECT_CON_EQ(exp, act);
@@ -326,10 +320,10 @@ TEST(set_difference_test)
 
 TEST(set_intersection_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6 };
-  int arr3[] = { 1,2,3 };
-  int exp[9] = { 0 }, act[9] = { 0 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6};
+  int arr3[] = {1, 2, 3};
+  int exp[9] = {0}, act[9] = {0};
   std::set_intersection(arr1, arr1 + 9, arr2, arr2 + 6, exp);
   mystl::set_intersection(arr1, arr1 + 9, arr2, arr2 + 6, act);
   EXPECT_CON_EQ(exp, act);
@@ -343,10 +337,10 @@ TEST(set_intersection_test)
 
 TEST(set_symmetric_difference_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,3,5,7,9 };
-  int arr3[] = { 2,4,6,8,10 };
-  int exp[10] = { 0 }, act[10] = { 0 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 3, 5, 7, 9};
+  int arr3[] = {2, 4, 6, 8, 10};
+  int exp[10] = {0}, act[10] = {0};
   std::set_symmetric_difference(arr1, arr1 + 5, arr2, arr2 + 5, exp);
   mystl::set_symmetric_difference(arr1, arr1 + 5, arr2, arr2 + 5, act);
   EXPECT_CON_EQ(exp, act);
@@ -360,10 +354,10 @@ TEST(set_symmetric_difference_test)
 
 TEST(set_union_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,3,5,7,9 };
-  int arr3[] = { 2,4,6,8,10 };
-  int exp[10] = { 0 }, act[10] = { 0 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 3, 5, 7, 9};
+  int arr3[] = {2, 4, 6, 8, 10};
+  int exp[10] = {0}, act[10] = {0};
   std::set_union(arr1, arr1 + 5, arr2, arr2 + 5, exp);
   mystl::set_union(arr1, arr1 + 5, arr2, arr2 + 5, act);
   EXPECT_CON_EQ(exp, act);
@@ -378,7 +372,7 @@ TEST(set_union_test)
 // numeric test
 TEST(accumulate_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::accumulate(arr1, arr1 + 5, 0),
             mystl::accumulate(arr1, arr1 + 5, 0));
   EXPECT_EQ(std::accumulate(arr1, arr1 + 5, 5),
@@ -389,8 +383,8 @@ TEST(accumulate_test)
 
 TEST(adjacent_difference_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,1,1,1,1 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 1, 1, 1, 1};
   int exp[5], act[5];
   std::adjacent_difference(arr1, arr1 + 5, exp);
   mystl::adjacent_difference(arr1, arr1 + 5, act);
@@ -402,9 +396,9 @@ TEST(adjacent_difference_test)
 
 TEST(inner_product_test)
 {
-  int arr1[] = { 1,1,1,1,1 };
-  int arr2[] = { 2,2,2,2,2 };
-  int arr3[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 1, 1, 1, 1};
+  int arr2[] = {2, 2, 2, 2, 2};
+  int arr3[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::inner_product(arr1, arr1 + 5, arr3, 0),
             mystl::inner_product(arr1, arr1 + 5, arr3, 0));
   EXPECT_EQ(std::inner_product(arr2, arr2 + 5, arr3, 0, std::minus<int>(), std::multiplies<int>()),
@@ -425,7 +419,7 @@ TEST(iota_test)
 
 TEST(partial_sum_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   int exp1[5], act1[5];
   int exp2[9], act2[9];
   std::partial_sum(arr1, arr1 + 5, exp1);
@@ -442,8 +436,8 @@ TEST(partial_sum_test)
 // algo test
 TEST(adjacent_find_test)
 {
-  int arr1[] = { 1,2,3,3,4 };
-  int arr2[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 3, 4};
+  int arr2[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::adjacent_find(arr1, arr1 + 5),
             mystl::adjacent_find(arr1, arr1 + 5));
   EXPECT_EQ(std::adjacent_find(arr2, arr2 + 5),
@@ -454,8 +448,8 @@ TEST(adjacent_find_test)
 
 TEST(all_of_test)
 {
-  int arr1[] = { 1,3,5,7,9 };
-  int arr2[] = { 1,3,5,7,8 };
+  int arr1[] = {1, 3, 5, 7, 9};
+  int arr2[] = {1, 3, 5, 7, 8};
   EXPECT_EQ(std::all_of(arr1, arr1 + 5, is_odd),
             mystl::all_of(arr1, arr1 + 5, is_odd));
   EXPECT_EQ(std::all_of(arr2, arr2 + 5, is_odd),
@@ -464,8 +458,8 @@ TEST(all_of_test)
 
 TEST(any_of_test)
 {
-  int arr1[] = { 1,2,4,6,8 };
-  int arr2[] = { 2,4,6,8,10 };
+  int arr1[] = {1, 2, 4, 6, 8};
+  int arr2[] = {2, 4, 6, 8, 10};
   EXPECT_EQ(std::any_of(arr1, arr1 + 5, is_odd),
             mystl::any_of(arr1, arr1 + 5, is_odd));
   EXPECT_EQ(std::any_of(arr2, arr2 + 5, is_odd),
@@ -474,7 +468,7 @@ TEST(any_of_test)
 
 TEST(binary_search_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::binary_search(arr1, arr1 + 5, 1),
             mystl::binary_search(arr1, arr1 + 5, 1));
   EXPECT_EQ(std::binary_search(arr1, arr1 + 5, 6),
@@ -483,7 +477,7 @@ TEST(binary_search_test)
 
 TEST(count_test)
 {
-  int arr1[] = { 1,2,2,3,3,3,4,5,8 };
+  int arr1[] = {1, 2, 2, 3, 3, 3, 4, 5, 8};
   EXPECT_EQ(std::count(arr1, arr1 + 9, 2),
             mystl::count(arr1, arr1 + 9, 2));
   EXPECT_EQ(std::count(arr1, arr1 + 9, 3),
@@ -494,7 +488,7 @@ TEST(count_test)
 
 TEST(count_if_test)
 {
-  int arr1[] = { 1,2,2,3,3,3,4,5,8 };
+  int arr1[] = {1, 2, 2, 3, 3, 3, 4, 5, 8};
   EXPECT_EQ(std::count_if(arr1, arr1 + 9, is_odd),
             mystl::count_if(arr1, arr1 + 9, is_odd));
   EXPECT_EQ(std::count_if(arr1, arr1 + 9, is_even),
@@ -503,7 +497,7 @@ TEST(count_if_test)
 
 TEST(equal_range_test)
 {
-  int arr1[] = { 1,2,3,3,3,4,5 };
+  int arr1[] = {1, 2, 3, 3, 3, 4, 5};
   auto p1 = mystl::equal_range(arr1, arr1 + 7, 3);
   auto p2 = std::equal_range(arr1, arr1 + 7, 3);
   auto p3 = mystl::equal_range(arr1, arr1 + 7, 6, std::equal_to<int>());
@@ -516,16 +510,16 @@ TEST(equal_range_test)
 
 TEST(find_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::find(arr1, arr1 + 5, 3), mystl::find(arr1, arr1 + 5, 3));
   EXPECT_EQ(std::find(arr1, arr1 + 5, 6), mystl::find(arr1, arr1 + 5, 6));
 }
 
 TEST(find_end_test)
 {
-  int arr1[] = { 1,2,3,2,2,3,4,5 };
-  int arr2[] = { 2,3 };
-  int arr3[] = { 4,5,6 };
+  int arr1[] = {1, 2, 3, 2, 2, 3, 4, 5};
+  int arr2[] = {2, 3};
+  int arr3[] = {4, 5, 6};
   EXPECT_EQ(std::find_end(arr1, arr1 + 8, arr2, arr2 + 1),
             mystl::find_end(arr1, arr1 + 8, arr2, arr2 + 1));
   EXPECT_EQ(std::find_end(arr1, arr1 + 8, arr3, arr3 + 2),
@@ -538,9 +532,9 @@ TEST(find_end_test)
 
 TEST(find_first_of_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 2,3,4 };
-  int arr3[] = { 6,7,8 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {2, 3, 4};
+  int arr3[] = {6, 7, 8};
   EXPECT_EQ(std::find_first_of(arr1, arr1 + 5, arr2, arr2 + 3),
             mystl::find_first_of(arr1, arr1 + 5, arr2, arr2 + 3));
   EXPECT_EQ(std::find_first_of(arr1, arr1 + 5, arr3, arr3 + 3, std::equal_to<int>()),
@@ -549,7 +543,7 @@ TEST(find_first_of_test)
 
 TEST(find_if_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::find_if(arr1, arr1 + 5, is_odd),
             mystl::find_if(arr1, arr1 + 5, is_odd));
   EXPECT_EQ(std::find_if(arr1, arr1 + 5, is_even),
@@ -558,7 +552,7 @@ TEST(find_if_test)
 
 TEST(find_if_not_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
+  int arr1[] = {1, 2, 3, 4, 5};
   EXPECT_EQ(std::find_if_not(arr1, arr1 + 5, is_odd),
             mystl::find_if_not(arr1, arr1 + 5, is_odd));
   EXPECT_EQ(std::find_if_not(arr1, arr1 + 5, is_even),
@@ -567,7 +561,7 @@ TEST(find_if_not_test)
 
 TEST(for_each_test)
 {
-  std::vector<int> v1{ 1,2,3,4,5 };
+  std::vector<int> v1{1, 2, 3, 4, 5};
   std::for_each(v1.begin(), v1.end(), arr_sum);
   EXPECT_EQ(15, for_each_sum);
   mystl::for_each(v1.begin(), v1.end(), arr_sum);
@@ -585,8 +579,8 @@ TEST(generate_test)
 
 TEST(generate_n_test)
 {
-  int arr1[] = { 1,1,1,1,1,6,7,8,9,10 };
-  int arr2[] = { 2,2,2,2,2,6,7,8,9,10 };
+  int arr1[] = {1, 1, 1, 1, 1, 6, 7, 8, 9, 10};
+  int arr2[] = {2, 2, 2, 2, 2, 6, 7, 8, 9, 10};
   std::generate_n(arr1, 5, gen);
   mystl::generate_n(arr2, 5, gen);
   EXPECT_CON_EQ(arr1, arr2);
@@ -594,10 +588,10 @@ TEST(generate_n_test)
 
 TEST(includes_test)
 {
-  std::vector<int> v1{ 1,2,3,4,5,6,7,8,9 };
-  std::vector<int> v2{ 2,3,5,6,9 };
-  std::vector<int> v3{ 0,1,2,3,4 };
-  std::vector<int> v4{ 1,2,5,7,10 };
+  std::vector<int> v1{1, 2, 3, 4, 5, 6, 7, 8, 9};
+  std::vector<int> v2{2, 3, 5, 6, 9};
+  std::vector<int> v3{0, 1, 2, 3, 4};
+  std::vector<int> v4{1, 2, 5, 7, 10};
   std::vector<int> v5;
   EXPECT_EQ(std::includes(v1.begin(), v1.end(), v2.begin(), v2.end()),
             mystl::includes(v1.begin(), v1.end(), v2.begin(), v2.end()));
@@ -611,10 +605,10 @@ TEST(includes_test)
 
 TEST(inplace_merge_test)
 {
-  int arr1[] = { 1,3,5,7,9,2,4,6,8,10 };
-  int arr2[] = { 1,3,5,7,9,2,4,6,8,10 };
-  int arr3[] = { 1,2,3,1,2,3,4,5 };
-  int arr4[] = { 1,2,3,1,2,3,4,5 };
+  int arr1[] = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+  int arr2[] = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+  int arr3[] = {1, 2, 3, 1, 2, 3, 4, 5};
+  int arr4[] = {1, 2, 3, 1, 2, 3, 4, 5};
   std::inplace_merge(arr1, arr1 + 5, arr1 + 10);
   mystl::inplace_merge(arr2, arr2 + 5, arr2 + 10);
   std::inplace_merge(arr3, arr3 + 3, arr3 + 8, std::less<int>());
@@ -625,10 +619,10 @@ TEST(inplace_merge_test)
 
 TEST(is_heap_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 9,8,7,6,5,4,3,2,1 };
-  int arr3[] = { 1,3,5,7,9,2,4,6,8 };
-  int arr4[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+  int arr3[] = {1, 3, 5, 7, 9, 2, 4, 6, 8};
+  int arr4[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::make_heap(arr4, arr4 + 10);
   EXPECT_EQ(std::is_heap(arr1, arr1 + 10), mystl::is_heap(arr1, arr1 + 10));
   EXPECT_EQ(std::is_heap(arr2, arr2 + 10, std::less<int>()),
@@ -639,10 +633,10 @@ TEST(is_heap_test)
 
 TEST(is_sorted_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 1,2,3,5,4 };
-  int arr3[] = { 5,4,3,2,1 };
-  int arr4[] = { 1,2,5,4,3 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {1, 2, 3, 5, 4};
+  int arr3[] = {5, 4, 3, 2, 1};
+  int arr4[] = {1, 2, 5, 4, 3};
   EXPECT_EQ(std::is_sorted(arr1, arr1 + 5), mystl::is_sorted(arr1, arr1 + 5));
   EXPECT_EQ(std::is_sorted(arr2, arr2 + 5), mystl::is_sorted(arr2, arr2 + 5));
   EXPECT_EQ(std::is_sorted(arr3, arr3 + 5, std::less<int>()),
@@ -653,7 +647,7 @@ TEST(is_sorted_test)
 
 TEST(lower_bound_test)
 {
-  int arr1[] = { 1,2,3,3,3,4,5 };
+  int arr1[] = {1, 2, 3, 3, 3, 4, 5};
   EXPECT_EQ(std::lower_bound(arr1, arr1 + 7, 1),
             mystl::lower_bound(arr1, arr1 + 7, 1));
   EXPECT_EQ(std::lower_bound(arr1, arr1 + 7, 2),
@@ -666,8 +660,8 @@ TEST(lower_bound_test)
 
 TEST(max_elememt_test)
 {
-  int arr1[] = { 1,2,3,4,5,4,3,2,1 };
-  double arr2[] = { 1.0,2.2,6.6,8.8,8.81,2.4 };
+  int arr1[] = {1, 2, 3, 4, 5, 4, 3, 2, 1};
+  double arr2[] = {1.0, 2.2, 6.6, 8.8, 8.81, 2.4};
   EXPECT_PTR_EQ(std::max_element(arr1, arr1 + 9),
                 mystl::max_element(arr1, arr1 + 9));
   EXPECT_PTR_EQ(std::max_element(arr2, arr2 + 6, std::less<double>()),
@@ -684,10 +678,10 @@ TEST(median_test)
 
 TEST(merge_test)
 {
-  int arr1[] = { 1,2,5,9,10 };
-  int arr2[] = { 3,7,8,8,9 };
-  int arr3[] = { 1,2,5,9,10 };
-  int arr4[] = { 3,7,8,8,9 };
+  int arr1[] = {1, 2, 5, 9, 10};
+  int arr2[] = {3, 7, 8, 8, 9};
+  int arr3[] = {1, 2, 5, 9, 10};
+  int arr4[] = {3, 7, 8, 8, 9};
   int exp[10], act[10];
   std::merge(arr1, arr1 + 5, arr2, arr2 + 5, exp);
   mystl::merge(arr3, arr3 + 5, arr4, arr4 + 5, act);
@@ -699,8 +693,8 @@ TEST(merge_test)
 
 TEST(min_elememt_test)
 {
-  int arr1[] = { 2,4,8,1,6,5,8,9,3 };
-  double arr2[] = { 1.5,2.2,1.4,1.33,1.333,2.33 };
+  int arr1[] = {2, 4, 8, 1, 6, 5, 8, 9, 3};
+  double arr2[] = {1.5, 2.2, 1.4, 1.33, 1.333, 2.33};
   EXPECT_PTR_EQ(std::max_element(arr1, arr1 + 9),
                 mystl::max_element(arr1, arr1 + 9));
   EXPECT_PTR_EQ(std::max_element(arr2, arr2 + 6, std::less<double>()),
@@ -709,9 +703,9 @@ TEST(min_elememt_test)
 
 TEST(is_permutation_test)
 {
-  int arr1[] = { 1,2,3,4,5 };
-  int arr2[] = { 3,4,5,2,1 };
-  int arr3[] = { 1,2,3,4,6 };
+  int arr1[] = {1, 2, 3, 4, 5};
+  int arr2[] = {3, 4, 5, 2, 1};
+  int arr3[] = {1, 2, 3, 4, 6};
   // 因为提供的是 C++11 的支持，std::is_permutation 可能没有 C++14 的接口
   EXPECT_EQ(std::is_permutation(arr1, arr1 + 5, arr2),
             mystl::is_permutation(arr1, arr1 + 5, arr2, arr2 + 5));
@@ -725,11 +719,13 @@ TEST(is_permutation_test)
 
 TEST(next_permutation_test)
 {
-  int arr1[] = { 1,2,3,3 };
-  int arr2[] = { 1,2,3,3 };
+  int arr1[] = {1, 2, 3, 3};
+  int arr2[] = {1, 2, 3, 3};
   int n1 = 0, n2 = 0;
-  while (std::next_permutation(arr1, arr1 + 4))    n1++;
-  while (mystl::next_permutation(arr1, arr1 + 4))    n2++;
+  while (std::next_permutation(arr1, arr1 + 4))
+    n1++;
+  while (mystl::next_permutation(arr1, arr1 + 4))
+    n2++;
   EXPECT_EQ(n1, n2);
   for (; n1 > 0; n1--)
   {
@@ -744,9 +740,9 @@ TEST(next_permutation_test)
 
 TEST(none_of_test)
 {
-  int arr1[] = { 1,3,5,7,9 };
-  int arr2[] = { 1,3,5,7,8 };
-  int arr3[] = { 2,4,6,8,10 };
+  int arr1[] = {1, 3, 5, 7, 9};
+  int arr2[] = {1, 3, 5, 7, 8};
+  int arr3[] = {2, 4, 6, 8, 10};
   EXPECT_EQ(std::none_of(arr1, arr1 + 5, is_even),
             mystl::none_of(arr1, arr1 + 5, is_even));
   EXPECT_EQ(std::none_of(arr2, arr2 + 5, is_even),
@@ -757,10 +753,10 @@ TEST(none_of_test)
 
 TEST(nth_element_test)
 {
-  int arr1[] = { 9,8,7,6,5,4,3,2,1 };
-  int arr2[] = { 1,2,3,4,5,6,3,2,1 };
-  int arr3[] = { 1,2,8,9,6,5,3,4,7 };
-  int arr4[] = { 1,5,1,5,8,4,9,6,8,4,10,13,20,4,2,1 };
+  int arr1[] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 3, 2, 1};
+  int arr3[] = {1, 2, 8, 9, 6, 5, 3, 4, 7};
+  int arr4[] = {1, 5, 1, 5, 8, 4, 9, 6, 8, 4, 10, 13, 20, 4, 2, 1};
   mystl::nth_element(arr1, arr1 + 4, arr1 + 9);
   mystl::nth_element(arr2, arr2 + 2, arr2 + 9);
   mystl::nth_element(arr3, arr3 + 8, arr3 + 9, std::less<int>());
@@ -771,23 +767,31 @@ TEST(nth_element_test)
   bool arr4_left_less = true, arr4_right_greater = true;
   for (int i = 0; i < 9; ++i)
   {
-    if (i < 4 && arr1[i] > arr1[4])    arr1_left_less = false;
-    else if (i > 4 && arr1[i] < arr1[4])    arr1_right_greater = false;
+    if (i < 4 && arr1[i] > arr1[4])
+      arr1_left_less = false;
+    else if (i > 4 && arr1[i] < arr1[4])
+      arr1_right_greater = false;
   }
   for (int i = 0; i < 9; ++i)
   {
-    if (i < 2 && arr2[i] > arr2[2])    arr2_left_less = false;
-    else if (i > 2 && arr2[i] < arr2[2])    arr2_right_greater = false;
+    if (i < 2 && arr2[i] > arr2[2])
+      arr2_left_less = false;
+    else if (i > 2 && arr2[i] < arr2[2])
+      arr2_right_greater = false;
   }
   for (int i = 0; i < 9; ++i)
   {
-    if (i < 8 && arr3[i] > arr3[8])    arr3_left_less = false;
-    else if (i > 8 && arr3[i] < arr3[8])    arr3_right_greater = false;
+    if (i < 8 && arr3[i] > arr3[8])
+      arr3_left_less = false;
+    else if (i > 8 && arr3[i] < arr3[8])
+      arr3_right_greater = false;
   }
   for (int i = 0; i < 16; ++i)
   {
-    if (i < 3 && arr4[i] > arr4[3])    arr4_left_less = false;
-    else if (i > 3 && arr4[i] < arr4[3])    arr4_right_greater = false;
+    if (i < 3 && arr4[i] > arr4[3])
+      arr4_left_less = false;
+    else if (i > 3 && arr4[i] < arr4[3])
+      arr4_right_greater = false;
   }
   EXPECT_TRUE(arr1_left_less);
   EXPECT_TRUE(arr1_right_greater);
@@ -801,10 +805,10 @@ TEST(nth_element_test)
 
 TEST(partial_sort_test)
 {
-  int arr1[] = { 3,2,1,9,8,7,6,5,4 };
-  int arr2[] = { 3,2,1,9,8,7,6,5,4 };
-  int arr3[] = { 5,1,5,8,6,4,8,4,1,3,5,8,4 };
-  int arr4[] = { 5,1,5,8,6,4,8,4,1,3,5,8,4 };
+  int arr1[] = {3, 2, 1, 9, 8, 7, 6, 5, 4};
+  int arr2[] = {3, 2, 1, 9, 8, 7, 6, 5, 4};
+  int arr3[] = {5, 1, 5, 8, 6, 4, 8, 4, 1, 3, 5, 8, 4};
+  int arr4[] = {5, 1, 5, 8, 6, 4, 8, 4, 1, 3, 5, 8, 4};
   std::partial_sort(arr1, arr1 + 2, arr1 + 9);
   mystl::partial_sort(arr2, arr2 + 2, arr2 + 9);
   std::partial_sort(arr3, arr3 + 5, arr3 + 13, std::greater<int>());
@@ -815,9 +819,9 @@ TEST(partial_sort_test)
 
 TEST(partial_sort_copy_test)
 {
-  int arr1[] = { 3,2,1,9,8,7,6,5,4 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr3[] = { 1,6,8,4,2,1,6,8,4,7,6,2,1,3,6 };
+  int arr1[] = {3, 2, 1, 9, 8, 7, 6, 5, 4};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr3[] = {1, 6, 8, 4, 2, 1, 6, 8, 4, 7, 6, 2, 1, 3, 6};
   int exp[5], act[5];
   std::partial_sort_copy(arr1, arr1 + 9, exp, exp + 5);
   mystl::partial_sort_copy(arr1, arr1 + 9, act, act + 5);
@@ -832,8 +836,8 @@ TEST(partial_sort_copy_test)
 
 TEST(partition_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::partition(arr1, arr1 + 9, is_odd);
   mystl::partition(arr2, arr2 + 9, is_odd);
   EXPECT_CON_EQ(arr1, arr2);
@@ -844,7 +848,7 @@ TEST(partition_test)
 
 TEST(partition_copy_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9,10 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   int exp_true[5], exp_false[5];
   int act_true[5], act_false[5];
   std::partition_copy(arr1, arr1 + 10, exp_true, exp_false, is_odd);
@@ -855,11 +859,13 @@ TEST(partition_copy_test)
 
 TEST(prev_permutation_test)
 {
-  int arr1[] = { 3,2,1,1 };
-  int arr2[] = { 3,2,1,1 };
+  int arr1[] = {3, 2, 1, 1};
+  int arr2[] = {3, 2, 1, 1};
   int n1 = 0, n2 = 0;
-  while (std::prev_permutation(arr1, arr1 + 4))    n1++;
-  while (mystl::prev_permutation(arr1, arr1 + 4))    n2++;
+  while (std::prev_permutation(arr1, arr1 + 4))
+    n1++;
+  while (mystl::prev_permutation(arr1, arr1 + 4))
+    n2++;
   EXPECT_EQ(n1, n2);
   for (; n1 > 0; n1--)
   {
@@ -874,7 +880,7 @@ TEST(prev_permutation_test)
 
 TEST(random_shuffle_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   int arr2[9];
   for (int i = 0; i < 9; ++i)
   {
@@ -889,7 +895,7 @@ TEST(random_shuffle_test)
 
 TEST(remove_test)
 {
-  std::vector<int> v1{ 1,2,3,4,5,6,6,6 };
+  std::vector<int> v1{1, 2, 3, 4, 5, 6, 6, 6};
   std::vector<int> v2(v1);
   std::remove(v1.begin(), v1.end(), 3);
   mystl::remove(v2.begin(), v2.end(), 3);
@@ -901,8 +907,8 @@ TEST(remove_test)
 
 TEST(remove_copy_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,6,6 };
-  int arr2[] = { 1,2,3,4,5,6,6,6 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 6, 6};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 6, 6};
   int exp[5], act[5];
   std::remove_copy(arr1, arr1 + 8, exp, 6);
   mystl::remove_copy(arr2, arr2 + 8, act, 6);
@@ -914,7 +920,7 @@ TEST(remove_copy_test)
 
 TEST(remove_copy_if_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9,10 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   int exp[5], act[5];
   std::remove_copy_if(arr1, arr1 + 10, exp, is_odd);
   mystl::remove_copy_if(arr1, arr1 + 10, act, is_odd);
@@ -926,7 +932,7 @@ TEST(remove_copy_if_test)
 
 TEST(remove_if_test)
 {
-  std::vector<int> v1{ 1,2,3,4,5,6,7,8,9,10 };
+  std::vector<int> v1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   std::vector<int> v2(v1);
   std::remove_if(v1.begin(), v1.end(), is_odd);
   mystl::remove_if(v2.begin(), v2.end(), is_odd);
@@ -935,8 +941,8 @@ TEST(remove_if_test)
 
 TEST(replace_test)
 {
-  int arr1[] = { 1,1,1,2,2,2,3,3,3 };
-  int arr2[] = { 1,1,1,2,2,2,3,3,3 };
+  int arr1[] = {1, 1, 1, 2, 2, 2, 3, 3, 3};
+  int arr2[] = {1, 1, 1, 2, 2, 2, 3, 3, 3};
   std::replace(arr1, arr1 + 9, 1, 4);
   mystl::replace(arr2, arr2 + 9, 1, 4);
   EXPECT_CON_EQ(arr1, arr2);
@@ -950,7 +956,7 @@ TEST(replace_test)
 
 TEST(replace_copy_test)
 {
-  int arr1[] = { 1,1,1,2,2,2,3,3,3 };
+  int arr1[] = {1, 1, 1, 2, 2, 2, 3, 3, 3};
   int exp[9], act[9];
   std::replace_copy(arr1, arr1 + 9, exp, 1, 4);
   mystl::replace_copy(arr1, arr1 + 9, act, 1, 4);
@@ -965,8 +971,8 @@ TEST(replace_copy_test)
 
 TEST(replace_copy_if_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9,10 };
-  int exp[10] = { 0 }, act[10] = { 0 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+  int exp[10] = {0}, act[10] = {0};
   std::replace_copy_if(arr1, arr1 + 10, exp, is_odd, 1);
   mystl::replace_copy_if(arr1, arr1 + 10, act, is_odd, 1);
   EXPECT_CON_EQ(exp, act);
@@ -977,7 +983,7 @@ TEST(replace_copy_if_test)
 
 TEST(replace_if_test)
 {
-  std::vector<int> v1{ 1,2,3,4,5,6,7,8,9,10 };
+  std::vector<int> v1{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   std::vector<int> v2(v1);
   std::replace_if(v1.begin(), v1.end(), is_odd, 1);
   mystl::replace_if(v2.begin(), v2.end(), is_odd, 1);
@@ -989,8 +995,8 @@ TEST(replace_if_test)
 
 TEST(reverse_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::reverse(arr1, arr1 + 9);
   mystl::reverse(arr2, arr2 + 9);
   EXPECT_CON_EQ(arr1, arr2);
@@ -1001,7 +1007,7 @@ TEST(reverse_test)
 
 TEST(reverse_copy_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   int exp[5], act[5];
   std::reverse_copy(arr1, arr1 + 5, exp);
   mystl::reverse_copy(arr1, arr1 + 5, act);
@@ -1013,8 +1019,8 @@ TEST(reverse_copy_test)
 
 TEST(rotate_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   std::rotate(arr1, arr1 + 3, arr1 + 9);
   mystl::rotate(arr2, arr2 + 3, arr2 + 9);
   EXPECT_CON_EQ(arr1, arr2);
@@ -1028,7 +1034,7 @@ TEST(rotate_test)
 
 TEST(rotate_copy_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
   int exp[9], act[9];
   std::rotate_copy(arr1, arr1 + 5, arr1 + 9, exp);
   mystl::rotate_copy(arr1, arr1 + 5, arr1 + 9, act);
@@ -1043,10 +1049,20 @@ TEST(rotate_copy_test)
 
 TEST(search_test)
 {
-  int arr1[] = { 1,2,3,3,3,4,5,6,6, };
-  int arr2[] = { 1 };
-  int arr3[] = { 3,3 };
-  int arr4[] = { 5,6,6,6 };
+  int arr1[] = {
+      1,
+      2,
+      3,
+      3,
+      3,
+      4,
+      5,
+      6,
+      6,
+  };
+  int arr2[] = {1};
+  int arr3[] = {3, 3};
+  int arr4[] = {5, 6, 6, 6};
   EXPECT_EQ(std::search(arr1, arr1 + 9, arr2, arr2 + 1),
             mystl::search(arr1, arr1 + 9, arr2, arr2 + 1));
   EXPECT_EQ(std::search(arr1, arr1 + 9, arr3, arr3 + 2),
@@ -1059,7 +1075,7 @@ TEST(search_test)
 
 TEST(search_n_test)
 {
-  int arr1[] = { 1,2,2,3,3,3,6,6,9 };
+  int arr1[] = {1, 2, 2, 3, 3, 3, 6, 6, 9};
   EXPECT_EQ(std::search_n(arr1, arr1 + 9, 1, 0),
             mystl::search_n(arr1, arr1 + 9, 1, 0));
   EXPECT_EQ(std::search_n(arr1, arr1 + 9, 2, 2),
@@ -1074,12 +1090,12 @@ TEST(search_n_test)
 
 TEST(sort_test)
 {
-  int arr1[] = { 6,1,2,5,4,8,3,2,4,6,10,2,1,9 };
-  int arr2[] = { 6,1,2,5,4,8,3,2,4,6,10,2,1,9 };
-  int arr3[] = { 80,30,51,65,12,10,24,87,62,51,32,45,1,33,66,20,35,84,62,14 };
-  int arr4[] = { 80,30,51,65,12,10,24,87,62,51,32,45,1,33,66,20,35,84,62,14 };
-  int arr5[] = { 9,9,9,8,8,8,7,7,7 };
-  int arr6[] = { 9,9,9,8,8,8,7,7,7 };
+  int arr1[] = {6, 1, 2, 5, 4, 8, 3, 2, 4, 6, 10, 2, 1, 9};
+  int arr2[] = {6, 1, 2, 5, 4, 8, 3, 2, 4, 6, 10, 2, 1, 9};
+  int arr3[] = {80, 30, 51, 65, 12, 10, 24, 87, 62, 51, 32, 45, 1, 33, 66, 20, 35, 84, 62, 14};
+  int arr4[] = {80, 30, 51, 65, 12, 10, 24, 87, 62, 51, 32, 45, 1, 33, 66, 20, 35, 84, 62, 14};
+  int arr5[] = {9, 9, 9, 8, 8, 8, 7, 7, 7};
+  int arr6[] = {9, 9, 9, 8, 8, 8, 7, 7, 7};
   std::sort(arr1, arr1 + 14);
   mystl::sort(arr2, arr2 + 14);
   std::sort(arr3, arr3 + 20);
@@ -1093,12 +1109,12 @@ TEST(sort_test)
 
 TEST(swap_ranges_test)
 {
-  int arr1[] = { 4,5,6,1,2,3 };
-  int arr2[] = { 4,5,6,1,2,3 };
-  int arr3[] = { 1,2,3,4,5,6 };
-  int arr4[] = { 1,2,3,4,5,6 };
-  int arr5[] = { 1,1,1 };
-  int arr6[] = { 1,1,1 };
+  int arr1[] = {4, 5, 6, 1, 2, 3};
+  int arr2[] = {4, 5, 6, 1, 2, 3};
+  int arr3[] = {1, 2, 3, 4, 5, 6};
+  int arr4[] = {1, 2, 3, 4, 5, 6};
+  int arr5[] = {1, 1, 1};
+  int arr6[] = {1, 1, 1};
   std::swap_ranges(arr1, arr1 + 6, arr3);
   mystl::swap_ranges(arr2, arr2 + 6, arr4);
   std::swap_ranges(arr1, arr1 + 3, arr5);
@@ -1109,8 +1125,8 @@ TEST(swap_ranges_test)
 
 TEST(transform_test)
 {
-  int arr1[] = { 1,2,3,4,5,6,7,8,9 };
-  int arr2[] = { 9,8,7,6,5,4,3,2,1 };
+  int arr1[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int arr2[] = {9, 8, 7, 6, 5, 4, 3, 2, 1};
   int exp[9], act[9];
   std::transform(arr1, arr1 + 9, exp, unary_op);
   mystl::transform(arr1, arr1 + 9, act, unary_op);
@@ -1122,10 +1138,10 @@ TEST(transform_test)
 
 TEST(unique_test)
 {
-  int arr1[] = { 1,1,1,2,2,3,4,4,5,6 };
-  int arr2[] = { 1,1,1,2,2,3,4,4,5,6 };
-  int arr3[] = { 1,2,3,6,6,6,8,8,9 };
-  int arr4[] = { 1,2,3,6,6,6,8,8,9 };
+  int arr1[] = {1, 1, 1, 2, 2, 3, 4, 4, 5, 6};
+  int arr2[] = {1, 1, 1, 2, 2, 3, 4, 4, 5, 6};
+  int arr3[] = {1, 2, 3, 6, 6, 6, 8, 8, 9};
+  int arr4[] = {1, 2, 3, 6, 6, 6, 8, 8, 9};
   std::unique(arr1, arr1 + 10);
   mystl::unique(arr2, arr2 + 10);
   std::unique(arr3, arr3 + 9, std::equal_to<int>());
@@ -1136,8 +1152,8 @@ TEST(unique_test)
 
 TEST(unique_copy_test)
 {
-  int arr1[] = { 1,1,1,2,2,3,4,4,5,6 };
-  int arr2[] = { 1,2,3,6,6,6,8,8,9 };
+  int arr1[] = {1, 1, 1, 2, 2, 3, 4, 4, 5, 6};
+  int arr2[] = {1, 2, 3, 6, 6, 6, 8, 8, 9};
   int exp[6], act[6];
   std::unique_copy(arr1, arr1 + 10, exp);
   mystl::unique_copy(arr1, arr1 + 10, act);
@@ -1149,7 +1165,7 @@ TEST(unique_copy_test)
 
 TEST(upper_bound_test)
 {
-  int arr1[] = { 1,2,3,3,3,4,5,6,6 };
+  int arr1[] = {1, 2, 3, 3, 3, 4, 5, 6, 6};
   EXPECT_EQ(std::upper_bound(arr1, arr1 + 9, 0),
             mystl::upper_bound(arr1, arr1 + 9, 0));
   EXPECT_EQ(std::upper_bound(arr1, arr1 + 9, 1),
@@ -1162,10 +1178,9 @@ TEST(upper_bound_test)
             mystl::upper_bound(arr1, arr1 + 9, 7, std::less<int>()));
 }
 
-} // namespace algorithm_test
+int main()
+{
+  initlog();
+  RUN_ALL_TESTS();
 
-
-
-
-#endif // !MYSTL_ALGORITHM_TEST_H_
-
+}

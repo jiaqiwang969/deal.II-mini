@@ -1,19 +1,32 @@
-﻿#ifndef MYSTL_VECTOR_TEST_H_
-#define MYSTL_VECTOR_TEST_H_
+﻿// ---------------------------------------------------------------------
+//
+// Copyright (C) 2012 - 2021 by the deal.II authors
+//
+// This file is part of the deal.II library.
+//
+// The deal.II library is free software; you can use it, redistribute
+// it, and/or modify it under the terms of the GNU Lesser General
+// Public License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+// The full text of the license can be found in the file LICENSE.md at
+// the top level directory of deal.II.
+//
+// ---------------------------------------------------------------------
 
-// vector test : 测试 vector 的接口与 push_back 的性能
-
-#include <vector>
+// test for AlignedVector<unsigned int> which tests the basic stuff in the
+// aligned vector
 
 #include <deal.II/mystl/vector.h>
-#include "../test.h"
 
+#include "../tests.h"
+#include "../testfun.h"
 
-      void vector_test()
-      {
-        std::cout << "[===============================================================]\n";
-        std::cout << "[----------------- Run container test : vector -----------------]\n";
-        std::cout << "[-------------------------- API test ---------------------------]\n";
+void test()
+{
+        deallog << "[===============================================================]" << std::endl;
+        deallog << "[----------------- Run container test : vector -----------------]" << std::endl;
+        deallog << "[-------------------------- API test ---------------------------]" << std::endl;
+
         int a[] = {1, 2, 3, 4, 5};
         mystl::vector<int> v1;
         mystl::vector<int> v2(10);
@@ -27,7 +40,6 @@
         v9 = std::move(v3);
         v10 = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-        FUN_AFTER(v1, v1.assign(8, 8));
         FUN_AFTER(v1, v1.assign(a, a + 5));
         FUN_AFTER(v1, v1.emplace(v1.begin(), 0));
         FUN_AFTER(v1, v1.emplace_back(6));
@@ -52,12 +64,11 @@
         *p = 10;
         *++p = 20;
         p[1] = 30;
-        std::cout << " After change v1.data() :"
-                  << "\n";
+        deallog << " After change v1.data() :" << std::endl;
         COUT(v1);
-        std::cout << std::boolalpha;
+        deallog << std::boolalpha;
         FUN_VALUE(v1.empty());
-        std::cout << std::noboolalpha;
+        deallog << std::noboolalpha;
         FUN_VALUE(v1.size());
         FUN_VALUE(v1.max_size());
         FUN_VALUE(v1.capacity());
@@ -85,7 +96,10 @@
         FUN_AFTER(v1, v1.shrink_to_fit());
         FUN_VALUE(v1.size());
         FUN_VALUE(v1.capacity());
-        PASSED;
+        deallog << "OK" << std::endl;
+
+        // Performance Testing 暂时无法写入到output中，原因时间可变，影响ctest测试结果
+        // 如果想看该测试结果到话，可以进入到 .debug 文件，运行可执行文件查看。
 #if PERFORMANCE_TEST_ON
         std::cout << "[--------------------- Performance Testing ---------------------]\n";
         std::cout << "|---------------------|-------------|-------------|-------------|\n";
@@ -100,7 +114,11 @@
         PASSED;
 #endif
         std::cout << "[----------------- End container test : vector -----------------]\n";
-      }
+}
 
+int main()
+{
+        initlog();
 
-#endif // !MYSTL_VECTOR_TEST_H_
+        test();
+}

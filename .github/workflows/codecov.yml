@@ -35,6 +35,7 @@ jobs:
          cp -rf ~/dealii-download/dealii .
          cd dealii
          cp -rf ../tests/hello tests/ 
+         cp -rf ../tests/mystl_test tests/ 
          cp -rf ../tests/tests.h tests/
          cp -rf ../tests/testfun.h tests/
          #rm -rf examples/step-*[!1]*
@@ -62,6 +63,7 @@ jobs:
         run: |
           cd dealii
           make setup_tests_hello
+          make setup_tests_mystl_test
           ctest 
       #- name: collect code coverage
        # run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
