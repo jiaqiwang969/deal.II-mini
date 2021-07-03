@@ -98,7 +98,6 @@ test()
   FUN_AFTER(v1, v1.shrink_to_fit());
   FUN_VALUE(v1.size());
   FUN_VALUE(v1.capacity());
-  deallog << "OK" << std::endl;
   PASSED;
   
  // Performance Testing 暂时无法写入到output中，原因时间可变，影响ctest测试结果

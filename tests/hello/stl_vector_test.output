@@ -72,4 +72,3 @@ DEAL:: v1.shrink_to_fit() :
 DEAL:: v1 : 
 DEAL:: v1.size() : 0
 DEAL:: v1.capacity() : 0
-DEAL::[ PASSED ]
