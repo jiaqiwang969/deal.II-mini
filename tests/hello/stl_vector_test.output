@@ -1,3 +1,72 @@
 
-DEAL::Constructor:
-DEAL::Insertion: 8 8 8 8 8 8 8 8
+DEAL:: v1.assign(a, a + 5) : 
+DEAL:: v1 :  1 2 3 4 5
+DEAL:: v1.emplace(v1.begin(), 0) : 
+DEAL:: v1 :  0 1 2 3 4
+DEAL:: v1.emplace_back(6) : 
+DEAL:: v1 :  0 1 2 3 4 6
+DEAL:: v1.push_back(6) : 
+DEAL:: v1 :  0 1 2 3 4 6 6
+DEAL:: v1.insert(v1.end(), 7) : 
+DEAL:: v1 :  0 1 2 3 4 6 6 7
+DEAL:: v1.insert(v1.begin() + 3, 2, 3) : 
+DEAL:: v1 :  0 1 2 3 3 3 4 6 6 7
+DEAL:: v1.insert(v1.begin(), a, a + 5) : 
+DEAL:: v1 :  1 2 3 4 5 0 1 2 3 3 3 4 6 6 7
+DEAL:: v1.pop_back() : 
+DEAL:: v1 :  1 2 3 4 5 0 1 2 3 3 3 4 6 6
+DEAL:: v1.erase(v1.begin()) : 
+DEAL:: v1 :  2 3 4 5 0 1 2 3 3 3 4 6 6
+DEAL:: v1.erase(v1.begin(), v1.begin() + 2) : 
+DEAL:: v1 :  4 5 0 1 2 3 3 3 4 6 6
+DEAL:: v1.reverse() : 
+DEAL:: v1 :  6 6 4 3 3 3 2 1 0 5 4
+DEAL:: v1.swap(v4) : 
+DEAL:: v1 :  1 2 3 4 5
+DEAL:: *v1.begin() : 1
+DEAL:: *(v1.end() - 1) : 5
+DEAL:: *v1.rbegin() : 5
+DEAL:: *(v1.rend() - 1) : 1
+DEAL:: v1.front() : 1
+DEAL:: v1.back() : 5
+DEAL:: v1[0] : 1
+DEAL:: v1.at(1) : 2
+DEAL:: After change v1.data() :
+DEAL:: v1 :  10 20 30 4 5
+DEAL:: v1.empty() : false
+DEAL:: v1.size() : 5
+DEAL:: v1.max_size() : 4611686018427387903
+DEAL:: v1.capacity() : 16
+DEAL:: v1.resize(10) : 
+DEAL:: v1 :  10 20 30 4 5 0 0 0 0 0
+DEAL:: v1.size() : 10
+DEAL:: v1.capacity() : 16
+DEAL:: v1.shrink_to_fit() : 
+DEAL:: v1 :  10 20 30 4 5 0 0 0 0 0
+DEAL:: v1.size() : 10
+DEAL:: v1.capacity() : 10
+DEAL:: v1.resize(6, 6) : 
+DEAL:: v1 :  10 20 30 4 5 0
+DEAL:: v1.size() : 6
+DEAL:: v1.capacity() : 10
+DEAL:: v1.shrink_to_fit() : 
+DEAL:: v1 :  10 20 30 4 5 0
+DEAL:: v1.size() : 6
+DEAL:: v1.capacity() : 6
+DEAL:: v1.clear() : 
+DEAL:: v1 : 
+DEAL:: v1.size() : 0
+DEAL:: v1.capacity() : 6
+DEAL:: v1.reserve(5) : 
+DEAL:: v1 : 
+DEAL:: v1.size() : 0
+DEAL:: v1.capacity() : 6
+DEAL:: v1.reserve(20) : 
+DEAL:: v1 : 
+DEAL:: v1.size() : 0
+DEAL:: v1.capacity() : 20
+DEAL:: v1.shrink_to_fit() : 
+DEAL:: v1 : 
+DEAL:: v1.size() : 0
+DEAL:: v1.capacity() : 0
+DEAL::OK
