@@ -15,9 +15,41 @@
 
 // a short (a few lines) description of what the program does
 
-#include "../tests.h"
+//#include "../tests.h"
+#include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
+#include <deal.II/base/logstream.h>
 // all include files you need here
+
+
+// Function to initialize deallog. Normally, it should be called at
+// the beginning of main() like
+//
+// initlog();
+//
+// This will open the correct output file, divert log output there and
+// switch off screen output. If screen output is desired, provide the
+// optional first argument as 'true'.
+std::string   deallogname;
+std::ofstream deallogfile;
+
+void
+initlog(bool                          console = false,
+        const std::ios_base::fmtflags flags   = std::ios::showpoint |
+                                              std::ios::left)
+{
+  deallogname = "output";
+  deallogfile.open(deallogname.c_str());
+  deallog.attach(deallogfile, true, flags);
+  deallog.depth_console(console ? 10 : 0);
+}
+
 
 int main ()
 {
