@@ -659,7 +659,7 @@ EXPECT_CON_EQ(v1, v3)   ok
   do                                           \
   {                                            \
     std::string fun_name = #fun;               \
-    deallog << fun_name << " : " << std::endl; \
+    deallog << " " << fun_name << " : " << std::endl; \
     fun;                                       \
     STR_COUT(str);                             \
   } while (0)

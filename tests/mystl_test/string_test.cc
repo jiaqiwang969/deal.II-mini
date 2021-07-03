@@ -4,7 +4,7 @@
 #include <string>
 
 #include <deal.II/mystl/astring.h>
-#include "../testfun.h"
+#include "../test.h"
 
 
 

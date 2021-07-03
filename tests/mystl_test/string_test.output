@@ -1,10 +1,10 @@
-
+﻿
 DEAL::[===============================================================]
 DEAL::[----------------- Run container test : string -----------------]
 DEAL::[-------------------------- API test ---------------------------]
-DEAL::str = 'a' : 
+DEAL:: str = 'a' : 
 DEAL:: str : a
-DEAL::str = "string" : 
+DEAL:: str = "string" : 
 DEAL:: str : string
 DEAL:: *str.begin() : s
 DEAL:: *str.rbegin() : g
@@ -21,52 +21,52 @@ DEAL:: str.size() : 6
 DEAL:: str.length() : 6
 DEAL:: str.capacity() : 7
 DEAL:: str.max_size() : 18446744073709551615
-DEAL::str.shrink_to_fit() : 
+DEAL:: str.shrink_to_fit() : 
 DEAL:: str : string
 DEAL:: str.capacity() : 6
-DEAL::str.insert(str.begin(), 'a') : 
+DEAL:: str.insert(str.begin(), 'a') : 
 DEAL:: str : astring
-DEAL::str.insert(str.end(), 3, 'x') : 
+DEAL:: str.insert(str.end(), 3, 'x') : 
 DEAL:: str : astringxxx
-DEAL::str.insert(str.end(), s, s + 3) : 
+DEAL:: str.insert(str.end(), s, s + 3) : 
 DEAL:: str : astringxxxabc
-DEAL::str.erase(str.begin()) : 
+DEAL:: str.erase(str.begin()) : 
 DEAL:: str : stringxxxabc
-DEAL::str.erase(str.begin(), str.begin() + 3) : 
+DEAL:: str.erase(str.begin(), str.begin() + 3) : 
 DEAL:: str : ingxxxabc
-DEAL::str.clear() : 
+DEAL:: str.clear() : 
 DEAL:: str : 
-DEAL::str.push_back('s') : 
+DEAL:: str.push_back('s') : 
 DEAL:: str : s
-DEAL::str.push_back('t') : 
+DEAL:: str.push_back('t') : 
 DEAL:: str : st
-DEAL::str.pop_back() : 
+DEAL:: str.pop_back() : 
 DEAL:: str : s
-DEAL::str.append(1, 't') : 
+DEAL:: str.append(1, 't') : 
 DEAL:: str : st
-DEAL::str.append(str4) : 
+DEAL:: str.append(str4) : 
 DEAL:: str : stabc
-DEAL::str.append(str4, 1) : 
+DEAL:: str.append(str4, 1) : 
 DEAL:: str : stabcbc
-DEAL::str.append(str4, 2, 1) : 
+DEAL:: str.append(str4, 2, 1) : 
 DEAL:: str : stabcbcc
-DEAL::str.append("str") : 
+DEAL:: str.append("str") : 
 DEAL:: str : stabcbccstr
-DEAL::str.append("inging", 3) : 
+DEAL:: str.append("inging", 3) : 
 DEAL:: str : stabcbccstring
-DEAL::str.append(s, s + 3) : 
+DEAL:: str.append(s, s + 3) : 
 DEAL:: str : stabcbccstringabc
-DEAL::str.resize(10) : 
+DEAL:: str.resize(10) : 
 DEAL:: str : stabcbccst
 DEAL:: str.size() : 10
-DEAL::str.resize(20, 'x') : 
+DEAL:: str.resize(20, 'x') : 
 DEAL:: str : stabcbccstxxxxxxxxxx
 DEAL:: str.size() : 20
-DEAL::str.clear() : 
+DEAL:: str.clear() : 
 DEAL:: str : 
-DEAL::str = "string" : 
+DEAL:: str = "string" : 
 DEAL:: str : string
-DEAL::str3 = "astrings" : 
+DEAL:: str3 = "astrings" : 
 DEAL:: str3 : astrings
 DEAL:: str.compare(str3) : 1
 DEAL:: str.compare(0, 6, str3) : 1
@@ -81,33 +81,33 @@ DEAL:: str.substr(0) : string
 DEAL:: str.substr(3) : ing
 DEAL:: str.substr(0, 3) : str
 DEAL:: str.substr(0, 10) : string
-DEAL::str.replace(0, 6, str3) : 
+DEAL:: str.replace(0, 6, str3) : 
 DEAL:: str : astrings
-DEAL::str.replace(str.end() - 1, str.end(), str3) : 
+DEAL:: str.replace(str.end() - 1, str.end(), str3) : 
 DEAL:: str : astringastrings
-DEAL::str.replace(0, 1, "my ") : 
+DEAL:: str.replace(0, 1, "my ") : 
 DEAL:: str : my stringastrings
-DEAL::str.replace(str.end() - 8, str.end(), " test") : 
+DEAL:: str.replace(str.end() - 8, str.end(), " test") : 
 DEAL:: str : my string test
-DEAL::str.replace(10, 4, "replace") : 
+DEAL:: str.replace(10, 4, "replace") : 
 DEAL:: str : my string replace
-DEAL::str.replace(str.end(), str.end(), " test") : 
+DEAL:: str.replace(str.end(), str.end(), " test") : 
 DEAL:: str : my string replace test
-DEAL::str.replace(0, 2, 3, '6') : 
+DEAL:: str.replace(0, 2, 3, '6') : 
 DEAL:: str : 666 string replace test
-DEAL::str.replace(str.begin(), str.begin() + 3, 6, '6') : 
+DEAL:: str.replace(str.begin(), str.begin() + 3, 6, '6') : 
 DEAL:: str : 666666 string replace test
-DEAL::str.replace(0, 3, str3, 1, 3) : 
+DEAL:: str.replace(0, 3, str3, 1, 3) : 
 DEAL:: str : str666 string replace test
-DEAL::str.replace(str.begin(), str.begin() + 6, s, s + 3) : 
+DEAL:: str.replace(str.begin(), str.begin() + 6, s, s + 3) : 
 DEAL:: str : abc string replace test
-DEAL::str.reverse() : 
+DEAL:: str.reverse() : 
 DEAL:: str : tset ecalper gnirts cba
-DEAL::str.reverse() : 
+DEAL:: str.reverse() : 
 DEAL:: str : abc string replace test
-DEAL::str = "abcabc stringgg" : 
+DEAL:: str = "abcabc stringgg" : 
 DEAL:: str : abcabc stringgg
-DEAL::str3 = "abc" : 
+DEAL:: str3 = "abc" : 
 DEAL:: str3 : abc
 DEAL:: str.find('a') : 0
 DEAL:: str.find('a', 3) : 3
@@ -158,29 +158,29 @@ DEAL:: str.find_last_not_of(str3, 2) : 14
 DEAL:: str.count('a') : 2
 DEAL:: str.count('a', 2) : 1
 DEAL:: str.count('d', 10) : 0
-DEAL::str.swap(str3) : 
+DEAL:: str.swap(str3) : 
 DEAL:: str : abc
 DEAL:: str.size() : 3
 DEAL:: str.length() : 3
 DEAL:: str.capacity() : 32
-DEAL::str += str : 
+DEAL:: str += str : 
 DEAL:: str : abcabc
-DEAL::str += 'a' : 
+DEAL:: str += 'a' : 
 DEAL:: str : abcabca
-DEAL::str += "bc" : 
+DEAL:: str += "bc" : 
 DEAL:: str : abcabcabc
 DEAL:: str.size() : 9
 DEAL:: str.length() : 9
 DEAL:: str.capacity() : 32
-DEAL::str.shrink_to_fit() : 
+DEAL:: str.shrink_to_fit() : 
 DEAL:: str : abcabcabc
 DEAL:: str.capacity() : 9
-DEAL::str.reserve(50) : 
+DEAL:: str.reserve(50) : 
 DEAL:: str : abcabcabc
 DEAL:: str.capacity() : 50
-DEAL::str3 = "test" : 
+DEAL:: str3 = "test" : 
 DEAL:: str3 : test
-DEAL::str4 = " ok!" : 
+DEAL:: str4 = " ok!" : 
 DEAL:: str4 :  ok!
 DEAL:: str3 + '!' : test!
 DEAL:: '#' + str3 : #test
