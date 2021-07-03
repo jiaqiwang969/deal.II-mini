@@ -60,6 +60,9 @@ DEAL:: m1.at(1) : 3
 DEAL:: m1.empty() : false
 DEAL:: m1.size() : 3
 DEAL:: m1.max_size() : 18446744073709551615
+DEAL::[===============================================================]
+DEAL::[---------------- Run container test : multimap ----------------]
+DEAL::[-------------------------- API test ---------------------------]
 DEAL:: After m1.emplace(i, i) :
 DEAL:: m1 : <5,5>
 DEAL:: After m1.emplace(i, i) :
