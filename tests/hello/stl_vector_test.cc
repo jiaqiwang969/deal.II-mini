@@ -22,6 +22,7 @@
 #include "../tests.h"
 #include "../testfun.h"
 
+void
 test()
 {
   int a[] = { 1,2,3,4,5 };
