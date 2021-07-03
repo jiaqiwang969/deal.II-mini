@@ -22,7 +22,21 @@
 #include "../tests.h"
 
 
+#define FUN_AFTER(con, fun) do {                         \
+  std::string fun_name = #fun;                           \
+  deallog << " After " << fun_name << " :\n";          \
+  fun;                                                   \
+  COUT(con);                                             \
+} while(0)
 
+// 遍历输出容器
+#define COUT(container) do {                             \
+  std::string con_name = #container;                     \
+  deallog << " " << con_name << " :";                  \
+  for (auto it : container)                              \
+    deallog << " " << it;                              \
+  deallog << "\n";                                     \
+} while(0)
 
 void 
 test()
@@ -40,21 +54,21 @@ test()
   v9 = std::move(v3);
   v10 = { 1,2,3,4,5,6,7,8,9 };
 
-  deallog << "Constructor: ";
-  for (unsigned int i = 0; i < v1.size(); ++i)
-    deallog << v1[i] << " ";
-  deallog << std::endl;
+  // deallog << "Constructor: ";
+  // for (unsigned int i = 0; i < v1.size(); ++i)
+  //   deallog << v1[i] << " ";
+  // deallog << std::endl;
 
-  v1.assign(8, 8);
-  deallog << "Insertion: ";
-  for (unsigned int i = 0; i < v1.size(); ++i)
-    deallog << v1[i] << " ";
-  deallog << std::endl;
-
-
+  // v1.assign(8, 8);
+  // deallog << "AFTER v1.assign(8, 8) : \n v1 : ";
+  // for (unsigned int i = 0; i < v1.size(); ++i)
+  //   deallog << v1[i] << " ";
+  // deallog << std::endl;
 
 
-//   FUN_AFTER(v1, v1.assign(8, 8));
+
+
+  FUN_AFTER(v1, v1.assign(8, 8));
 //   FUN_AFTER(v1, v1.assign(a, a + 5));
 //   FUN_AFTER(v1, v1.emplace(v1.begin(), 0));
 //   FUN_AFTER(v1, v1.emplace_back(6));
