@@ -633,7 +633,7 @@ EXPECT_CON_EQ(v1, v3)   ok
     std::string con_name = #container; \
     deallog << " " << con_name << " :";       \
     for (auto it : container)          \
-      std::cout << " " << it;                   \
+      deallog << " " << it;                   \
     deallog << std::endl;              \
   } while (0)
 
