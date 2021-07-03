@@ -522,7 +522,7 @@ EXPECT_CON_EQ(v1, v3)   ok
 // 遍历输出容器
 #define COUT(container) do {                             \
   std::string con_name = #container;                     \
-  deallog << " " << con_name << " :";                  \
+  deallog << " " << con_name << " : " << std::endl;                  \
   for (auto it : container)                              \
     deallog << " " << it;                              \
   std::cout << std::endl;                                     \
