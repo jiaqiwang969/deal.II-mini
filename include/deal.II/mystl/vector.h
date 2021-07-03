@@ -22,6 +22,7 @@
 #include <deal.II/mystl/memory.h>
 #include <deal.II/mystl/util.h>
 #include <deal.II/mystl/exceptdef.h>
+#include <deal.II/mystl/algo.h>
 
 
 #include <deal.II/base/config.h>
