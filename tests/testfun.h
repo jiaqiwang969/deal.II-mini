@@ -683,7 +683,7 @@ void test_len(size_t len1, size_t len2, size_t len3, size_t wide)
   str2 += "   |";
   deallog << std::setw(wide) << str2;
   str3 += "   |";
-  deallog << std::setw(wide) << str3 << std::endl;
+  std::cout << std::setw(wide) << str3 << std::endl;
 }
 
 #define TEST_LEN(len1, len2, len3, wide) \
