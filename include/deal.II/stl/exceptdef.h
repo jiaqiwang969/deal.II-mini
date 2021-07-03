@@ -5,6 +5,11 @@
 
 #include <cassert>
 
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
+
 namespace mystl
 {
 
@@ -24,5 +29,7 @@ namespace mystl
   throw std::runtime_error(what)
 
 } // namepsace mystl
+DEAL_II_NAMESPACE_CLOSE
+
 
 #endif // !MYTINYSTL_EXCEPTDEF_H_

@@ -5,10 +5,15 @@
 // queue          : 队列
 // priority_queue : 优先队列
 
-#include "deque.h"
-#include "vector.h"
-#include "functional.h"
-#include "heap_algo.h"
+#include <deal.II/mystl/deque.h>
+#include <deal.II/mystl/vector.h>
+#include <deal.II/mystl/functional.h>
+#include <deal.II/mystl/heap_algo.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -369,4 +374,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_QUEUE_H_

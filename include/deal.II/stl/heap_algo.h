@@ -3,7 +3,12 @@
 
 // 这个头文件包含 heap 的四个算法 : push_heap, pop_heap, sort_heap, make_heap
 
-#include "iterator.h"
+#include <deal.II/mystl/iterator.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -225,4 +230,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_HEAP_ALGO_H_

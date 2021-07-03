@@ -8,10 +8,15 @@
 #include <cstdlib>
 #include <climits>
 
-#include "algobase.h"
-#include "allocator.h"
-#include "construct.h"
-#include "uninitialized.h"
+#include <deal.II/mystl/algobase.h>
+#include <deal.II/mystl/allocator.h>
+#include <deal.II/mystl/construct.h>
+#include <deal.II/mystl/uninitialized.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -205,4 +210,5 @@ namespace mystl
   };
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_MEMORY_H_

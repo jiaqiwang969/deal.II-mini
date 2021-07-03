@@ -18,10 +18,15 @@
 
 #include <initializer_list>
 
-#include "iterator.h"
-#include "memory.h"
-#include "util.h"
-#include "exceptdef.h"
+#include <deal.II/mystl/iterator.h>
+#include <deal.II/mystl/memory.h>
+#include <deal.II/mystl/util.h>
+#include <deal.II/mystl/exceptdef.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -977,4 +982,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_VECTOR_H_

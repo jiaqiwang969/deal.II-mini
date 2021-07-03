@@ -5,7 +5,12 @@
 
 #include <cstddef>
 
-#include "type_traits.h"
+#include <deal.II/mystl/type_traits.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -300,5 +305,6 @@ namespace mystl
   }
 
 }
+DEAL_II_NAMESPACE_CLOSE
 
 #endif // !MYTINYSTL_UTIL_H_

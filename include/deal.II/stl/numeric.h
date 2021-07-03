@@ -3,7 +3,12 @@
 
 // 这个头文件包含了 mystl 的数值算法
 
-#include "iterator.h"
+#include <deal.II/mystl/iterator.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -155,4 +160,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_NUMERIC_H_

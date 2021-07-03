@@ -8,11 +8,16 @@
 
 #include <cassert>
 
-#include "functional.h"
-#include "iterator.h"
-#include "memory.h"
-#include "type_traits.h"
-#include "exceptdef.h"
+#include <deal.II/mystl/functional.h>
+#include <deal.II/mystl/iterator.h>
+#include <deal.II/mystl/memory.h>
+#include <deal.II/mystl/type_traits.h>
+#include <deal.II/mystl/exceptdef.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -1734,5 +1739,6 @@ void swap(rb_tree<T, Compare>& lhs, rb_tree<T, Compare>& rhs) noexcept
 }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_RB_TREE_H_
 

@@ -5,6 +5,11 @@
 
 #include <cstddef>
 
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
+
 namespace mystl
 {
 
@@ -281,5 +286,6 @@ struct hash<long double>
 };
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_FUNCTIONAL_H_
 

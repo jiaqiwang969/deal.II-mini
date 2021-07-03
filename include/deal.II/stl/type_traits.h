@@ -6,6 +6,11 @@
 // use standard header for type_traits
 #include <type_traits>
 
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
+
 namespace mystl
 {
 
@@ -44,5 +49,6 @@ namespace mystl
   };
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 
 #endif // !MYTINYSTL_TYPE_TRAITS_H_

@@ -4,7 +4,12 @@
 // 这个头文件包含了一个模板类 stack
 // stack : 栈
 
-#include "deque.h"
+#include <deal.II/mystl/deque.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -180,4 +185,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_STACK_H_

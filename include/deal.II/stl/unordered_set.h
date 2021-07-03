@@ -12,7 +12,12 @@
 //   * emplace_hint
 //   * insert
 
-#include "hashtable.h"
+#include <deal.II/mystl/hashtable.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -660,4 +665,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_UNORDERED_SET_H_

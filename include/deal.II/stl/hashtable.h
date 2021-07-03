@@ -6,12 +6,17 @@
 
 #include <initializer_list>
 
-#include "algo.h"
-#include "functional.h"
-#include "memory.h"
-#include "vector.h"
-#include "util.h"
-#include "exceptdef.h"
+#include <deal.II/mystl/algo.h>
+#include <deal.II/mystl/functional.h>
+#include <deal.II/mystl/memory.h>
+#include <deal.II/mystl/vector.h>
+#include <deal.II/mystl/util.h>
+#include <deal.II/mystl/exceptdef.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -1690,4 +1695,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_HASHTABLE_H_

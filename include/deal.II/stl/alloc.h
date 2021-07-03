@@ -17,6 +17,11 @@
 #include <cstddef>
 #include <cstdio>
 
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
+
 namespace mystl
 {
 
@@ -265,4 +270,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_ALLOC_H_

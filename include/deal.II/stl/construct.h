@@ -7,13 +7,18 @@
 
 #include <new>
 
-#include "type_traits.h"
-#include "iterator.h"
+#include <deal.II/mystl/type_traits.h>
+#include <deal.II/mystl/iterator.h>
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4100)  // unused parameter
 #endif // _MSC_VER
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -76,6 +81,7 @@ void destroy(ForwardIter first, ForwardIter last)
 }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 
 #ifdef _MSC_VER
 #pragma warning(pop)

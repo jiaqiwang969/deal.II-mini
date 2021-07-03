@@ -4,8 +4,13 @@
 // 这个头文件包含 set 的四种算法: union, intersection, difference, symmetric_difference
 // 所有函数都要求序列有序
 
-#include "algobase.h"
-#include "iterator.h"
+#include <deal.II/mystl/algobase.h>
+#include <deal.II/mystl/iterator.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -249,4 +254,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_SET_ALGO_H_

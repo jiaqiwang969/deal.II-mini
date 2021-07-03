@@ -5,8 +5,13 @@
 
 #include <cstring>
 
-#include "iterator.h"
-#include "util.h"
+#include <deal.II/mystl/iterator.h>
+#include <deal.II/mystl/util.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -516,4 +521,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_ALGOBASE_H_

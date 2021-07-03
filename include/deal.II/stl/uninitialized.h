@@ -3,11 +3,16 @@
 
 // 这个头文件用于对未初始化空间构造元素
 
-#include "algobase.h"
-#include "construct.h"
-#include "iterator.h"
-#include "type_traits.h"
-#include "util.h"
+#include <deal.II/mystl/algobase.h>
+#include <deal.II/mystl/construct.h>
+#include <deal.II/mystl/iterator.h>
+#include <deal.II/mystl/type_traits.h>
+#include <deal.II/mystl/util.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -252,4 +257,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_UNINITIALIZED_H_

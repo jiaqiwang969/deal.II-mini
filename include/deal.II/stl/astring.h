@@ -3,7 +3,12 @@
 
 // 定义了 string, wstring, u16string, u32string 类型
 
-#include "basic_string.h"
+#include <deal.II/mystl/basic_string.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -14,4 +19,7 @@ namespace mystl
     using u32string = mystl::basic_string<char32_t>;
 
 }
+
+DEAL_II_NAMESPACE_CLOSE
+
 #endif // !MYTINYSTL_ASTRING_H_

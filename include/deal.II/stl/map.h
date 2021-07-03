@@ -13,7 +13,12 @@
 //   * emplace_hint
 //   * insert
 
-#include "rb_tree.h"
+#include <deal.II/mystl/rb_tree.h>
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -617,4 +622,5 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 #endif // !MYTINYSTL_MAP_H_

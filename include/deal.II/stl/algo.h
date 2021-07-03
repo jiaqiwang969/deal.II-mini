@@ -11,10 +11,17 @@
 #include <cstddef>
 #include <ctime>
 
-#include "algobase.h"
-#include "memory.h"
-#include "heap_algo.h"
-#include "functional.h"
+#include <deal.II/mystl/algobase.h>
+#include <deal.II/mystl/memory.h>
+#include <deal.II/mystl/heap_algo.h>
+#include <deal.II/mystl/functional.h>
+
+
+
+
+#include <deal.II/base/config.h>
+
+DEAL_II_NAMESPACE_OPEN
 
 namespace mystl
 {
@@ -2742,6 +2749,7 @@ namespace mystl
   }
 
 } // namespace mystl
+DEAL_II_NAMESPACE_CLOSE
 
 #ifdef _MSC_VER
 #pragma warning(pop)
