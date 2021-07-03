@@ -101,19 +101,19 @@ void test()
         // Performance Testing 暂时无法写入到output中，原因时间可变，影响ctest测试结果
         // 如果想看该测试结果到话，可以进入到 .debug 文件，运行可执行文件查看。
 #if PERFORMANCE_TEST_ON
-        std::cout << "[--------------------- Performance Testing ---------------------]\n";
-        std::cout << "|---------------------|-------------|-------------|-------------|\n";
+        std::cout << "[--------------------- Performance Testing ---------------------]" << std::endl;
+        std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
         std::cout << "|      push_back      |";
 #if LARGER_TEST_DATA_ON
         CON_TEST_P1(vector<int>, push_back, rand(), LEN1 _LL, LEN2 _LL, LEN3 _LL);
 #else
         CON_TEST_P1(vector<int>, push_back, rand(), LEN1 _L, LEN2 _L, LEN3 _L);
 #endif
-        std::cout << "\n";
-        std::cout << "|---------------------|-------------|-------------|-------------|\n";
+        std::cout << "" << std::endl;
+        std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
         PASSED;
 #endif
-        std::cout << "[----------------- End container test : vector -----------------]\n";
+        std::cout << "[----------------- End container test : vector -----------------]" << std::endl;
 }
 
 int main()

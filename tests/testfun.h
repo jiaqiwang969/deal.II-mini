@@ -624,7 +624,7 @@ EXPECT_CON_EQ(v1, v3)   ok
 #define WIDE 14
 
 // 输出通过提示
-#define PASSED deallog << "[ PASSED ]\n"
+#define PASSED deallog << "[ PASSED ]" << std:endl;
 
 // 遍历输出容器
 #define COUT(container)                \

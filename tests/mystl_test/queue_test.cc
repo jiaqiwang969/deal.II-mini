@@ -45,14 +45,14 @@ void p_queue_print(mystl::priority_queue<int> p)
 
 #define QUEUE_FUN_AFTER(con, fun) do {           \
   std::string fun_name = #fun;                   \
-  deallog << " After " << fun_name << " :\n";  \
+  deallog << " After " << fun_name << " :" << std::endl;  \
   fun;                                           \
   QUEUE_COUT(con);                               \
 } while(0)
 
 #define P_QUEUE_FUN_AFTER(con, fun) do {         \
   std::string fun_name = #fun;                   \
-  deallog << " After " << fun_name << " :\n";  \
+  deallog << " After " << fun_name << " :" << std::endl;  \
   fun;                                           \
   P_QUEUE_COUT(con);                             \
 } while(0)

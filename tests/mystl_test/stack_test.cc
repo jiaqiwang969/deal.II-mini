@@ -27,7 +27,7 @@ void stack_print(mystl::stack<int> s)
 
 #define STACK_FUN_AFTER(con, fun) do {           \
   std::string fun_name = #fun;                   \
-  deallog << " After " << fun_name << " :\n";    \
+  deallog << " After " << fun_name << " :" << std::endl;    \
   fun;                                           \
   STACK_COUT(con);                               \
 } while(0)

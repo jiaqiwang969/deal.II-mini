@@ -32,7 +32,7 @@
 #define MAP_VALUE(fun) do { \
     std::string str = #fun; \
     auto it = fun; \
-    deallog << " " << str << " : <" << it.first << "," << it.second << ">\n"; \
+    deallog << " " << str << " : <" << it.first << "," << it.second << ">" << std::endl; \
 } while(0)
 
 void map_test()
