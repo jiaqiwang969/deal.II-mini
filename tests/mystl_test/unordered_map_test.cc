@@ -123,7 +123,7 @@ void unordered_map_test()
   std::cout << "|---------------------|-------------|-------------|-------------|" << std::endl;
   PASSED;
 #endif
-  deallog << "[-------------- End container test : unordered_map -------------]" << std::endl;
+  std::cout << "[-------------- End container test : unordered_map -------------]" << std::endl;
 }
 
 void unordered_multimap_test()

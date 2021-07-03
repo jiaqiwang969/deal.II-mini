@@ -57,6 +57,9 @@ DEAL:: After um1.max_load_factor(1.5f) :
 DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
 DEAL:: um1.max_load_factor() : 1.50000
 DEAL::OK
+DEAL::[===============================================================]
+DEAL::[----------- Run container test : unordered_multimap -----------]
+DEAL::[-------------------------- API test ---------------------------]
 DEAL:: After um1.emplace(1, 1) :
 DEAL:: um1 : <1,1>
 DEAL:: After um1.emplace_hint(um1.begin(), 1, 2) :
