@@ -69,6 +69,8 @@ test()
 
 
   FUN_AFTER(v1, v1.assign(8, 8));
+
+  deallog << "OK" << std::endl;
 //   FUN_AFTER(v1, v1.assign(a, a + 5));
 //   FUN_AFTER(v1, v1.emplace(v1.begin(), 0));
 //   FUN_AFTER(v1, v1.emplace_back(6));
