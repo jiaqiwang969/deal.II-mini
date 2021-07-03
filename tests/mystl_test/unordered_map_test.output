@@ -1,8 +1,112 @@
 ﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+DEAL::[===============================================================]
+DEAL::[-------------- Run container test : unordered_map -------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: After um1.emplace(1, 1) :
+DEAL:: um1 : <1,1>
+DEAL:: After um1.emplace_hint(um1.begin(), 1, 2) :
+DEAL:: um1 : <1,1>
+DEAL:: After um1.insert(PAIR(2, 2)) :
+DEAL:: um1 : <1,1> <2,2>
+DEAL:: After um1.insert(um1.end(), PAIR(3, 3)) :
+DEAL:: um1 : <1,1> <2,2> <3,3>
+DEAL:: After um1.insert(v.begin(), v.end()) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: After um1.erase(um1.begin()) :
+DEAL:: um1 : <2,2> <3,3> <4,4> <5,5>
+DEAL:: After um1.erase(um1.begin(), um1.find(3)) :
+DEAL:: um1 : <3,3> <4,4> <5,5>
+DEAL:: After um1.erase(1) :
+DEAL:: um1 : <3,3> <4,4> <5,5>
+DEAL:: um1.empty() : false
+DEAL:: um1.size() : 3
+DEAL:: um1.bucket_count() : 101
+DEAL:: um1.max_bucket_count() : 18446744073709551557
+DEAL:: um1.bucket(1) : 1
+DEAL:: um1.bucket_size(um1.bucket(5)) : 1
+DEAL:: After um1.clear() :
+DEAL:: um1 :
+DEAL:: After um1.swap(um7) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: *um1.begin() : <1,1>
+DEAL:: um1.at(1) : 1
+DEAL:: um1[1] : 1
+DEAL:: um1.empty() : false
+DEAL:: um1.size() : 5
+DEAL:: um1.max_size() : 18446744073709551615
+DEAL:: um1.bucket_count() : 101
+DEAL:: um1.max_bucket_count() : 18446744073709551557
+DEAL:: um1.bucket(1) : 1
+DEAL:: um1.bucket_size(um1.bucket(1)) : 1
+DEAL:: After um1.reserve(1000) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: um1.size() : 5
+DEAL:: um1.bucket_count() : 1361
+DEAL:: um1.bucket_size(1) : 1
+DEAL:: um1.bucket_size(2) : 1
+DEAL:: um1.bucket_size(3) : 1
+DEAL:: After um1.rehash(150) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: um1.bucket_count() : 173
+DEAL:: um1.count(1) : 1
+DEAL:: *um1.find(3) : <3,3>
+DEAL:: um1.equal_range(3) : from <3, 3> to <4, 4>
+DEAL:: um1.load_factor() : 0.0289017
+DEAL:: um1.max_load_factor() : 1.00000
+DEAL:: After um1.max_load_factor(1.5f) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: um1.max_load_factor() : 1.50000
+DEAL::OK
+DEAL:: After um1.emplace(1, 1) :
+DEAL:: um1 : <1,1>
+DEAL:: After um1.emplace_hint(um1.begin(), 1, 2) :
+DEAL:: um1 : <1,1> <1,2>
+DEAL:: After um1.insert(PAIR(2, 2)) :
+DEAL:: um1 : <1,1> <1,2> <2,2>
+DEAL:: After um1.insert(um1.end(), PAIR(3, 3)) :
+DEAL:: um1 : <1,1> <1,2> <2,2> <3,3>
+DEAL:: After um1.insert(v.begin(), v.end()) :
+DEAL:: um1 : <1,1> <1,1> <1,2> <2,2> <2,2> <3,3> <3,3> <4,4> <5,5>
+DEAL:: After um1.erase(um1.begin()) :
+DEAL:: um1 : <1,1> <1,2> <2,2> <2,2> <3,3> <3,3> <4,4> <5,5>
+DEAL:: After um1.erase(um1.begin(), um1.find(3)) :
+DEAL:: um1 : <3,3> <3,3> <4,4> <5,5>
+DEAL:: After um1.erase(1) :
+DEAL:: um1 : <3,3> <3,3> <4,4> <5,5>
+DEAL:: um1.empty() : false
+DEAL:: um1.size() : 4
+DEAL:: um1.bucket_count() : 101
+DEAL:: um1.max_bucket_count() : 18446744073709551557
+DEAL:: um1.bucket(1) : 1
+DEAL:: um1.bucket_size(um1.bucket(5)) : 1
+DEAL:: After um1.clear() :
+DEAL:: um1 :
+DEAL:: After um1.swap(um7) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: *um1.begin() : <1,1>
+DEAL:: um1.empty() : false
+DEAL:: um1.size() : 5
+DEAL:: um1.max_size() : 18446744073709551615
+DEAL:: um1.bucket_count() : 101
+DEAL:: um1.max_bucket_count() : 18446744073709551557
+DEAL:: um1.bucket(1) : 1
+DEAL:: um1.bucket_size(um1.bucket(1)) : 1
+DEAL:: After um1.reserve(1000) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: um1.size() : 5
+DEAL:: um1.bucket_count() : 1361
+DEAL:: um1.bucket_size(1) : 1
+DEAL:: um1.bucket_size(2) : 1
+DEAL:: um1.bucket_size(3) : 1
+DEAL:: After um1.rehash(150) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: um1.bucket_count() : 173
+DEAL:: um1.count(1) : 1
+DEAL:: *um1.find(3) : <3,3>
+DEAL:: um1.equal_range(3) : from <3, 3> to <4, 4>
+DEAL:: um1.load_factor() : 0.0289017
+DEAL:: um1.max_load_factor() : 1.00000
+DEAL:: After um1.max_load_factor(1.5f) :
+DEAL:: um1 : <1,1> <2,2> <3,3> <4,4> <5,5>
+DEAL:: um1.max_load_factor() : 1.50000
+DEAL::OK

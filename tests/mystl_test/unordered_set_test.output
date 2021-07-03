@@ -1,8 +1,109 @@
-﻿
-DEAL::Constructor: 0 0 0 0 
-DEAL::Insertion: 0 0 1 0 5 42 0 0 1 0 5 42 27 
-DEAL::Shrinking: 0 0 1 0 
-DEAL::Reserve: 0 0 1 0 
-DEAL::Assignment: 0 0 1 0 5 42 27 
-DEAL::Check large initialization: OK
-DEAL::Check large resize: OK
+
+DEAL::[===============================================================]
+DEAL::[-------------- Run container test : unordered_set -------------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: us1.emplace(1) : 
+DEAL:: us1 : 1
+DEAL:: us1.emplace_hint(us1.end(), 2) : 
+DEAL:: us1 : 1 2
+DEAL:: us1.insert(5) : 
+DEAL:: us1 : 1 2 5
+DEAL:: us1.insert(us1.begin(), 5) : 
+DEAL:: us1 : 1 2 5
+DEAL:: us1.insert(a, a + 5) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: us1.erase(us1.begin()) : 
+DEAL:: us1 : 2 3 4 5
+DEAL:: us1.erase(us1.begin(), us1.find(3)) : 
+DEAL:: us1 : 3 4 5
+DEAL:: us1.erase(1) : 
+DEAL:: us1 : 3 4 5
+DEAL:: us1.empty() : false
+DEAL:: us1.size() : 3
+DEAL:: us1.bucket_count() : 101
+DEAL:: us1.max_bucket_count() : 18446744073709551557
+DEAL:: us1.bucket(1) : 1
+DEAL:: us1.bucket_size(us1.bucket(5)) : 1
+DEAL:: us1.clear() : 
+DEAL:: us1 :
+DEAL:: us1.swap(us7) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: *us1.begin() : 1
+DEAL:: us1.empty() : false
+DEAL:: us1.size() : 5
+DEAL:: us1.max_size() : 18446744073709551615
+DEAL:: us1.bucket_count() : 101
+DEAL:: us1.reserve(1000) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: *us1.begin(us1.bucket(1)) : 1
+DEAL:: us1.size() : 5
+DEAL:: us1.bucket_count() : 1361
+DEAL:: us1.bucket_size(1) : 1
+DEAL:: us1.bucket_size(2) : 1
+DEAL:: us1.bucket_size(3) : 1
+DEAL:: us1.rehash(150) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: us1.bucket_count() : 173
+DEAL:: us1.count(1) : 1
+DEAL:: *us1.find(3) : 3
+DEAL:: us1.equal_range(3) : from 3 to 4
+DEAL:: us1.load_factor() : 0.0289017
+DEAL:: us1.max_load_factor() : 1.00000
+DEAL:: us1.max_load_factor(1.5f) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: us1.max_load_factor() : 1.50000
+DEAL::OK
+DEAL::[===============================================================]
+DEAL::[------------ Run container test : unordered_multiset ----------]
+DEAL::[-------------------------- API test ---------------------------]
+DEAL:: us1.emplace(1) : 
+DEAL:: us1 : 1
+DEAL:: us1.emplace_hint(us1.end(), 2) : 
+DEAL:: us1 : 1 2
+DEAL:: us1.insert(5) : 
+DEAL:: us1 : 1 2 5
+DEAL:: us1.insert(us1.begin(), 5) : 
+DEAL:: us1 : 1 2 5 5
+DEAL:: us1.insert(a, a + 5) : 
+DEAL:: us1 : 1 1 2 2 3 4 5 5 5
+DEAL:: us1.erase(us1.begin()) : 
+DEAL:: us1 : 1 2 2 3 4 5 5 5
+DEAL:: us1.erase(us1.begin(), us1.find(3)) : 
+DEAL:: us1 : 3 4 5 5 5
+DEAL:: us1.erase(1) : 
+DEAL:: us1 : 3 4 5 5 5
+DEAL:: us1.empty() : false
+DEAL:: us1.size() : 5
+DEAL:: us1.bucket_count() : 101
+DEAL:: us1.max_bucket_count() : 18446744073709551557
+DEAL:: us1.bucket(1) : 1
+DEAL:: us1.bucket_size(us1.bucket(5)) : 3
+DEAL:: us1.clear() : 
+DEAL:: us1 :
+DEAL:: us1.swap(us7) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: *us1.begin() : 1
+DEAL:: us1.empty() : false
+DEAL:: us1.size() : 5
+DEAL:: us1.max_size() : 18446744073709551615
+DEAL:: us1.bucket_count() : 101
+DEAL:: us1.reserve(1000) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: *us1.begin(us1.bucket(1)) : 1
+DEAL:: us1.size() : 5
+DEAL:: us1.bucket_count() : 1361
+DEAL:: us1.bucket_size(1) : 1
+DEAL:: us1.bucket_size(2) : 1
+DEAL:: us1.bucket_size(3) : 1
+DEAL:: us1.rehash(150) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: us1.bucket_count() : 173
+DEAL:: us1.count(1) : 1
+DEAL:: *us1.find(3) : 3
+DEAL:: us1.equal_range(3) : from 3 to 4
+DEAL:: us1.load_factor() : 0.0289017
+DEAL:: us1.max_load_factor() : 1.00000
+DEAL:: us1.max_load_factor(1.5f) : 
+DEAL:: us1 : 1 2 3 4 5
+DEAL:: us1.max_load_factor() : 1.50000
+DEAL::OK
