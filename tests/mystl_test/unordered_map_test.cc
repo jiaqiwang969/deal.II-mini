@@ -7,6 +7,34 @@
 //#include "map_test.h"
 #include "../testfun.h"
 
+
+
+// pair 的宏定义
+#define PAIR    mystl::pair<int, int>
+
+// map 的遍历输出
+#define MAP_COUT(m) do { \
+    std::string m_name = #m; \
+    deallog << " " << m_name << " :"; \
+    for (auto it : m)    deallog << " <" << it.first << "," << it.second << ">"; \
+    deallog << std::endl; \
+} while(0)
+
+// map 的函数操作
+#define MAP_FUN_AFTER(con, fun) do { \
+    std::string str = #fun; \
+    deallog << " After " << str << " :" << std::endl; \
+    fun; \
+    MAP_COUT(con); \
+} while(0)
+
+// map 的函数值
+#define MAP_VALUE(fun) do { \
+    std::string str = #fun; \
+    auto it = fun; \
+    deallog << " " << str << " : <" << it.first << "," << it.second << ">" << std::endl; \
+} while(0)
+
 void unordered_map_test()
 {
   deallog << "[===============================================================]" << std::endl;
