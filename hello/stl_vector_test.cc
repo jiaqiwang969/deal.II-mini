@@ -24,7 +24,7 @@
 
 #define FUN_AFTER(con, fun) do {                         \
   std::string fun_name = #fun;                           \
-  deallog <<  fun_name << " : " << std::endl;          \
+  deallog << " " << fun_name << " : " << std::endl;          \
   fun;                                                   \
   COUT(con);                                             \
 } while(0)
