@@ -628,47 +628,47 @@ EXPECT_CON_EQ(v1, v3)   ok
 #define PASSED std::cout << "[ PASSED ]" << std::endl;
 
 // 遍历输出容器
-#define COUT(container)                \
-  do                                   \
-  {                                    \
-    std::string con_name = #container; \
-    deallog << " " << con_name << " :";       \
-    for (auto it : container)          \
-      deallog << " " << it;                   \
-    deallog << std::endl;              \
+#define COUT(container)                 \
+  do                                    \
+  {                                     \
+    std::string con_name = #container;  \
+    deallog << " " << con_name << " :"; \
+    for (auto it : container)           \
+      deallog << " " << it;             \
+    deallog << std::endl;               \
   } while (0)
 
-#define STR_COUT(str)                                 \
-  do                                                  \
-  {                                                   \
-    std::string str_name = #str;                      \
+#define STR_COUT(str)                                        \
+  do                                                         \
+  {                                                          \
+    std::string str_name = #str;                             \
     deallog << " " << str_name << " : " << str << std::endl; \
   } while (0)
 
 // 输出容器调用函数后的结果
-#define FUN_AFTER(con, fun)                    \
-  do                                           \
-  {                                            \
-    std::string fun_name = #fun;               \
-    deallog << " " << fun_name << " : " << std::endl; \
-    fun;                                       \
-    COUT(con);                                 \
-  } while (0)
-
-#define STR_FUN_AFTER(str, fun)                \
-  do                                           \
-  {                                            \
-    std::string fun_name = #fun;               \
-    deallog << " " << fun_name << " : " << std::endl; \
-    fun;                                       \
-    STR_COUT(str);                             \
-  } while (0)
-
-// 输出容器调用函数的值
-#define FUN_VALUE(fun)                                \
+#define FUN_AFTER(con, fun)                           \
   do                                                  \
   {                                                   \
     std::string fun_name = #fun;                      \
+    deallog << " " << fun_name << " : " << std::endl; \
+    fun;                                              \
+    COUT(con);                                        \
+  } while (0)
+
+#define STR_FUN_AFTER(str, fun)                       \
+  do                                                  \
+  {                                                   \
+    std::string fun_name = #fun;                      \
+    deallog << " " << fun_name << " : " << std::endl; \
+    fun;                                              \
+    STR_COUT(str);                                    \
+  } while (0)
+
+// 输出容器调用函数的值
+#define FUN_VALUE(fun)                                       \
+  do                                                         \
+  {                                                          \
+    std::string fun_name = #fun;                             \
     deallog << " " << fun_name << " : " << fun << std::endl; \
   } while (0)
 
