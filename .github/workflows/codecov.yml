@@ -31,7 +31,7 @@ jobs:
 
       - name: download and setup of dealii
         run: |
-         #git clone https://github.com/dealii/dealii.git
+         git clone https://github.com/dealii/dealii.git
          cd dealii
          cp -rf ../hello tests/
          #rm -rf examples/step-*[!1]*
