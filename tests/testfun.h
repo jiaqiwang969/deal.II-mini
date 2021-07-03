@@ -99,7 +99,7 @@ void UnitTest::Run()
       deallog << " FAILE ";
     else
       deallog << " PASS ";
-    deallog << testcase->nPassed << " / " << testcase->nFailed + testcase->nPassed
+    deallog << " " << testcase->nPassed << " / " << testcase->nFailed + testcase->nPassed
             << " Cases passed. ( " << testcase->nPassed / (testcase->nFailed + testcase->nPassed) * 100 << "% )\n";
     deallog << " End TestCase:" << testcase->testcase_name << std::endl;
     if (testcase->nTestResult)
@@ -631,9 +631,9 @@ EXPECT_CON_EQ(v1, v3)   ok
   do                                   \
   {                                    \
     std::string con_name = #container; \
-    deallog << con_name << " : ";      \
+    deallog << " " << con_name << " :";       \
     for (auto it : container)          \
-      deallog << it;                   \
+      std::cout << " " << it;                   \
     deallog << std::endl;              \
   } while (0)
 
@@ -641,7 +641,7 @@ EXPECT_CON_EQ(v1, v3)   ok
   do                                                  \
   {                                                   \
     std::string str_name = #str;                      \
-    deallog << str_name << " : " << str << std::endl; \
+    deallog << " " << str_name << " : " << str << std::endl; \
   } while (0)
 
 // 输出容器调用函数后的结果
@@ -649,7 +649,7 @@ EXPECT_CON_EQ(v1, v3)   ok
   do                                           \
   {                                            \
     std::string fun_name = #fun;               \
-    deallog << fun_name << " : " << std::endl; \
+    deallog << " " << fun_name << " : " << std::endl; \
     fun;                                       \
     COUT(con);                                 \
   } while (0)
@@ -676,7 +676,7 @@ void test_len(size_t len1, size_t len2, size_t len3, size_t wide)
 {
   std::string str1, str2, str3;
   std::stringstream ss;
-  ss << len1 << len2 << len3;
+  ss << len1 << " " << len2 << " " << len3;
   ss >> str1 >> str2 >> str3;
   str1 += "   |";
   std::cout << std::setw(wide) << str1;
