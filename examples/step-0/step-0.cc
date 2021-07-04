@@ -283,7 +283,7 @@ void first_grid()
 
 // Finally, the main function. There isn't much to do here, only to call the
 // two subfunctions, which produce the two grids.
-int main(int argc, const char *argv[])
+int main()
 {
   first_grid();
   return 0;
