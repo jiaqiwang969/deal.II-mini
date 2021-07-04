@@ -1,0 +1,11 @@
+<map id="parallel::DistributedTriangulationBase&lt; dim, spacedim &gt;" name="parallel::DistributedTriangulationBase&lt; dim, spacedim &gt;">
+<area shape="rect" id="node5" href="$classparallel_1_1distributed_1_1Triangulation.html" title="parallel::distributed\l::Triangulation\&lt; dim,\l spacedim \&gt;" alt="" coords="941,137,1083,193"/>
+<area shape="rect" id="node7" href="$classparallel_1_1fullydistributed_1_1Triangulation.html" title="parallel::fullydistributed\l::Triangulation\&lt; dim, spacedim \&gt;" alt="" coords="905,71,1119,112"/>
+<area shape="rect" id="node8" href="$classparallel_1_1DistributedTriangulationBase.html" title="parallel::DistributedTriangulation\lBase\&lt; 1, spacedim \&gt;" alt="" coords="908,217,1116,259"/>
+<area shape="rect" id="node10" href="$classparallel_1_1DistributedTriangulationBase.html" title="parallel::DistributedTriangulation\lBase\&lt; dim, dim \&gt;" alt="" coords="908,5,1116,47"/>
+<area shape="rect" id="node2" href="$classparallel_1_1TriangulationBase.html" title="parallel::TriangulationBase\l\&lt; dim, spacedim \&gt;" alt="" coords="325,89,500,131"/>
+<area shape="rect" id="node3" href="$classTriangulation.html" title="Triangulation\&lt; dim,\l spacedim \&gt;" alt="" coords="143,89,276,131"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="5,97,93,123"/>
+<area shape="rect" id="node6" href="$classparallel_1_1distributed_1_1Triangulation.html" title="parallel::distributed\l::Triangulation\&lt; dim \&gt;" alt="" coords="1241,101,1390,143"/>
+<area shape="rect" id="node9" href="$classparallel_1_1distributed_1_1Triangulation_3_011_00_01spacedim_01_4.html" title="parallel::distributed\l::Triangulation\&lt; 1, spacedim \&gt;" alt="" coords="1216,217,1415,259"/>
+</map>

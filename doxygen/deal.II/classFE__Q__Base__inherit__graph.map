@@ -1,0 +1,11 @@
+<map id="FE_Q_Base&lt; dim, spacedim &gt;" name="FE_Q_Base&lt; dim, spacedim &gt;">
+<area shape="rect" id="node6" href="$classFE__Bernstein.html" title="FE_Bernstein\&lt; dim,\l spacedim \&gt;" alt="" coords="896,5,1035,47"/>
+<area shape="rect" id="node7" href="$classFE__Q.html" title="FE_Q\&lt; dim, spacedim \&gt;" alt="" coords="883,71,1048,98"/>
+<area shape="rect" id="node8" href="$classFE__Q__Bubbles.html" title="FE_Q_Bubbles\&lt; dim,\l spacedim \&gt;" alt="" coords="892,123,1039,164"/>
+<area shape="rect" id="node9" href="$classFE__Q__DG0.html" title="FE_Q_DG0\&lt; dim, spacedim \&gt;" alt="" coords="866,189,1065,215"/>
+<area shape="rect" id="node10" href="$classFE__Q__iso__Q1.html" title="FE_Q_iso_Q1\&lt; dim, spacedim \&gt;" alt="" coords="859,239,1072,266"/>
+<area shape="rect" id="node2" href="$classFE__Poly.html" title="FE_Poly\&lt; dim, spacedim \&gt;" alt="" coords="379,130,560,157"/>
+<area shape="rect" id="node3" href="$classFiniteElement.html" title="FiniteElement\&lt; dim,\l spacedim \&gt;" alt="" coords="192,123,331,164"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="31,101,119,127"/>
+<area shape="rect" id="node5" href="$classFiniteElementData.html" title="FiniteElementData\&lt;\l dim \&gt;" alt="" coords="5,152,144,193"/>
+</map>

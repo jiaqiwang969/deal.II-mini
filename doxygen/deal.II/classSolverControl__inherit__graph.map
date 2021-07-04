@@ -1,0 +1,6 @@
+<map id="SolverControl" name="SolverControl">
+<area shape="rect" id="node3" href="$classConsecutiveControl.html" title="ConsecutiveControl" alt="" coords="5,155,143,181"/>
+<area shape="rect" id="node4" href="$classIterationNumberControl.html" title="IterationNumberControl" alt="" coords="167,155,325,181"/>
+<area shape="rect" id="node5" href="$classReductionControl.html" title="ReductionControl" alt="" coords="349,155,471,181"/>
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="202,5,290,32"/>
+</map>

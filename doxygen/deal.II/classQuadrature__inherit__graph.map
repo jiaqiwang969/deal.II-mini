@@ -1,0 +1,40 @@
+<map id="Quadrature&lt; dim &gt;" name="Quadrature&lt; dim &gt;">
+<area shape="rect" id="node3" href="$classNonMatching_1_1ImmersedSurfaceQuadrature.html" title="ImmersedSurfaceQuadrature\l\&lt; dim &#45; 1, dim \&gt;" alt="" coords="429,5,619,47"/>
+<area shape="rect" id="node4" href="$classNonMatching_1_1ImmersedSurfaceQuadrature.html" title="ImmersedSurfaceQuadrature\l\&lt; dim \&gt;" alt="" coords="429,71,619,112"/>
+<area shape="rect" id="node5" href="$classMappingQEulerian_1_1MappingQEulerianGeneric_1_1SupportQuadrature.html" title="MappingQEulerian\&lt; dim\l \&gt;::MappingQEulerianGeneric\l::SupportQuadrature" alt="" coords="427,137,621,193"/>
+<area shape="rect" id="node6" href="$classNonMatching_1_1ImmersedSurfaceQuadrature.html" title="NonMatching::ImmersedSurface\lQuadrature\&lt; dim \&gt;" alt="" coords="419,256,629,297"/>
+<area shape="rect" id="node8" href="$classNonMatching_1_1internal_1_1QuadratureGeneratorImplementation_1_1ExtendableQuadrature.html" title="NonMatching::internal\l::QuadratureGeneratorImplementation\l::ExtendableQuadrature\&lt; dim \&gt;" alt="" coords="404,322,644,378"/>
+<area shape="rect" id="node9" href="$classQAnisotropic.html" title="QAnisotropic\&lt; dim \&gt;" alt="" coords="453,402,595,429"/>
+<area shape="rect" id="node10" href="$classQGauss.html" title="QGauss\&lt; dim \&gt;" alt="" coords="467,453,581,479"/>
+<area shape="rect" id="node11" href="$classQGaussChebyshev.html" title="QGaussChebyshev\&lt; dim \&gt;" alt="" coords="433,503,615,530"/>
+<area shape="rect" id="node12" href="$classQGaussLobatto.html" title="QGaussLobatto\&lt; dim \&gt;" alt="" coords="445,554,603,581"/>
+<area shape="rect" id="node13" href="$classQGaussLobatto.html" title="QGaussLobatto\&lt; 1 \&gt;" alt="" coords="823,581,967,607"/>
+<area shape="rect" id="node14" href="$classQGaussLobattoChebyshev.html" title="QGaussLobattoChebyshev\l\&lt; dim \&gt;" alt="" coords="435,656,613,697"/>
+<area shape="rect" id="node15" href="$classQGaussLog.html" title="QGaussLog\&lt; dim \&gt;" alt="" coords="456,722,592,749"/>
+<area shape="rect" id="node16" href="$classQGaussLogR.html" title="QGaussLogR\&lt; dim \&gt;" alt="" coords="451,773,597,799"/>
+<area shape="rect" id="node17" href="$classQGaussOneOverR.html" title="QGaussOneOverR\&lt; dim \&gt;" alt="" coords="435,823,613,850"/>
+<area shape="rect" id="node18" href="$classQGaussPyramid.html" title="QGaussPyramid\&lt; dim \&gt;" alt="" coords="443,874,605,901"/>
+<area shape="rect" id="node19" href="$classQGaussRadauChebyshev.html" title="QGaussRadauChebyshev\l\&lt; dim \&gt;" alt="" coords="437,925,611,967"/>
+<area shape="rect" id="node20" href="$classQGaussWedge.html" title="QGaussWedge\&lt; dim \&gt;" alt="" coords="446,991,602,1018"/>
+<area shape="rect" id="node21" href="$classQIterated.html" title="QIterated\&lt; dim \&gt;" alt="" coords="463,1042,585,1069"/>
+<area shape="rect" id="node22" href="$classQMidpoint.html" title="QMidpoint\&lt; dim \&gt;" alt="" coords="461,1093,587,1119"/>
+<area shape="rect" id="node23" href="$classQMilne.html" title="QMilne\&lt; dim \&gt;" alt="" coords="470,1143,578,1170"/>
+<area shape="rect" id="node24" href="$classQSimplex.html" title="QSimplex\&lt; dim \&gt;" alt="" coords="462,1194,586,1221"/>
+<area shape="rect" id="node27" href="$classQSimplex.html" title="QSimplex\&lt; 2 \&gt;" alt="" coords="839,1234,950,1261"/>
+<area shape="rect" id="node30" href="$classQSimpson.html" title="QSimpson\&lt; dim \&gt;" alt="" coords="460,1295,588,1322"/>
+<area shape="rect" id="node31" href="$classQSorted.html" title="QSorted\&lt; dim \&gt;" alt="" coords="467,1346,581,1373"/>
+<area shape="rect" id="node32" href="$classQSplit.html" title="QSplit\&lt; dim \&gt;" alt="" coords="473,1397,575,1423"/>
+<area shape="rect" id="node33" href="$classQTelles.html" title="QTelles\&lt; dim \&gt;" alt="" coords="468,1447,580,1474"/>
+<area shape="rect" id="node34" href="$classQTrapezoid.html" title="QTrapezoid\&lt; dim \&gt;" alt="" coords="457,1498,591,1525"/>
+<area shape="rect" id="node35" href="$classQuadratureSelector.html" title="QuadratureSelector\l\&lt; dim \&gt;" alt="" coords="457,1549,591,1591"/>
+<area shape="rect" id="node36" href="$classQWeddle.html" title="QWeddle\&lt; dim \&gt;" alt="" coords="463,1615,585,1642"/>
+<area shape="rect" id="node37" href="$classQuadrature.html" title="Quadrature\&lt; dim &#45; 1 \&gt;" alt="" coords="449,1666,599,1693"/>
+<area shape="rect" id="node38" href="$classQuadrature.html" title="Quadrature\&lt; 1 \&gt;" alt="" coords="465,1717,583,1743"/>
+<area shape="rect" id="node39" href="$classQuadrature.html" title="Quadrature\&lt; structdim \&gt;" alt="" coords="442,1767,606,1794"/>
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="Subscriptor" alt="" coords="5,962,93,989"/>
+<area shape="rect" id="node7" href="$classNonMatching_1_1ImmersedSurfaceQuadrature.html" title="NonMatching::ImmersedSurface\lQuadrature\&lt; dim &#45; 1, dim \&gt;" alt="" coords="789,256,1000,297"/>
+<area shape="rect" id="node25" href="$classQGaussSimplex.html" title="QGaussSimplex\&lt; dim \&gt;" alt="" coords="813,1107,976,1134"/>
+<area shape="rect" id="node26" href="$classQWitherdenVincentSimplex.html" title="QWitherdenVincentSimplex\l\&lt; dim \&gt;" alt="" coords="803,1159,986,1200"/>
+<area shape="rect" id="node28" href="$classQDuffy.html" title="QDuffy" alt="" coords="1071,1209,1135,1235"/>
+<area shape="rect" id="node29" href="$classQTrianglePolar.html" title="QTrianglePolar" alt="" coords="1049,1259,1157,1286"/>
+</map>

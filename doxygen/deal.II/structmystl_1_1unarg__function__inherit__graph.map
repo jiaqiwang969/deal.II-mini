@@ -1,0 +1,11 @@
+<map id="mystl::unarg_function&lt; Arg, Result &gt;" name="mystl::unarg_function&lt; Arg, Result &gt;">
+<area shape="rect" id="node2" href="$structmystl_1_1unarg__function.html" title="mystl::unarg_function\l\&lt; Pair, Pair::first_type \&gt;" alt="" coords="321,5,484,47"/>
+<area shape="rect" id="node4" href="$structmystl_1_1unarg__function.html" title="mystl::unarg_function\l\&lt; Pair, Pair::second\l_type \&gt;" alt="" coords="329,71,476,127"/>
+<area shape="rect" id="node6" href="$structmystl_1_1unarg__function.html" title="mystl::unarg_function\l\&lt; T, T \&gt;" alt="" coords="329,152,476,193"/>
+<area shape="rect" id="node8" href="$structmystl_1_1unarg__function.html" title="mystl::unarg_function\l\&lt; T, bool \&gt;" alt="" coords="329,217,476,259"/>
+<area shape="rect" id="node3" href="$structmystl_1_1selectfirst.html" title="mystl::selectfirst\l\&lt; Pair \&gt;" alt="" coords="552,5,671,47"/>
+<area shape="rect" id="node5" href="$structmystl_1_1selectsecond.html" title="mystl::selectsecond\l\&lt; Pair \&gt;" alt="" coords="542,79,681,120"/>
+<area shape="rect" id="node7" href="$structmystl_1_1negate.html" title="mystl::negate\&lt; T \&gt;" alt="" coords="545,159,678,186"/>
+<area shape="rect" id="node9" href="$structmystl_1_1identity.html" title="mystl::identity\&lt; T \&gt;" alt="" coords="543,217,679,243"/>
+<area shape="rect" id="node10" href="$structmystl_1_1logical__not.html" title="mystl::logical_not\&lt; T \&gt;" alt="" coords="533,267,689,294"/>
+</map>

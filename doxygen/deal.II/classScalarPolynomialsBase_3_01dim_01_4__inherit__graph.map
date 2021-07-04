@@ -1,0 +1,18 @@
+<map id="ScalarPolynomialsBase&lt; dim &gt;" name="ScalarPolynomialsBase&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classAnisotropicPolynomials.html" title="AnisotropicPolynomials\l\&lt; dim \&gt;" alt="" coords="230,5,389,47"/>
+<area shape="rect" id="node3" href="$classBarycentricPolynomials.html" title="BarycentricPolynomials\l\&lt; dim \&gt;" alt="" coords="230,129,389,171"/>
+<area shape="rect" id="node4" href="$classBarycentricPolynomials.html" title="BarycentricPolynomials\&lt; 1 \&gt;" alt="" coords="521,94,712,121"/>
+<area shape="rect" id="node5" href="$classBarycentricPolynomials.html" title="BarycentricPolynomials\&lt; 2 \&gt;" alt="" coords="521,163,712,190"/>
+<area shape="rect" id="node6" href="$classPolynomialsAdini.html" title="PolynomialsAdini\&lt; dim \&gt;" alt="" coords="226,246,393,273"/>
+<area shape="rect" id="node7" href="$classPolynomialSpace.html" title="PolynomialSpace\&lt; dim \&gt;" alt="" coords="225,297,393,323"/>
+<area shape="rect" id="node9" href="$classPolynomialSpace.html" title="PolynomialSpace\&lt; dim\l &#45; 1 \&gt;" alt="" coords="539,329,695,371"/>
+<area shape="rect" id="node10" href="$classPolynomialsRannacherTurek.html" title="PolynomialsRannacherTurek\l\&lt; dim \&gt;" alt="" coords="215,399,404,440"/>
+<area shape="rect" id="node11" href="$classScalarLagrangePolynomialPyramid.html" title="ScalarLagrangePolynomial\lPyramid\&lt; dim \&gt;" alt="" coords="221,464,397,505"/>
+<area shape="rect" id="node12" href="$classScalarLagrangePolynomialWedge.html" title="ScalarLagrangePolynomial\lWedge\&lt; dim \&gt;" alt="" coords="221,529,397,571"/>
+<area shape="rect" id="node13" href="$classTensorProductPolynomials.html" title="TensorProductPolynomials\l\&lt; dim, PolynomialType \&gt;" alt="" coords="220,647,399,688"/>
+<area shape="rect" id="node14" href="$classTensorProductPolynomials.html" title="TensorProductPolynomials\l\&lt; dim &#45; 1 \&gt;" alt="" coords="527,605,706,647"/>
+<area shape="rect" id="node15" href="$classTensorProductPolynomials.html" title="TensorProductPolynomials\l\&lt; dim \&gt;" alt="" coords="527,689,706,731"/>
+<area shape="rect" id="node16" href="$classTensorProductPolynomialsBubbles.html" title="TensorProductPolynomials\lBubbles\&lt; dim \&gt;" alt="" coords="220,771,399,812"/>
+<area shape="rect" id="node17" href="$classTensorProductPolynomialsConst.html" title="TensorProductPolynomials\lConst\&lt; dim \&gt;" alt="" coords="220,836,399,877"/>
+<area shape="rect" id="node8" href="$classPolynomialsP.html" title="PolynomialsP\&lt; dim \&gt;" alt="" coords="543,269,690,295"/>
+</map>

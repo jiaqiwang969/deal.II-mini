@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>Porting deal.II</title>
+    <link href="../screen.css" rel="StyleSheet" media="screen">
+    <meta name="copyright" content="Copyright (C) 2000 - 2020 by the deal.II Authors">
+    <meta name="keywords" content="deal.II porting">
+  </head>
+
+  <body>
+
+
+    <h1>Porting <acronym>deal.II</acronym> to new systems</h1>
+
+    <p>
+      <acronym>deal.II</acronym> uses very few
+      <a href="http://www.opengroup.org/austin/">POSIX</a> specific system
+      features and is otherwise fairly ISO (2011) C++ Standard compliant.
+
+      Consequently, there is a good chance that <acronym>deal.II</acronym>
+      will run on a reasonably well behaved system besides the ones listed
+      in the <a href="../readme.html" target="body">ReadMe</a>. Nevertheless,
+      there are cases where some adjustments are necessary.
+    </p>
+
+    <h2>Unknown compiler</h2>
+
+    <p>
+      Currently, the <acronym>deal.II</acronym> CMake build system
+      recognizes
+      <a href="http://gcc.gnu.org/">gcc</a>,
+      <a href="http://clang.llvm.org/">clang</a>, as well as
+      <a href="http://software.intel.com/en-us/intel-compilers">icc</a>, and
+      sets up reasonable default compiler flags.
+      <ul>
+        <li>
+          To start porting to an unknown compiler, specify
+          <code>-DDEAL_II_SETUP_DEFAULT_COMPILER_FLAGS=OFF</code> and set all
+          necessary compiler flags by hand via
+<pre>
+DEAL_II_CXX_FLAGS         - used during all builds
+DEAL_II_CXX_FLAGS_DEBUG   - additional flags for the debug library
+DEAL_II_CXX_FLAGS_RELEASE - additional flags for the release library
+</pre>
+          After that try to compile the library with minimal external
+          dependencies (<code>-DDEAL_II_ALLOW_AUTODETECTION=OFF</code>, for
+          further information see the <a href="../users/cmake_dealii.html">deal.II CMake
+            documentation</a>).
+        <li>
+          For adding permanent support for the unknown compiler to the
+          build system, have a look at
+<pre>
+cmake/setup_compiler_flags.cmake
+cmake/setup_compiler_flags_gnu.cmake
+cmake/setup_compiler_flags_icc.cmake
+</pre>
+          Patches are highly welcome! See <a href="http://www.dealii.org/participate.html">here</a>
+          for information on how to get in contact with us.
+        <li>
+          You might want to have a look at
+<pre>
+cmake/checks/check_01_for_compiler_features.cmake
+cmake/checks/check_01_for_cxx_features.cmake
+cmake/checks/check_03_for_compiler_bugs.cmake
+include/deal.II/base/config.h.in
+</pre>
+          to see how compiler specific checks are done.
+      </ul>
+    </p>
+
+    <h2>Porting to a new platform</h2>
+
+    <p>
+      <acronym>deal.II</acronym> should support almost all reasonably
+      <a href="http://www.opengroup.org/austin/">POSIX</a> compliant
+      platforms out of the box. Nevertheless, the following bits of
+      information might help:
+      <ul>
+        <li>
+          The build system of <acronym>deal.II</acronym> uses <a
+          href="http://www.cmake.org/" target="_top">CMake</a>.  So,
+          in order to port <acronym>deal.II</acronym> to a new platform,
+          it is obviously necessary that <a href="http://www.cmake.org/"
+          target="_top">CMake</a> supports the platform in question
+          with at least one generator for a native build tool, see <a
+          href="http://www.cmake.org/cmake/help/documentation.html">here</a>.
+        <li>
+          <acronym>deal.II</acronym> is mainly developed with <a
+          href="http://gcc.gnu.org/">gcc</a> on GNU/Linux, so it is
+          best to begin porting to a new platform with the help of <a
+          href="http://gcc.gnu.org/">gcc</a>.
+          After that a platform specific compiler might be tried.
+        <li>
+          Almost all <a href="http://www.opengroup.org/austin/">POSIX</a>
+          specific code is well guarded with fall-back code in case the
+          specific POSIX function is not available. There is (currently)
+          one exception, though: Routines that measure elapsed CPU time in
+          <code>source/base/timer.cc</code> have implementations for POSIX
+          and Windows and will not work correctly on other platforms.
+        <li>
+          Have a look at
+<pre>
+cmake/checks/check_01_cxx_features.cmake
+cmake/checks/check_02_compiler_features.cmake
+cmake/checks/check_02_system_features.cmake
+cmake/checks/check_03_compiler_bugs.cmake
+include/deal.II/base/config.h.in
+</pre>
+          to see how platform and compiler specific checks are done.
+	<li>
+          Of course, we would be happy to hear about the changes you made
+          for your system, so that we can include them into the next version
+          of the library!
+      </ul>
+    </p>
+
+    <h2>Cross compiling</h2>
+
+    <p>
+      It is possible to use the
+      <a href="https://cmake.org/cmake/help/latest/manual/cmake-toolchains.7.html">CMake toolchain</a>
+      to cross compile deal.II for a platform other than the one on which the
+      compiler is running. The target platform can have a different operating
+      system, different architecture or different set of libraries. Cross
+      compilation is a very useful technique, for instance it can be used to
+      compile deal.II with a compiler that is not available in the target
+      machine. An alternative technique is to use a
+      <a href="https://www.docker.com/">Docker container</a> or a
+      <a href="https://en.wikipedia.org/wiki/Virtualization">virtual machine</a>
+      that mimics the target machine.
+    </p>
+
+    <p>
+      You can use any compiler for cross compilation, although
+      <a href="https://clang.llvm.org/">LLVM/clang</a> might be more versatile
+      because it supports multiple architecture targets in a single
+      executable natively (see
+      <a href="https://clang.llvm.org/docs/CrossCompilation.html">Cross-compilation using Clang</a>).
+      Below you can find an example toolchain file for cross compilation with
+      clang (and another example for
+      <a href="Toolchain-x86_64-w64-mingw32.sample">Windows64 using MinGW</a>).
+<pre>
+set(target_root /path/to/sysroot)
+set(dealii_dir ${target_root}/path/to/lib/dealii)
+
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR x86_64)
+
+set(CMAKE_SYSROOT ${target_root})
+
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
+
+set(CMAKE_C_COMPILER_EXTERNAL_TOOLCHAIN ${target_root}/path/to/gcc/toolchain)
+set(CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN ${target_root}/path/to/gcc/toolchain)
+
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+</pre>
+      If you use LLVM/clang you can use the gcc toolchain of the
+      target with the option <code>CMAKE_CXX_COMPILER_EXTERNAL_TOOLCHAIN</code>,
+      this is equivalent to the clang option
+      <a href="https://clang.llvm.org/docs/ClangCommandLineReference.html">--gcc-toolchain</a>.
+      You should place all the relevant libraries of the target in
+      <code>$target_root</code>. <code>ldd</code> is a great tool figure out the
+      libraries that you need. You can use the C libraries of the target such as
+      Blas, HDF5 and MPI. On the other hand C++ libraries can be problematic
+      because different C++ compilers (or even different versions of the same
+      compiler, or the same compiler on different platforms) mangle public
+      symbols in radically different ways. For this reason C++ libraries such
+      as Trilinos should be cross compiled by the same compiler as deal.II.
+    </p>
+
+    <p>
+      If the host and the target have a different architecture, you have to set
+      up a native deal.II build directory first and run
+      <code>make expand_instantiations_exe</code> in it. The executable is
+      needed for the build system (the cross compiled version cannot be used if
+      the architecture of the target and the host are not the same). Locate the
+      <code>expand_instantiations</code> executable (it usually resides under
+      <code>${CMAKE_BINARY_DIR}/bin</code>) and export its location with the
+      <code>PATH</code> environment variable. Below you can find a minimal cmake
+      script for the configuration of deal.II.
+<pre>
+mkdir $dealii_build
+cd $dealii_build
+export LD_LIBRARY_PATH=$target_root/lib/directories
+cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake \
+        -DDEAL_II_FORCE_BUNDLED_BOOST=ON \
+        -DDEAL_II_ALLOW_AUTODETECTION=OFF \
+        -DDEAL_II_WITH_MPI=ON \
+        -DMPI_CXX_INCLUDE_PATH:STRING=$target_root'/path/to/mpi/include' \
+        -DMPI_CXX_LIBRARIES:STRING=$target_root'/path/to/mpi/lib/libmpi_1.so;'$target_root'/path/to/mpi/lib/libmpi_2.so' \
+        -DDEAL_II_WITH_TRILINOS=ON \
+        -DTRILINOS_DIR=$target_root/path/to/trilinos \
+        -DDEAL_II_WITH_P4EST=ON \
+        -DP4EST_DIR=$target_root/path/to/p4est \
+        -DCMAKE_INSTALL_PREFIX=$target_root/path/to/dealii \
+        /path/to/dealii/repository
+make expand_instantiations_exe
+export PATH=$dealii_build/bin/:$PATH
+make -jN install
+</pre>
+      If the target uses <code>LD_LIBRARY_PATH</code> to set up some libraries,
+      you may need to export <code>LD_PRELOAD_PATH</code> with those libraries
+      before you call CMake. Note that CMake might not be able to guess the MPI
+      configuration, therefore you may have to give all the MPI flags to CMake.
+      There are two ways to obtain the MPI flags, you can compile another
+      program at the target and then inspect <code>CMakeCache.txt</code>
+      or you can obtain the flags using <code>mpic++ --showme:compile</code> and
+      <code>mpic++ --showme:link</code>. The remaining configuration can be
+      adjusted at will, see <a href="../users/cmake_dealii.html">the documentation</a>. Note
+      that the <a href="https://en.wikipedia.org/wiki/Rpath">rpaths</a> of the
+      examples might not be correct, this can be fixed using
+      <code>LD_LIBRARY_PATH</code> or <code>chrpath</code>.
+    </p>
+
+    <hr />
+    <div class="right">
+      <a href="http://validator.w3.org/check?uri=referer" target="_top">
+        <img style="border:0" src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!"></a>
+      <a href="http://jigsaw.w3.org/css-validator/check/referer" target="_top">
+        <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a>
+    </div>
+
+  </body>
+</html>
