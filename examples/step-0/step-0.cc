@@ -28,8 +28,8 @@
 // Output of grids in various graphics formats:
 //#include <deal.II/grid/grid_out.h>
 
-// 包含测试的division的头文件
-#include <deal.II/division/division.h>
+#include <list>
+#include <deal.II/mystl/list.h>
 
 // This is needed for C++ output:
 #include <iostream>
@@ -39,13 +39,6 @@
 
 // 省略书写std命名空间
 // using namespace std;
-
-
-// 包含静态变量
-static const char *const HEADER = "\nDivider © 2018 Monkey Claps Inc.\n\n";
-static const char *const USAGE =
-  "Usage:\n\tdivider <numerator> <denominator>\n\nDescription:\n\tComputes the result of a fractional division,\n\tand reports both the result and the remainder.\n";
-
 
 // The final step in importing deal.II is this: All deal.II functions and
 // classes are in a namespace <code>dealii</code>, to make sure they don't
@@ -293,35 +286,5 @@ void first_grid()
 int main(int argc, const char *argv[])
 {
   first_grid();
-  // second_grid();
-  // define in division.h
-  dealii::Fraction f;
-
-  std::cout << HEADER;
-
-  // ensure the correct number of parameters are used.
-  if (argc < 3)
-    {
-      std::cout << USAGE;
-      return 1;
-    }
-
-  f.numerator   = atoll(argv[1]);
-  f.denominator = atoll(argv[2]);
-
-  dealii::Division d = dealii::Division(f);
-  try
-    {
-      dealii::DivisionResult r = d.divide();
-
-      std::cout << "Division : " << f.numerator << " / " << f.denominator
-                << " = " << r.division << "\n";
-      std::cout << "Remainder: " << f.numerator << " % " << f.denominator
-                << " = " << r.remainder << "\n";
-    }
-  catch (dealii::DivisionByZero)
-    {
-      std::cout << "Can not divide by zero, Homer. Sober up!\n";
-    }
   return 0;
 }
