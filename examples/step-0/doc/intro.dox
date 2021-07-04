@@ -2,16 +2,20 @@
 
 
 <h1> About the tutorial </h1>
-deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者来说，要想深入理解和改写底层框架着实难度巨大。其一个重要的原因是，deal.II 的底层是基于范型编程的思想。
+deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者来说，要想深入理解和改写底层框架着实难度巨大。其一个重要的原因是，deal.II 的底层是基于范型编程的思想。deal.II目前所提供的所有教程并未对数据结构的细节进行解读，这块工作显得神秘且不可触及。
 
-因此，在进入正式的step-1学习之前，有必要了解一些C++的基础知识。因此，该教程取名叫做step-0。
-这是仅仅是个人学习STL、boost和deal.II的学习笔记，希望尽快加强自身编程能力，同时也希望能够分享和帮助到更多热爱deal.IId 小伙伴。
+该教程取名叫做step-0。这是仅仅是个人学习STL、boost和deal.II的学习笔记，希望尽快加强自身编程能力，同时也希望能够分享和帮助到更多热爱deal.II 的 小伙伴。
 
 基本构想包含几大块，随着学习的深入，在今后将逐步完善:
-- STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
-- Boost程序库探秘: 参考Björn Karlsson的An Introduction to Boost。
-- Deal.II程序库探秘: 参考deal.II documentation。
+- STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 
+  参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
+- Boost程序库探秘: 
+  参考Björn Karlsson的An Introduction to Boost。
+- Deal.II程序库探秘: 
+  参考deal.II documentation。
 - 分别对应的测试库及案例库。
+
+相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系。因此，会有很多不同功能但结构相近的代码块之间的对比，以此启发读者编写自己的结构化代码。
 
 
 
