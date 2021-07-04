@@ -4,13 +4,15 @@
 <h1> About the tutorial </h1>
 deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者来说，要想深入理解和改写底层框架着实难度巨大。其一个重要的原因是，deal.II 的底层是基于范型编程的思想。
 
-因此，在进入正式的step-1学习之前，有必要了解一些C++的基础知识。
+因此，在进入正式的step-1学习之前，有必要了解一些C++的基础知识。因此，该教程取名叫做step-0。
 这是仅仅是个人学习STL、boost和deal.II的学习笔记，希望尽快加强自身编程能力，同时也希望能够分享和帮助到更多热爱deal.IId 小伙伴。
 
 基本构想包含几大块，随着学习的深入，在今后将逐步完善:
 - STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
 - Boost程序库探秘: 参考Björn Karlsson的An Introduction to Boost。
-- Deal.II程序库探秘: 参考deal.II documentation.
+- Deal.II程序库探秘: 参考deal.II documentation。
+- 分别对应的测试库及案例库。
+
 
 
 
@@ -32,7 +34,15 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 仿函数，现在称为函数对象，定义在 functional.h 中。
 
 <h3> 容器 </h3>
-以下列出主要容器以及它们主要的接口，详情请到项目中查看。
+<table width="20%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://cdn.mathpix.com/snip/images/VWnS4G3Buu7-aBCwOZaxoTbCSQzMkpxnY6fOhoNyo28.original.fullsize.png" />
+    </td>
+  </tr>
+</table>
+
+
 
 - vector（向量）
 - list（双向链表）
@@ -74,7 +84,7 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 
 <h2> 前闭后开区间 </h2>
 
-<table width="60%" align="center">
+<table width="20%" align="center">
   <tr>
     <td align="center">
       <img src="https://cdn.mathpix.com/snip/images/Y9HfA8GCq7DoSNmAm5Zt_AGWW97aswKhdgOWuXvi3tk.original.fullsize.png" />
@@ -89,7 +99,8 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
       for (; ite != c.end(); ++ite)
         ...
 @endcode
-这是老版本的deal.II 8.3.0, 所用到的迭代器的for-loop。
+
+对应，这是老版本的deal.II 8.3.0, 所用到的迭代器的for-loop。
 @code
   for (unsigned int step=0; step<5; ++step)
     {
@@ -116,7 +127,16 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 
 @endcode
 
-新版本的操作做了一定的简化。
+
+C++-11后，增加了一种叫range-base statement的写法，引入了  `auto`。
+@code
+      Contatiner<T> c;
+      ...
+      Container<T>::interator ite = c.begin();
+      for (auto element : c)
+        ...
+@endcode
+对应，新版本的deal.II里面的操作：
 @code
   for (unsigned int step=0; step<5; ++step)
     {
