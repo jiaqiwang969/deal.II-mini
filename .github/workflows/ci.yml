@@ -52,12 +52,24 @@ jobs:
         run: |
          cd dealii
          cmake -D CMAKE_BUILD_TYPE=Debug  .
-         #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug
+         #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
 
       - name: build
         run: |
          cd dealii
          make -j 48
+         make documentation
+
+
+      - name: Publish Doxygen documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dealii/doc
+          enable_jekyll: false
+          allow_empty_commit: false
+          force_orphan: true
+          publish_branch: gh-pages-ci-test
 
       - name: test
         run: |
@@ -67,5 +79,7 @@ jobs:
           ctest 
 
       # - name: collect code coverage
-      #   run: |
       # run: bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+
+
+
