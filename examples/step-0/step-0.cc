@@ -18,18 +18,31 @@
 // @sect3{Include files}
 
 
-// stl的vector容器的头文件
+// 这是stl的vector容器的头文件。
 #include <vector>
-// stl的algorithm头文件
+// 这是stl的algorithm头文件。
 #include <algorithm>
-// stl的afunctional头文件
+// 这是stl的afunctional头文件。
 #include <functional>
-// 输入输出的头文件
+// 这是输入输出的头文件。
 #include <iostream>
 
-// count_if 算法
+// count_if 核心算法，摘抄自STL标准模版库。这里用test
+// namespace包裹，可以有效的防止相同名称的函数产生误调用的行为。
 namespace test
 {
+  // 模版
+  template <typename _InputIterator, typename _Predicate>
+  typename std::iterator_traits<_InputIterator>::difference_type
+  __count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
+  {
+    typename std::iterator_traits<_InputIterator>::difference_type __n = 0;
+    for (; __first != __last; ++__first)
+      if (__pred(__first)) // 返回真假
+        ++__n;
+    return __n;
+  }
+
   /**
    *  @brief Count the elements of a sequence for which a predicate is true.
    *  @ingroup non_mutating_algorithms
@@ -51,36 +64,25 @@ namespace test
           typename std::iterator_traits<_InputIterator>::value_type>)
         __glibcxx_requires_valid_range(__first, __last);
 
-    return std::__count_if(__first,
-                           __last,
-                           __gnu_cxx::__ops::__pred_iter(__pred));
+    return test::__count_if(__first,
+                            __last,
+                            __gnu_cxx::__ops::__pred_iter(__pred));
   }
 
 
-
-  template <typename _InputIterator, typename _Predicate>
-  typename std::iterator_traits<_InputIterator>::difference_type
-  __count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
-  {
-    typename std::iterator_traits<_InputIterator>::difference_type __n = 0;
-    for (; __first != __last; ++__first)
-      if (__pred(__first))
-        ++__n;
-    return __n;
-  }
 
 } // namespace test
 
 // 该函数的目的是实现计算出vector中大于40元素的个数。
 int main()
 {
-  // ia定义为基本的数组。
+  // `ia` 定义为基本的数组。
   int ia[6] = {27, 210, 12, 47, 109, 83};
   // std::vector是一个容器。众所周知,
-  // 常用的数据结构不外乎array（数组）、list（链表）、 tree (树）表)
-  // $\cdots$等等。根捨“数据在容器中的排列”特性,这些数据结构分为序列式(sequence)和关联式（associative）两种。
+  // 常用的数据结构不外乎array（数组）、list（链表）、 tree (树）、hash(表)
+  // $\cdots$等等。根捨“数据在容器中的排列”特性,这些数据结构分为序列式(sequence)和关联式(associative)两种。
 
-  // 所谓序列式容器, 其中的元素都可序 ( ordered )，但未必有序 (sorted)。
+  // 所谓序列式容器, 其中的元素都可序(ordered)，但未必有序(sorted)。
 
   // 所谓关联式容器，观念上类似关联式数据库（实际上则简单许多）：每笔数据(每个元素）都有一个键值（key）和一个实值（value)。当元素被插人到关联式容器中时,容器内部结构（可能是
   // RB-tree, 也可能是 hash-tab $1 \mathrm{e}$)
@@ -96,9 +98,15 @@ int main()
   // cout_if
   // 算法用来计算一定数据范围下，例如vector的头和尾，符合给定某一个算法条件的个数。
   // 接下来，设置初值，其中一种办法是找到 `ia`
-  // 数组的头和尾的(范化的)指针，即迭代器 ，然后将数组放入vector当中。
-
-
+  // vi.begin()和vi.end()输出的类型为迭代器，一种范化的指针。
+  // 迭代器是一种行为类似指针的对象,
+  // 而指针的各种行为中最常见也最重要的便是内容提领（dereference)
+  // 和成员访问（member access ) , 因此, 迭代器最重要的编程工作就是对 operator*
+  // 和 operator-> 进行重载（overloading ) 工作。
+  // 可以说，迭代器是一种智能指针。
+  // not1 和 bind2nd 为 adapter 适配器。 bind2nd 表示绑定第二参数为40。
+  // 整个cout_if算法的第三个参数
+  // 代表一个条件或动作，Predicate，它会传回真或者假。
   std::cout << test::count_if(vi.begin(),
                               vi.end(),
                               std::not1(std::bind2nd(std::less<int>(), 40)))

@@ -1,0 +1,10 @@
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/rebuild_cache.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/info.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/edit_cache.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/strip_comments.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/distclean.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/runclean.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/release.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/debug.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/run.dir
+/workspaces/deal.II-mini/examples/step-0/build/CMakeFiles/step-0.dir
