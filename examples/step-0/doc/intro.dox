@@ -3,46 +3,74 @@
 
 <h3> About the tutorial </h3>
 
-Since this is the first tutorial program, let us comment first on how
-this tutorial and the rest of the deal.II documentation is supposed to
-work. The documentation for deal.II comes essentially at three
-different levels:
-- The tutorial: This is a collection of programs that shows how
-  deal.II is used in practice. It doesn't typically discuss individual
-  functions at the level of individual arguments, but rather wants to
-  give the big picture of how things work together. In other words, it
-  discusses "concepts": what are the building blocks of deal.II and
-  how are they used together in finite element programs.
-- The manual: This is the documentation of every single class and
-  every single (member) function in deal.II. You get there if, for
-  example, you click on the "Main page" or "Classes" tab at the top of
-  this page. This is the place where you would look up what the second
-  argument of Triangulation::create_triangulation_compatibility means,
-  to give just one slightly obscure example. You need this level of
-  documentation for when you know what you want to do, but forgot how
-  exactly the function was named, what its arguments are, or what it
-  returns. Note that you also get into the manual whenever you read
-  through the tutorial and click on any of the class or function
-  names, i.e. the tutorial contains a great many links into the manual
-  for whenever you need a more detailed description of a function or
-  class. On the other hand, the manual is not a good place to learn
-  deal.II since it gives you a microscopic view of things without
-  telling you how a function might fit into the bigger picture.
-- Modules: These are groups of classes and functions that work
-  together or have related functionality. If you click on the
-  "Modules" tab at the top of this page, you end up on a page that
-  lists a number of such groups. Each module discusses the underlying
-  principles of these classes; for example, the @ref Sparsity module
-  talks about all sorts of different issues related to storing
-  sparsity patterns of matrices. This is documentation at an
-  intermediate level: they give you an overview of what's there in a
-  particular area. For example when you wonder what finite element
-  classes exist, you would take a look at the @ref fe module. The
-  modules are, of course, also cross-linked to the manual (and, at
-  times, to the tutorial); if you click on a class name, say on
-  Triangulation, would will also at the very top right under the class
-  name get a link to the modules this class is a member of if you want
-  to learn more about its context.
+这是个人学习STL、boost和deal.II的学习文档，基本构想包含几大块，逐步递进完善:
+- STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 <a
+href="http://deal-ii.com/deal.II-mini/doxygen/deal.II/dir_3c9b203ef64433a3d2dcb64e8d517546.html">源代码</a> 参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
+- Boost程序库探秘: 参考Björn Karlsson的An Introduction to Boost。
+- Deal.II程序库探秘: 参考deal.II documentation.
+
+
+
+
+
+
+<h1> STL源码剖析 </h1>
+
+
+<h3> 配置器 </h3>
+
+包括了 allocator 和 constructor，分别定义在 allocator.h 和 construct.h 中。
+allocator 负责空间的配置与回收，定义了一个类 mystl::alloc 用于管理内存，定义在 alloc.h 。
+constructor 负责对象的构造与析构，对应两个全局函数： construct 和 destroy。
+
+
+<h3> 迭代器 </h3>
+iterator，连接着容器与算法，是一种泛型指针，定义在 iterator.h 中。每个容器都附带专属的迭代器，是一种重载了 operator*，operator->，operator++，operator-- 等操作的模板类。
+
+<h3> 仿函数  </h3>
+仿函数，现在称为函数对象，定义在 functional.h 中。
+
+<h3> 容器 </h3>
+以下列出主要容器以及它们主要的接口，详情请到项目中查看。
+
+- vector（向量）
+- list（双向链表）
+- deque（双端队列）
+- map/multimap（映射）
+- set/multiset（集合）
+- unordered_map/unordered_multimap（无序映射）
+- unordered_set/unordered_multiset（无序集合）
+- basic_string （字符序列）
+
+<h3> 算法 </h3>
+- 基本算法（14个） 定义在 algobase.h
+- 数值算法（5个） 定义在 numeric.h
+- set 算法（4个） 定义在 set_algo.h
+- heap 算法（4个） 定义在 heap_algo.h
+- 其它算法（54个） 定义在 algo.h
+
+<h3> 配接器 </h3>
+<h4> container adapters </h4>
+ - stack (栈)
+ - queue
+ - priority_queue
+<h4> iterator adapters </h4>
+ - reverse_iterator: 
+ reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
+
+
+
+
+<h1>  三者联系 </h1>
+首先，让我们来看看他们之间的联系：
+
+
+
+
+
+
+
+
 
 Let's come back to the tutorial, since you are looking at the first program
 (or "step") of it. Each tutorial program is subdivided into the following
