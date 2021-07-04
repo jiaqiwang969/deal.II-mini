@@ -17,105 +17,25 @@
 
 // @sect3{Include files}
 
+// The most fundamental class in the library is the Triangulation class, which
+// is declared here:
+//#include <deal.II/grid/tria.h>
+// We need the following two includes for loops over cells and/or faces:
+//#include <deal.II/grid/tria_accessor.h>
+//#include <deal.II/grid/tria_iterator.h>
+// Here are some functions to generate standard grids:
+//#include <deal.II/grid/grid_generator.h>
+// Output of grids in various graphics formats:
+//#include <deal.II/grid/grid_out.h>
 
-// stl的vector容器的头文件
-#include <vector>
-// stl的algorithm头文件
-#include <algorithm>
-// stl的afunctional头文件
-#include <functional>
-// 输入输出的头文件
+#include <list>
+#include <deal.II/mystl/list.h>
+
+// This is needed for C++ output:
 #include <iostream>
-
-// count_if 算法
-namespace test
-{
-  /**
-   *  @brief Count the elements of a sequence for which a predicate is true.
-   *  @ingroup non_mutating_algorithms
-   *  @param  __first  An input iterator.
-   *  @param  __last   An input iterator.
-   *  @param  __pred   A predicate.
-   *  @return   The number of iterators @c i in the range @p [__first,__last)
-   *  for which @p __pred(*i) is true.
-   */
-  template <typename _InputIterator, typename _Predicate>
-  inline typename std::iterator_traits<_InputIterator>::difference_type
-  count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
-  {
-    // concept requirements
-    __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
-      __glibcxx_function_requires(
-        _UnaryPredicateConcept<
-          _Predicate,
-          typename std::iterator_traits<_InputIterator>::value_type>)
-        __glibcxx_requires_valid_range(__first, __last);
-
-    return std::__count_if(__first,
-                           __last,
-                           __gnu_cxx::__ops::__pred_iter(__pred));
-  }
-
-
-
-  template <typename _InputIterator, typename _Predicate>
-  typename std::iterator_traits<_InputIterator>::difference_type
-  __count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
-  {
-    typename std::iterator_traits<_InputIterator>::difference_type __n = 0;
-    for (; __first != __last; ++__first)
-      if (__pred(__first))
-        ++__n;
-    return __n;
-  }
-
-} // namespace test
-
-// 该函数的目的是实现计算出vector中大于40元素的个数。
-int main()
-{
-  // ia定义为基本的数组。
-  int ia[6] = {27, 210, 12, 47, 109, 83};
-  // std::vector是一个容器。众所周知,
-  // 常用的数据结构不外乎array（数组）、list（链表）、 tree (树）表)
-  // $\cdots$等等。根捨“数据在容器中的排列”特性,这些数据结构分为序列式(sequence)和关联式（associative）两种。
-
-  // 所谓序列式容器, 其中的元素都可序 ( ordered )，但未必有序 (sorted)。
-
-  // 所谓关联式容器，观念上类似关联式数据库（实际上则简单许多）：每笔数据(每个元素）都有一个键值（key）和一个实值（value)。当元素被插人到关联式容器中时,容器内部结构（可能是
-  // RB-tree, 也可能是 hash-tab $1 \mathrm{e}$)
-  // 便依照其键值大小,以某种特定规则将这个元素放置于适当位置。关联式容器没有所谓头尾(只有最大元素和最小元素），所以不会有所谓push_back(),
-  // push_front()，pop_back()、pop_front(), begin(), end() 这样的操作行为。
-
-  // 这里，我们在vector容器里面放入 `int`
-  // 元素类型。第二个vector的参数是分配器，用来分配内存，每一次分配 `int`
-  // 大小的内存。通常情况下，自动匹配设置为默认值，因此可以省略。
-
-  std::vector<int, std::allocator<int>> vi(ia, ia + 6);
-  // 接下来，对vector进行一定的算法操作。
-  // cout_if
-  // 算法用来计算一定数据范围下，例如vector的头和尾，符合给定某一个算法条件的个数。
-  // 接下来，设置初值，其中一种办法是找到 `ia`
-  // 数组的头和尾的(范化的)指针，即迭代器 ，然后将数组放入vector当中。
-
-
-  std::cout << test::count_if(vi.begin(),
-                              vi.end(),
-                              std::not1(std::bind2nd(std::less<int>(), 40)))
-            << std::endl;
-  return 0;
-}
-
-
-
-// #include <list>
-// #include <deal.II/mystl/list.h>
-
-// // This is needed for C++ output:
-// #include <iostream>
-// #include <fstream>
-// // And this for the declarations of the `std::sqrt` and `std::fabs`
-// functions: #include <cmath>
+#include <fstream>
+// And this for the declarations of the `std::sqrt` and `std::fabs` functions:
+#include <cmath>
 
 // 省略书写std命名空间
 // using namespace std;
@@ -133,34 +53,34 @@ int main()
 
 // In the following, first function, we simply use the unit square as domain
 // and produce a globally refined grid from it.
-// void first_grid()
-// {
-// The first thing to do is to define an object for a triangulation of a
-// two-dimensional domain:
-// Triangulation<2> triangulation;
-// Here and in many following cases, the string "<2>" after a class name
-// indicates that this is an object that shall work in two space
-// dimensions. Likewise, there are versions of the triangulation class that
-// are working in one ("<1>") and three ("<3>") space dimensions. The way
-// this works is through some template magic that we will investigate in
-// some more detail in later example programs; there, we will also see how
-// to write programs in an essentially dimension independent way.
+void first_grid()
+{
+  // The first thing to do is to define an object for a triangulation of a
+  // two-dimensional domain:
+  // Triangulation<2> triangulation;
+  // Here and in many following cases, the string "<2>" after a class name
+  // indicates that this is an object that shall work in two space
+  // dimensions. Likewise, there are versions of the triangulation class that
+  // are working in one ("<1>") and three ("<3>") space dimensions. The way
+  // this works is through some template magic that we will investigate in
+  // some more detail in later example programs; there, we will also see how
+  // to write programs in an essentially dimension independent way.
 
-// Next, we want to fill the triangulation with a single cell for a square
-// domain. The triangulation is the refined four times, to yield $4^4=256$
-// cells in total:
-//  GridGenerator::hyper_cube(triangulation);
-//  triangulation.refine_global(4);
+  // Next, we want to fill the triangulation with a single cell for a square
+  // domain. The triangulation is the refined four times, to yield $4^4=256$
+  // cells in total:
+  //  GridGenerator::hyper_cube(triangulation);
+  //  triangulation.refine_global(4);
 
-// Now we want to write a graphical representation of the mesh to an output
-// file. The GridOut class of deal.II can do that in a number of different
-// output formats; here, we choose scalable vector graphics (SVG) format
-// that you can visualize using the web browser of your choice:
-//  std::ofstream out("grid-1.svg");
-//  GridOut       grid_out;
-//  grid_out.write_svg(triangulation, out);
-//   std::cout << "TEST PASS" << std::endl;
-// }
+  // Now we want to write a graphical representation of the mesh to an output
+  // file. The GridOut class of deal.II can do that in a number of different
+  // output formats; here, we choose scalable vector graphics (SVG) format
+  // that you can visualize using the web browser of your choice:
+  //  std::ofstream out("grid-1.svg");
+  //  GridOut       grid_out;
+  //  grid_out.write_svg(triangulation, out);
+  std::cout << "TEST PASS" << std::endl;
+}
 
 
 
@@ -363,8 +283,8 @@ int main()
 
 // Finally, the main function. There isn't much to do here, only to call the
 // two subfunctions, which produce the two grids.
-// int main()
-// {
-//   first_grid();
-//   return 0;
-// }
+int main()
+{
+  first_grid();
+  return 0;
+}
