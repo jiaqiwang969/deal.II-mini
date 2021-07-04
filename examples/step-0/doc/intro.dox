@@ -15,7 +15,23 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
   参考deal.II documentation。
 - 分别对应的测试库及案例库。
 
-相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系。因此，会有很多不同功能但结构相近的代码块之间的对比，以此启发读者编写自己的结构化代码。
+
+在某种程度上，范型编程的概念与面向对象编程的原始想法相矛盾。范型编程分离了数据和算法，而不是将它们结合起来。然而，这样做的原因是非常重要的。原则上，你可以将每一种容器与每一种算法结合起来，所以结果是一个非常灵活但仍然相当小的框架。
+范型编程的一个基本方面是，所有的组件都能与任意类型一起工作。正如 "标准模板库 "这个名字所表明的，所有组件都是任何类型的模板，只要该类型能够执行所需的操作。因此，STL是范型编程概念的一个好例子。容器和算法分别对任意类型和类是通用的。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/h3mftGdwXF4wlt3p8uFJlO9wD_5M2akhGkJI9ARei9M.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+
+
+相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系，我们可以通过剥离算法，探究并挖掘三者数据结构之间的共性。
+
+将会对比许多很多功能不同但结构相近的代码块，以此启发读者编写自己的结构化代码。
 
 
 
@@ -24,20 +40,29 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
 <h1>Introduction</h1>
 
 <h2> STL源码剖析 </h2>
-<h3> 配置器 </h3>
+从程序员的角度来看，STL提供了一堆满足各种需求的集合类，同时还有一些对它们进行操作的算法。STL的所有组件都是模板，所以它们可以被用于任意的元素类型。但是STL做的更多。它提供了一个框架，用于提供其他集合类或现有集合类和算法的工作。总而言之，STL给了C++一个新的抽象层次。忘掉动态数组、链表、二叉树或哈希表的编程；忘掉不同搜索算法的编程。要使用适当的集合种类，你只需定义适当的容器并调用相应的成员函数和算法来处理数据。
 
-包括了 allocator 和 constructor，分别定义在 allocator.h 和 construct.h 中。
-allocator 负责空间的配置与回收，定义了一个类 mystl::alloc 用于管理内存，定义在 alloc.h 。
-constructor 负责对象的构造与析构，对应两个全局函数： construct 和 destroy。
+
+
+<h3> 分配器 </h3>
+C++标准库使用特殊的对象来处理内存的分配和取消分配。包括了 allocator 和 constructor，分别定义在 allocator.h 和 construct.h 中。allocator 负责空间的配置与回收，定义了一个类 mystl::alloc 用于管理内存，定义在 alloc.h 。
+constructor 负责对象的构造与析构，对应两个全局函数： construct 和 destroy。它们代表一种特殊的内存模型，并被用作一种抽象，将使用内存的需求转化为对内存的原始调用。同时使用不同的分配器对象允许你在程序中使用不同的内存模型。
+
+
 
 
 <h3> 迭代器 </h3>
-iterator，连接着容器与算法，是一种泛型指针，定义在 iterator.h 中。每个容器都附带专属的迭代器，是一种重载了 operator*，operator->，operator++，operator-- 等操作的模板类。
+迭代器被用来遍历对象集合中的元素。这些集合可以是容器或容器的子集。迭代器的主要优点是，它们为任何任意的容器类型提供了一个小而通用的接口。例如，这个接口的一个操作让迭代器步入到集合中的下一个元素。这与集合的内部结构无关。不管这个集合是一个数组、一棵树还是一个哈希表，它都可以工作。这是因为每个容器类都提供了自己的迭代器类型，它只是 "做正确的事情"，因为它知道其容器的内部结构。
+
+迭代器的接口与普通指针的接口几乎相同。要增加一个迭代器，你可以调用操作符++。要访问一个迭代器的值，你要使用操作符*。因此，你可以认为迭代器是一种智能指针，它将 "转到下一个元素 "的调用转化为任何适当的内容。
+
+iterator，连接着容器与算法，定义在 iterator.h 中。每个容器都附带专属的迭代器，是一种重载了 operator*，operator->，operator++，operator-- 等操作的模板类。
 
 <h3> 仿函数  </h3>
 仿函数，现在称为函数对象，定义在 functional.h 中。
 
 <h3> 容器 </h3>
+容器是用来管理某类对象的集合的。每种容器都有自己的优点和缺点，所以拥有不同的容器类型反映了程序中对集合的不同要求。容器可以被实现为数组或链接列表，也可以为每个元素设置一个特殊的键。
 
 <p align="center">
    <div class="img" align="center">
@@ -57,11 +82,26 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 - basic_string （字符序列）
 
 <h3> 算法 </h3>
+算法是用来处理集合的元素的。例如，算法可以搜索、排序、修改，或简单地将元素用于各种目的。算法使用迭代器。因此，由于迭代器的迭代器接口对所有的容器类型都是通用的，一个算法只需要写一次就可以与任意的容器一起工作。
+为了赋予算法更多的灵活性，你可以提供某些由算法调用的辅助函数。因此，你可以使用一个一般的算法来满足你的需要，即使这种需要非常特殊或复杂。例如，你可以提供你自己的搜索标准或一个特殊的操作来组合元素。特别是自C++11以来，随着lambdas的引入，你可以很容易地指定几乎任何种类的功能，同时在一个容器的元素上运行。
+
+
 - 基本算法（14个） 定义在 algobase.h
 - 数值算法（5个） 定义在 numeric.h
 - set 算法（4个） 定义在 set_algo.h
 - heap 算法（4个） 定义在 heap_algo.h
 - 其它算法（54个） 定义在 algo.h
+
+<h4> 算法的复杂度测试 </h4>
+
+目前常见的 Big-oh 有下列几种情形：
+1. $\mathrm{O}(1)$ 或 $\mathrm{O}(\mathrm{c}):$ 称为常数时间(constant time)
+2. $\mathrm{O}(\mathrm{n}):$ 称为线性时间(linear time)
+3. $\mathrm{O}\left(\log _{2} \mathrm{n}\right):$ 称为次线性时间(sub-linear time)
+4. $\mathrm{O}\left(\mathrm{n}^{2}\right):$ 称为平方时间(quadratic time)
+5. $\mathrm{O}\left(\mathrm{n}^{3}\right):$ 称为立方时间(cubic time)
+6. $\mathrm{O}\left(2^{\mathrm{n}}\right):$ 称为指数时间( exponential time)
+7. $\mathrm{O}\left(\mathrm{n} \log _{2} \mathrm{n}\right):$ 介于线性及二次方成长的中间之行为模式
 
 <h3> 配接器 </h3>
 <h4> container adapters </h4>
@@ -74,16 +114,7 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 
 
 
-<h2> 算法的复杂度测试 </h2>
 
-目前常见的 Big-oh 有下列几种情形：
-1. $\mathrm{O}(1)$ 或 $\mathrm{O}(\mathrm{c}):$ 称为常数时间(constant time)
-2. $\mathrm{O}(\mathrm{n}):$ 称为线性时间(linear time)
-3. $\mathrm{O}\left(\log _{2} \mathrm{n}\right):$ 称为次线性时间(sub-linear time)
-4. $\mathrm{O}\left(\mathrm{n}^{2}\right):$ 称为平方时间(quadratic time)
-5. $\mathrm{O}\left(\mathrm{n}^{3}\right):$ 称为立方时间(cubic time)
-6. $\mathrm{O}\left(2^{\mathrm{n}}\right):$ 称为指数时间( exponential time)
-7. $\mathrm{O}\left(\mathrm{n} \log _{2} \mathrm{n}\right):$ 介于线性及二次方成长的中间之行为模式
 
 <h2> 前闭后开区间 </h2>
 
@@ -172,3 +203,39 @@ C++-11后，增加了一种叫range-base statement的写法，引入了  `auto`�
 <h1>  三者联系 </h1>
 为何学习deal.II会扯上学习STL和boost? 首先，让我们来看看他们之间的联系：
 
+
+
+
+<h3>  异常处理 </h3>
+
+几乎所有的异常类都可以由C++标准库抛出。特别是bad_alloc异常，只要分配存储空间就可以抛出。
+此外，由于库的功能可能会使用应用程序员提供的代码，函数可能会间接地抛出任何异常。
+任何标准库的实现都可能提供额外的异常类，无论是作为兄弟姐妹还是作为派生类。然而，使用这些非标准类使得代码不可移植，因为你不能在不破坏你的代码的情况下使用标准库的另一种实现。所以，你应该始终只使用标准的异常类。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/1BHDXMx8RBep5mEKfo2JiexYoqDF3DFJgmzHjviCqOY.original.fullsize.png"
+           alt = "标准异常处理的层次结构"
+           width="500">
+    </div>
+</p>
+
+
+<h3>  智能指针 </h3>
+从C语言开始，我们知道指针很重要，但也是麻烦的来源。使用指针的一个原因是为了在通常的范围边界之外拥有引用语义。然而，要确保它们的寿命和它们所引用的对象的寿命相匹配是非常棘手的，特别是当多个指针引用同一个对象的时候。例如，要在多个集合中拥有同一个对象（见第7章），你必须在每个集合中传递一个指针，而且理想情况下，当其中一个指针被销毁时（没有 "悬空指针 "或被引用对象的多次删除），以及最后一个对象的引用被销毁时（没有 "资源泄漏"），应该没有问题。
+
+避免这类问题的通常方法是使用 "智能指针"。它们的 "聪明 "之处在于，它们支持程序员避免出现刚才描述的那些问题。例如，一个智能指针可以非常聪明，以至于它 "知道 "自己是否是一个对象的最后一个指针，并且只有在它作为一个对象的 "最后所有者 "被销毁时，才使用这种知识来删除一个相关的对象。
+
+从C++11开始由C++标准库提供的unique_ptr类型是一种智能指针，它有助于在抛出异常时避免资源泄漏。一般来说，这种智能指针实现了排他性所有权的概念，这意味着它确保一个对象和它的相关资源在同一时间只被一个指针 "拥有"。当这个所有者被销毁或变成空的或开始拥有另一个对象时，之前拥有的对象也会被销毁，任何相关的资源也会被释放。
+
+
+
+
+DEALII中， 貌似做了相应的简化。
+当所指向的对象被销毁或被移出时，Smartpointer就会被废止。
+
+
+http://deal-ii.com/dealii-translator/doxygen/deal.II/classSmartPointer.html
+
+TODO：解析智能指针的代码
+http://deal-ii.com/dealii-translator/doxygen/deal.II/smartpointer_8h_source.html 
