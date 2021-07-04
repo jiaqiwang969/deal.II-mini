@@ -34,7 +34,7 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 仿函数，现在称为函数对象，定义在 functional.h 中。
 
 <h3> 容器 </h3>
-<table width="20%" align="center">
+<table height="20%" align="center">
   <tr>
     <td align="center">
       <img src="https://cdn.mathpix.com/snip/images/VWnS4G3Buu7-aBCwOZaxoTbCSQzMkpxnY6fOhoNyo28.original.fullsize.png" />
@@ -84,7 +84,7 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 
 <h2> 前闭后开区间 </h2>
 
-<table width="20%" align="center">
+<table height="20%" align="center">
   <tr>
     <td align="center">
       <img src="https://cdn.mathpix.com/snip/images/Y9HfA8GCq7DoSNmAm5Zt_AGWW97aswKhdgOWuXvi3tk.original.fullsize.png" />
