@@ -1,0 +1,769 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>Build system internals</title>
+    <link href="../screen.css" rel="StyleSheet">
+    <meta name="copyright" content="Copyright (C) 2013 - 2020 by the deal.II Authors">
+    <meta name="keywords" content="deal.II">
+  </head>
+
+<body>
+<h1><acronym>Build system internals</h1>
+
+<p>
+  This page provides details about the CMake build system. Files
+  processed by the top level <code>CMakeLists.txt</code> script are
+  listed in the TOC in chronological order.
+</p>
+
+<div class="toc">
+  <ol>
+    <li><a href="#codingstyle">Coding convention</a></li>
+    <li>Configuration
+      <ol>
+	<li><a href="#setup"><code>./CMakeLists.txt</code> and
+	    <code>./cmake/setup_*.cmake</code></a></li>
+	<li><a href="#checks"><code>./cmake/checks/check_*.cmake</code></a></li>
+        <li><a href="#findmodules"><code>./cmake/modules/Find*.cmake</code></a></li>
+	<li><a href="#configure"><code>./cmake/configure/configure_*.cmake</code></a></li>
+	<li><a href="#variables">Global variables controlling the build process</a></li>
+	<li><a href="#unity-build">The unity build subsystem</a></li>
+      </ol>
+    </li>
+    <li>Target definition and installation
+      <ol>
+	<li><a href="#config.h.in"><code>./include/deal.II/base/config.h.in</code></a></li>
+        <li><a href="#source"><code>./source/CMakeLists.txt</code></a></li>
+        <li><a href="#projectconfig"><code>./cmake/config/CMakeLists.txt</code></a></li>
+      </ol>
+    </li>
+  </ol>
+</div>
+
+<a name="codingstyle"></a>
+<h2> Coding convention </h2>
+<p>
+  Coding conventions are always a matter of choice. Nevertheless, the
+  following rules should be considered:
+  <ul>
+    <li>
+      Statements and keywords are written in all caps.
+    <li>
+      Indenting is done by two spaces; the usual indenting rules apply.
+    <li>
+      The <code>ELSE()</code>, <code>ENDIF()</code>,
+      <code>ENDFOREACH()</code>, etc. statements shall not repeat the
+      corresponding condition in <code>IF()</code>,
+      <code>FOREACH()</code>, etc.
+    <li>
+      To emphasize a comment it may be enclosed by a leading and
+      trailing empty comment line.
+  </ul>
+  An example:
+<pre class="cmake">
+FOREACH(_build ${DEAL_II_BUILD_TYPES})
+  #
+  # Set an appropriate keyword depending on target and build type:
+  #
+  IF(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "DebugRelease")
+    SET(_keyword "general")
+  ELSE()
+    IF(_build MATCHES DEBUG)
+      SET(_keyword "debug")
+    ELSE()
+      SET(_keyword "optimized")
+    ENDIF()
+  ENDIF()
+ENDFOREACH()
+</pre>
+
+<ul>
+  <li>
+    Line break is at 78 characters and should be obeyed whenever
+    reasonable.
+  <li>
+    Long statements should be broken into several lines at reasonable
+    places. Additional lines for a statement are indented by 2
+    spaces.
+  <li>
+    Multiline statements must end with the closing bracket at a
+    single line:
+</ul>
+<pre class="cmake">
+LIST(APPEND CONFIG_LIBRARIES
+  ${_keyword}
+  ${CONFIG_LIBRARIES_${_build}}
+  )
+
+SET_TARGET_PROPERTIES(${DEAL_II_BASE_NAME}${DEAL_II_${build}_SUFFIX}
+  PROPERTIES
+  VERSION ${VERSION}
+  SOVERSION ${VERSION}
+  LINK_FLAGS "${DEAL_II_LINKER_FLAGS_${build}}"
+  COMPILE_DEFINITIONS "${DEAL_II_DEFINITIONS};${DEAL_II_DEFINITIONS_${build}}"
+  COMPILE_FLAGS "${DEAL_II_CXX_FLAGS_${build}}"
+  )
+</pre>
+
+<p>
+  CMake operates almost always with variables in global state. To
+  guard against accidental overwrite of variables the following naming
+  conventions must be followed at all times:
+</p>
+
+<ul>
+  <li>
+    Global (configuration) variables are written in all caps. When
+    introducing a new one, ensure that the name isn't already used
+    somewhere else. Unrelated global variables must never be
+    overwritten.
+  <li>
+    Global variables can be prefixed by <code>DEAL_II_</code>.
+    (Global variables defined by CMake are usually prefixed by
+    <code>CMAKE_</code>.)
+  <li>
+    Local variables should always be named in all lowercase with a
+    leading "_". Local variables cannot be assumed to remain valid.
+    The may get overwritten at any time.
+</ul>
+</p>
+
+<h2>Configuration</h2>
+
+<a name="setup"></a>
+<h3> <code>./CMakeLists.txt</code> and <code>./cmake/setup_*.cmake</code> </h3>
+
+<p>
+  The very first configuration steps after some initial setup in
+  <code>./CMakeLists.txt</code> takes place in some
+  <code>./cmake/setup_*.cmake</code> files:
+  <ul>
+    <li> <code>setup_cached_variables.cmake</code>:
+      This sets up all cached variables prior to the call to
+      <code>PROJECT(deal.II)</code>. For details see the comment at the
+      top. Furthermore, some bookkeeping for compiler and linker flags
+      takes place, see <a href="../users/cmake_dealii.html#configurebuild">the section
+        about compile flags</a>.
+    <li> <code>setup_deal_ii.cmake</code>:
+      This file is included immediately after the call to
+      <code>PROJECT(deal.II)</code> and will set up all <i>magic
+        numbers</i> such as names, definitions, relative and absolute
+      paths used in the build system. Most of the definitions are
+      guarded with the help of the <code>SET_IF_EMPTY</code> macro so
+      that it is possible to override the values from the command line.
+    <li> <code>setup_compiler_flags.cmake</code>
+      sets up a suitable set of default compile flag for a known
+      compiler by including the appropriate
+      <code>setup_compiler_flags_*.cmake</code> file. When adding new
+      flags or compiler support, please respect the following note
+
+<pre>
+#
+# (./cmake/setup_compiler_flags.cmake)
+#
+# ####################
+# #     FAT NOTE:    #
+# ####################
+#
+# All configuration in setup_compiler_flags.cmake and
+# setup_compiler_flags_<compiler>.cmake shall ONLY modify:
+#
+#   DEAL_II_CXX_FLAGS
+#   DEAL_II_CXX_FLAGS_DEBUG
+#   DEAL_II_CXX_FLAGS_RELEASE
+#   DEAL_II_LINKER_FLAGS
+#   DEAL_II_LINKER_FLAGS_DEBUG
+#   DEAL_II_LINKER_FLAGS_RELEASE
+#
+# All modifications shall be guarded with the ENABLE_IF_SUPPORTED
+# or ENABLE_IF_LINKS macro, e.g.
+#
+#   ENABLE_IF_SUPPORTED(DEAL_II_CXX_FLAGS "-fpic")
+#   ENABLE_IF_LINKS(DEAL_II_LINKER_FLAGS "-Wl,--as-needed")
+#
+# Compiler flags for platform dependent optimization (such as
+# -march=native) must always be guarded with
+# DEAL_II_ALLOW_PLATFORM_INTROSPECTION:
+#
+#   IF(DEAL_II_ALLOW_PLATFORM_INTROSPECTION)
+#     ENABLE_IF_SUPPORTED(DEAL_II_CXX_FLAGS "-march=native")
+#   ENDIF()
+#
+# Checks for compiler features (such as C++14 support) and compiler
+# specific bugs that
+#   - usually set up further configuration (such as preprocessor
+#     definitions)
+#   - disable a specific flag for a specific compiler version.
+#
+# belong the corresponding file:
+#
+#   ./cmake/checks/check_01_cpu_features.cmake
+#   ./cmake/checks/check_01_cxx_features.cmake
+#   ./cmake/checks/check_02_compiler_features.cmake
+#   ./cmake/checks/check_02_system_features.cmake
+#   ./cmake/checks/check_03_compiler_bugs.cmake
+#
+</pre>
+  </ul>
+</p>
+
+
+<a name="checks"></a>
+<h3> <code>./cmake/checks/check_*.cmake</code> </h3>
+
+<p>
+  The next step in the configuration process is to include all
+  checks residing under <code>./cmake/checks</code>. Currently
+  there are (included and executed in alphabetical order):
+
+<pre>
+./cmake/checks/check_01_cpu_features.cmake
+  - Platform introspection for CPU features goes here and must be
+    guarded with DEAL_II_ALLOW_PLATFORM_INTROSPECTION
+
+./cmake/checks/check_01_cxx_features.cmake
+  - Check for supported C++ language features such as sufficient C++14
+    support
+
+./cmake/checks/check_02_compiler_features.cmake
+  - Search for support for compiler dependent features such as stack
+    trace support, demangler support, etc.
+
+./cmake/checks/check_02_system_features.cmake
+  - Checks for specific platform (Linux/Darwin/CYGWIN/Windows..)
+    features and support
+
+./cmake/checks/check_03_compiler_bugs.cmake
+  - Check for compiler bugs
+</pre>
+
+<ul>
+  <li>
+    A check usually consists of a call to one of the macros below
+    that will set up a global variable. Please stick to the naming
+    convention <code>HAVE_&lt;..&gt;</code>, resp.
+    <code>DEAL_II_(HAVE|USE)_&lt;..&gt;</code>. <b>It is forbidden to
+      use a variable name starting with
+      <code>DEAL_II_WITH_&lt;..&gt;</code> because this prefix is
+      exclusively reserved for the feature mechanism described
+      below.</b> For some tests it might be necessary to manipulate
+    <a href="#variables">global variables</a>.
+  <li>
+    A platform check should have a prominent comment explaining what
+    it does and why it is there, and should state author and year.
+  <li>
+    There are a number of readily available platform check macros:
+
+<pre>
+CHECK_CXX_SOURCE_COMPILES(source variable)
+  - Checks whether it is possible to compile _and_ link the code snippet
+    &lt;source&gt;. If successful, variable is set to 1.
+
+CHECK_CXX_SOURCE_RUNS(source variable)
+  - variable is set to 1 if &lt;source&gt; could be successfully compiled and
+    linked and the resulting program ran and exited without error.
+    Avoid this macro outside of a DEAL_II_ALLOW_PLATFORM_INTROSPECTION
+    guard. A sensible fallback should be provided if the check cannot
+    be run (e.g. when cross compiling).
+
+CHECK_CXX_COMPILER_BUG(source variable)
+  - Inverts the logic of CHECK_CXX_SOURCE_COMPILES(), i.e. variable is
+    set to 1 if it was not possible to compile and link &lt;source&gt;.
+
+CHECK_INCLUDE_FILE_CXX(header variable)
+  - Check whether it is possible to compile and link a dummy program
+    including &lt;header&gt;.
+
+CHECK_FUNCTION_EXISTS(function variable)
+  - Check for the existence of a function prototype with name
+    &lt;function&gt;. (Don't forget to specify the link libraries, see
+    below.) Use CHECK_CXX_SYMBOL_EXISTS to search for C++ function
+    definitions instead, if possible.
+
+CHECK_CXX_SYMBOL_EXISTS(symbol header_file variable)
+  - Check for the existence of a symbol definition in the header_file
+    as well as for the presence in the current link interface
+    (Don't forget to specify the link libraries, see below.)
+
+CHECK_CXX_COMPILER_FLAG(flag variable)
+  - Sets the variable to 1 if the compiler understands the flag.
+</pre>
+
+  <li> Necessary compiler flags can easily set in the string variable
+    <code>CMAKE_REQUIRED_FLAGS</code>. There is a small macro that does this
+    job nicely:
+
+<pre class="cmake">
+ADD_FLAGS(CMAKE_REQUIRED_FLAGS "-Werror")
+CHECK_CXX_SOURCE_COMPILES(...)
+RESET_CMAKE_REQUIRED()
+</pre>
+
+  <li> Necessary include directories and libraries necessary for
+    linkage can be set in the list variables
+    <code>CMAKE_REQUIRED_INCLUDES</code> and
+    <code>CMAKE_REQUIRED_LIBRARIES</code>. It is best to append these
+    lists and later on reset <code>CMAKE_REQUIRED_*</code> (including
+    <code>CMAKE_REQUIRED_FLAGS</code>) to their default values:
+
+<pre class="cmake">
+LIST(APPEND CMAKE_REQUIRED_INCLUDES &lt;a list of includes&gt;)
+LIST(APPEND CMAKE_REQUIRED_LIBRARIES &lt;a list of libraries&gt;)
+CHECK_CXX_SOURCE_COMPILES(...)
+RESET_CMAKE_REQUIRED()
+</pre>
+</ul>
+</p>
+
+<a name="findmodules"></a>
+<h3> <code>./cmake/modules/Find*.cmake</code> </h3>
+
+<p>
+  These are find modules for the <code>configure_*.cmake</code> files
+  and the <code>CONFIGURE_FEATURE</code> macro as will explained later.
+  It is crucial that a find module behaves correctly. Therefore, the
+  following rules are mandatory:
+  <ul>
+    <li>
+      The <i>sole</i> purpose of a find module is to find an external
+      library (no deal.II specific dependency checking, no
+      compatibility checking).
+    <li>
+      It should do so by appropriate <code>DEAL_II_FIND_LIBRARY</code>,
+      <code>DEAL_II_FIND_PATH</code> and <code>DEAL_II_FIND_FILE</code>
+      calls (same syntax as the native CMake functions; just a small
+      wrapper to provide some useful output). The results of this calls
+      should be the only cached variables.
+    <li>
+      A <code>WARNING</code>, <code>SEND_ERROR</code> or
+      <code>FATAL_ERROR</code> must be avoided (the only exception is
+      the <code>REQUIRED</code> keyword).
+    <li>
+      The following uncached variables are recognized by the feature
+      configuration mechanism:
+<pre class="cmake">
+FEATURE_FOUND
+FEATURE_LIBRARIES (with optimized, debug, release keywords)
+FEATURE_LIBRARIES(_DEBUG|_RELEASE)
+FEATURE_INCLUDE_DIRS FEATURE_USER_INCLUDE_DIRS
+FEATURE_LINKER_FLAGS(|_DEBUG|_RELEASE)
+FEATURE_CXX_FLAGS(|_DEBUG|_RELEASE)
+FEATURE_DEFINITIONS(|_DEBUG|_RELEASE)
+FEATURE_VERSION
+FEATURE_VERSION(_MAJOR|_MINOR|_SUBMINOR)
+</pre>
+      The <code>DEAL_II_PACKAGE_HANDLE</code> macro should be exclusively
+      used for setting up these variables (except the version variants). An
+      example invocation is
+<pre class="cmake">
+DEAL_II_PACKAGE_HANDLE(UMFPACK
+  LIBRARIES
+    REQUIRED UMFPACK_LIBRARY
+    OPTIONAL CHOLMOD_LIBRARY CCOLAMD_LIBRARY COLAMD_LIBRARY CAMD_LIBRARY ${_suitesparse_config}
+    REQUIRED AMD_LIBRARY
+    OPTIONAL METIS_LIBRARIES LAPACK_LIBRARIES rt_LIBRARY
+  INCLUDE_DIRS
+    REQUIRED UMFPACK_INCLUDE_DIR AMD_INCLUDE_DIR
+    OPTIONAL SuiteSparse_config_INCLUDE_DIR
+  LINKER_FLAGS
+    OPTIONAL LAPACK_LINKER_FLAGS
+  CLEAR
+    UMFPACK_LIBRARY CHOLMOD_LIBRARY CCOLAMD_LIBRARY COLAMD_LIBRARY
+    CAMD_LIBRARY SuiteSparse_config_LIBRARY AMD_LIBRARY UMFPACK_INCLUDE_DIR
+    AMD_INCLUDE_DIR SuiteSparse_config_INCLUDE_DIR
+  )
+</pre>
+      The macro concatenates all specified variables into the final
+      <code>FEATURE_SUFFIX</code> variable. Hereby, a feature is
+      successfully found if all <code>REQUIRED</code> variables are
+      non-empty and not set to <code>"-NOTFOUND"</code>.
+      <code>OPTIONAL</code> variables are just filtered out in this case.
+      As a last set of parameters the full list of cached search result
+      variables must be specified after the <code>CLEAR</code> keyword -
+      this is used to provide a possibility to undo a feature search.
+    <li>
+      Only "local" variables "<code>_&lt;all lowercase&gt;</code>" or
+      "global" variables prefixed by <code>FEATURE_</code> may be
+      altered. Do not set <code>DEAL_II_*</code> or <code>CMAKE_*</code>
+      variables directly!
+    <li>
+      A hint with <code>FEATURE_DIR</code> can be set up for
+      convenience. It is best to start the <code>Find</code> module by
+<pre class="cmake">
+SET(FEATURE_DIR "" CACHE PATH "short description")
+SET_IF_EMPTY(FEATURE_DIR "$ENV{FEATURE_DIR}")
+</pre>
+      and use <code>FEATURE_DIR</code> as a hint.
+</ul>
+
+
+<a name="configure"></a>
+<h3> <code>./cmake/configure/configure_*.cmake</code> </h3>
+
+<p>
+  The final step in the configuration phase is the setup of features
+  (which refer to external or bundled libraries
+  <acronym>deal.II</acronym> can optionally interface with.)
+</p>
+
+<p>
+  At bare minimum <code>configure_&lt;feature&gt;.cmake</code>
+  file for a feature just consists of a call to the
+  <code>CONFIGURE_FEATURE(&lt;FEATURE&gt;)</code> macro which is
+  implemented in
+  <code>./cmake/macros/macro_configure_feature.cmake</code>.
+  In this case the corresponding <code>Find&lt;FEATURE&gt;.cmake</code>
+  module is used to determine whether an external dependency can be
+  resolved or not. Depending on the current state of
+  <code>DEAL_II_WITH_&lt;FEATURE&gt;</code> (see
+  <a href="../users/cmake_dealii.html#configurefeature">here</a>) the
+  configuration variables
+<pre>
+FEATURE_LIBRARIES
+FEATURE_LIBRARIES(|_DEBUG|_RELEASE)
+FEATURE_(|USER_|BUNDLED_)INCLUDE_DIRS
+FEATURE_LINKER_FLAGS(|_DEBUG|_RELEASE)
+FEATURE_CXX_FLAGS(|_DEBUG|_RELEASE)
+FEATURE_DEFINITIONS(|_DEBUG|_RELEASE)
+</pre>
+  are appended to the set of <a href="#variables">global variables</a>
+  and <code>DEAL_II_WITH_&lt;FEATURE&gt;</code> is set to
+  <code>TRUE</code>.
+</p>
+
+<p>
+  It is possible to override this default behaviour with the following
+  variables and macros (all of them are optional and will be replaced
+  by an appropriate default action if unset):
+  <ul>
+    <li>
+     <code>&lt;FEATURE&gt;</code> means all caps,
+     <code>&lt;feature&gt;</code> means all lowercase
+
+    <li>
+      In <code>./cmake/configure/configure_&lt;feature&gt;.cmake</code>:
+<pre>
+FEATURE_&lt;FEATURE&gt;_DEPENDS              (a variable)
+  - a variable which contains an optional list of other features
+    this feature depends on (and which have to be enabled for this feature
+    to work.)
+    Features must be given with short name, i.e. without DEAL_II_WITH_
+
+FEATURE_&lt;FEATURE&gt;_AFTER                (a variable)
+  - a variable which contains an optional list of other features
+    that have to be configured prior to this feature
+    Features must be given with short name, i.e. without DEAL_II_WITH_
+
+FEATURE_&lt;FEATURE&gt;_FIND_EXTERNAL(var)   (a macro)
+  - which should set var to TRUE if all dependencies for the feature are
+    fulfilled. In this case all necessary variables for
+    FEATURE_&lt;FEATURE&gt;_CONFIGURE_EXTERNAL must be set.
+    Otherwise var should remain unset.
+    If this macro is undefined, FIND_PACKAGE(&lt;FEATURES&gt;) is
+    called directly instead.
+
+FEATURE_&lt;FEATURE&gt;_CONFIGURE_EXTERNAL()  (a macro)
+  - which should setup all necessary configuration for the feature with
+    external dependencies. If something goes wrong this macro must
+    issue a FATAL_ERROR.
+    If this macro is undefined, the information provided in
+    &lt;FEATURES&gt;_LIBRARIES, &lt;FEATURES&gt;_INCLUDE_DIRS and
+    &lt;FEATURES&gt;_LINKER_FLAGS is used for the build.
+
+FEATURE_&lt;FEATURE&gt;_CONFIGURE_BUNDLED()  (a macro)
+  - which should setup all necessary configuration for the feature with
+    bundled source dependencies. If something goes wrong this macro must
+    issue a FATAL_ERROR.
+
+FEATURE_&lt;FEATURE&gt;_ERROR_MESSAGE()      (macro)
+  - which should print a meaningful error message (with FATAL_ERROR) for
+    the case that no external library was found (and bundled is not
+    allowed to be used.) If not defined, a suitable default error message
+    will be printed.
+</pre>
+
+    <li>
+      In <code>./bundled/configure_bundled.cmake</code>:
+<pre>
+FEATURE_&lt;FEATURE&gt;_HAVE_BUNDLED         (a boolean)
+  - which should either be set to TRUE if all necessary libraries of the
+    features comes bundled with deal.II and hence can be supported
+    without external dependencies, or unset.
+
+DEAL_II_FORCE_BUNDLED_&lt;FEATURE&gt;        (an option)
+  - If &lt;feature&gt; can be set up by bundled libraries, this
+    configuration option must be present to force a use of bundled
+    dependencies
+</pre>
+
+    <li>
+      Furthermore, if
+      <code>FEATURE_&lt;FEATURE&gt;_BUNDLED_CONFIGURED</code> is set to
+      <code>TRUE</code> the file <code>./bundled/CMakeLists.txt</code>
+      must compile and install the bundled package appropriately.
+  </ul>
+</p>
+
+
+
+<a name="variables"></a>
+<h3> Global variables controlling the build process </h3>
+
+<p>
+  The following list describes all global variables controlling the
+  build process and the visibility associated with it (internal use for
+  compiling deal.Ii, externally used variables will get exported in
+  deal.IIConfig.cmake). Lists should be manipulated with
+  <code>LIST(APPEND ...)</code>, flags with <code>ADD_FLAGS(...)</code>
+  (or if it is necessary to guard them with
+  <code>ENABLE_IF_SUPPORTED(...)</code>.)
+</p>
+<p>
+  <b>Feature configuration must not be added directly to this variables but
+    to corresponding <code>&lt;FEATURE&gt;_*</code> variables, instead.
+  Feature configuration variables get appended to the below list of global
+  configuration variables automatically.</b>
+</p>
+
+
+  <ul>
+    <li>
+      The general (internal) logic for variables applies:
+      <ul>
+        <li>A variable name without <code>_DEBUG</code> or
+          <code>_RELEASE</code>: Used for all targets
+        <li> <code>&lt;...&gt;_DEBUG</code>: <i>additionally</i> used for debug targets
+        <li> <code>&lt;...&gt;_RELEASE</code>: <i>additionally</i> used for release targets
+      </ul>
+
+    <li>
+      For internal and external use, used to keep track of external
+      libraries, the <acronym>deal.II</acronym> library and user
+      programs have to be linked against:
+      <ul>
+        <li> <code>DEAL_II_LIBRARIES</code>
+        <li> <code>DEAL_II_LIBRARIES_DEBUG</code>
+        <li> <code>DEAL_II_LIBRARIES_RELEASE</code>
+      </ul>
+
+    <li>
+      For internal use, for setting necessary include dirs for the compilation of the
+      <acronym>deal.II</acronym> library:
+      <ul>
+        <li> <code>DEAL_II_INCLUDE_DIRS</code>
+      </ul>
+    <li>
+      Used to keep track of external include dirs, necessary for the
+      compilation of user programs:
+      <ul>
+        <li> <code>DEAL_II_USER_INCLUDE_DIRS</code>
+      </ul>
+    <li>
+      Include dirs from bundled packages necessary for the compilation of
+      the library and user projects out of the build directory:
+      <ul>
+        <li> <code>DEAL_II_BUNDLED_INCLUDE_DIRS</code>
+      </ul>
+
+    <li>
+      For internal use, for setting necessary preprocessor definitions
+      (<code>-D&lt;...&gt;</code>) for the compilation of the
+      deal.II library:
+      <ul>
+        <li> <code>DEAL_II_DEFINITIONS</code>
+        <li> <code>DEAL_II_DEFINITIONS_DEBUG</code>
+        <li> <code>DEAL_II_DEFINITIONS_RELEASE</code>
+      </ul>
+    <li>
+      For external use, used to keep track of external preprocessor
+      definitions, necessary for the compilation of user programs:
+      <ul>
+        <li> <code>DEAL_II_USER_DEFINITIONS</code>
+        <li> <code>DEAL_II_USER_DEFINITIONS_DEBUG</code>
+        <li> <code>DEAL_II_USER_DEFINITIONS_RELEASE</code>
+      </ul>
+
+    <li>
+      For internal and external use, for setting necessary compiler flags,
+      e.g. <code>-std=c++20</code> (if available):
+      <ul>
+        <li> <code>DEAL_II_CXX_FLAGS</code>
+        <li> <code>DEAL_II_CXX_FLAGS_DEBUG</code>
+        <li> <code>DEAL_II_CXX_FLAGS_RELEASE</code>
+      </ul>
+
+    <li>
+      For internal and external use, for setting necessary linker flags for
+      the deal.II library and user programs:
+      <ul>
+        <li> <code>DEAL_II_LINKER_FLAGS</code>
+        <li> <code>DEAL_II_LINKER_FLAGS_DEBUG</code>
+        <li> <code>DEAL_II_LINKER_FLAGS_RELEASE</code>
+      </ul>
+
+  </ul>
+</p>
+
+<a name="unity-build"></a>
+<h3>The unity build subsystem</h3>
+<p>
+  For a general description of this feature see
+  the <a href="../readme.html#optional-compilation">deal.II Readme
+  entry</a>. Many of the various <code>CMakeLists.txt</code> files split their
+  source files into two lists: one list of files that are relatively cheap to
+  compile, which are concatenated into the unity build files, and a list of
+  files that are more expensive to compile, which are not included in the unity
+  files. For example: most of the finite element classes take about 5-10 seconds
+  to compile while the <code>FEValues</code> instantiation files each take about
+  60 seconds. In addition, many <code>CMakeLists.txt</code> files define a
+  variable <code>_n_includes_per_unity_file</code> which specifies how many
+  files should be concatenated into each unity file.
+</p>
+
+<p>
+  A disadvantage to this approach is that it requires profiling the build in two
+  places: the time and memory usage of all source files must be measured and the
+  variable <code>_n_includes_per_unity_file</code> should be set so that the
+  unity build files are not overly expensive in terms of memory and wall
+  time. The current values were chosen so that the unity files, with GCC,
+  require about 30 to 60 seconds of wall time and about 2 GB of memory.
+</p>
+
+<p>
+  If you want to add a new file to one of the <code>CMakeLists.txt</code> files
+  then you should place it in either the <code>_unity_include_src</code> or
+  the <code>_separate_src</code> list (not both). If the new file only takes a
+  few seconds to compile then it should be placed in the former category (so
+  that it may be built in a unity file) and otherwise it should be in the
+  latter. If you are not sure where a new file belongs then placing it in
+  the <code>_separate_src</code> list is the conservative choice.
+</p>
+
+<h2>Target definition and installation</h2>
+<a name="config.h.in"></a>
+<h3> <code>./include/deal.II/base/config.h.in</code> </h3>
+
+In contrast to autoconf there is no intermediate step any more that
+automatically generates config.h.in. The setup in this file has to be
+done by hand. Please note:
+  <ul>
+    <li> <code>config.h.in</code> should only contain a minimum of
+    necessary compile definitions to avoid unnecessary recompilation if
+    configuration changes.
+    <li> Definition toggles in <code>config.h.in</code> should have a
+      prominent comment explaining it and should be grouped by file
+      exporting the definition.
+  </ul>
+
+
+<a name="source"></a>
+<h3><code>./source/CMakeLists.txt</code></h3>
+
+<p>
+  All parts of the library are organized into logical object libraries
+  with their respective sources lying under
+  <code>./source/&lt;foo&gt;</code>, or
+  <code>./bundled/&lt;foo&gt;/&lt;...&gt;</code>. The actual setup of an object
+  library happens within that subdirectories with the help of a few macros. More
+  documentation on the unity build subsystem is
+  available <a href="#unity-build">here</a>.
+<pre class="cmake">
+#
+# A list of source files that, if DEAL_II_UNITY_BUILD=ON, will be concatenated
+# into a few unity files:
+#
+SET(_unity_include_src
+  block_info.cc
+  dof_faces.cc
+  ...
+  )
+
+#
+# A list of source files that are always compiled individually:
+#
+SET(_separate_src
+  dof_accessor.cc
+  dof_accessor_get.cc
+  ...
+  )
+
+#
+# The number of files, if DEAL_II_UNITY_BUILD=ON, to include in each unity
+# file. This number is determined empirically by timing the build. The macro
+# SETUP_SOURCE_LIST calls the macro SETUP_UNITY_TARGET which will generate unity
+# files that each contain no more than _n_includes_per_unity_file files. If
+# DEAL_II_UNITY_BUILD=OFF then this variable is never read.
+#
+SET(_n_includes_per_unity_file 15)
+
+#
+# A macro that handles setting up the list of source files to compile in the
+# _src variable and handles the unity build logic:
+#
+SETUP_SOURCE_LIST("${_unity_include_src}"
+  "${_separate_src}"
+  ${_n_includes_per_unity_file}
+  _src
+  )
+
+#
+# A list of instantiations that must be expanded:
+#
+SET(_inst
+  block_info.inst.in
+  ...
+  )
+
+#
+# The following macro will set up an obj_dofs_debug and
+# obj_dofs_release targets with appropriate compile flags and
+# definitions.
+#
+# Header files and instantiation files (${_header}, ${_inst}) are added
+# for cosmetic reasons, so that they show up in IDEs.
+#
+FILE(GLOB _header
+  ${CMAKE_SOURCE_DIR}/include/deal.II/dofs/*.h
+  )
+
+DEAL_II_ADD_LIBRARY(obj_dofs OBJECT ${_src} ${_header} ${_inst})
+
+#
+# This macro will set up a target for each of the files listed in
+# ${_inst}. Appropriate target dependencies will be added to obj_dofs_debug and
+# obj_dofs_release.
+#
+EXPAND_INSTANTIATIONS(obj_dofs "${_inst}")
+</pre>
+</p>
+
+<p>
+  Later, all object targets are collected in
+  <code>./source/CMakeLists.txt</code> to define the actual debug and
+  releases libraries. For further details, see
+  <code>./source/CMakelists.txt</code> and
+  <code>./cmake/macros/macro_deal_ii_add_library.cmake</code>.
+</p>
+
+<a name="projectconfig"></a>
+<h3><code>./cmake/config/CMakeLists.txt</code></h3>
+
+<p>
+  The final bits of configuration happens in
+  <code>./cmake/config/CMakeLists.txt</code> where the templates for the
+  project configuration <code>deal.IIConfig.cmake</code> gets expanded.
+  Furthermore, the configuration for the template expansion mechanism
+  resides under <code>./cmake/config/template_arguments.in</code>.
+</p>
+
+<hr />
+<div class="right">
+  <a href="http://validator.w3.org/check?uri=referer" target="_top">
+    <img style="border:0" src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!"></a>
+  <a href="http://jigsaw.w3.org/css-validator/check/referer" target="_top">
+    <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a>
+</div>
+
+</body>
+</html>

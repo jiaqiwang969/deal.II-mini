@@ -38,14 +38,11 @@ jobs:
          cp -rf ../tests/mystl_test tests/ 
          cp -rf ../tests/tests.h tests/
          cp -rf ../tests/testfun.h tests/
-         #rm -rf examples/step-*[!1]*
-         #rm -rf examples/step-11
-         rm -rf examples/step-*
-         rm -rf examples/doxygen
-         rm -rf include
-         rm -rf source
-         cp -rf ../include .
-         cp -rf ../source .
+         rm -rf examples && cp -rf ../examples .
+         rm -rf doc && cp -rf ../doc .
+         rm -rf include && cp -rf ../include .
+         rm -rf source &&cp -rf ../source .
+         
 
  
       - name: configure
@@ -58,7 +55,7 @@ jobs:
         run: |
          cd dealii
          make -j 48
-         make documentation
+         #make documentation
 
 
       - name: Publish Doxygen documentation
