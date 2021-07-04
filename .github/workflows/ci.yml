@@ -51,8 +51,8 @@ jobs:
       - name: configure
         run: |
          cd dealii
-         cmake -D CMAKE_BUILD_TYPE=Debug  .
-         #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
+         cmake -D CMAKE_BUILD_TYPE=Debug  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON  .
+         #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug .
 
       - name: build
         run: |
