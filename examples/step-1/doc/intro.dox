@@ -14,6 +14,9 @@
 
 
 <h1> STL源码剖析 </h1>
+
+<h2> STL 六大组件 </h2>
+
 <h3> 配置器 </h3>
 
 包括了 allocator 和 constructor，分别定义在 allocator.h 和 construct.h 中。
@@ -56,6 +59,18 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
  - reverse_iterator: reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
 
 
+<h2> 算法的复杂度测试 </h2>
+
+目前常见的 Big-oh 有下列几种情形：
+1. $\mathrm{O}(1)$ 或 $\mathrm{O}(\mathrm{c}):$ 称为常数时间(constant time)
+2. $\mathrm{O}(\mathrm{n}):$ 称为线性时间(linear time)
+3. $\mathrm{O}\left(\log _{2} \mathrm{n}\right):$ 称为次线性时间(sub-linear time)
+4. $\mathrm{O}\left(\mathrm{n}^{2}\right):$ 称为平方时间(quadratic time)
+5. $\mathrm{O}\left(\mathrm{n}^{3}\right):$ 称为立方时间(cubic time)
+6. $\mathrm{O}\left(2^{\mathrm{n}}\right):$ 称为指数时间( exponential time)
+7. $\mathrm{O}\left(\mathrm{n} \log _{2} \mathrm{n}\right):$ 介于线性及二次方成长的中间之行为模式
+
+<h2> 前闭后开区间 </h2>
 
 
 
