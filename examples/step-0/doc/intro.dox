@@ -4,8 +4,7 @@
 <h3> About the tutorial </h3>
 
 这是个人学习STL、boost和deal.II的学习文档，基本构想包含几大块，逐步递进完善:
-- STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 <a
-href="http://deal-ii.com/deal.II-mini/doxygen/deal.II/dir_3c9b203ef64433a3d2dcb64e8d517546.html">源代码</a> 参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
+- STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
 - Boost程序库探秘: 参考Björn Karlsson的An Introduction to Boost。
 - Deal.II程序库探秘: 参考deal.II documentation.
 
@@ -15,8 +14,6 @@ href="http://deal-ii.com/deal.II-mini/doxygen/deal.II/dir_3c9b203ef64433a3d2dcb6
 
 
 <h1> STL源码剖析 </h1>
-
-
 <h3> 配置器 </h3>
 
 包括了 allocator 和 constructor，分别定义在 allocator.h 和 construct.h 中。
@@ -52,23 +49,34 @@ iterator，连接着容器与算法，是一种泛型指针，定义在 iterator
 <h3> 配接器 </h3>
 <h4> container adapters </h4>
  - stack (栈)
- - queue
- - priority_queue
+ - queue (队列)
+ - priority_queue (优先队列)
+
 <h4> iterator adapters </h4>
  - reverse_iterator: 
+
  reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
 
 
 
 
+
+
+
+
 <h1>  三者联系 </h1>
-首先，让我们来看看他们之间的联系：
+为何学习deal.II会扯上学习STL和boost? 首先，让我们来看看他们之间的联系：
 
 
 
 
 
 
+
+
+
+
+<h1>  Temp </h1>
 
 
 
