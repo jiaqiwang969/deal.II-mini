@@ -24,7 +24,7 @@
     std::snprintf(buf, sizeof(buf), "%d", n);                                           \
     std::string t = buf;                                                                \
     t += "ms   |";                                                                      \
-    std::cout << std::setw(WIDE) << t;                                                    \
+    std::cout << std::setw(WIDE) << t;                                                  \
     delete[] arr;                                                                       \
   } while (0)
 
@@ -46,7 +46,7 @@
     std::snprintf(buf, sizeof(buf), "%d", n);                                           \
     std::string t = buf;                                                                \
     t += "ms   |";                                                                      \
-    std::cout << std::setw(WIDE) << t;                                                    \
+    std::cout << std::setw(WIDE) << t;                                                  \
     delete[] arr;                                                                       \
   } while (0)
 
@@ -60,7 +60,7 @@ void binary_search_test()
   FUN_TEST2(std, binary_search, LEN2);
   FUN_TEST2(std, binary_search, LEN3);
   std::cout << std::endl
-          << "|        mystl        |";
+            << "|        mystl        |";
   FUN_TEST2(mystl, binary_search, LEN1);
   FUN_TEST2(mystl, binary_search, LEN2);
   FUN_TEST2(mystl, binary_search, LEN3);
@@ -77,7 +77,7 @@ void sort_test()
   FUN_TEST1(std, sort, LEN2);
   FUN_TEST1(std, sort, LEN3);
   std::cout << std::endl
-          << "|        mystl        |";
+            << "|        mystl        |";
   FUN_TEST1(mystl, sort, LEN1);
   FUN_TEST1(mystl, sort, LEN2);
   FUN_TEST1(mystl, sort, LEN3);
@@ -102,5 +102,4 @@ int main()
   initlog();
 
   algorithm_performance_test();
-
 }
