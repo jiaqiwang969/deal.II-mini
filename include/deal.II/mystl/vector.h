@@ -24,7 +24,6 @@
 #include <deal.II/mystl/exceptdef.h>
 #include <deal.II/mystl/algo.h>
 
-
 #include <deal.II/base/config.h>
 
 DEAL_II_NAMESPACE_OPEN
@@ -75,7 +74,7 @@ namespace mystl
     iterator cap_;   // 表示目前储存空间的尾部
 
   public:
-    // 构造、复制、移动、析构函数
+    // vector对应的构造、复制、移动、析构函数
     vector() noexcept
     {
       try_init();
@@ -136,7 +135,7 @@ namespace mystl
     }
 
   public:
-    // 迭代器相关操作
+    // vector对应的迭代器相关操作
     iterator begin() noexcept
     {
       return begin_;
@@ -189,10 +188,16 @@ namespace mystl
     }
 
     // 容量相关操作
+    /**
+     * 返回容器是否为空（等同于size()==0，但可能更快）。
+     */
     bool empty() const noexcept
     {
       return begin_ == end_;
     }
+    /**
+     * 返回当前元素的数量
+     */
     size_type size() const noexcept
     {
       return static_cast<size_type>(end_ - begin_);
