@@ -33,6 +33,8 @@ boost中除包含STL，还有其他丰富的算法。deal.II包含STL和boost库
 
 
 主要参考(逐步完善)：
+- gnu 官网 https://gcc.gnu.org/onlinedocs/gcc-4.6.3/libstdc++/api/modules.html
+- gcc 不同版本的下载地址 https://mirror-hk.koddos.net/gnu/gcc/
 - 侯捷的STL源码解析
 - Alinshans/MyTinySTL
 - C++Primer Plus 第6版
