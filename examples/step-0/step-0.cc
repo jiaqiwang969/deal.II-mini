@@ -16,7 +16,7 @@
  */
 
 // @sect3{Include files}
-
+// 这是一个非常直观的涵盖6大组建的代码实例。
 
 // 这是stl的vector容器的头文件。
 #include <vector>

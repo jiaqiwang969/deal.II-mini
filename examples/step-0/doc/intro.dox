@@ -13,7 +13,8 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
   参考Björn Karlsson的An Introduction to Boost。
 - Deal.II程序库探秘: 
   参考deal.II documentation。
-- 分别对应的测试库及案例库。
+- 对应的测试库及案例库，在tests/mystl中可以找到，均包括cc和output两个文件。
+- 关于algorithm的解析，将以代码注解的形式出现，最终被doxygen转化到对应的Classes中。
 
 
 在某种程度上，范型编程的概念与面向对象编程的原始想法相矛盾。范型编程分离了数据和算法，而不是将它们结合起来。然而，这样做的原因是非常重要的。原则上，你可以将每一种容器与每一种算法结合起来，所以结果是一个非常灵活但仍然相当小的框架。
@@ -23,15 +24,15 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
    <div class="img" align="center">
       <img src="https://cdn.mathpix.com/snip/images/h3mftGdwXF4wlt3p8uFJlO9wD_5M2akhGkJI9ARei9M.original.fullsize.png"
            alt = ""
-           width="500">
+           width="300">
     </div>
 </p>
 
 
 
-相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系，我们可以通过剥离算法，探究并挖掘三者数据结构之间的共性。
+相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系，我们可以通过剥离算法，探究并挖掘三者数据结构之间的共性。另外，一些数据结构和算法的组合也并非随意的，具有非常紧密的匹配关系。无论怎么样，deal.II的很多代码的书写逻辑，借鉴了很多STL、boost的编程思想。
 
-将会对比许多很多功能不同但结构相近的代码块，以此启发读者编写自己的结构化代码。
+我一直在思考如何更高效地学习deal.II的底层代码。通过对比STL、boost和deal.II不同但结构相近的代码块，似乎是一种有效的手段。
 
 
 
@@ -50,19 +51,21 @@ constructor 负责对象的构造与析构，对应两个全局函数： constru
 
 
 
-
-<h3> 迭代器 </h3>
-迭代器被用来遍历对象集合中的元素。这些集合可以是容器或容器的子集。迭代器的主要优点是，它们为任何任意的容器类型提供了一个小而通用的接口。例如，这个接口的一个操作让迭代器步入到集合中的下一个元素。这与集合的内部结构无关。不管这个集合是一个数组、一棵树还是一个哈希表，它都可以工作。这是因为每个容器类都提供了自己的迭代器类型，它只是 "做正确的事情"，因为它知道其容器的内部结构。
-
-迭代器的接口与普通指针的接口几乎相同。要增加一个迭代器，你可以调用操作符++。要访问一个迭代器的值，你要使用操作符*。因此，你可以认为迭代器是一种智能指针，它将 "转到下一个元素 "的调用转化为任何适当的内容。
-
-iterator，连接着容器与算法，定义在 iterator.h 中。每个容器都附带专属的迭代器，是一种重载了 operator*，operator->，operator++，operator-- 等操作的模板类。
-
 <h3> 仿函数  </h3>
 仿函数，现在称为函数对象，定义在 functional.h 中。
 
 <h3> 容器 </h3>
 容器是用来管理某类对象的集合的。每种容器都有自己的优点和缺点，所以拥有不同的容器类型反映了程序中对集合的不同要求。容器可以被实现为数组或链接列表，也可以为每个元素设置一个特殊的键。
+
+容器分为序列容器、关联容器和无序容器三大类。
+
+序列容器是有序的集合，其中每个元素都有一定的位置。这个位置取决于插入的时间和地点，但它与元素的价值无关。例如，如果你把六个元素放到一个有序的集合中，把每个元素附在集合的末尾，那么这些元素就处于你所放的确切顺序中。STL包含五个预定义的序列容器类：数组、向量、deque、列表和forward_list。
+
+关联容器是排序的集合，其中一个元素的位置由于某种排序标准的存在取决于它的值（或键，如果它是一个键的话）。如果你把六个元素放入一个集合，它们的值决定了它们的顺序。插入的顺序并不重要。STL包含四个预定义的关联容器类：set、multiset、map和multimap。
+
+ 无序（关联）容器是无序的集合，其中一个元素的位置并不重要。唯一重要的问题是一个特定的元素是否在这样一个集合中。插入的顺序和插入元素的值都不会对元素的位置产生影响，而且位置可能会在容器的生命周期内发生变化。因此，如果你把六个元素放到一个集合中，它们的顺序是未定义的，并且可能随着时间的推移而改变。STL包含四个预定义的无序容器类：unordered_set, unordered_multiset, unordered_map, 和unordered_multimap。
+
+序列式容器通常被实现为数组或链表。关联的容器通常被实现为二进制树。无序的容器通常被实现为哈希表。
 
 <p align="center">
    <div class="img" align="center">
@@ -81,42 +84,32 @@ iterator，连接着容器与算法，定义在 iterator.h 中。每个容器都
 - unordered_set/unordered_multiset（无序集合）
 - basic_string （字符序列）
 
-<h3> 算法 </h3>
-算法是用来处理集合的元素的。例如，算法可以搜索、排序、修改，或简单地将元素用于各种目的。算法使用迭代器。因此，由于迭代器的迭代器接口对所有的容器类型都是通用的，一个算法只需要写一次就可以与任意的容器一起工作。
-为了赋予算法更多的灵活性，你可以提供某些由算法调用的辅助函数。因此，你可以使用一个一般的算法来满足你的需要，即使这种需要非常特殊或复杂。例如，你可以提供你自己的搜索标准或一个特殊的操作来组合元素。特别是自C++11以来，随着lambdas的引入，你可以很容易地指定几乎任何种类的功能，同时在一个容器的元素上运行。
+无序的容器通常被实现为一个哈希表。因此，在内部，该容器是一个链接列表的数组。使用一个哈希函数，一个元素在数组中的位置被处理。目的是让每个元素都有自己的位置，这样你就可以快速访问每个元素，只要哈希函数是快速的。但是由于这样快速的完美哈希函数并不总是可能的，或者可能需要数组消耗大量的内存，所以多个元素可能有相同的位置。出于这个原因，数组中的元素是链接列表，这样就可以在每个数组位置存储多个元素。
+
+无序容器的主要优点是，找到一个具有特定值的元素比关联容器更快。事实上，只要你有一个好的哈希函数，使用无序容器就可以提供摊销的恒定复杂度。然而，提供一个好的哈希函数并不容易，而且你可能需要大量的内存来存放桶。
 
 
-- 基本算法（14个） 定义在 algobase.h
-- 数值算法（5个） 定义在 numeric.h
-- set 算法（4个） 定义在 set_algo.h
-- heap 算法（4个） 定义在 heap_algo.h
-- 其它算法（54个） 定义在 algo.h
-
-<h4> 算法的复杂度测试 </h4>
-
-目前常见的 Big-oh 有下列几种情形：
-1. $\mathrm{O}(1)$ 或 $\mathrm{O}(\mathrm{c}):$ 称为常数时间(constant time)
-2. $\mathrm{O}(\mathrm{n}):$ 称为线性时间(linear time)
-3. $\mathrm{O}\left(\log _{2} \mathrm{n}\right):$ 称为次线性时间(sub-linear time)
-4. $\mathrm{O}\left(\mathrm{n}^{2}\right):$ 称为平方时间(quadratic time)
-5. $\mathrm{O}\left(\mathrm{n}^{3}\right):$ 称为立方时间(cubic time)
-6. $\mathrm{O}\left(2^{\mathrm{n}}\right):$ 称为指数时间( exponential time)
-7. $\mathrm{O}\left(\mathrm{n} \log _{2} \mathrm{n}\right):$ 介于线性及二次方成长的中间之行为模式
-
-<h3> 配接器 </h3>
-<h4> container adapters </h4>
- - stack (栈)
- - queue (队列)
- - priority_queue (优先队列)
-
-<h4> iterator adapters </h4>
- - reverse_iterator: reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Mg4Tedy7kScS4Njtv1WSnjKT9jX5FJMJrX0Fd7HLqUg.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
 
 
 
 
 
-<h2> 前闭后开区间 </h2>
+
+<h3> 迭代器 </h3>
+迭代器被用来遍历对象集合中的元素。这些集合可以是容器或容器的子集。迭代器的主要优点是，它们为任何任意的容器类型提供了一个小而通用的接口。例如，这个接口的一个操作让迭代器步入到集合中的下一个元素。这与集合的内部结构无关。不管这个集合是一个数组、一棵树还是一个哈希表，它都可以工作。这是因为每个容器类都提供了自己的迭代器类型，它只是 "做正确的事情"，因为它知道其容器的内部结构。
+
+迭代器的接口与普通指针的接口几乎相同。要增加一个迭代器，你可以调用操作符++。要访问一个迭代器的值，你要使用操作符*。因此，你可以认为迭代器是一种智能指针，它将 "转到下一个元素 "的调用转化为任何适当的内容。
+
+iterator，连接着容器与算法，定义在 iterator.h 中。每个容器都附带专属的迭代器，是一种重载了 operator*，operator->，operator++，operator-- 等操作的模板类。
+
+<h4> 迭代器用于for-loop </h4>
 
 <p align="center">
    <div class="img" align="center">
@@ -194,6 +187,79 @@ C++-11后，增加了一种叫range-base statement的写法，引入了  `auto`�
       triangulation.execute_coarsening_and_refinement ();
     }
 @endcode
+
+
+<h4> 迭代器用于set </h4>
+@code
+IntSet::const_iterator pos; 
+for (pos = coll.begin(); pos != coll.end(); ++pos) 
+{ 
+  cout << *pos << ' ' ; 
+}
+@endcode
+
+迭代器会按照一定的机制，即“算法”运行，依次输出1 2 3 4 5 6.
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/ivQuR--wYKd08FQRCnEGK5csx7ElLqNw42hDLd1bevY.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+multiset允许重复。
+
+<h4> 迭代器用于hash表 </h4>
+可以看到，hash表也是有规律可循的，它遵从一定的算法。我之前有一个搞计算机系搞基因编码的老师，他经常提起hash表。当时，我是一脸蒙蔽的。现在想想，基因序列可能也是按照一定的规则，有序的进行排列。
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Ds-SMZmZpqs_Z0G5UOUd6k6FoiLLhiiMDPUqYUpCAvk.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+
+
+<h3> 算法 </h3>
+算法是用来处理集合的元素的。例如，算法可以搜索、排序、修改，或简单地将元素用于各种目的。算法使用迭代器。因此，由于迭代器的迭代器接口对所有的容器类型都是通用的，一个算法只需要写一次就可以与任意的容器一起工作。
+
+算法不是容器类的成员函数，而是用迭代器操作的全局函数。这有一个重要的好处：每个算法不是为每个容器类型实现的，而是对任何容器类型都只实现一次。该算法甚至可以对不同容器类型的元素进行操作。你也可以为用户定义的容器类型使用这些算法。总而言之，这个概念减少了代码量，增加了库的力量和灵活性。
+
+为了赋予算法更多的灵活性，你可以提供某些由算法调用的辅助函数。因此，你可以使用一个一般的算法来满足你的需要，即使这种需要非常特殊或复杂。例如，你可以提供你自己的搜索标准或一个特殊的操作来组合元素。特别是自C++11以来，随着lambdas的引入，你可以很容易地指定几乎任何种类的功能，同时在一个容器的元素上运行。
+
+
+
+- 基本算法（14个） 定义在 algobase.h
+- 数值算法（5个） 定义在 numeric.h
+- set 算法（4个） 定义在 set_algo.h
+- heap 算法（4个） 定义在 heap_algo.h
+- 其它算法（54个） 定义在 algo.h
+
+<h4> 算法的复杂度测试 </h4>
+
+目前常见的 Big-oh 有下列几种情形：
+1. $\mathrm{O}(1)$ 或 $\mathrm{O}(\mathrm{c}):$ 称为常数时间(constant time)
+2. $\mathrm{O}(\mathrm{n}):$ 称为线性时间(linear time)
+3. $\mathrm{O}\left(\log _{2} \mathrm{n}\right):$ 称为次线性时间(sub-linear time)
+4. $\mathrm{O}\left(\mathrm{n}^{2}\right):$ 称为平方时间(quadratic time)
+5. $\mathrm{O}\left(\mathrm{n}^{3}\right):$ 称为立方时间(cubic time)
+6. $\mathrm{O}\left(2^{\mathrm{n}}\right):$ 称为指数时间( exponential time)
+7. $\mathrm{O}\left(\mathrm{n} \log _{2} \mathrm{n}\right):$ 介于线性及二次方成长的中间之行为模式
+
+<h3> 配接器 </h3>
+<h4> container adapters </h4>
+ - stack (栈) ： 后进先出（LIFO）
+ - queue (队列) ： 后进先出（LIFO）
+ - priority_queue (优先队列) ： 优先级是基于程序员可能提供的排序标准（默认情况下，使用运算符<）。
+
+<h4> iterator adapters </h4>
+
+ 迭代器是纯粹的抽象概念。任何表现得像迭代器的东西都是迭代器。由于这个原因，你可以编写具有迭代器接口的类，但做一些完全不同的事情。C++标准库提供了几个预定义的特殊迭代器：迭代器适配器。
+ - insert iterators: 插入迭代器，或称插入器，是用来让算法在插入模式而不是覆盖模式下运行的。特别是，插入器解决了向没有足够空间的目标写入的算法的问题。他们让目的地相应地增长。主要包括Back inserters、Front inserters 和 General inserters。
+ - stream iterators: 流迭代器从流中读取或写入。因此，它们提供了一个抽象，让来自键盘的输入表现为一个集合，你可以从中读取。同样地，你可以将一个算法的输出直接重定向到一个文件或屏幕上。
+ - reverse_iterators: reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
+ - move iterators: 移动迭代器从C++11开始提供，它们将对底层元素的任何访问转换成移动操作。
 
 
 
