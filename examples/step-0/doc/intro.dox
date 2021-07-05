@@ -8,9 +8,9 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
 
 基本构想包含几大块，随着学习的深入，在今后将逐步完善:
 - STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 
-  参考：侯捷的STL源码解析和Alinshans/MyTinySTL，以及Nicolai M. Josuttis的The C++ Standard Library。
+  参考：侯捷的STL源码解析和Alinshans/MyTinySTL，C++Primer Plus 第6版以及Nicolai M. Josuttis的The C++ Standard Library。
 - Boost程序库探秘: 
-  参考Björn Karlsson的An Introduction to Boost。
+  参考Björn Karlsson的An Introduction to Boost。(这本书似乎写的不太好，继续寻找合适的教材)
 - Deal.II程序库探秘: 
   参考deal.II documentation。
 - 对应的测试库及案例库，在tests/mystl中可以找到，均包括cc和output两个文件。
@@ -29,53 +29,9 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
 </p>
 
 
-举一个例子， Björn Karlsson中有一个案例 <a
-https://github.com/jiaqiwang969/CppStdlibCode/blob/master/stl/transform1.cpp">transform</a>,对vector容器的元素均做平方操作, 是采用范型编程的思想。 
-<p align="center">
-   <div class="img" align="center">
-      <img src="https://cdn.mathpix.com/snip/images/ANhqM_Mb-P2qqLxB9qk8AL8xa-SLaoLygvPMD9zGne0.original.fullsize.png"
-           alt = ""
-           width="500">
-    </div>
-</p>
-
-@code
-#include <set>
-#include <vector>
-#include <algorithm>
-#include <iterator>
-#include <iostream>
-#include "print.hpp"
-
-int square (int value)
-{
-    return value*value;
-}
-
-int main()
-{
-    std::set<int>    coll1;
-    std::vector<int> coll2;
-
-    // insert elements from 1 to 9 into coll1
-    for (int i=1; i<=9; ++i) {
-        coll1.insert(i);
-    }
-    PRINT_ELEMENTS(coll1,"initialized: ");
-
-    // transform each element from coll1 to coll2
-    // - square transformed values
-    std::transform (coll1.cbegin(),coll1.cend(),  // source
-                    std::back_inserter(coll2),    // destination
-                    square);                      // operation
-
-    PRINT_ELEMENTS(coll2,"squared:     ");
-}
-@endcode
 
 
-
-相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系，我们可以通过剥离算法，探究并挖掘三者数据结构之间的共性。另外，一些数据结构和算法的组合也并非随意的，具有非常紧密的匹配关系。无论怎么样，deal.II的很多代码的书写逻辑，借鉴了很多STL、boost的编程思想。
+相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系，我们可以通过剥离算法，探究并挖掘三者数据结构之间的共性。当然，数据结构和算法的组合也并非随意的，具有非常紧密的匹配关系。无论怎么样，deal.II的很多代码的书写逻辑，借鉴了很多STL、boost的编程思想，当然也包括很多对STL和boost库的调用。
 
 我一直在思考如何更高效地学习deal.II的底层代码。通过对比STL、boost和deal.II不同但结构相近的代码块，似乎是一种有效的手段。
 
@@ -87,6 +43,15 @@ int main()
 
 <h2> STL源码剖析 </h2>
 从程序员的角度来看，STL提供了一堆满足各种需求的集合类，同时还有一些对它们进行操作的算法。STL的所有组件都是模板，所以它们可以被用于任意的元素类型。但是STL做的更多。它提供了一个框架，用于提供其他集合类或现有集合类和算法的工作。总而言之，STL给了C++一个新的抽象层次。忘掉动态数组、链表、二叉树或哈希表的编程；忘掉不同搜索算法的编程。要使用适当的集合种类，你只需定义适当的容器并调用相应的成员函数和算法来处理数据。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Gxq-T236sC7KWf2iFP_ISYj-f4URRwusZX8eSsOTUE4.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
 
 
 
@@ -305,11 +270,16 @@ multiset允许重复。
  - reverse_iterators: reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
  - move iterators: 移动迭代器从C++11开始提供，它们将对底层元素的任何访问转换成移动操作。
 
+<h4> function adapters </h4>
+- binders
+
 
 <h3> 函数对象  </h3>
-函数对象是泛型编程的力量和纯抽象概念的另一个例子。你可以说，任何表现得像一个函数的东西都是一个函数。所以，如果你定义了一个行为像函数的对象，它就可以像函数一样被使用。 算法的功能参数不一定是函数。正如在lambdas中看到的那样，功能参数可以是行为类似于函数的对象。这样的对象被称为函数对象，或者说是functor。
+函数对象是泛型编程的力量和纯抽象概念的另一个例子。你可以说，任何表现得像一个函数的东西都是一个函数。所以，如果你定义了一个行为像函数的对象，它就可以像函数一样被使用。 算法的功能参数不一定是函数。正如在lambdas中看到的那样，功能参数可以是行为类似于函数的对象。这样的对象被称为函数对象，或者说是functor，定义在 functional.h 中。。
 
-仿函数，现在称为函数对象，定义在 functional.h 中。
+函数对象是以函数方式与（）结合使用的任意对象。其包含函数名、指向函数的指针和重载了（）运算符的类对象，即定义类函数operator()()的类。
+
+
 - Predicates: 谓词是一种特殊的辅助函数。谓词返回一个布尔值，通常用于指定一个排序或搜索标准。根据其目的，谓词是单数或二数。
 - Lambdas函数: 从C++11引入的Lambdas定义了一种在表达式或语句中指定功能行为的方法。因此，你可以定义代表功能行为的对象，并将这些对象作为内联参数传递给算法，作为谓词或用于其他目的。
 
@@ -445,13 +415,22 @@ namespace std{
   }
 
 }
-
-
 @endcode
+
 
 这个例子后，可以发现，其实前面所谓的Predicates，lambda函数背后都表示一个函数对象。
 
-TODO: 这块知识点，今后需要进一步扩展到boost和deal.II案例。参考书为：The C++ Standard Library的第六章节。
+TODO: 这块知识点，今后需要进一步扩展到boost和deal.II案例。参考书为：The C++ Standard Library的第六章节。这个案例最好放在cc文件中重点解析。
+
+<h4> 总结函数对象的优点 </h4>
+- 函数对象是 "有状态的函数"。行为像指针的对象是智能指针。对于行为像函数的对象来说，这也是同样的道理。它们可以是 "智能函数"，因为它们可能具有超越运算符（）的能力。函数对象可以有其他成员函数和属性。这意味着，函数对象有一个状态。事实上，由同一类型的两个不同的函数对象所代表的同一个函数特性，可能在同一时间有不同的状态。这对普通函数来说是不可能的。函数对象的另一个优点是，你可以在运行时初始化它们，然后再使用。
+
+- 每个函数对象都有自己的类型。普通函数只有在其签名不同时才有不同的类型。然而，函数对象可以有不同的类型，即使它们的签名是相同的。事实上，每个由函数对象定义的功能行为都有自己的类型。这对于使用模板的通用编程来说是一个重大的改进，因为你可以将功能行为作为模板参数来传递。这样做使不同类型的容器能够使用同一种函数对象作为排序标准，确保你不会对具有不同排序标准的集合进行as-sign、组合或比较。你甚至可以设计函数对象的层次结构，这样你就可以，例如，对一个一般标准有不同的、特殊的种类。
+
+- 函数对象通常比普通函数更快。模板的概念通常允许更好的优化，因为更多的细节在编译时被定义。因此，传递函数对象而不是普通函数往往能带来更好的性能。同时，也往智能化迈进了一步。
+
+
+
 
 
 
