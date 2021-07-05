@@ -8,13 +8,13 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
 
 基本构想包含几大块，随着学习的深入，在今后将逐步完善:
 - STL源码剖析: 包括配置器、迭代器、仿函数、容器、算法、配接器，这六大组建的核心代码学习。 
-  参考：侯捷的STL源码解析和Alinshans/MyTinySTL 。
+  参考：侯捷的STL源码解析和Alinshans/MyTinySTL，以及Nicolai M. Josuttis的The C++ Standard Library。
 - Boost程序库探秘: 
   参考Björn Karlsson的An Introduction to Boost。
 - Deal.II程序库探秘: 
   参考deal.II documentation。
 - 对应的测试库及案例库，在tests/mystl中可以找到，均包括cc和output两个文件。
-- 关于algorithm的解析，将以代码注解的形式出现，最终被doxygen转化到对应的Classes中。
+- member function或者algorithm的解析，将以代码注解的形式出现，最终被doxygen转化到对应的Classes中。
 
 
 在某种程度上，范型编程的概念与面向对象编程的原始想法相矛盾。范型编程分离了数据和算法，而不是将它们结合起来。然而，这样做的原因是非常重要的。原则上，你可以将每一种容器与每一种算法结合起来，所以结果是一个非常灵活但仍然相当小的框架。
@@ -24,9 +24,54 @@ deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者
    <div class="img" align="center">
       <img src="https://cdn.mathpix.com/snip/images/h3mftGdwXF4wlt3p8uFJlO9wD_5M2akhGkJI9ARei9M.original.fullsize.png"
            alt = ""
-           width="300">
+           width="500">
     </div>
 </p>
+
+
+举一个例子， Björn Karlsson中有一个案例 <a
+https://github.com/jiaqiwang969/CppStdlibCode/blob/master/stl/transform1.cpp">transform</a>,对vector容器的元素均做平方操作, 是采用范型编程的思想。 
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/ANhqM_Mb-P2qqLxB9qk8AL8xa-SLaoLygvPMD9zGne0.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+@code
+#include <set>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <iostream>
+#include "print.hpp"
+
+int square (int value)
+{
+    return value*value;
+}
+
+int main()
+{
+    std::set<int>    coll1;
+    std::vector<int> coll2;
+
+    // insert elements from 1 to 9 into coll1
+    for (int i=1; i<=9; ++i) {
+        coll1.insert(i);
+    }
+    PRINT_ELEMENTS(coll1,"initialized: ");
+
+    // transform each element from coll1 to coll2
+    // - square transformed values
+    std::transform (coll1.cbegin(),coll1.cend(),  // source
+                    std::back_inserter(coll2),    // destination
+                    square);                      // operation
+
+    PRINT_ELEMENTS(coll2,"squared:     ");
+}
+@endcode
 
 
 
@@ -51,8 +96,7 @@ constructor 负责对象的构造与析构，对应两个全局函数： constru
 
 
 
-<h3> 仿函数  </h3>
-仿函数，现在称为函数对象，定义在 functional.h 中。
+
 
 <h3> 容器 </h3>
 容器是用来管理某类对象的集合的。每种容器都有自己的优点和缺点，所以拥有不同的容器类型反映了程序中对集合的不同要求。容器可以被实现为数组或链接列表，也可以为每个元素设置一个特殊的键。
@@ -203,19 +247,19 @@ for (pos = coll.begin(); pos != coll.end(); ++pos)
    <div class="img" align="center">
       <img src="https://cdn.mathpix.com/snip/images/ivQuR--wYKd08FQRCnEGK5csx7ElLqNw42hDLd1bevY.original.fullsize.png"
            alt = ""
-           width="500">
+           width="300">
     </div>
 </p>
 
 multiset允许重复。
 
 <h4> 迭代器用于hash表 </h4>
-可以看到，hash表也是有规律可循的，它遵从一定的算法。我之前有一个搞计算机系搞基因编码的老师，他经常提起hash表。当时，我是一脸蒙蔽的。现在想想，基因序列可能也是按照一定的规则，有序的进行排列。
+可以看到，hash表也是有规律可循的，它遵从一定的算法。我之前有一个搞计算机系搞基因编码的老师，他经常提起hash表。当时，我是一脸蒙蔽的。现在想想，基因序列可能也是按照一定的规则进行存储。
 <p align="center">
    <div class="img" align="center">
       <img src="https://cdn.mathpix.com/snip/images/Ds-SMZmZpqs_Z0G5UOUd6k6FoiLLhiiMDPUqYUpCAvk.original.fullsize.png"
            alt = ""
-           width="500">
+           width="300">
     </div>
 </p>
 
@@ -260,6 +304,159 @@ multiset允许重复。
  - stream iterators: 流迭代器从流中读取或写入。因此，它们提供了一个抽象，让来自键盘的输入表现为一个集合，你可以从中读取。同样地，你可以将一个算法的输出直接重定向到一个文件或屏幕上。
  - reverse_iterators: reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
  - move iterators: 移动迭代器从C++11开始提供，它们将对底层元素的任何访问转换成移动操作。
+
+
+<h3> 函数对象  </h3>
+函数对象是泛型编程的力量和纯抽象概念的另一个例子。你可以说，任何表现得像一个函数的东西都是一个函数。所以，如果你定义了一个行为像函数的对象，它就可以像函数一样被使用。 算法的功能参数不一定是函数。正如在lambdas中看到的那样，功能参数可以是行为类似于函数的对象。这样的对象被称为函数对象，或者说是functor。
+
+仿函数，现在称为函数对象，定义在 functional.h 中。
+- Predicates: 谓词是一种特殊的辅助函数。谓词返回一个布尔值，通常用于指定一个排序或搜索标准。根据其目的，谓词是单数或二数。
+- Lambdas函数: 从C++11引入的Lambdas定义了一种在表达式或语句中指定功能行为的方法。因此，你可以定义代表功能行为的对象，并将这些对象作为内联参数传递给算法，作为谓词或用于其他目的。
+
+举一个例子：
+@code
+// transform all elements to the power of 3 
+std::transform (coll.begin(), coll.end(),  // source
+                coll.begin(),              // destination
+                [](double d){              // lambda as function object
+                  return d*d*d
+                });
+@endcode
+另外一个条件搜索的例子：
+@code 
+// find element > x and < y
+vector (pos = coll.begin() ; pos != coll.end(); ++pos){
+  if (*pos > x && *pos < y)
+    break; // the loop
+}
+@endcode
+利用predicate的写法:
+@code 
+bool pred (int i)
+{
+  return i > x && i < y;
+}
+...
+pos = find_if (coll.begin(), coll.end(),  //range
+               pred);                     // search criterion
+@endcode
+利用lambda函数后的写法：
+@code
+auto pos = find_if (coll.cbegin(), coll.cend(),
+                    [=](int i){            // [=]表示传递值到lambda主体
+                      return i > x && i < y;
+                    });
+@endcode
+
+
+
+由于函数对象的概念比较重要，我们再举一个The C++ Standard Library书上的例子：
+
+原始输出int函数的写法:
+@code
+#include <vector>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+// function that prints the passed argument
+void print (int elem)
+{
+    cout << elem << ' ';
+}
+
+int main()
+{
+    vector<int> coll;
+
+    // insert elements from 1 to 9
+    for (int i=1; i<=9; ++i) {
+        coll.push_back(i);
+    }
+
+    // print all elements
+    for_each (coll.cbegin(), coll.cend(),  // range
+              print);                      // operation
+    cout << endl;
+}
+@endcode
+
+
+如果你想让对象有这样的行为，你就必须通过使用括号和传递参数来使 "调用 "它们成为可能。
+具体代码形式有：
+@code
+class X {
+  public:
+    // define "function call" operator:
+    return-value operator() (arguments) const; // 括号被重载
+    ...
+}
+@endcode
+定义完函数对象以后，就可以通过类来调用它：
+@code
+X fo；
+...
+fo(arg1, arg2);                     // call operator () for function object fo
+fo.opeartor()(arg1, arg2);          // which is equivalent to the above
+@endcode
+
+因此，利用函数对象后的写法:
+@code
+#include <vector>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+// PrintInt类定义了可以用int参数调用运算符（）的对象
+class PrintInt {
+  public:
+    void operator() (int elem) const {
+        cout << elem << ' ';
+    }
+};
+
+int main()
+{
+    vector<int> coll;
+
+    // insert elements from 1 to 9
+    for (int i=1; i<=9; ++i) {
+        coll.push_back(i);
+    }
+
+    // print all elements
+    for_each (coll.cbegin(), coll.cend(),  // range
+              PrintInt());                 // operation
+    cout << endl;
+}
+@endcode
+
+这里的for_each 算法出自:
+@code
+namespace std{
+  template <typename Iterator, typename Operation>
+  Operation for_each (Iterator act, Iterator end, Operation op)
+  {
+    while (act != end){  // as long as not reached the end
+      op(*act);          // - call op() for actual element
+      ++act;             // - move iterator to the next element
+    }
+    return op;
+  }
+
+}
+
+
+@endcode
+
+这个例子后，可以发现，其实前面所谓的Predicates，lambda函数背后都表示一个函数对象。
+
+TODO: 这块知识点，今后需要进一步扩展到boost和deal.II案例。参考书为：The C++ Standard Library的第六章节。
+
+
+
+
+
 
 
 
