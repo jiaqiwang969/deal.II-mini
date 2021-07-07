@@ -35,8 +35,11 @@ boost中除包含STL，还有其他丰富的算法。deal.II包含STL和boost库
 主要参考(逐步完善)：
 - gnu 官网 https://gcc.gnu.org/onlinedocs/gcc-4.6.3/libstdc++/api/modules.html
 - gcc 不同版本的下载地址 https://mirror-hk.koddos.net/gnu/gcc/
+- https://en.cppreference.com/w/cpp/language/operators
 - 侯捷的STL源码解析
 - Alinshans/MyTinySTL
+- vadimcn/vscode-lldb
+- https://www.jgrasp.org/index.html
 - C++Primer Plus 第6版
 - Nicolai M. Josuttis的The C++ Standard Library
 - Björn Karlsson的An Introduction to Boost。(这本书似乎写的不太好，继续寻找合适的教材)
@@ -247,7 +250,7 @@ multiset允许重复。
 
 为了赋予算法更多的灵活性，你可以提供某些由算法调用的辅助函数。因此，你可以使用一个一般的算法来满足你的需要，即使这种需要非常特殊或复杂。例如，你可以提供你自己的搜索标准或一个特殊的操作来组合元素。特别是自C++11以来，随着lambdas的引入，你可以很容易地指定几乎任何种类的功能，同时在一个容器的元素上运行。
 
-
+所有 algorithms，其内部最终涉及元素本身的操作，无非就是比大小。
 
 - 基本算法（14个） 定义在 algobase.h
 - 数值算法（5个） 定义在 numeric.h

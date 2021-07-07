@@ -181,13 +181,13 @@ namespace mystl
     reference operator*() const { return node_->as_node()->value; }
     pointer operator->() const { return &(operator*()); }
 
-    self &operator++()
+    self &operator++() // 前置的++
     {
       MYSTL_DEBUG(node_ != nullptr);
       node_ = node_->next;
       return *this;
     }
-    self operator++(int)
+    self operator++(int) //后置的++
     {
       self tmp = *this;
       ++*this;
