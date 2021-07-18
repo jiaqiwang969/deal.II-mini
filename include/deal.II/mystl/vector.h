@@ -74,7 +74,7 @@ namespace mystl
     iterator cap_;   // 表示目前储存空间的尾部
 
   public:
-    // vector对应的构造、复制、移动、析构函数
+    // 构造、复制、移动、析构函数
     vector() noexcept
     {
       try_init();
@@ -135,7 +135,7 @@ namespace mystl
     }
 
   public:
-    // vector对应的迭代器相关操作
+    // 迭代器相关操作
     iterator begin() noexcept
     {
       return begin_;
@@ -188,103 +188,62 @@ namespace mystl
     }
 
     // 容量相关操作
-    /**
-     * 返回容器是否为空(等同于size()==0，但可能更快)。
-     */
     bool empty() const noexcept
     {
       return begin_ == end_;
     }
-    /**
-     * 返回当前元素的数量。
-     */
     size_type size() const noexcept
     {
       return static_cast<size_type>(end_ - begin_);
     }
-    /**
-     * 返回可能的最大元素数。
-     */
     size_type max_size() const noexcept
     {
       return static_cast<size_type>(-1) / sizeof(T);
     }
-    /**
-     * 在不重新分配的情况下返回最大可能的元素数。
-     */
     size_type capacity() const noexcept
     {
       return static_cast<size_type>(cap_ - begin_);
     }
-    /**
-     * 扩容，如果还不够的话。
-     */
     void reserve(size_type n);
-    /**
-     * 要求减少容量以适应元素的数量(自C++11以来)。
-     */
     void shrink_to_fit();
 
     // 访问元素相关操作
-    /**
-     * 元素访问，没有范围检查。
-     */
     reference operator[](size_type n)
     {
       MYSTL_DEBUG(n < size());
       return *(begin_ + n);
     }
-    /**
-     * 元素访问, 不能修改元素，没有范围检查。
-     */
     const_reference operator[](size_type n) const
     {
       MYSTL_DEBUG(n < size());
       return *(begin_ + n);
     }
-    /**
-     * 元素访问，有范围检查。
-     */
     reference at(size_type n)
     {
       THROW_OUT_OF_RANGE_IF(!(n < size()), "vector<T>::at() subscript out of range");
       return (*this)[n];
     }
-    /**
-     * 元素访问，不能修改元素，有范围检查。
-     */
     const_reference at(size_type n) const
     {
       THROW_OUT_OF_RANGE_IF(!(n < size()), "vector<T>::at() subscript out of range");
       return (*this)[n];
     }
-    /**
-     * 返回第一个元素（不检查是否存在第一个元素）。
-     */
+
     reference front()
     {
       MYSTL_DEBUG(!empty());
       return *begin_;
     }
-    /**
-     * 返回第一个元素，不能修改元素，（不检查是否存在第一个元素）。
-     */
     const_reference front() const
     {
       MYSTL_DEBUG(!empty());
       return *begin_;
     }
-    /**
-     * 返回最后一个元素（不检查是否存在最后一个元素）。
-     */
     reference back()
     {
       MYSTL_DEBUG(!empty());
       return *(end_ - 1);
     }
-    /**
-     * 返回最后一个元素，不修改元素，（不检查是否存在最后一个元素）。
-     */
     const_reference back() const
     {
       MYSTL_DEBUG(!empty());
@@ -296,16 +255,8 @@ namespace mystl
 
     // 修改容器相关操作
 
-    /**
-      *  @brief  Assigns a given value to a %vector.
-      *  @param  __n  Number of elements to be assigned.
-      *  @param  __val  Value to be assigned.
-      *
-      *  This function fills a %vector with @a __n copies of the given
-      *  value.  Note that the assignment completely changes the
-      *  %vector and that the resulting %vector's size is the same as
-      *  the number of elements assigned.  Old data may be lost.
-      */
+    // assign
+
     void assign(size_type n, const value_type &value)
     {
       fill_assign(n, value);
