@@ -31,19 +31,19 @@ jobs:
 
       - name: download and setup of dealii
         run: |
-         git clone https://github.com/dealii/dealii.git
-         #cp -rf ~/dealii-download/dealii .
+         #git clone https://github.com/dealii/dealii.git
+         cp -rf ~/dealii-download/dealii .
          cd dealii
          # mini-transltor
          git reset --hard aba0ae59325f68fc30465bca96fbb5585347a2fd
          ./contrib/utilities/download_clang_format
-         mkdir Origin_file
-         mv dealii/examples Origin_file
-         cp -rf Translator_file/examples dealii
-         mv dealii/include/deal.II Origin_file
-         cp -rf Translator_file/deal.II dealii/include/
-         mv dealii/doc/doxygen/headers Origin_file
-         cp -rf Translator_file/headers dealii/doc/doxygen/
+         mkdir ../Origin_file
+         mv examples ../Origin_file
+         cp -rf ../Translator_file/examples .
+         mv include/deal.II ../Origin_file
+         cp -rf ../Translator_file/deal.II include/
+         mv doc/doxygen/headers ../Origin_file
+         cp -rf ../Translator_file/headers doc/doxygen/
          cp -rf ../tests/* tests/
          cp -rf ../examples/step-0 examples/
 
