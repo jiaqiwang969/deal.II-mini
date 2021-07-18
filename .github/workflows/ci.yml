@@ -31,8 +31,8 @@ jobs:
 
       - name: download and setup of dealii
         run: |
-         #git clone https://github.com/dealii/dealii.git
-         cp -rf ~/dealii-download/dealii .
+         git clone https://github.com/dealii/dealii.git
+         #cp -rf ~/dealii-download/dealii .
          cd dealii
          # mini-transltor
          git reset --hard aba0ae59325f68fc30465bca96fbb5585347a2fd
