@@ -1,0 +1,296 @@
+examples/step-59/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Program output</h3>
+
+与第37步一样，我们在运行时间方面评估多网格求解器。  在两个空间维度的8度元素中，一个可能的输出可能如下。
+
+@code
+Running with 12 MPI processes, element FE_DGQHermite<2>(8)
+
+
+Cycle 0
+Number of degrees of freedom: 5184
+Total setup time              0.0282445 s
+Time solve (14 iterations)    0.0110712 s
+Verification via L2 error:    1.66232e-07
+
+
+Cycle 1
+Number of degrees of freedom: 20736
+Total setup time              0.0126282 s
+Time solve (14 iterations)    0.0157021 s
+Verification via L2 error:    2.91505e-10
+
+
+Cycle 2
+Number of degrees of freedom: 82944
+Total setup time              0.0227573 s
+Time solve (14 iterations)    0.026568 s
+Verification via L2 error:    6.64514e-13
+
+
+Cycle 3
+Number of degrees of freedom: 331776
+Total setup time              0.0604685 s
+Time solve (14 iterations)    0.0628356 s
+Verification via L2 error:    5.57513e-13
+
+
+Cycle 4
+Number of degrees of freedom: 1327104
+Total setup time              0.154359 s
+Time solve (13 iterations)    0.219555 s
+Verification via L2 error:    3.08139e-12
+
+
+Cycle 5
+Number of degrees of freedom: 5308416
+Total setup time              0.467764 s
+Time solve (13 iterations)    1.1821 s
+Verification via L2 error:    3.90334e-12
+
+
+Cycle 6
+Number of degrees of freedom: 21233664
+Total setup time              1.73263 s
+Time solve (13 iterations)    5.21054 s
+Verification via L2 error:    4.94543e-12
+@endcode
+
+
+
+与第37步一样，随着问题大小的增加，CG的迭代次数保持不变。迭代次数要高一些，这是因为我们使用的切比雪夫多项式的度数较低（步骤37中为2比5），而且内部惩罚离散化的特征值分布也比较大。尽管如此，13次迭代将残差减少了12个数量级，或者说每次迭代几乎是9个系数，这表明总体上是一种非常有效的方法。特别是，当使用12个核心时，我们可以在5秒内解决一个具有2100万自由度的系统，这是一个非常好的效率。当然，在二维中，我们很好地进入了8级多项式的四舍五入体系；事实上，大约83000个自由度或0.025秒就足以完全收敛这个（简单的）分析解。
+
+如果我们在三个空间维度上运行程序，并没有太大的变化，只是我们现在用做更高的多项式度数和不断增加的网格大小来做一些更有用的事情，因为舍入误差只在最细的网格上获得。尽管如此，令人瞩目的是，我们可以在一台12核的机器上非常容易地解决一个具有三个周期的波浪的三维拉普拉斯问题，达到四舍五入的精度--对于24m DoFs的第二至最大的情况，总共使用约3.5GB的内存，花费不超过8秒。最大的案例使用了30GB的内存，有1.91亿个DoFs。
+
+@code
+Running with 12 MPI processes, element FE_DGQHermite<3>(8)
+
+
+Cycle 0
+Number of degrees of freedom: 5832
+Total setup time              0.0210681 s
+Time solve (15 iterations)    0.0956945 s
+Verification via L2 error:    0.0297194
+
+
+Cycle 1
+Number of degrees of freedom: 46656
+Total setup time              0.0452428 s
+Time solve (15 iterations)    0.113827 s
+Verification via L2 error:    9.55733e-05
+
+
+Cycle 2
+Number of degrees of freedom: 373248
+Total setup time              0.190423 s
+Time solve (15 iterations)    0.218309 s
+Verification via L2 error:    2.6868e-07
+
+
+Cycle 3
+Number of degrees of freedom: 2985984
+Total setup time              0.627914 s
+Time solve (15 iterations)    1.0595 s
+Verification via L2 error:    4.6918e-10
+
+
+Cycle 4
+Number of degrees of freedom: 23887872
+Total setup time              2.85215 s
+Time solve (15 iterations)    8.30576 s
+Verification via L2 error:    9.38583e-13
+
+
+Cycle 5
+Number of degrees of freedom: 191102976
+Total setup time              16.1324 s
+Time solve (15 iterations)    65.57 s
+Verification via L2 error:    3.17875e-13
+@endcode
+
+
+
+<h3>Comparison of efficiency at different polynomial degrees</h3>
+
+在介绍和代码中的评论中，多次提到用FEEvaluation和FEFaceEvaluation评估器可以非常有效地处理高阶。现在，我们想通过观察三维多网格求解器在不同多项式程度下的吞吐量来证实这些说法。我们收集的时间如下。我们首先在问题大小接近一千万的情况下运行求解器，如表前四行所示，并记录时间。然后，我们通过记录每秒解决的百万自由度数（MDoFs/s）来规范吞吐量，以便能够比较不同程度的效率，计算方法是自由度数除以求解器时间。
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>degree</th>
+   <th>1</th>
+   <th>2</th>
+   <th>3</th>
+   <th>4</th>
+   <th>5</th>
+   <th>6</th>
+   <th>7</th>
+   <th>8</th>
+   <th>9</th>
+   <th>10</th>
+   <th>11</th>
+   <th>12</th>
+  </tr>
+  <tr>
+   <th>Number of DoFs</th>
+   <td>2097152</td>
+   <td>7077888</td>
+   <td>16777216</td>
+   <td>32768000</td>
+   <td>7077888</td>
+   <td>11239424</td>
+   <td>16777216</td>
+   <td>23887872</td>
+   <td>32768000</td>
+   <td>43614208</td>
+   <td>7077888</td>
+   <td>8998912</td>
+  </tr>
+  <tr>
+   <th>Number of iterations</th>
+   <td>13</td>
+   <td>12</td>
+   <td>12</td>
+   <td>12</td>
+   <td>13</td>
+   <td>13</td>
+   <td>15</td>
+   <td>15</td>
+   <td>17</td>
+   <td>19</td>
+   <td>18</td>
+   <td>18</td>
+  </tr>
+  <tr>
+   <th>Solver time [s]</th>
+   <td>0.713</td>
+   <td>2.150</td>
+   <td>4.638</td>
+   <td>8.803</td>
+   <td>2.041</td>
+   <td>3.295</td>
+   <td>5.723</td>
+   <td>8.306</td>
+   <td>12.75</td>
+   <td>19.25</td>
+   <td>3.530</td>
+   <td>4.814</td>
+  </tr>
+  <tr>
+   <th>MDoFs/s</th>
+   <td>2.94</td>
+   <td>3.29</td>
+   <td>3.62</td>
+   <td>3.72</td>
+   <td>3.47</td>
+   <td>3.41</td>
+   <td>2.93</td>
+   <td>2.88</td>
+   <td>2.57</td>
+   <td>2.27</td>
+   <td>2.01</td>
+   <td>1.87</td>
+  </tr>
+</table> 
+
+我们清楚地看到每个DoF的效率最初是如何提高的，直到它达到多项式度数的最大值  $k=4$  。这种效果是令人惊讶的，不仅是因为较高的多项式度数通常会产生一个好得多的解决方案，而且特别是当考虑到基于矩阵的方案时，在较高的度数下更密集的耦合会导致单调的吞吐量下降（在3D中是一个急剧的下降， $k=4$ 比 $k=1$ 慢十倍以上！）。对于更高的度数，吞吐量减少了一些，这既是由于迭代次数的增加（从 $k=2,3,4$ 的12次增加到 $k=10$ 的19次），也是由于运算符评估的 $\mathcal O(k)$ 复杂性。尽管如此，对于更高的多项式度数，作为求解时间的效率仍然会更好，因为它们有更好的收敛率（至少对于像这个问题一样简单的问题）。对于 $k=12$ ，我们在100万个DoFs的情况下已经达到了舍入精度（求解时间不到一秒），而对于 $k=8$ ，我们需要2400万个DoFs和8秒钟。对于 $k=5$ ，误差约为 $10^{-9}$ 的5700万个DoFs，因此，尽管花了16秒，但离舍入还很远。
+
+请注意，上述数字有点悲观，因为它们包括切比雪夫平滑器计算特征值估计的时间，这大约是求解器时间的10%。如果系统被多次求解（例如在流体力学中很常见），这个特征值的成本只需支付一次，更快的时间就可以得到。
+
+<h3>Evaluation of efficiency of ingredients</h3>
+
+最后，我们来看一下本教程程序中提出的一些特殊成分，即特别是FE_DGQHermite基础和 MatrixFree::DataAccessOnFaces. 的规格。 在下面的表格中，第三行显示了上面的优化求解器，第四行显示了只将 MatrixFree::DataAccessOnFaces 设置为 "未指定 "而不是最优的 "网格"，最后一行是用基本的FE_DGQ元素代替FE_DGQHermite，其中MPI交换更加昂贵，由 FEFaceEvaluation::gather_evaluate() 和 FEFaceEvaluation::integrate_scatter(). 完成的操作
+
+ <table align="center" class="doxtable">
+  <tr>
+   <th>degree</th>
+   <th>1</th>
+   <th>2</th>
+   <th>3</th>
+   <th>4</th>
+   <th>5</th>
+   <th>6</th>
+   <th>7</th>
+   <th>8</th>
+   <th>9</th>
+   <th>10</th>
+   <th>11</th>
+   <th>12</th>
+  </tr>
+  <tr>
+   <th>Number of DoFs</th>
+   <td>2097152</td>
+   <td>7077888</td>
+   <td>16777216</td>
+   <td>32768000</td>
+   <td>7077888</td>
+   <td>11239424</td>
+   <td>16777216</td>
+   <td>23887872</td>
+   <td>32768000</td>
+   <td>43614208</td>
+   <td>7077888</td>
+   <td>8998912</td>
+  </tr>
+  <tr>
+   <th>Solver time optimized as in tutorial [s]</th>
+   <td>0.713</td>
+   <td>2.150</td>
+   <td>4.638</td>
+   <td>8.803</td>
+   <td>2.041</td>
+   <td>3.295</td>
+   <td>5.723</td>
+   <td>8.306</td>
+   <td>12.75</td>
+   <td>19.25</td>
+   <td>3.530</td>
+   <td>4.814</td>
+  </tr>
+  <tr>
+   <th>Solver time MatrixFree::DataAccessOnFaces::unspecified [s]</th>
+   <td>0.711</td>
+   <td>2.151</td>
+   <td>4.675</td>
+   <td>8.968</td>
+   <td>2.243</td>
+   <td>3.655</td>
+   <td>6.277</td>
+   <td>9.082</td>
+   <td>13.50</td>
+   <td>20.05</td>
+   <td>3.817</td>
+   <td>5.178</td>
+  </tr>
+  <tr>
+   <th>Solver time FE_DGQ [s]</th>
+   <td>0.712</td>
+   <td>2.041</td>
+   <td>5.066</td>
+   <td>9.335</td>
+   <td>2.379</td>
+   <td>3.802</td>
+   <td>6.564</td>
+   <td>9.714</td>
+   <td>14.54</td>
+   <td>22.76</td>
+   <td>4.148</td>
+   <td>5.857</td>
+  </tr>
+</table> 
+
+表中的数据显示，不使用 MatrixFree::DataAccessOnFaces 对于较高的多项式度数来说，成本增加了10%左右。对于较低的度数，差异显然没有那么明显，因为体积与表面的比例更有利，需要交换的数据更少。如果只看矩阵-向量乘积，而不是这里显示的完整的多网格求解器，差异会更大，仅仅因为MPI通信，时间就会差20%左右。
+
+对于 $k=1$ 和 $k=2$ ，类似Hermite的基函数显然没有真正得到回报（事实上，对于 $k=1$ ，多项式与FE_DGQ完全相同），其结果与FE_DGQ基函数相似。然而，对于从3开始的度数，我们看到FE_DGQHermite的优势越来越大，显示了这些基函数的有效性。
+
+<h3>Possibilities for extension</h3>
+
+正如介绍中提到的，快速对角线化方法与具有恒定系数的直角坐标网相联系。如果我们想解决可变系数的问题，我们就需要在平滑参数的设计上投入更多的时间，选择适当的泛函（例如，在最近的箱形元素上近似反演）。
+
+另一种扩展程序的方式是包括对自适应网格的支持，对于这种支持，在不同细化水平的边缘进行接口操作是必要的，如步骤39所讨论的。
+
+

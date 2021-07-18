@@ -1,0 +1,211 @@
+examples/step-69/doc/results.dox
+
+<a name="Results"></a>
+
+<h1>Results</h1>
+
+在释放模式下，用默认参数运行程序，在4核机器上（带超线程）大约需要1分钟。
+
+@verbatim
+# mpirun -np 4 ./step-69 | tee output
+Reading parameters and allocating objects... done
+
+
+    ####################################################
+    #########                                  #########
+    #########       create triangulation       #########
+    #########                                  #########
+    ####################################################
+
+
+Number of active cells:       36864
+
+
+    ####################################################
+    #########                                  #########
+    #########       compute offline data       #########
+    #########                                  #########
+    ####################################################
+
+
+Number of degrees of freedom: 37376
+
+
+    ####################################################
+    #########                                  #########
+    #########         set up time step         #########
+    #########                                  #########
+    ####################################################
+
+
+    ####################################################
+    #########                                  #########
+    #########    interpolate initial values    #########
+    #########                                  #########
+    #########                                  #########
+    ####################################################
+
+
+TimeLoop<dim>::interpolate_initial_values(t = 0)
+TimeLoop<dim>::output(t = 0, checkpoint = 0)
+
+
+    ####################################################
+    #########                                  #########
+    #########         enter main loop          #########
+    #########                                  #########
+    #########                                  #########
+    ####################################################
+
+
+    ####################################################
+    #########                                  #########
+    #########      Cycle  000001  (0.0%)       #########
+    #########      at time t = 0.00000000      #########
+    #########                                  #########
+    ####################################################
+
+
+[...]
+
+
+    ####################################################
+    #########                                  #########
+    #########     Cycle  007553  (100.0%)      #########
+    #########      at time t = 3.99984036      #########
+    #########                                  #########
+    ####################################################
+
+
+TimeLoop<dim>::output(t = 4.00038, checkpoint = 1)
+
+
++------------------------------------------------------------------------+------------+------------+
+| Total CPU time elapsed since start                                     |       357s |            |
+|                                                                        |            |            |
+| Section                                                    | no. calls |  CPU time  | % of total |
++------------------------------------------------------------+-----------+------------+------------+
+| discretization - setup                                     |         1 |     0.113s |         0% |
+| offline_data - assemble lumped mass matrix, and c_ij       |         1 |     0.167s |         0% |
+| offline_data - compute |c_ij|, and n_ij                    |         1 |   0.00255s |         0% |
+| offline_data - create sparsity pattern and set up matrices |         1 |    0.0224s |         0% |
+| offline_data - distribute dofs                             |         1 |    0.0617s |         0% |
+| offline_data - fix slip boundary c_ij                      |         1 |    0.0329s |         0% |
+| schlieren_postprocessor - compute schlieren plot           |       201 |     0.811s |      0.23% |
+| schlieren_postprocessor - prepare scratch space            |         1 |   7.6e-05s |         0% |
+| time_loop - setup scratch space                            |         1 |     0.127s |         0% |
+| time_loop - stalled output                                 |       200 |  0.000685s |         0% |
+| time_step - 1 compute d_ij                                 |      7553 |       240s |        67% |
+| time_step - 2 compute d_ii, and tau_max                    |      7553 |      11.5s |       3.2% |
+| time_step - 3 perform update                               |      7553 |       101s |        28% |
+| time_step - 4 fix boundary states                          |      7553 |     0.724s |       0.2% |
+| time_step - prepare scratch space                          |         1 |   0.00245s |         0% |
++------------------------------------------------------------+-----------+------------+------------+
+@endverbatim
+
+
+
+一个明显的事实是，程序花了三分之二的执行时间计算图形粘度d_ij，大约三分之一的执行时间用于执行更新，其中计算通量 $f(U)$ 是昂贵的操作。预设的默认分辨率约为37k个网格点，相当于二维空间自由度约148k。解决方案的动画斯利安图看起来如下。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-69.coarse.gif" alt="" height="300"> 
+
+很明显，一阶方法的37k个网格点远远不能满足解决任何流动特征的需要。作为比较，这里有一个使用二阶方法和大约9.5M网格点的 "参考 "计算（<a href="https://github.com/conservation-laws/ryujin">github
+project page</a>）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-69.2nd-order.t400.jpg" alt="" height="300"> 
+
+因此，我们给了一阶方法第二次机会，在一个小型计算服务器上用大约240万个网格点运行它。
+
+@verbatim
+# mpirun -np 16 ./step-69 | tee output
+
+
+[...]
+
+
+    ####################################################
+    #########                                  #########
+    #########     Cycle  070216  (100.0%)      #########
+    #########      at time t = 3.99999231      #########
+    #########                                  #########
+    ####################################################
+
+
+TimeLoop<dim>::output(t = 4.00006, checkpoint = 1)
+
+
+[...]
+
+
++------------------------------------------------------------------------+------------+------------+
+| Total wallclock time elapsed since start                               |  6.75e+03s |            |
+|                                                                        |            |            |
+| Section                                                    | no. calls |  wall time | % of total |
++------------------------------------------------------------+-----------+------------+------------+
+| discretization - setup                                     |         1 |      1.97s |         0% |
+| offline_data - assemble lumped mass matrix, and c_ij       |         1 |      1.19s |         0% |
+| offline_data - compute |c_ij|, and n_ij                    |         1 |    0.0172s |         0% |
+| offline_data - create sparsity pattern and set up matrices |         1 |     0.413s |         0% |
+| offline_data - distribute dofs                             |         1 |      1.05s |         0% |
+| offline_data - fix slip boundary c_ij                      |         1 |     0.252s |         0% |
+| schlieren_postprocessor - compute schlieren plot           |       201 |      1.82s |         0% |
+| schlieren_postprocessor - prepare scratch space            |         1 |  0.000497s |         0% |
+| time_loop - setup scratch space                            |         1 |      1.45s |         0% |
+| time_loop - stalled output                                 |       200 |   0.00342s |         0% |
+| time_step - 1 compute d_ij                                 |     70216 |  4.38e+03s |        65% |
+| time_step - 2 compute d_ii, and tau_max                    |     70216 |       419s |       6.2% |
+| time_step - 3 perform update                               |     70216 |  1.87e+03s |        28% |
+| time_step - 4 fix boundary states                          |     70216 |        24s |      0.36% |
+| time_step - prepare scratch space                          |         1 |    0.0227s |         0% |
++------------------------------------------------------------+-----------+------------+------------+
+@endverbatim
+
+
+
+并有以下结果。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-69.fine.gif" alt="" height="300"> 
+
+这大大改善了，当然代价是在16个核心上运行了大约2小时的代码。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+如上所述，这里展示的程序实际上只是一阶精确。上面的图片说明了这引入了多少扩散，以及该解决方案离真正解决我们所关心的特征还有多远。
+
+这一点是可以解决的，但这将超出一个*教程*的内容。尽管如此，还是值得展示一下通过添加二阶方案可以实现的效果。例如，这里有一段用<a
+href=https://conservation-laws.43-1.org/>the following research code</a>计算的视频，显示了（用不同的颜色方案）对应于上述情况的2d模拟。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/xIwJZlsXpZ4"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+这个模拟是用解矢量的每个分量3800万个自由度（连续 $Q_1$ 有限元素）完成的。对于这类模拟来说，解决方案的精致细节是显著的，包括在障碍物后面的亚声速区域。
+
+人们还可以相对容易地进一步将其扩展到三维案例。
+
+@htmlonly
+<p align="center">
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/vBCRAF_c8m8"
+   frameborder="0"
+   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen></iframe>
+ </p>
+@endhtmlonly
+
+
+
+然而，解决这个问题变得很昂贵。仿真是以每个部件18.17亿个自由度（连续 $Q_1$ 有限元）进行的（总共90.9亿个空间自由度），在30,720个MPI等级上运行。该代码达到了平均每秒969万个网格点的吞吐量（每个CPU每秒0.04万个网格点）。前面和后面的墙显示了一个 "Schlieren图"：密度的梯度大小在一个从白色（低）到黑色（高）的指数级上。所有其他切面和障碍物表面都显示了白色（低）-黄色（中）-红色（高）尺度上的涡度大小。各个切割面的比例已经被调整，以获得更好的视觉效果）。
+
+

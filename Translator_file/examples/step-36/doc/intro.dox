@@ -1,0 +1,152 @@
+examples/step-36/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Toby D. Young and Wolfgang
+Bangerth.  </i>
+
+<a name="Preamble"></a>
+
+<h1>Preamble</h1>
+
+在这个例子中，我们要解决的问题是一个特征谱问题。特征值问题出现在广泛的问题背景中，例如在计算腔体中的电磁驻波、鼓膜的振动模式或湖泊和河口的振荡中。最神秘的应用之一可能是量子力学中静止或准静止波函数的计算。后一种应用是我们在此想研究的，尽管本方案中概述的一般技术当然同样适用于上述其他应用。
+
+Eigenspectrum问题的一般形式是
+
+@f{align*}
+	L \Psi &= \varepsilon \Psi \qquad &&\text{in}\ \Omega\quad,
+	\\
+	\Psi &= 0 &&\text{on}\ \partial\Omega\quad,
+
+
+@f}
+
+其中 $\Psi=\Psi(\mathbf x)$ 上的迪里切特边界条件也可以用诺伊曼或罗宾条件代替； $L$ 是一个算子，一般也包含微分算子。
+
+在适当的条件下，上述方程有一组解 $\Psi_\ell,\varepsilon_\ell$  ,  $\ell\in {\cal I}$  ，其中 $\cal I$ 可以是一个有限的或无限的集合（在后一种情况下，它可能是一个离散的或有时至少是部分连续的集合）。在这两种情况下，让我们注意到，我们要计算的不再只是一个单一的解决方案，而是一组解决方案（各种特征函数和相应的特征值）。从数字上寻找这类特征值问题的所有特征值（特征函数）的问题是一个艰巨的挑战。事实上，如果集合 $\cal I$ 是无限的，这个挑战当然是难以解决的。  然而，大多数时候，我们实际上只对这些值（函数）的一小部分感兴趣；幸运的是，我们将在这个教程程序中使用的SLEPc库的接口允许我们选择特征谱的哪一部分和我们想要解决的多少个解决方案。
+
+在这个程序中，我们使用的eigenspectrum求解器是由deal.II提供的类，围绕<a href="http://www.grycap.upv.es/slepc/" target="_top">SLEPc</a>库的线性代数实现；SLEPc本身建立在<a
+href="http://www.mcs.anl.gov/petsc/" target="_top">PETSc</a>库的线性代数内容之上。
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+静止的量子力学的基本方程是薛定谔方程，它模拟粒子在外部势中的运动  $V(\mathbf x)$  。粒子由一个波函数 $\Psi(\mathbf x)$ 描述，它满足一个（非维度化）形式的关系
+
+@f{align*} [-\Delta + V(\mathbf x)]
+\Psi(\mathbf x) &= \varepsilon \Psi(\mathbf x) \qquad &&\text{in}\
+\Omega\quad, \\ \Psi &= 0 &&\text{on}\ \partial\Omega\quad.
+
+
+@f}
+
+因此，这个粒子只能存在于一定数量的特征态中，这些特征态对应于作为该方程解的能量特征值 $\varepsilon_\ell$ 。量子力学的正统（哥本哈根）解释认为，如果一个粒子具有能量 $\varepsilon_\ell$ ，那么在位置 $\mathbf x$ 找到它的概率与 $|\Psi_\ell(\mathbf
+x)|^2$ 成正比，其中 $\Psi_\ell$ 是对应于这个特征值的特征函数。
+
+为了在数值上找到这个方程的解，即一组成对的特征值/特征函数，我们使用通常的有限元方法，将左边的方程与测试函数相乘，通过部分积分，在有限维空间中通过近似 $\Psi(\mathbf
+x)\approx\Psi_h(\mathbf x)=\sum_{j}\phi_j(\mathbf x)\tilde\psi_j$ 寻找解，其中 $\tilde\psi$ 是一个扩展系数的矢量。然后，我们立即得出以下方程，将连续特征值问题离散化：@f[ \sum_j [(\nabla\phi_i,
+\nabla\phi_j)+(V(\mathbf x)\phi_i,\phi_j)] \tilde{\psi}_j =
+\varepsilon_h \sum_j (\phi_i, \phi_j) \tilde{\psi}_j\quad.  @f] 在矩阵和矢量符号中，这个方程然后读作。@f[ A
+\tilde{\Psi} = \varepsilon_h M \tilde{\Psi} \quad, @f] 其中 $A$ 是由微分算子 $L$ 产生的刚度矩阵，而 $M$ 是质量矩阵。特征值问题的解决方案是一个特征谱  $\varepsilon_{h,\ell}$  ，以及相关的特征函数  $\Psi_\ell=\sum_j \phi_j\tilde{\psi}_j$  。
+
+
+
+
+<h3>Eigenvalues and Dirichlet boundary conditions</h3>
+
+在这个程序中，我们对波函数 $\Psi$ 使用了Dirichlet边界条件。从有限元代码的角度来看，这意味着只有内部的自由度是<i>freedom</i>的实数度：边界上的自由度不是自由的，但毕竟是被迫有一个零值。另一方面，有限元方法的力量和简单性主要来自于我们只是在每个单元上做同样的事情，而不需要过多考虑一个单元在哪里，它是否在一个不太精细的单元上，因此有一个悬挂的节点，或者与边界相邻。所有这些检查都会使有限元线性系统的组装变得难以忍受，甚至更难阅读。
+
+因此，当然，当你用DoFHandler对象分配自由度时，你并不关心你列举的一些自由度是否处于迪里切特边界。他们都会得到数字。我们只需要在以后应用边界值的时候照顾到这些自由度。有两种基本的方法（要么使用 MatrixTools::apply_boundary_values() <i>after</i>装配线性系统，要么使用 AffineConstraints::distribute_local_to_global() <i>during</i>装配；更多信息见 @ref constraints "约束模块"），但两者的结果都一样：一个线性系统的总行数等于<i>all</i>自由度的数量，包括那些位于边界的自由度。然而，受迪里希特条件约束的自由度与线性系统的其他部分分开，方法是将相应的行和列清零，在对角线上放一个正条目，并在右手边放相应的迪里希特值。
+
+如果你暂时假设我们将自由度重新编号，使迪里切特边界上的所有自由度排在最后，那么我们在求解一个有右手边的常规PDE时得到的线性系统将是这样的。
+
+@f{align*}
+  \begin{pmatrix}
+    A_i & 0 \\ 0 & D_b
+  \end{pmatrix}
+  \begin{pmatrix}
+    U_i \\ U_b
+  \end{pmatrix}
+  =
+  \begin{pmatrix}
+    F_i \\ F_b
+  \end{pmatrix}.
+
+
+@f}
+
+这里，下标 $i$ 和 $b$ 分别对应于内部和边界自由度。内部自由度满足线性系统 $A_i U_i=F_i$ ，在内部产生正确的解，边界值由 $U_b = D_b^{-1} F_b$ 决定，其中 $D_b$ 是一个对角矩阵，由消除边界自由度的过程产生， $F_b$ 是以这样的方式选择的： $U_{b,j}=D_{b,jj}^{-1} F_{b,j}$ 对每个边界自由度 $j$ 都有正确的边界值。 对于好奇的人来说，矩阵 $D_b$ 的条目是将修改后的局部贡献加入全局矩阵的结果，对于局部矩阵，如果非零，对角线元素被设置为其绝对值；否则，它们被设置为对角线的绝对值的平均值。这个过程保证了 $D_b$ 的条目是正的，并且大小与对角线的其他条目相当，确保所产生的矩阵不会因为涉及到大小迥异的矩阵条目的舍入而产生不合理的精度损失。最终出现在对角线上的实际数值是很难预测的，你应该把它们当作任意的、不可预测的，但却是正的。)
+
+对于 "常规 "的线性系统，这一切都导致了正确的解决方案。另一方面，对于特征值问题，这就不那么简单了。在那里，消除边界值会影响到我们在当前教程程序中要解决的矩阵 $A$ 和 $M$ 。消除边界值后，我们就会得到一个可以这样划分的特征值问题。
+
+@f{align*}
+  \begin{pmatrix}
+    A_i & 0 \\ 0 & D_A
+  \end{pmatrix}
+  \begin{pmatrix}
+    \tilde\Psi_i \\ \tilde\Psi_b
+  \end{pmatrix}
+  =
+  \epsilon_h
+  \begin{pmatrix}
+    M_i & 0 \\ 0 & D_M
+  \end{pmatrix}
+  \begin{pmatrix}
+    \tilde\Psi_i \\ \tilde\Psi_b
+  \end{pmatrix}.
+
+
+@f}
+
+这种形式清楚地表明，有两组特征值：我们关心的那些，以及来自分离问题的虚假特征值。
+
+@f[
+  D_A \tilde \Psi_b = \epsilon_h D_M \Psi_b.
+
+
+@f]
+
+这些特征值是虚假的，因为它们是由一个只在边界节点上操作的特征值系统产生的--这些节点不是<i>freedom</i>的实数度。当然，由于两个矩阵 $D_A,D_M$ 是对角线，我们可以准确地量化这些虚假的特征值：它们是 $\varepsilon_{h,j}=D_{A,jj}/D_{M,jj}$ （其中指数 $j$ 正好对应于受迪里切特边界值约束的自由度）。
+
+那么，如何处理这些问题呢？第一部分是识别我们的特征值求解器何时找到其中一个。为此，程序通过计算所有受限自由度上表达式 $\varepsilon_{h,j}=D_{A,jj}/D_{M,jj}$ 的最小和最大，计算并打印出这些特征值所在的区间。在下面的程序中，这已经足够了：我们发现这个区间位于我们感兴趣并计算的最小特征值和相应的特征函数的集合之外，所以这里我们不需要做什么。
+
+另一方面，我们可能会发现我们在这个程序中计算的一个特征值恰好在这个区间内，在这种情况下，我们不会立即知道它是一个虚假的还是一个真正的特征值。在这种情况下，我们可以在计算完两个矩阵后简单地缩放其中一个矩阵的对角线元素，从而将它们从特征谱的感兴趣的频率上移开。这可以通过使用以下代码来完成，确保所有假的特征值都正好等于 $1.234\cdot 10^5$  。
+
+@code
+    for (unsigned int i = 0; i < dof_handler.n_dofs(); ++i)
+      if (constraints.is_constrained(i))
+        {
+          stiffness_matrix.set(i, i, 1.234e5);
+          mass_matrix.set(i, i, 1);
+        }
+@endcode
+
+然而，这里没有采用这种策略，因为我们从程序中得到的虚假特征值恰好大于我们将计算的和感兴趣的最低的五个。
+
+
+
+
+<h3>Implementation details</h3>
+
+下面的程序实质上只是步骤4的一个稍加修改的版本。有所不同的是以下几点。
+
+ <ul> 
+
+ <li>  主类（名为  <code>EigenvalueProblem</code>  ）现在不再有单一的解向量，而是有一整套我们想要计算的各种特征函数的向量。此外， <code>main</code> 函数对这里的一切都有顶层控制，它通过 <code>SlepcInitialize</code> 和 <code>SlepFinalize</code> 同时初始化和最终确定SLEPc和PETSc的接口。 </li> 
+
+ <li>  我们在步骤17和步骤18中使用PETSc矩阵和向量，因为这是SLEPc特征值求解器所要求的。 </li> 
+
+ <li>  函数 <code>EigenvalueProblem::solve</code> 与教程中迄今为止所见的任何函数都完全不同，因为它不只是求解一个线性系统，而是实际求解特征值问题。它建立在SLEPc库上，更直接的是建立在类 SLEPcWrappers::SolverKrylovSchur.</li> 的deal.II SLEPc包装器上。
+
+ <li>  我们使用ParameterHandler类来描述一些输入参数，如势的确切形式 $V({\mathbf
+x})$  ，网格的全局细化步数，或我们要解决的特征值的数量。我们可以在这方面做得更多，但只限于在运行时选择一些实际的输入文件参数。为了看看在这方面可以做什么，看看 @ref step_29 "步骤-29 "和步骤-33。 </li> 
+
+ <li>  我们使用FunctionParser类使潜在  $V(\mathbf
+x)$  的运行时参数，可以在输入文件中指定为公式。 </li> 
+
+ </ul> 
+
+程序的其余部分以一种相当直接的方式从第4步开始。
+
+

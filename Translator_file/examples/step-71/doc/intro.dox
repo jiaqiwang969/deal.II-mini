@@ -1,0 +1,567 @@
+examples/step-71/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Jean-Paul Pelteret.
+</i>
+
+
+
+
+<h1>Introduction</h1>
+
+本教程的目的很简单，就是介绍[自动](https://en.wikipedia.org/wiki/Automatic_differentiation)和[符号微分](https://en.wikipedia.org/wiki/Computer_algebra)（分别缩写为AD和SD）的基本原理。人们可以在源代码中描述一个函数 $\mathbf f(\mathbf x)$ ，并自动获得导数 $\nabla \mathbf f(\mathbf x)$ （"Jacobian"）、 $\nabla^2 \mathbf f(\mathbf x)$ （"Hessian"）等的表示方法，而无需编写额外的代码行。这样做对解决非线性或优化问题很有帮助，因为人们希望在代码中只描述非线性方程或目标函数，而不必同时提供它们的导数（这对解决非线性问题的牛顿方法或寻找最小化器是必要的）。
+
+由于AD和SD工具在某种程度上独立于有限元和边界值问题，本教程将与你之前可能读过的其他教程不同。它将特别关注这些框架是如何工作的，以及它们背后的原理和思想，并放弃在有限元模拟的直接背景下看待它们。
+
+事实上，我们将研究两组不同的问题，它们的复杂程度大不相同，但当框架正确时，有足够的相似性，同样的AD和SD框架可以被利用。通过这些例子，我们的目的是建立起对使用AD和SD工具所需步骤的理解，以及它们之间的区别，并希望能找出它们可以立即用于改进或简化现有代码的地方。
+
+你想知道什么是AD和SD，这是可信的，首先。好吧，这个问题很容易回答，但如果没有上下文，就没有很好的洞察力。因此，我们不打算在这个介绍中涉及这个问题，而是将其推迟到第一个介绍性的例子中，在这个例子的展开过程中，我们将列出关键点。作为补充，我们应该提到，这两个框架的核心理论在 @ref auto_symb_diff 模块中都有广泛的讨论，所以在此不需要重复。
+
+由于我们必须挑选*个足够有趣的课题来研究，并确定AD和SD在哪里可以有效地使用，所以在教程的后半部分实现的主要问题是对一个耦合的构成法进行建模，特别是一个磁活性材料（具有滞后效应）。作为一种介绍的手段，在介绍的后面将介绍该类材料的一些基础理论。自然，这不是一个广泛受众感兴趣的领域（甚至不是一类材料）。因此，作者希望在前面表示，这个理论和任何后续的推导都不能被认为是本教程的重点。相反，请牢记从相对无害的构成法则描述中产生的问题的复杂性，以及我们可能（在边界值问题的背景下）需要从中推导出什么。我们将在一个有代表性的连续体点的水平上用这些构成法则进行一些计算（所以，仍然是在连续体力学的领域），并将产生一些基准结果，我们可以围绕这些结果对计算性能的主题进行最后讨论。
+
+一旦我们有了可以建立进一步概念的基础，我们将看到如何在有限元（而不是连续体）水平上特别利用AD：这是在步骤-72和步骤-33中涉及的一个主题。但在此之前，让我们花点时间思考一下为什么我们可能要考虑使用这些工具，以及它们可能给你带来什么好处。
+
+
+
+
+<h3>A motivation: Why would I use these tools?</h3>
+
+使用AD或SD的主要驱动力通常是，有一些情况需要进行区分，而且这样做有足够的挑战性，使得使用外部工具来执行该特定任务的前景具有吸引力。对AD或SD最有用的情况进行广泛分类，包括（但可能不限于）以下情况。
+
+- <b>Rapid prototyping:</b>对于一类新的问题，你试图快速实现一个解决方案，并希望去除一些复杂的细节（在数学以及代码本身的组织结构方面）。你可能愿意证明任何额外的计算成本是合理的，这将被重组你的代码或修改问题中引入一些复杂的非线性的部分的敏捷性所抵消，只需最小的努力。
+
+- <b>Complex problems:</b>很可能有些问题恰好有一个非线性，对线性化或手工制定有极大的挑战。   让一个在大多数情况下稳健、可靠和准确的工具来为你解决这个挑战，可能会减轻实现某些问题的痛苦。这方面的例子包括第15步，我们解决的非线性PDE的导数并不难推导，但足够繁琐，以至于人们在手工操作时必须注意，而且实现牛顿步骤的相应有限元公式所需的时间不仅仅是实现双线性形式一般所需的几行；第33步（我们实际使用AD）是一个更极端的例子。
+
+- <b>Verification:</b> 对于表现出非线性响应的材料和模拟，准确而非近似的材料切线（机械工程师对材料定律的导数使用的术语）可能是收敛和发散行为之间的区别，特别是在高外部（或耦合）载荷下。   随着问题复杂性的增加，引入细微的（或者，也许不是那么细微的）错误的机会也在增加，这些错误会产生可预见的负面结果。   此外，通过验证实现是完全正确的，也有很多好处。例如，某些类别的问题已知会表现出不稳定性，因此，当你在非线性求解器（例如牛顿方法）中开始失去二次收敛时，那么这对研究者来说可能不是一个巨大的惊喜。然而，很难（如果不是不可能）区分以下两种收敛行为：一种是你接近不稳定的解时产生的收敛行为，另一种是你在材料或有限元线性化中出现了错误，并因此开始偏离最佳收敛路径。例如，拥有一种验证构成法线性化实现的正确性的方法，也许是你用来捕捉这种错误的唯一有意义的方法，假设你没有其他人来检查你的代码。   值得庆幸的是，通过一些战术性的编程，可以很直接地将代码结构化以便重复使用，这样你就可以在生产代码中使用相同的类，并直接在例如单元测试框架中验证它们。
+
+这个教程程序将有两个部分。一部分，我们只是用一组简单的例子来介绍deal.II中自动和符号微分支持的基本思想；另一部分，我们将其应用于一个现实的但更复杂的案例。对于这后半部分，下一节将提供一些关于磁性机械材料的背景--如果你想了解的只是AD和SD的实际情况，你可以跳过这一节，但如果你对如何将AD和SD应用于具体的情况感兴趣，你可能想读完这一节。
+
+
+
+
+<h3>Theory for magneto-mechanical materials</h3>
+
+<h4>Thermodynamic principles</h4>
+
+作为介绍我们将用来为磁活性聚合物建模的磁-机械耦合材料法的前奏，我们将首先对这些构成法则必须认同的突出的热力学进行非常简洁的总结。这里总结的理论基础，由Truesdell和Toupin  @cite Truesdell1960a  以及Coleman和Noll  @cite Coleman1963a  详细描述，并遵循Holzapfel  @cite Holzapfel2007a  所提出的逻辑。
+
+从热力学第一定律出发，并遵循一些技术假设，可以证明动能加内能率与外部来源提供给系统的功率之间的平衡是由以下关系给出的，即左边是一个（任意）体积 $V$ 的能量变化率，右边是作用于该体积的力的总和。
+
+@f[
+  D_{t} \int\limits_{V} \left[
+    \frac{1}{2} \rho_{0} \mathbf{v} \cdot \mathbf{v}
+    + U^{*}_{0} \right] dV
+= \int\limits_{V} \left[
+  \rho_{0} \mathbf{v} \cdot \mathbf{a}
+  + \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+  + \mathbb{E} \cdot \dot{\mathbb{D}}
+
+
+  - D_{t} M^{*}_{0}
+
+
+  - \nabla_{0} \cdot \mathbf{Q}
+  + R_{0} \right] dV .
+
+
+@f]
+
+这里 $D_{t}$ 代表总的时间导数， $\rho_{0}$ 是在拉格朗日参考框架下测量的材料密度， $\mathbf{v}$ 是材料速度， $\mathbf{a}$ 是其加速度， $U^{*}_{0}$ 是每单位参考体积的内能， $\mathbf{P}^{\text{tot}}$ 是总皮拉应力张量， $\dot{\mathbf{F}}$ 是变形梯度张量的时间速率， $\boldsymbol{\mathbb{H}}$ 和 $\boldsymbol{\mathbb{B}}$ 分别是磁场向量和磁感应（或磁通密度）向量， $\mathbb{E}$ 和 $\mathbb{D}$ 是电场向量和电位移向量， $\mathbf{Q}$ 和 $R_{0}$ 代表参考热通向量和热源。材料微分算子 $\nabla_{0} (\bullet) \dealcoloneq \frac{d(\bullet)}{d\mathbf{X}}$ ，其中 $\mathbf{X}$ 是材料位置向量。通过一些条款的重排，引用积分体积 $V$ 的任意性，总的内部能量密度率 $\dot{E}_{0}$ 可以被确定为
+
+@f[
+  \dot{E}_{0}
+= \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+  + \mathbb{E} \cdot \dot{\mathbb{D}}
+
+
+  - \nabla_{0} \cdot \mathbf{Q}
+  + R_{0} .
+
+
+@f]
+
+总的内能不仅包括由于机械变形（第一项）、热通量和热源（第四项和第五项）而产生的贡献，还包括由于储存在磁场和电场本身的内在能量（分别为第二项和第三项）。
+
+热力学第二定律，也被称为熵不平等原则，告诉我们某些热力学过程是不可逆的。在考虑了总熵和熵输入的速度后，可以得出克劳修斯-杜姆不等式。在局部形式下（以及在物质配置中），其内容为
+
+@f[
+  \theta \dot{\eta}_{0}
+
+
+  - R_{0}
+  + \nabla_{0} \cdot \mathbf{Q}
+
+
+  - \frac{1}{\theta} \nabla_{0} \theta \cdot \mathbf{Q}
+  \geq 0 .
+
+
+@f]
+
+量 $\theta$ 是绝对温度， $\eta_{0}$ 代表每单位参考体积的熵值。
+
+用它来代替热力学第一定律结果中的 $R_{0} - \nabla_{0} \cdot \mathbf{Q}$ ，我们现在有了这样的关系
+
+@f[
+  \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+  + \mathbb{E} \cdot \dot{\mathbb{D}}
+  + \theta \dot{\eta}_{0}
+
+
+  - \dot{E}_{0}
+
+
+  - \frac{1}{\theta} \nabla_{0} \theta \cdot \mathbf{Q}
+  \geq 0 .
+
+
+@f]
+
+傅里叶定律告诉我们，热量从高温区域流向低温区域，根据这一定律，最后一项总是正的，可以忽略不计。这使得局部耗散的不等式变成了
+
+@f[
+  \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+  + \mathbb{E} \cdot \dot{\mathbb{D}}
+
+
+  - \left[ \dot{E}_{0} - \theta \dot{\eta}_{0}  \right]
+  \geq 0 .
+
+
+@f]
+
+据推测 @cite Holzapfel2007a ，Legendre变换
+
+@f[
+  \psi^{*}_{0}
+= \psi^{*}_{0} \left( \mathbf{F}, \boldsymbol{\mathbb{B}}, \mathbb{D}, \theta \right)
+= E_{0} - \theta \eta_{0} ,
+
+
+@f]
+
+从中我们可以定义具有所述参数化的自由能密度函数 $\psi^{*}_{0}$ ，它存在并且有效。取此方程的材料速率并将其代入局部耗散不等式，结果是通用表达式
+
+@f[
+  \mathcal{D}_{\text{int}}
+  = \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+  + \mathbb{E} \cdot \dot{\mathbb{D}}
+
+
+  - \dot{\theta} \eta_{0}
+
+
+  - \dot{\psi}^{*}_{0} \left( \mathbf{F}, \boldsymbol{\mathbb{B}}, \mathbb{D}, \theta \right)
+  \geq 0 .
+
+
+@f]
+
+在等温条件的假设下，并且电场不会以一种被认为是不可忽视的方式激发材料，那么这个耗散不等式就会简化为
+
+@f[
+  \mathcal{D}_{\text{int}}
+  = \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+
+
+  - \dot{\psi}^{*}_{0} \left( \mathbf{F}, \boldsymbol{\mathbb{B}} \right)
+  \geq 0 .
+
+
+@f]
+
+
+
+<h4>Constitutive laws</h4>
+
+当考虑到表现出机械耗散行为的材料时，可以证明这可以通过用代表内部变量的额外参数增加材料自由能密度函数的方式在耗散不等式中得到体现  @cite Holzapfel1996a  。因此，我们把它写成
+
+@f[
+  \mathcal{D}_{\text{int}}
+  = \mathbf{P}^{\text{tot}} : \dot{\mathbf{F}}
+  + \boldsymbol{\mathbb{H}} \cdot \dot{\boldsymbol{\mathbb{B}}}
+
+
+  - \dot{\psi}^{*}_{0} \left( \mathbf{F}, \mathbf{F}_{v}^{i}, \boldsymbol{\mathbb{B}} \right)
+  \geq 0 .
+
+
+@f]
+
+其中 $\mathbf{F}_{v}^{i} = \mathbf{F}_{v}^{i} \left( t \right)$ 代表与第i个机械耗散（粘性）机制相关的内部变量（其作用类似于变形梯度的测量）。从它的参数化可以推断出，这些内部参数中的每一个都被认为是在时间中演变的。目前，自由能密度函数 $\psi^{*}_{0}$ 是以磁感应 $\boldsymbol{\mathbb{B}}$ 为参数的。这是自然的参数化，是所考虑的平衡法的结果。如果这样一类材料被纳入到有限元模型中，将确定需要采用某种磁问题的表述，即磁矢量势表述。这有它自己的一套挑战，所以在可能的情况下，更简单的磁标量势表述可能是首选。在这种情况下，磁性问题需要在磁场方面进行参数化  $\boldsymbol{\mathbb{H}}$  。为了进行这种重新参数化，我们执行最后的Legendre变换
+
+@f[
+  \tilde{\psi}_{0} \left( \mathbf{F}, \mathbf{F}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  = \psi^{*}_{0} \left( \mathbf{F}, \mathbf{F}_{v}^{i}, \boldsymbol{\mathbb{B}} \right)
+
+
+  - \boldsymbol{\mathbb{H}} \cdot \boldsymbol{\mathbb{B}} .
+
+
+@f]
+
+同时，我们可以利用材料框架无所谓的原则，以便用对称的变形措施来表达能量密度函数。
+
+@f[
+  \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  = \tilde{\psi}_{0} \left( \mathbf{F}, \mathbf{F}_{v}^{i}, \boldsymbol{\mathbb{H}} \right) .
+
+
+@f]
+
+这两个转换的结果（撇开相当多的明确和隐藏的细节）使减少耗散不等式的最终表达式为
+
+@f[
+  \mathcal{D}_{\text{int}}
+  = \mathbf{S}^{\text{tot}} : \frac{1}{2} \dot{\mathbf{C}}
+
+
+  - \boldsymbol{\mathbb{B}} \cdot \dot{\boldsymbol{\mathbb{H}}}
+
+
+  - \dot{\psi}_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  \geq 0 .
+
+
+@f]
+
+注意右侧第二项的符号变化，以及时间导数向磁感应矢量的转移）。应力量 $\mathbf{S}^{\text{tot}}$ 被称为总Piola-Kirchhoff应力张量，其能量共轭物 $\mathbf{C} = \mathbf{F}^{T} \cdot \mathbf{F}$ 是右Cauchy-Green变形张量， $\mathbf{C}_{v}^{i} = \mathbf{C}_{v}^{i} \left( t \right)$ 是与`i`th机械耗散（粘性）机制相关的重新参数化内部变量。
+
+对能量密度函数的材料速率进行扩展，并对各种项进行重排，得出的表达式是
+
+@f[
+  \mathcal{D}_{\text{int}}
+  = \left[ \mathbf{S}^{\text{tot}} - 2 \frac{\partial \psi_{0}}{\partial \mathbf{C}} \right] : \frac{1}{2} \dot{\mathbf{C}}
+
+
+  - \sum\limits_{i}\left[ 2 \frac{\partial \psi_{0}}{\partial \mathbf{C}_{v}^{i}} \right] : \frac{1}{2} \dot{\mathbf{C}}_{v}^{i}
+  + \left[ - \boldsymbol{\mathbb{B}} - \frac{\partial \psi_{0}}{\partial \boldsymbol{\mathbb{H}}} \right] \cdot \dot{\boldsymbol{\mathbb{H}}}
+  \geq 0 .
+
+
+@f]
+
+在这一点上，值得注意的是[偏导数](https://en.wikipedia.org/wiki/Partial_derivative)  $\partial \left( \bullet \right)$  的使用。这是一个重要的细节，对于本教程中的某个设计选择是很重要的。简单提醒一下这意味着什么，一个多变量函数的偏导返回该函数相对于其中一个变量的导数，而其他变量保持不变。
+
+@f[
+  \frac{\partial f\left(x, y\right)}{\partial x}
+  = \frac{d f\left(x, y\right)}{d x} \Big\vert_{y} .
+
+
+@f]
+
+更具体到耗散不等式所编码的内容（用非常普遍的自由能密度函数 $\psi_{0}$ ，其参数化尚待正式确定），如果输入变量之一是另一个变量的函数，它也被保持不变，链式规则不再传播，而计算总导数将意味着明智地使用链式规则。通过比较以下两个语句可以更好地理解这一点。
+
+@f{align*}
+  \frac{\partial f\left(x, y\left(x\right)\right)}{\partial x}
+  &= \frac{d f\left(x, y\left(x\right)\right)}{d x} \Big\vert_{y} \\
+  \frac{d f\left(x, y\left(x\right)\right)}{d x}
+  &= \frac{d f\left(x, y\left(x\right)\right)}{d x} \Big\vert_{y}
+   + \frac{d f\left(x, y\left(x\right)\right)}{d y} \Big\vert_{x} \frac{d y\left(x\right)}{x} .
+
+
+@f}
+
+
+
+回到问题的热力学，我们接下来利用数量的任意性  $\dot{\mathbf{C}}$  和  $\dot{\boldsymbol{\mathbb{H}}}$  ，通过应用科尔曼-诺尔程序  @cite Coleman1963a  ，  @cite Coleman1967a  。这导致了对动力学共轭量的识别
+
+@f[
+  \mathbf{S}^{\text{tot}}
+  = \mathbf{S}^{\text{tot}} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  \dealcoloneq 2 \frac{\partial \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)}{\partial \mathbf{C}} , \\
+  \boldsymbol{\mathbb{B}}
+  = \boldsymbol{\mathbb{B}} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  \dealcoloneq - \frac{\partial \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)}{\partial \boldsymbol{\mathbb{H}}} .
+
+
+@f]
+
+(再次注意，在这个广义的设置中，使用偏导数来定义应力和磁感应)。从耗散功率中剩下的条款（即那些与机械耗散机制有关的条款）来看，如果假定它们是相互独立的，那么，对于每个机制`i`。
+
+@f[
+  \frac{\partial \psi_{0}}{\partial \mathbf{C}_{v}^{i}} : \dot{\mathbf{C}}_{v}^{i}
+  \leq 0 .
+
+
+@f]
+
+这一约束必须通过适当选择自由能函数以及仔细考虑内部变量的演化规律来满足。
+
+在构成模型中没有耗散机制的情况下（例如，如果要建模的材料是磁超弹性的），那么自由能密度函数 $\psi_{0} = \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)$ 减少到存储能量密度函数，总应力和磁感应可以被简化
+
+@f{align*}{
+  \mathbf{S}^{\text{tot}}
+  = \mathbf{S}^{\text{tot}} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+  &\dealcoloneq 2 \frac{d \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)}{d \mathbf{C}} , \\
+  \boldsymbol{\mathbb{B}}
+  = \boldsymbol{\mathbb{B}} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+  &\dealcoloneq - \frac{d \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)}{d \boldsymbol{\mathbb{H}}} ,
+
+
+@f}
+
+其中算子 $d$ 表示总导数操作。
+
+为了完整起见，应力张量和磁感应的线性化在四阶总参考弹性张量 $\mathcal{H}^{\text{tot}} $ 、二阶磁静力张量 $\mathbb{D}$ 和三阶总参考磁弹性耦合张量 $\mathfrak{P}^{\text{tot}}$ 中得到体现。无论 $\mathbf{S}^{\text{tot}}$ 和 $\boldsymbol{\mathbb{B}}$ 的参数化如何，这些量都可以通过以下方式计算出来
+
+@f{align*}{
+  \mathcal{H}^{\text{tot}}
+  &= 2 \frac{d \mathbf{S}^{\text{tot}}}{d \mathbf{C}} , \\
+  \mathbb{D}
+  &= \frac{d \boldsymbol{\mathbb{B}}}{d \boldsymbol{\mathbb{H}}} , \\
+  \mathfrak{P}^{\text{tot}}
+  &= - \frac{d \mathbf{S}^{\text{tot}}}{d \boldsymbol{\mathbb{H}}} , \\
+  \left[ \mathfrak{P}^{\text{tot}} \right]^{T}
+  &= 2 \frac{d \boldsymbol{\mathbb{B}}}{d \mathbf{C}} .
+
+
+@f}
+
+对于速率依赖性材料的情况，这扩展为
+
+@f{align*}{
+  \mathcal{H}^{\text{tot}} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  &= 4 \frac{d^{2} \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)}{\partial \mathbf{C} \otimes d \mathbf{C}} , \\
+  \mathbb{D} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  &= -\frac{d^{2} \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)}{\partial \boldsymbol{\mathbb{H}} \otimes d \boldsymbol{\mathbb{H}}} , \\
+  \mathfrak{P}^{\text{tot}} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)
+  &= - 2 \frac{d^{2} \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)}{\partial \boldsymbol{\mathbb{H}} \otimes d \mathbf{C}} , \\
+  \left[ \mathfrak{P}^{\text{tot}} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)  \right]^{T}
+  &= - 2 \frac{d^{2} \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}^{i}, \boldsymbol{\mathbb{H}} \right)}{\partial \mathbf{C} \otimes d \boldsymbol{\mathbb{H}}} ,
+
+
+@f}
+
+而对于与速率无关的材料，其线性化为
+
+@f{align*}{
+  \mathcal{H}^{\text{tot}} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+  &= 4 \frac{d^{2} \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)}{d \mathbf{C} \otimes d \mathbf{C}} , \\
+  \mathbb{D} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+  &= -\frac{d^{2} \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)}{d \boldsymbol{\mathbb{H}} \otimes d \boldsymbol{\mathbb{H}}} , \\
+  \mathfrak{P}^{\text{tot}} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+  &= - 2 \frac{d^{2} \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)}{d \boldsymbol{\mathbb{H}} \otimes d \mathbf{C}} , \\
+  \left[ \mathfrak{P}^{\text{tot}} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)  \right]^{T}
+  &= - 2 \frac{d^{2} \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)}{d \mathbf{C} \otimes d \boldsymbol{\mathbb{H}}} .
+
+
+@f}
+
+它们之间的微妙区别是在计算第一个导数时应用了偏导。我们稍后会看到这对这个具体应用中AD与SD的选择有什么影响。现在，我们将简单介绍在本教程中实现的两种具体材料。
+
+<h5>Magnetoelastic constitutive law</h5>
+
+我们要考虑的第一种材料是受磁超弹性构成法支配的材料。这种材料对变形和浸泡在磁场中都有反应，但没有表现出时间或历史相关的行为（如通过粘性阻尼或磁滞的耗散，等等）。这种材料的*存储能量密度函数*只以（当前）场变量为参数，而不是它们的时间导数或过去的值。
+
+我们将选择能量密度函数，它既能捕捉到由于变形和磁化而储存在材料中的能量，也能捕捉到储存在磁场本身的能量，它是
+
+@f[
+  \psi_{0} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+= \frac{1}{2} \mu_{e} f_{\mu_{e}} \left( \boldsymbol{\mathbb{H}} \right)
+    \left[ \text{tr}(\mathbf{C}) - d - 2 \ln (\text{det}(\mathbf{F}))
+    \right]
++ \lambda_{e} \ln^{2} \left(\text{det}(\mathbf{F}) \right)
+
+
+- \frac{1}{2} \mu_{0} \mu_{r} \text{det}(\mathbf{F})
+    \left[ \boldsymbol{\mathbb{H}} \cdot \mathbf{C}^{-1} \cdot
+    \boldsymbol{\mathbb{H}} \right]
+
+
+@f]
+
+与
+
+@f[
+  f_{\mu_{e}} \left( \boldsymbol{\mathbb{H}} \right)
+= 1 + \left[ \frac{\mu_{e}^{\infty}}{\mu_{e}} - 1 \right]
+    \tanh \left( 2 \frac{\boldsymbol{\mathbb{H}} \cdot
+    \boldsymbol{\mathbb{H}}}
+      {\left(h_{e}^{\text{sat}}\right)^{2}} \right)
+
+
+@f]
+
+其中变量 $d = \text{tr}(\mathbf{I})$ （ $\mathbf{I}$ 是秩-2身份张量）代表空间维度， $\mathbf{F}$ 是变形梯度张量。为了给 $\psi_{0}$ 的各个组成部分提供一些简单的背景，前两个项与（超弹性）Neohookean材料的储能密度函数非常相似。这里使用的东西与Neohookean材料的唯一区别是弹性剪切模量被磁场敏感的饱和函数 $f_{\mu_{e}}
+\left( \boldsymbol{\mathbb{H}} \right)$ 缩放（见 @cite Pelteret2018a ，公式29）。这个函数实际上将导致材料在强磁场的存在下变硬。由于它受一个sigmoid型函数的支配，剪切模量将渐进地收敛于指定的饱和剪切模量。还可以证明， $\psi_{0}$ 中的最后一项是磁场的储能密度函数（从第一原理中得出），由相对渗透率常数缩放。这个定义共同意味着材料是线性磁化的，也就是说，磁化矢量和磁场矢量是对齐的。(这在以电流形式陈述的磁能中当然不明显，但当磁感应和磁化从 $\psi_{0}$ 中导出，并且所有磁场都以 <em> 的电流配置 </em> 表示时，这种关联性就变得很清楚了)。至于磁感应、应力张量和各种材料切线的具体内容，我们将把这些内容推迟到教程正文中介绍，在那里定义了构成法的完整、无辅助的实施。
+
+<h5>Magneto-viscoelastic constitutive law</h5>
+
+我们将制定的第二个材料是一个具有单一耗散机制`i`的磁-粘弹性材料。我们将考虑的*自由能量密度函数*被定义为
+
+@f{align*}{
+  \psi_{0} \left( \mathbf{C}, \mathbf{C}_{v}, \boldsymbol{\mathbb{H}}
+  \right)
+&= \psi_{0}^{ME} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
++ \psi_{0}^{MVE} \left( \mathbf{C}, \mathbf{C}_{v},
+\boldsymbol{\mathbb{H}} \right)
+\\ \psi_{0}^{ME} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)
+&= \frac{1}{2} \mu_{e} f_{\mu_{e}^{ME}} \left( \boldsymbol{\mathbb{H}}
+\right)
+    \left[ \text{tr}(\mathbf{C}) - d - 2 \ln (\text{det}(\mathbf{F}))
+    \right]
++ \lambda_{e} \ln^{2} \left(\text{det}(\mathbf{F}) \right)
+
+
+- \frac{1}{2} \mu_{0} \mu_{r} \text{det}(\mathbf{F})
+    \left[ \boldsymbol{\mathbb{H}} \cdot \mathbf{C}^{-1} \cdot
+    \boldsymbol{\mathbb{H}} \right]
+\\ \psi_{0}^{MVE} \left( \mathbf{C}, \mathbf{C}_{v},
+\boldsymbol{\mathbb{H}} \right)
+&= \frac{1}{2} \mu_{v} f_{\mu_{v}^{MVE}} \left( \boldsymbol{\mathbb{H}}
+\right)
+    \left[ \mathbf{C}_{v} : \left[
+      \left[\text{det}\left(\mathbf{F}\right)\right]^{-\frac{2}{d}}
+      \mathbf{C} \right] - d - \ln\left(
+      \text{det}\left(\mathbf{C}_{v}\right) \right)  \right]
+
+
+@f}
+
+与
+
+@f[
+  f_{\mu_{e}}^{ME} \left( \boldsymbol{\mathbb{H}} \right)
+= 1 + \left[ \frac{\mu_{e}^{\infty}}{\mu_{e}} - 1 \right]
+    \tanh \left( 2 \frac{\boldsymbol{\mathbb{H}} \cdot
+    \boldsymbol{\mathbb{H}}}
+      {\left(h_{e}^{\text{sat}}\right)^{2}} \right)
+
+
+@f]
+
+
+
+@f[
+  f_{\mu_{v}}^{MVE} \left( \boldsymbol{\mathbb{H}} \right)
+= 1 + \left[ \frac{\mu_{v}^{\infty}}{\mu_{v}} - 1 \right]
+    \tanh \left( 2 \frac{\boldsymbol{\mathbb{H}} \cdot
+    \boldsymbol{\mathbb{H}}}
+      {\left(h_{v}^{\text{sat}}\right)^{2}} \right)
+
+
+@f]
+
+和进化法
+
+@f[
+  \dot{\mathbf{C}}_{v} \left( \mathbf{C} \right)
+= \frac{1}{\tau} \left[
+      \left[\left[\text{det}\left(\mathbf{F}\right)\right]^{-\frac{2}{d}}
+        \mathbf{C}\right]^{-1}
+
+
+    - \mathbf{C}_{v} \right]
+
+
+@f]
+
+为内部粘性变量。我们已经选择了能量的磁弹性部分 $\psi_{0}^{ME} \left( \mathbf{C}, \boldsymbol{\mathbb{H}} \right)$ 来匹配我们探索的第一个材料模型，所以这部分不需要进一步解释。至于粘性部分 $\psi_{0}^{MVE}$ ，自由能的这一部分（与粘性变形张量的演化规律一起）取自 @cite Linder2011a （由 @cite Pelteret2018a 中描述的粘性饱和函数进行额外缩放）。它是在一个热力学上一致的框架中得出的，其核心是在微观层面上模拟聚合物链的运动。
+
+要超越这一点，我们还需要考虑进化规律的时间离散化。选择隐式一阶逆向差分方案，那么
+
+@f[
+  \dot{\mathbf{C}}_{v}
+\approx \frac{\mathbf{C}_{v}^{(t)} - \mathbf{C}_{v}^{(t-1)}}{\Delta t}
+= \frac{1}{\tau} \left[
+      \left[\left[\text{det}\left(\mathbf{F}\right)\right]^{-\frac{2}{d}}
+        \mathbf{C}\right]^{-1}
+
+
+    - \mathbf{C}_{v}^{(t)} \right]
+
+
+@f]
+
+其中上标 $(t)$ 表示该数量是在当前时间步长中提取的， $(t-1)$ 表示在前一时间步长中提取的数量（即历史变量）。时间段大小 $\Delta t$ 是当前时间与上一时间段的差。将这些条款重新排列，使当前时间的所有内部变量量都在方程的左侧，我们可以得到
+
+@f[
+\mathbf{C}_{v}^{(t)}
+= \frac{1}{1 + \frac{\Delta t}{\tau_{v}}} \left[
+    \mathbf{C}_{v}^{(t-1)}
+  + \frac{\Delta t}{\tau_{v}}
+    \left[\left[\text{det}\left(\mathbf{F}\right)\right]^{-\frac{2}{d}}
+    \mathbf{C} \right]^{-1}
+  \right]
+
+
+@f]
+
+匹配 @cite Linder2011a 公式54。
+
+<h3>Rheological experiment</h3>
+
+现在我们已经展示了所有这些关于热力学和磁力学理论以及构成模型的公式，让我们概述一下这个程序将对所有这些做什么。我们希望对我们制定的材料定律做一些*有意义的事情，因此将它们置于一些机械和磁载荷条件下是有意义的，这些条件在某种程度上代表了在应用或实验室环境中可能发现的一些条件。实现这一目标的方法之一是将这些构成法则嵌入到有限元模型中，以模拟一个设备。不过，在这个例子中，我们将保持简单（毕竟我们关注的是自动和符号微分概念），并将找到一种简明的方法，使用加载条件的分析表达式忠实地复制工业标准的流变学实验。
+
+我们将重现的流变学实验，它理想化了一个用于表征磁活性聚合物的实验室实验，详见 @cite Pelteret2018a （以及 @cite Pelteret2019a ，其中与真实世界的实验一起记录）。下面的图片提供了对问题设置的直观描述。
+
+ <table align="center" class="tutorial" cellspacing="3" cellpadding="3">
+  <tr>
+    <td align="center">
+        <img
+        src="https://www.dealii.org/images/steps/developer/step-71.parallel_plate-geometry.png"
+        alt="" height="300">
+  <p align="center">
+        The basic functional geometry of the parallel-plate rotational
+        rheometer. The smooth rotor (blue) applies a torque to an
+        experimental sample (red) of radius $r$ and height $H$ while an
+        axially aligned magnetic field generated by a a
+        magneto-rheological device. Although the time-dependent
+        deformation profile of the may be varied, one common experiment
+        would be to subject the material to a harmonic torsional
+        deformation of constant amplitude and frequency $\omega$.
+  </p>
+    </td>
+    <td align="center">
+        <img
+        src="https://www.dealii.org/images/steps/developer/step-71.parallel_plate-kinematics.png"
+        alt="" height="300">
+  <p align="center">
+        Schematic of the kinematics of the problem, assuming no
+        preloading or compression of the sample. A point $\mathbf{P}$
+        located at azimuth $\Theta$ is displaced to location $\mathbf{p}$
+        at azimuth $\theta = \Theta + \alpha$.
+  </p>
+    </td>
+  </tr>
+</table> 
+
+假设正在测试的是不可压缩的介质，并且通过样品厚度的变形曲线是线性的，那么在样品内某个测量点 $\mathbf{X}$ 的位移，用径向坐标表示，就是
+
+@f{align*}
+  r(\mathbf{X})
+  &= \frac{R(X_{1}, X_{2})}{\sqrt{\lambda_{3}}} , \\
+  \theta(\mathbf{X})
+  & = \Theta(X_{1}, X_{2}) + \underbrace{\tau(t)
+       \lambda_{3} X_{3}}_{\alpha(X_{3}, t)} , \\
+  z(\mathbf{X})
+  &= \lambda_{3} X_{3}
+
+
+@f}
+
+其中 $R(X_{1}, X_{2})$ 和 $\Theta(X_{1}, X_{2})$ 是半径在
+
+-- 的角度， $\lambda_{3}$ 是（恒定的）轴向变形， $\tau(t) = \frac{A}{RH} \sin\left(\omega t\right)$ 是每单位长度的随时间变化的扭转角，将使用固定振幅的正弦波重复振荡 $A$ 来规定。磁场是轴向排列的，即在 $X_{3}$ 方向。
+
+这总结了我们在流变样品内任何一点上全面描述理想化载荷所需的一切。我们将以这样的方式设置问题，即我们在这个样品中 "挑选 "一个有代表性的点，并使其在恒定的轴向变形（默认为压缩载荷）和恒定的、轴向施加的磁场中受到谐波剪切变形。我们将记录该点的应力和磁感应强度，并将数据输出到文件中进行后处理。尽管对这个特定的问题来说没有必要，我们也将计算切线。尽管它们没有直接用于这个特定的工作，但这些二阶导数是在有限元模型中嵌入构成法所需要的（这项工作的一个可能的扩展）。因此，我们将利用这个机会，用辅助微分框架来检查我们的手工计算是否正确。
+
+<h3>Suggested literature</h3>
+
+除了已经提到的 @ref auto_symb_diff 模块外，以下是一些更详细讨论的参考资料
+
+- 磁力学，以及自动分化框架的某些方面。   @cite Pao1978a  ,  @cite Pelteret2019a  , 和
+
+- 使用AD和/或SD实现有限元框架的自动化：  @cite Logg2012a  ,  @cite Korelc2016a  。
+
+ <br> 
+
+

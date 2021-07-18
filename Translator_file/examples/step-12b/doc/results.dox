@@ -1,0 +1,31 @@
+examples/step-12b/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+这个程序的输出与步骤16非常相似，我们在此不重复输出。
+
+我们展示了初始网格的解决方案，以及经过两个和五个自适应细化步骤后的网格。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-12.sol-0.png" alt="">   <img src="https://www.dealii.org/images/steps/developer/step-12.sol-2.png" alt="">   <img src="https://www.dealii.org/images/steps/developer/step-12.sol-5.png" alt=""> 。
+
+
+然后，我们再次展示了最终的网格（经过5个细化步骤）和解决方案，这一次，我们使用了更漂亮的3D渲染（使用 DataOutBase::write_vtk 函数和基于VTK的VisIt可视化程序获得），更好地显示了细化网格上跳跃的尖锐性以及解决方案沿界面的过度和不足。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-12.grid-5.png" alt="">   <img src="https://www.dealii.org/images/steps/developer/step-12.3d-solution.png" alt=""> 。
+
+
+最后我们展示一个3D计算的图。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-12.sol-5-3d.png" alt=""> 
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+关于进一步扩展的想法，请参见步骤12。
+
+

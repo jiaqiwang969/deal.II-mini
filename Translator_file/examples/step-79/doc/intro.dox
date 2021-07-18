@@ -1,0 +1,662 @@
+examples/step-79/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+弹性介质的拓扑优化是一种用于优化承受某种载荷的结构的技术。理想情况下，我们希望通过选择一个放置材料的区域 $E$ ，使置于结构上的最大应力最小化。换句话说。
+
+@f[
+  \text{minimize}\| \boldsymbol{\sigma} (\mathbf{u}) \|_\infty
+
+
+@f]
+
+
+
+@f[
+  \text{subject to } |E|\leq V_{\max},
+
+
+@f]
+
+
+
+@f[
+  \text{and } \nabla \cdot \boldsymbol{\sigma} + \mathbf{F} = \mathbf{0}.
+
+
+@f]
+
+
+
+这里， $\boldsymbol{\sigma} = \mathbf{C} : \boldsymbol{\varepsilon}(\mathbf{u})$ 是由外力 $\mathbf F$ 引起的体内应力，为了简单起见，我们假设材料是线性弹性的，因此 $\mathbf{C}$ 是应力-应变张量， $\boldsymbol{\varepsilon}(\mathbf{u})=\frac{1}{2} (\nabla \mathbf{u} + (\nabla\mathbf{u})^T)$ 是作为位移 $\mathbf{u}$ 函数的小变形应变--关于线性弹性的详情，见步骤8 和步骤17。在上面的表述中， $V_\text{max}$ 是我们愿意为构建物体提供的最大材料量。最后一个约束条件是与应力 $\boldsymbol{\sigma}$ 和力 $\mathbf F$ 有关的偏微分方程，它只是稳态力平衡。
+
+也就是说，上面的无穷大准则产生了一个问题：作为材料位置的函数，这个目标函数必然是不可微分的，使优化的前景相当暗淡。因此，取而代之的是，拓扑优化的一个常见方法是通过优化一个相关的问题来找到一个近似的解决方案：我们希望最小化应变能量。这是对物体因变形而储存的势能的衡量，同时也是对结构总变形的衡量。
+
+@f[
+  \text{minimize  } \int_E \frac{1}{2}\boldsymbol{\sigma} : \boldsymbol{\varepsilon} dV
+
+
+@f]
+
+
+
+@f[
+  \text{subject to } \|E\| \leq V_{\max}
+
+
+@f]
+
+
+
+@f[
+  \text{and } \nabla \cdot \boldsymbol{\sigma} + \mathbf{F} = \mathbf{0}
+
+
+@f]
+
+
+
+目标函数的值是用有限元方法计算的，其中的解决方案是位移。这被放置在一个非线性求解器的循环中，求解一个表示材料放置的向量。
+
+<h3>Solid Isotropic Material with Penalization</h3>
+
+在实际操作中，我们只能建造材料在任何给定的点上要么存在，要么不存在的物体--也就是说，我们会有一个描述材料填充区域的指标函数 $\rho_E(\mathbf{x})\in \{0,1\}$ ，并且我们想通过优化问题找到这个指标。在这种情况下，优化问题变成了组合性的，而且解决起来非常昂贵。取而代之的是，我们使用一种叫做各向同性的固体材料与惩罚的方法，或SIMP。   @cite Bendse2004 
+
+SIMP方法是基于一个想法，即允许材料存在于密度 $\rho$ 在0和1之间的位置。密度为0表明材料不存在，它不是结构的一部分，而密度为1表明材料存在。0和1之间的值并不反映我们在现实世界中可以创造的设计，但允许我们将组合问题变成一个连续问题。然后我们看一下密度值  $\rho$  ，约束条件是  $0 < \rho_{\min} \leq \rho \leq 1$  。最小值 $\rho_{\min}$ ，通常选择在 $10^{-3}$ 左右，避免了出现无限应变能量的可能性，但小到足以提供准确的结果。
+
+这种 "密度 "对介质弹性的影响的直接应用是简单地将介质的刚度张量 $\mathbf{C}_0$ 乘以给定的密度，即 $\mathbf{C} = \rho \mathbf{C}_0$  。然而，这种方法经常给出密度值离0和1都很远的最佳解决方案。由于人们希望找到一个现实世界的解决方案，即材料要么存在，要么不存在，因此对这些介于两者之间的值进行惩罚。一个简单有效的方法是将刚度张量乘以密度，并将其提高到某个整数功率的惩罚参数  $p$  ，因此  $\mathbf{C} = \rho^p \mathbf{C}_0$  。这使得远离0或1的密度值变得不那么有效。已经证明，使用 $p=3$ 足够高，可以产生'黑白'的解决方案：也就是说，可以得到最佳的解决方案，其中材料在所有点上要么存在，要么不存在。
+
+更多的材料应该总是提供一个具有较低应变能量的结构，因此不等式约束可以被看作是一个等式，其中使用的总体积是最大体积。
+
+使用这种密度思想也使我们能够重新构建优化问题的体积约束。使用SIMP后，优化问题就变成了以下内容。
+
+@f[
+  \text{minimize  } \int_\Omega \frac{1}{2}\boldsymbol{\sigma}(\rho) : \boldsymbol{\varepsilon}(\rho) d\Omega
+
+
+@f]
+
+
+
+@f[
+  \text{subject to } \int_\Omega \rho(x) d\Omega= V_{\max},
+
+
+@f]
+
+
+
+@f[
+  0<\rho_{\min}\leq \rho(x) \leq 1,
+
+
+@f]
+
+
+
+@f[
+
+
+  \nabla \cdot \boldsymbol{\sigma}(\rho) + \mathbf{F} = 0 \quad \text{on } \Omega
+
+
+@f]
+
+最后一个约束，即线性动量的平衡（我们将称之为弹性方程），给出了一种在给定密度 $\boldsymbol{\sigma}$ 和 $\boldsymbol{\varepsilon}$ 的情况下寻找 $\rho$  的方法。
+
+<h3>Elasticity Equation</h3> 在与时间无关的极限中，弹性方程为
+
+@f[
+  \nabla \cdot \boldsymbol{\sigma} + \mathbf{F} = \mathbf{0} .
+
+
+@f]
+
+在我们将关注的情况下，我们将假设介质具有线性材料响应，在这种情况下，我们有
+
+@f[
+  \boldsymbol{\sigma} = \mathbf{C} : \boldsymbol{\varepsilon} = \rho^p \mathbf{C}_0 : \boldsymbol{\varepsilon}(\mathbf{u})
+   = \rho^p \mathbf{C}_0 : \left[\frac{1}{2} (\nabla \mathbf{u} + (\nabla \mathbf{u})^T) \right] .
+
+
+@f]
+
+在我们下面要做的一切中，我们将始终把位移场 $\mathbf{u}$ 视为唯一的解变量，而不是把 $\mathbf{u}$ 和 $\boldsymbol{\sigma}$ 视为解变量（像在混合公式中那样）。
+
+此外，我们将假设材料是线性各向同性的，在这种情况下，应力-应变张量可以用Lam&eacute;参数 $\lambda,\mu$ 来表示，例如
+
+@f{align}
+  \boldsymbol{\sigma} &= \rho^p (\lambda \text{tr}(\boldsymbol{\varepsilon}) \mathbf{I} + 2 \mu \boldsymbol{\varepsilon}) , \\
+  \sigma_{i,j} &= \rho^p (\lambda \varepsilon_{k,k} \delta_{i,j} + 2 \mu \varepsilon_{i,j}) .
+
+
+@f}
+
+参见步骤8，了解这种转变的原理。
+
+对目标函数进行分项积分，得到
+
+@f[
+  \int_\Omega \boldsymbol{\sigma}(\rho) : (\nabla \mathbf{u} + (\nabla \mathbf{u}))^T  d\Omega+
+  \int_\Omega (\nabla \cdot \boldsymbol{\sigma}(\rho)) \cdot \mathbf{u}  d\Omega=
+  \int_{\partial \Omega} \mathbf{t} \cdot \mathbf{u} d\partial\Omega ,
+
+
+@f]
+
+然后将线性弹性方程代入其中，可以得到
+
+@f[
+  \int_\Omega \boldsymbol{\sigma}(\rho) : (\nabla \mathbf{u} + (\nabla \mathbf{u})^T) d\Omega =
+  \int_\Omega \mathbf{F}\cdot \mathbf{u} d\Omega+
+  \int_{\partial \Omega} \mathbf{t} \cdot \mathbf{u} d\partial\Omega .
+
+
+@f]
+
+因为我们假设没有身体的力量，这进一步简化为
+
+@f[
+  \int_\Omega \boldsymbol{\sigma}(\rho) : (\nabla \mathbf{u} + (\nabla \mathbf{u})^T) d\Omega
+  = \int_{\partial \Omega} \mathbf{t} \cdot \mathbf{u} d\partial\Omega,
+
+
+@f]
+
+这就是我们从现在开始要考虑的治理方程的最终形式。
+
+<h3>Making the solution mesh-independent</h3>
+
+通常情况下，拓扑优化问题的解决方案是依赖于网格的，因此问题是不成立的。这是因为随着网格的进一步细化，往往会形成分形结构。随着网格分辨率的提高，最优解通常会获得越来越小的结构。对于这个问题，有一些相互竞争的解决方法，但对于一阶优化来说，最流行的是灵敏度滤波器，而二阶优化方法则倾向于使用密度滤波器。
+
+由于滤波器会影响应变能量的梯度和Hessian（即目标函数），所以滤波器的选择会对问题的解决产生影响。作为二阶方法的一部分，密度滤波器的工作原理是引入一个未经过滤的密度，我们称之为 $\varrho$  ，然后要求密度是未经过滤的密度的卷积。
+
+@f[
+  \rho = H(\varrho).
+
+
+@f]
+
+这里， $H$ 是一个运算符，因此 $\rho(\mathbf{x})$ 是 $\varrho$ 在 $\mathbf{x}$ 周围区域的某种平均值 -- 即，它是 $\varrho$ 的平滑版本。
+
+这可以防止棋盘效应；滤波器的半径允许用户为我们寻求的最佳结构定义一个有效的最小光束宽度。
+
+<div style="text-align:center;"> <img src="https://www.dealii.org/images/steps/developer/step-79.checkerboard.png" alt="Checkerboarding occurring in an MBB Beam"> </div>
+
+<h3>Complete Problem Formulation</h3>
+
+现在的最小化问题是
+
+@f[
+  \min_{\rho,\varrho,\mathbf{u}} \int_{\partial\Omega} \mathbf{u} \cdot \mathbf{t} d\partial\Omega
+
+
+@f]
+
+
+
+@f[
+  \text{subject to   } \rho = H(\varrho)
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega \rho^p \left(\frac{\mu}{2}\left(\boldsymbol{\varepsilon}(\mathbf{v}):
+  \boldsymbol{\varepsilon}(\mathbf{u})) \right) + \lambda \left( \nabla \cdot \mathbf{u} \nabla
+  \cdot \mathbf{v} \right)  \right) d\Omega = \int_{\partial \Omega} \mathbf{v} \cdot
+  \mathbf{t} d\partial\Omega
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega \rho d\Omega= V
+
+
+@f]
+
+
+
+@f[
+  0\leq \varrho \leq 1
+
+
+@f]
+
+
+
+处理不等式约束的方法是，首先引入松弛变量，其次使用对数障碍来确保我们得到一个内点方法。惩罚参数将是 $\alpha$  ，下面的松弛变量是<ol>  <li>   $s_1$  -对应于下限的松弛变量  </li>   <li>   $s_2$  -对应于上限的松弛变量。 </li>   </ol>  现在得出以下问题。
+
+@f[
+  \min_{\rho,\varrho,\mathbf{u}, s_1, s_2} \int_{\partial\Omega} \mathbf{u} \cdot
+  \mathbf{t} d\partial\Omega- \alpha \int_\Omega \left(\log(s_1) + \log(s_2)\right) d\Omega
+
+
+@f]
+
+
+
+@f[
+  \text{subject to   } \rho = H(\varrho)
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega \rho^p \left(\frac{\mu}{2}\left(\boldsymbol{\varepsilon}(\mathbf{v}):
+  \boldsymbol{\varepsilon}(\mathbf{u})) \right) + \lambda \left( \nabla \cdot \mathbf{u} \nabla
+  \cdot \mathbf{v} \right)  \right) d\Omega = \int_{\partial \Omega} \mathbf{v} \cdot
+  \mathbf{t} d\partial\Omega
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega \rho d\Omega = V
+
+
+@f]
+
+
+
+@f[
+  \varrho = s_1
+
+
+@f]
+
+
+
+@f[
+  1-\varrho = s_2
+
+
+@f]
+
+
+
+有了这些变量，我们就可以按照通常的方法来解决限制性优化问题。我们引入一个拉格朗日，通过将约束条件乘以拉格朗日乘数，将目标函数和约束条件结合起来。具体来说，我们将使用以下符号表示各种约束条件的拉格朗日乘数。<ol>  <li>   $\mathbf{y}_1 $  ：对应于弹性约束的拉格朗日乘数，  </li>   <li>   $y_2$  ：对应于卷积过滤器约束的拉格朗日乘数，  </li>   <li>   $z_1$  ：对应于下层松弛变量的拉格朗日乘数，以及  </li>   <li>   $z_2$  ：对应于上限松弛变量的拉格朗日乘数。   </li>   </ol>  有了这些变量，拉格朗日函数的内容如下。
+
+@f{align}{
+  \mathcal{L} =& \int_{\partial\Omega} \mathbf{u} \cdot \mathbf{t} d\partial\Omega
+
+
+   - \alpha \int_\Omega \left(\log(s_1) + \log(s_2)\right) d\Omega-  \int_\Omega
+   \rho^p \left(\frac{\mu}{2}\left(\boldsymbol{\varepsilon}(\mathbf{y}_1):\boldsymbol{\varepsilon}(\mathbf{u}))
+   \right) + \lambda \left( \nabla \cdot \mathbf{u} \nabla \cdot \mathbf{y}_1
+   \right)\right) d\Omega - \int_{\partial \Omega} \mathbf{y}_1 \cdot \mathbf{t} d\partial\Omega  \\
+   & -\int_\Omega y_2 (\rho - H(\varrho)) d\Omega - \int_\Omega z_1 (\varrho-s_1) d\Omega
+
+
+   - \int_\Omega z_2 (1 - s_2 -\varrho) d\Omega
+
+
+@f}
+
+
+
+然后优化问题的解决方案需要满足所谓的[Karush-Kuhn-Tucker（KKT）条件]（https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions）。拉格朗日相对于其所有参数的导数需要等于零，而且由于我们有不等式约束，我们也有 "互补性 "条件。由于我们这里有一个无穷大的问题，这些条件都涉及到拉格朗日相对于某些测试函数的方向性导数--换句话说，所有这些条件都必须以弱形式表述，因为这通常是有限元方法的基础。
+
+障碍法允许我们最初削弱典型的KKT条件所要求的 "补充松弛"。通常情况下，我们会要求 $s_i z_i = 0$  ，但屏障公式给出的KKT条件是 $s_i z_i = \alpha$  ，其中 $\alpha$  是我们的屏障参数。作为障碍法的一部分，这个参数必须被驱动到接近0，以便对原始问题有一个良好的近似。
+
+在下文中，让我们陈述所有这些条件，其中 $d_{\{\bullet\}}$ 是一个测试函数，它与拉格朗日相对于 $\{\bullet\}$ 函数的变异导数自然成对。为了简单起见，我们引入 $\Gamma$ 来表示边界上受力的部分，并使用诺伊曼边界条件。
+
+<ol>  <li>  静止性。
+
+@f[
+  \int_\Omega  - d_\rho y_2 + p\rho^{p-1}d_\rho \left[\lambda
+  (\nabla \cdot \mathbf{y}_1) (\nabla \cdot \mathbf{u}) +
+  \mu \boldsymbol{\varepsilon}(\mathbf{u}):\boldsymbol{\varepsilon}(\mathbf{y}_1)\right] d\Omega=0\;\;
+  \forall d_\rho
+
+
+@f]
+
+
+
+@f[
+  \int_\Gamma \mathbf d_\mathbf{u} \cdot \mathbf{t} d\partial\Omega+ \int_\Omega p\rho^{p}
+  \left[\lambda (\nabla \cdot \mathbf d_\mathbf{u})( \nabla \cdot \mathbf{y}_1)
+  + \mu \boldsymbol{\varepsilon}(\mathbf d_\mathbf{u}):\boldsymbol{\varepsilon}(\mathbf{y}_1)\right] d\Omega=0\;\;
+  \forall \mathbf{d}_\mathbf{u}
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega -d_\varrho z_1 + d_\varrho z_2 + H(d_\varrho)y_2 d\Omega= 0\;\;\forall
+  d_\varrho
+
+
+@f]
+
+ </li>   <li>  原始的可行性。
+
+@f[
+  \int_\Omega \rho^{p}\lambda (\nabla \cdot \mathbf d_{\mathbf{y}_1})
+  (\nabla \cdot \mathbf{u}) +  \rho^{p}\mu  \boldsymbol{\varepsilon}(\mathbf
+  d_{\mathbf{y}_1}) : \boldsymbol{\varepsilon}(\mathbf{u}) d\Omega - \int_\Gamma \mathbf
+  d_{\mathbf{y}_1} \cdot \mathbf{t} d\partial\Omega =0 \;\;\forall \mathbf{d}_{\mathbf{y}_1}
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega d_{z_1}(\varrho - s_1) d\Omega = 0\;\;\forall d_{z_1}
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega d_{z_z}(1-\varrho-s_2) d\Omega = 0\;\;\forall d_{z_2}
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega d_{y_2}(\rho - H(\varrho)) d\Omega = 0\;\;\forall d_{y_2}
+
+
+@f]
+
+ </li>   <li>  互补性松弛。
+
+@f[
+  \int_\Omega d_{s_1}(s_1z_1 - \alpha) d\Omega = 0 \;\;\forall d_{s_1} ,\;\;\;
+  \alpha \to 0
+
+
+@f]
+
+
+
+@f[
+  \int_\Omega d_{s_2}(s_2z_2 - \alpha) d\Omega = 0  \;\;\forall d_{s_2} ,\;\;\;
+  \alpha \to 0
+
+
+@f]
+
+ </li>   <li>  双重可行性。
+
+@f[
+  s_{1,i},s_{2,i},z_{1,i},z_{2,i} \geq 0 \;\;\;\; \forall i
+
+
+@f]
+
+ </li>  </ol>  。
+
+<h3>Solution procedure</h3>
+
+上面的优化条件除了复杂之外，还属于不容易解决的类型。它们通常是非线性的，而且有些关系也是不等式的。我们将使用牛顿方法计算搜索方向来解决非线性问题，并在下面讨论步长程序时再来讨论如何处理不等式问题。
+
+牛顿方法应用于上述方程的结果是下面列出的方程组。其中，关于 $\{\bullet\}$ 变量的变异导数在 $c_{\{\bullet\}}$ 方向取值。
+
+<ol>  <li>  静止性。这些方程确保我们在受约束时处于目标函数的临界点。
+
+方程式1
+
+@f{align}{
+  &\int_\Omega-d_\rho c_{y_2} + p(p-1) \rho^{p-2} d_\rho c_\rho [\lambda \nabla
+  \cdot \mathbf{y}_1 \nabla \cdot \mathbf{u} +  \mu  \boldsymbol{\varepsilon}(\mathbf{u})
+  \boldsymbol{\varepsilon}(\mathbf{y}_1)]
+  + p \rho^{p-1} d_\rho[\lambda \nabla \cdot
+  \mathbf{c}_{\mathbf{y}_1} \nabla \cdot \mathbf{u} +   \mu  \boldsymbol{\varepsilon}
+  (\mathbf{u}) \boldsymbol{\varepsilon}(\mathbf{c}_{\mathbf{y}_1})]  +  p \rho^{p-1} d_\rho
+  [\lambda \nabla \cdot {\mathbf{y}_1} \nabla \cdot \mathbf{c}_\mathbf{u} +
+  \mu  \boldsymbol{\varepsilon}(\mathbf{c}_\mathbf{u}) \boldsymbol{\varepsilon}(\mathbf{y}_1)] d\Omega \\
+  &= -\int_\Omega -d_\rho z_1 + d_\rho z_2 - d_\rho y_2 + p\rho^{p-1}d_\rho
+[\lambda \nabla \cdot \mathbf{y}_1 \nabla \cdot \mathbf{u} + \mu \boldsymbol{\varepsilon}
+(\mathbf{u})\boldsymbol{\varepsilon}(\mathbf{y}_1)] d\Omega
+
+
+@f}
+
+
+
+方程式2
+
+@f{align}{
+  &\int_\Omega p \rho^{p-1} c_\rho [\lambda \nabla \cdot {\mathbf{y}_1} \nabla
+  \cdot \mathbf{d}_\mathbf{u} +  \mu  \boldsymbol{\varepsilon}(\mathbf{d}_\mathbf{u})
+  \boldsymbol{\varepsilon}(\mathbf{y})] + \rho^{p} [\lambda \nabla \cdot
+  \mathbf{c}_{\mathbf{y}_1} \nabla \cdot \mathbf{d}_\mathbf{u} +  \mu
+  \boldsymbol{\varepsilon}(\mathbf{d}_\mathbf{u})\boldsymbol{\varepsilon}(\mathbf{c}_{\mathbf{y}_1})] d\Omega \\
+  &= -\int_\Gamma \mathbf{d}_\mathbf{u} \cdot \mathbf{t} -\int_\Omega \rho^{p}
+  [\lambda \nabla \cdot \mathbf{y} \nabla \cdot \mathbf{d}_\mathbf{u} + \mu
+  \boldsymbol{\varepsilon}(d_\mathbf{u})\boldsymbol{\varepsilon}(\mathbf{y}_1)] d\Omega
+
+
+@f}
+
+
+
+方程3
+
+@f[
+  \int_\Omega  - d_\varrho c_{z_1} +d_\varrho c_{z_2}  + H(d_\varrho)c_{y_2}  d\Omega =
+
+
+  -\int_\Omega -d_\varrho z_1 + d_\varrho z_2 + H(d_\varrho)y_2 d\Omega
+
+
+@f]
+
+ </li> 
+
+ <li>  原始可行性。这些方程保证了平等约束的满足。
+
+方程4
+
+@f{align}{
+  &\int_\Omega p \rho^{p-1} c_p[\lambda \nabla \cdot
+  \mathbf{d}_{\mathbf{y}_1} \nabla \cdot \mathbf{u} +  \mu
+  \boldsymbol{\varepsilon}(\mathbf{u}) \boldsymbol{\varepsilon}(\mathbf{d}_{\mathbf{y}_1})] +
+  \rho^{p}[\lambda \nabla \cdot \mathbf{d}_{\mathbf{y}_1} \nabla \cdot
+  \mathbf{c}_\mathbf{u} +  \mu  \boldsymbol{\varepsilon}(\mathbf{c}_\mathbf{u})
+  \boldsymbol{\varepsilon}(\mathbf{d}_{\mathbf{y}_1})] d\Omega \\
+  &= -\int_\Omega \rho^{p}[\lambda \nabla \cdot \mathbf{d}_{\mathbf{y}_1} \nabla
+  \cdot \mathbf{u} + \mu  \boldsymbol{\varepsilon}(\mathbf{u}) \boldsymbol{\varepsilon}
+  (\mathbf{d}_{\mathbf{y}_1})]  + \int_\Gamma  \mathbf{d}_{\mathbf{y}_1}
+  \cdot \mathbf{t} d\partial\Omega
+
+
+@f}
+
+
+
+方程5
+
+@f[
+
+
+  -\int_\Omega d_{z_1}(c_\varrho - c_{s_1}) d\Omega=\int_\Omega d_{z_1} (\varrho - s_1) d\Omega
+
+
+@f]
+
+
+
+方程6
+
+@f[
+
+
+  -\int_\Omega d_{z_2}(-c_\varrho-c_{s_2}) d\Omega= \int_\Omega d_{z_2} (1-\varrho-s_2) d\Omega
+
+
+@f]
+
+
+
+方程7
+
+@f[
+
+
+  -\int_\Omega   d_{y_2}(c_\rho - H(c_\varrho)) d\Omega=\int_\Omega d_{y_2}
+  (\rho - H(\varrho)) d\Omega
+
+
+@f]
+
+ </li> 
+
+ <li>  互补松弛性。这些方程基本上确保了障碍的满足--在最终的解决方案中，我们需要  $s^T z = 0$  。
+
+方程8
+
+@f[
+  \int_\Omega d_{s_1}(c_{s_1}z_1/s_1 +  c_{z_1} ) d\Omega=-\int_\Omega d_{s_1}
+  (z_1 - \alpha/s_1) d\Omega ,\;\;\; \alpha \to 0
+
+
+@f]
+
+
+
+方程9
+
+@f[
+  \int_\Omega d_{s_2} (c_{s_2}z_2/s_2 + c_{z_2} ) d\Omega=-\int_\Omega d_{s_2}
+  (z_2 - \alpha/s_2)  d\Omega,\;\;\; \alpha \to 0
+
+
+@f]
+
+ </li> 
+
+ <li>  双重可行性。松弛和松弛变量的拉格朗日乘数必须保持大于0。（这是唯一没有在 `SANDTopOpt::assemble_system()` 函数中实现的部分）。
+
+@f[
+  s,z \geq 0
+
+
+@f]
+
+ </li>   </ol> 
+
+
+
+
+<h3>Discretization</h3>我们使用带有 $Q_1$ 元素的四边形网格来离散位移和位移Lagrange乘数。分片常数 $DGQ_0$ 元素被用来离散密度、未过滤密度、密度松弛变量以及松弛变量和过滤约束的乘数。
+
+<h3>Nonlinear Algorithm</h3>
+
+虽然上面的大部分讨论都是按照传统的和众所周知的方法来解决非线性优化问题，但事实证明，这个问题在实践中其实是相当难解决的。特别是，它是相当非线性的，一个重要的问题不仅仅是像上面讨论的基于牛顿方法的搜索方向 $c_{\{\bullet\}}$ ，而是人们需要花相当多的注意力在这个方向上要走多远。这通常被称为 "线搜索"，归结为如何选择步长 $\alpha_k \in (0,1]$ 的问题，以便我们以尽可能有效的方式从当前迭代 $\mathbf{x}_k$ 移动到下一个迭代 $\mathbf{x}_{k+1}=\mathbf{x}_k+\alpha_k \mathbf{x}_k$ 。众所周知，我们最终需要选择 $\alpha_k=1$ 来实现牛顿方法的二次收敛；然而，在早期迭代中，采取如此长的步长实际上可能会使事情变得更糟，要么导致一个目标函数更差的点，要么在这个点上的约束条件的满足程度不如在 $\mathbf{x}_k$ 时。
+
+已经提出了非常复杂的算法来处理这个问题  @cite Nocedal2009   @cite Waechter2005  。在这里，我们实现了一个看门狗搜索算法  @cite Nocedal2006  。在讨论这个算法时，我们将使用向量 $\mathbf{x}$ 来表示所有的原始变量--过滤和未过滤的密度、松弛变量和位移，并使用向量 $\mathbf{y}$ 来表示所有的对偶向量。上述非线性方程组的（增量）解决方案现在将被称为 $\Delta \mathbf{x}$ 和 $\Delta
+\mathbf{y}$ ，而不是 $c_{\{\bullet\}}$  。一个优点函数（后面有详细解释）在这里被称为 $\phi(\mathbf{x,\mathbf{y}})$  。
+
+应用于具有给定障碍参数的子问题的看门狗算法以如下方式工作。首先，当前迭代被保存为 "看门狗 "状态，并记录看门狗状态的优点。然后采取一个最大的可行的牛顿步骤。如果功绩比第一步充分减少，则接受这个新步骤。如果不是，则采取另一个最大可行的牛顿步骤，并再次将功绩与看门狗的功绩进行比较。如果经过一定数量（通常在5到8之间）的牛顿步骤后，功绩没有充分减少，算法从看门狗状态或最后一次迭代中选择一个缩放的牛顿步骤，以保证功绩充分减少，该步骤被接受。一旦一个步骤被接受，就会测量KKT误差的规范，如果它足够小，就会减少障碍值。如果不够小，则将最后接受的步骤作为新的看门狗步骤，并重复这一过程。
+
+
+以上，"最大可行步长 "是对牛顿步长在原始变量和对偶变量中的一个缩放，其公式为
+
+@f[
+  \beta^\mathbf{y} = \min\{1,\max \beta \text{ such that }\left(\mathbf{z}_{k+i}
+   + \beta^\mathbf{z}_{k+i} \Delta \mathbf{z}_{k+i}\right)_j \geq \zeta
+   \mathbf{z}_{k+i,j} \forall j\}
+
+
+@f]
+
+
+
+@f[
+  \beta^\mathbf{x} = \min\{1,\max \beta \text{ such that }\left(\mathbf{s}_{k+i}
+   + \beta^\mathbf{s}_{k+i} \Delta \mathbf{s}_{k+i}\right)_j \geq \zeta
+   \mathbf{s}_{k+i,j} \forall j\}
+
+
+@f]
+
+
+
+以上， $\zeta$ 是任何步骤上允许的 "到边界的分数"。由于导数在边界附近变得条件不良，这种技术代表了[信任区域](https://en.wikipedia.org/wiki/Trust_region)，对于确保未来的良好近似是必要的。   $\zeta$ 被认为是 $\max\{0.8, 1-\alpha\}$ ，这允许随着障碍物变小而向边界靠近。未来，在实施减少障碍物的LOQO算法时，必须将其保持在0.8，因为障碍物参数可能变化很大。
+
+另外，我们需要处理我们用来强制执行松弛变量的正性约束的对数障碍 $s_1,s_2$ ：在我们解决的最终优化问题的声明中，我们添加了术语
+
+@f[
+
+
+  -\alpha \int_\Omega (\log(s_1) + \log(s_2)) d\Omega.
+
+
+@f]
+
+问题是我们应该如何选择惩罚因子  $\alpha$  。与所有的惩罚方法一样，我们实际上只对极限 $\alpha\to 0$ 感兴趣，因为这才是我们真正想要解决的问题，受松弛变量的正性约束。另一方面，我们需要选择足够大的 $\alpha$ 来使问题在实践中可以解决。因此，实际的实现从较大的 $\alpha$ 值开始，并随着外迭代的进行而逐渐减小它。
+
+在这里实现的单调方法中，每当在当前的障碍参数下达到某种程度的收敛时，就会更新障碍参数。我们使用KKT条件的 $l_\infty$ 准则来检查每个障碍大小的收敛情况。要求是 $\|KKT\|_{l_\infty} < c \cdot \alpha$ ，其中 $c$ 是任何障碍大小的常数， $\alpha$ 是障碍参数。这迫使在以后的迭代中更好地收敛，这与[IPOPT](https://coin-or.github.io/Ipopt/)（一个用于大规模非线性优化的开源软件包）中的要求相同。
+
+在这里，障碍值在较大的数值下是线性减少的，在较小的数值下是超线性的。在较大的数值下，它被乘以一个常数（大约0.6），而在较低的数值下，障碍值被提高到某个指数（大约1.2）的障碍值所取代。事实证明，这种方法能够有效地保持大障碍值下子问题的可解性，同时在较小的障碍值下仍然允许超线性收敛。在实践中，这看起来像以下情况。
+
+@f[
+  \alpha_{k+1} = \min\{\alpha_k^{1.2},0.6\alpha_k\}
+
+
+@f]
+
+
+
+虽然在达到收敛时大步减少障碍物的大小被广泛使用，但最近的研究表明，通常使用每次迭代自适应更新障碍物的算法会更快，也就是说，我们在每次迭代结束时使用具体的标准来决定下一次迭代中的惩罚参数应该是什么，而不是使用独立于当前解决方案的减少因素。也就是说，这样的方法也比较复杂，我们在此不做介绍。
+
+<h3>Merit %Function</h3>
+
+上面概述的算法利用了 "优点函数"。功绩函数用于确定从 $x_k$ 到建议点 $x_{k+1}$ 的一步是否有利。在无约束的优化问题中，人们可以简单地用我们试图最小化的目标函数来检查，通常使用[沃尔夫和戈尔茨坦条件]（https://en.wikipedia.org/wiki/Wolfe_conditions）等条件。
+
+在有约束的优化问题中，问题是如何平衡目标函数的减少和可能增加的对约束的违反。一个建议的步骤可能会使目标函数变小，但离满足约束条件的点集更远，或者相反。这种权衡通常通过使用结合这两个标准的优点函数来解决。
+
+在这里，我们使用一个精确的 $l_1$ 功绩函数来测试步骤。
+
+@f{align}{
+  \phi(\mathbf{x},\mathbf{y}) =& \int_{\partial \Omega} \mathbf{u}\cdot
+  \mathbf{t} d\partial\Omega- \alpha \int_\Omega (\log(s_1) + \log(s_2)) + p \sum_i\left|
+  \int_\Omega y_{2,i}(H(\varrho) - \rho) d\Omega \right| \\
+  & + p \sum_i\left| \int_{\partial \Omega} \mathbf{y}_{1,i}\cdot \mathbf{t}  d\partial\Omega
+
+
+  - \int_\Omega \rho^p[\lambda \nabla \cdot \mathbf{u} \nabla \cdot \mathbf{y}_{1,i}
+  + \mu \boldsymbol{\varepsilon}{\mathbf{u}}\boldsymbol{\varepsilon}{\mathbf{y}_{1,i}}] d\Omega \right|
+  + p \sum_i\left| \int_\Omega z_{1,i}(s_1 - \varrho) d\Omega\right|
+  + p \sum_i\left| \int_\Omega z_{2,i}(1-\varrho - s_2) d\Omega\right|
+
+
+@f}
+
+
+
+这里， $p$ 是一个惩罚参数。这个优点函数是精确的，意味着存在一些 $p_0$ ，以便对于任何 $p > p_0$ ，优点函数的最小值与原始问题的位置相同。这个惩罚参数被更新（根据Nocedal和Wright @cite Benson2002 的建议），如下。
+
+@f[
+  p > \frac{\frac{1}{2} \mathbf{x}^T \cdot \mathbf{H} \cdot \mathbf{x} - \mathbf{x}^T \cdot \nabla f}{\|c_i\|_{l_\infty}}
+  \quad , i \in \mathcal{E},
+
+
+@f]
+
+其中 $\mathbf{H}$ 是目标函数的Hessian， $\mathbf{x}$ 是我们的决策（原始）变量的矢量， $f$ 是目标函数， $c_i$ 是当前平等约束的误差。
+
+我们使用这种方法的部分原因是在寻找右手边时已经计算了大部分必要的部分，而且使用精确的优点函数可以确保它在与整个问题相同的位置被最小化。最近的研究表明，人们可以用所谓的 "滤波方法 "代替优点函数，人们应该考虑使用这些方法，因为它们被证明是更有效的。
+
+

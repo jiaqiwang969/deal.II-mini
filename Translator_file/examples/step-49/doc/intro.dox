@@ -1,0 +1,200 @@
+examples/step-49/doc/intro.dox
+
+<i>This program was contributed by Timo Heister. Parts of the results section
+were contributed by Yuhan Zhou, Wolfgang Bangerth, and David Wells.</i>
+
+<a name="Intro"></a>
+
+<h1> Introduction </h1> 本教程是步骤1的扩展，演示了几种获得比那里显示的更多的网格的方法。
+
+ @note  本教程也可作为Jupyter Python笔记本，使用deal.II python接口。该笔记本与原始的C++程序在同一目录下提供。
+
+生成复杂的几何图形是一项具有挑战性的任务，特别是在三个空间维度。我们将讨论几种方法，但这个清单并不详尽。此外，没有一种方法适合所有的问题。
+
+这个例子程序显示了一些为计算而创建和修改网格的方法，并以与我们在步骤1中相同的方式将它们输出为 <code>.vtu</code> 文件。没有做其他的计算或自适应细化；我们的想法是，你可以在其他更多的模拟器中使用这里的技术作为构建模块。请注意，这个例子程序并没有展示本介绍中讨论的所有生成网格的方法。
+
+
+
+
+<h3>General concerns about meshes</h3>
+
+当你使用自适应网格细化时，你肯定希望初始网格尽可能地粗大。因为只要你有内存和CPU时间，你就可以用自适应细化技术把它做得越细越好。然而，这就要求你不要把网格单元浪费在域的某些地方，因为这些单元是没有价值的。因此，你不希望从一个太细的网格开始，因为这已经占用了你的单元预算的很大一部分，而且你无法粗化初始网格中的单元。
+
+也就是说，你的网格需要充分捕捉给定的几何体。
+
+
+
+
+<h3>How to create meshes</h3>
+
+有几种方法来创建一个初始网格。网格可以通过多种方式进行修改或组合，这一点将在后面讨论。
+
+<h4>Using GridGenerator</h4>
+
+生成网格的最简单方法是使用命名空间GridGenerator中的函数，这在步骤1中已经讨论过了。  有许多不同的辅助函数可用，包括 GridGenerator::hyper_cube(),   GridGenerator::hyper_shell(),   GridGenerator::hyper_ball(),  和  GridGenerator::hyper_cube_with_cylindrical_hole().  。
+
+
+
+
+<h4>Constructing your own mesh programmatically</h4>
+
+如果GridGenerator命名空间中没有适合你想做的事情，你总是可以在你的程序中 "手工 "创建一个三角图。为此，你需要一个带有坐标的顶点列表和一个引用这些顶点的单元格列表。你可以在步骤14的函数<tt>create_coarse_grid()</tt>中找到一个例子。GridGenerator中的所有函数都以这种方式实现。
+
+我们很乐意接受更多的功能加入到GridGenerator中。因此，如果你最终写了一个可能对更多人有用的函数，请将其贡献出来。
+
+
+
+
+<h4>Importing from external programs</h4>
+
+GridIn类可以从磁盘的文件中读取许多不同的网格格式。如何做到这一点，在步骤5中有解释，在本例中可以看到函数 <code>grid_1</code> ，见下面的代码。
+
+网格可以由不同的工具生成，如<a
+href="http://gmsh.info" target="_top">gmsh</a>、<a
+href="https://lagrit.lanl.gov/" target="_top">lagrit</a>和<a
+href="http://cubit.sandia.gov/" target="_top">cubit</a>。更多信息见GridIn的文档。问题是，deal.II需要的网格只由四边形和六面体组成--四面体的网格无法工作（这意味着不能直接使用tetgen等工具）。
+
+我们将描述一个使用%Gmsh的可能工作流程。%Gmsh是我们所知道的最小和最快速设置的开源工具。它可以生成非结构化的二维四面体网格。在三维中，它可以挤压二维网格以获得六面体网格；将非结构化几何体三维网格化为六面体是可能的，尽管这些网格的质量有一些问题，意味着这些网格有时只能在交易中工作。
+
+在%Gmsh中，一个网格的基本描述是基于文本的 <code>.geo</code> 文件，其格式可以包含计算、循环、变量等。这种格式在允许描述复杂的几何图形方面是相当灵活的。然后，网格是由表面表示法生成的，表面表示法是由线条循环列表建立的，线条循环列表又是由点建立的。 <code>.geo</code>  脚本可以用手写和编辑，也可以通过在%Gmsh内用图形创建对象来自动生成。在许多情况下，最好是把这两种方法结合起来。如果你想用手写的话，可以在 "几何 "选项卡下按 "重载 "来轻松地重新加载文件，并在gmsh的图形用户界面上看到效果。
+
+本教程包含一个例子 <code>.geo</code> 文件，描述一个内部有两个物体被切割出来的盒子。这就是 <code>example.geo</code> 在%Gmsh中的样子（显示边界指标以及下面要讨论的网格）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-49.gmsh_picture.png" alt=""> 
+
+你可能想用文本编辑器打开 <code>example.geo</code> 文件（它与<tt>step-49.cc</tt>源文件位于同一目录），看看它是如何结构的。你可以看到域的边界是如何由一些线组成的，后来我们把几条线组合成 "物理线"（或 "物理面"），列出逻辑线的编号。"物理 "对象是携带边界指标信息的对象（见 @ref GlossBoundaryIndicator "本词汇表条目"）。
+
+ @note  这个文件包含 "物理线 "和 "物理面 "是很重要的。它们提供了在deal.II中使用的边界指标和材料ID。没有这些物理实体，任何东西都不会被导入deal.II中。
+
+deal.II的GridIn类可以读取%Gmsh编写的 <code>.msh</code> 格式，该格式包含为 <code>.geo</code> file. You generate the <code>.msh</code> 描述的几何体创建的网格，通过运行指令
+
+@code
+gmsh -2 example.geo
+@endcode
+
+
+
+在命令行中，或者在加载文件后点击%Gmsh中的 "Mesh "和 "2D"。  现在这是从 <code>.msh</code> 文件中读取的网格，并由deal.II再次保存为图像（见当前程序的 <code>grid_1</code> 功能）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-49.grid-1.png" alt=""> 
+
+ @note  %Gmsh有许多其他接口，人们可以通过这些接口来描述几何图形。特别是，它能够与Python和Julia等脚本语言连接，但也可以用C++编写脚本。这些接口很有用，如果人们不只是想为一个单一的几何体生成网格（在这种情况下，图形界面或者在简单的情况下，手写的".geo "文件可能是最简单的方法），而是想对几何体进行参数化研究，为此需要为某些参数不同的几何体生成许多网格。另一种情况是，如果已经有一个CAD几何体，只需要一个网格；事实上，这可以在deal.II中使用 Gmsh::create_triangulation_from_boundary_curve() 函数来完成。
+
+
+
+
+<h3>Modifying a Mesh</h3>
+
+在以上述方式获得一个（或几个）网格后，在将其用于有限元计算之前，有许多方法可以对其进行操作。
+
+
+
+
+<h4>Transformations</h4>
+
+GridTools命名空间包含了一系列的小函数，用于以各种方式转换给定的网格。函数  GridTools::shift,   GridTools::rotate,   GridTools::scale  的用法相当明显，所以我们在此不讨论这些函数。
+
+函数 GridTools::transform 允许你使用平滑函数对给定网格的顶点进行变换。在step-38的结果部分也给出了它的使用实例，但让我们在这里展示一个更简单的例子。在当前程序的函数 <code>grid_5()</code> 中，我们用正弦曲线对网格的y坐标进行扰动。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-5a.png" alt=""> regular input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-5.png" alt=""> output mesh
+    </td>
+  </tr>
+</table> 
+
+同样地，我们可以用公式  $(x,y) \mapsto (x,\tanh(2 y)/\tanh(2))$  将一个有规律的细化单位方格转换为y方向的墙体适应网格。这在本教程的  <code>grid_6()</code>  中完成。   <table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-6a.png" alt=""> regular input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-6.png" alt=""> wall-adapted output mesh
+    </td>
+  </tr>
+</table> 
+
+最后，函数 GridTools::distort_random 允许你将网格中的顶点（可选择忽略边界节点）随机移动。这在 <code>grid_7()</code> 中进行了演示，其结果如下。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-7a.png" alt=""> regular input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-7.png" alt=""> perturbed output mesh
+    </td>
+  </tr>
+</table> 
+
+这个函数主要是为了否定在研究常规网格收敛时得到的一些超收敛效应，以及抑制deal.II中的一些优化，这些优化可以利用单元格形状相似的事实。超级收敛是指如果一个网格具有某些对称性--例如，如果进入一个顶点的边对这个顶点是对称的，并且如果对一个单元的所有顶点都是这样的话
+
+归根结底，这是由于如果对误差进行泰勒扩展，对称性导致了这样一个事实，即预期的扩展的下一个项恰好是零，而误差的阶数是由*第二个下*项决定的。一个扭曲的网格没有这些对称性，因此误差反映了在*任何*种网格上解方程时将会看到的情况，而不是显示只反映特定情况的东西)。
+
+
+
+
+<h4>Merging Meshes</h4>
+
+该函数 GridGenerator::merge_triangulations() 允许你将两个给定的三角形对象合并为一个。  要做到这一点，共享边或面的顶点必须完全匹配。  排列两个网格可以用  GridTools::shift  和  GridTools::scale.  来实现。 在本教程的函数  <code>grid_2()</code>  中，我们合并了一个带圆孔的正方形（用  GridGenerator::hyper_cube_with_cylindrical_hole())  生成）和一个矩形（用  GridGenerator::subdivided_hyper_rectangle()).  生成）。 函数  GridGenerator::subdivided_hyper_rectangle()  允许你指定重复的数量和角的位置，所以这里不需要手动移动三角网格。你应该以图形方式检查网格，以确保单元格排布正确，并且在合并后的三角图中不存在未配对的节点。
+
+这些是输入网格和输出网格。
+
+ <table width="80%" align="center">
+  <tr>
+    <td align="center"><img src="https://www.dealii.org/images/steps/developer/step-49.grid-2a.png" alt="" height="200px">input mesh 1</td>
+    <td align="center"><img src="https://www.dealii.org/images/steps/developer/step-49.grid-2b.png" alt="" height="200px">input mesh 2</td>
+    <td align="center"><img src="https://www.dealii.org/images/steps/developer/step-49.grid-2.png" alt="" height="200px">merged mesh</td>
+  </tr>
+</table> 
+
+
+
+
+<h4>Moving Vertices</h4>
+
+函数  <code>grid_3()</code>  展示了在现有网格中挑选个别顶点并移动它们的能力。请注意，这有可能产生退化的或倒置的单元，你不应该期望使用这样的网格会产生任何有用的东西。在这里，我们通过向上移动顶部顶点来创建一个不完全居中的圆柱形孔的盒子。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-3a.png" alt="" height="200px"> input mesh
+    </td>
+    <td align="center">
+        <img src="https://www.dealii.org/images/steps/developer/step-49.grid-3.png" alt="" height="200px"> top vertices moved upwards
+    </td>
+  </tr>
+</table> 
+
+关于如何做到这一点的确切方法，见下面的代码。
+
+
+
+
+<h4>Extruding Meshes</h4>
+
+如果你需要一个可以通过挤压给定的2D网格（可以通过上述任何一种方式创建）来创建的3D网格，你可以使用函数  GridGenerator::extrude_triangulation().  参见本教程中的  <code>grid_4()</code>  函数为例。请注意，对于这个特殊的情况，所给的结果也可以用3D版本的 GridGenerator::hyper_cube_with_cylindrical_hole(). 来实现。主要的用法是一个2D网格，例如用%Gmsh生成，如上所述从 <code>.msh</code> 文件中读入。这是grid_4()的输出。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-49.grid-4base.png" alt=""> input mesh
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-49.grid-4.png" alt=""> extruded output mesh
+    </td>
+  </tr>
+</table> 
+
+
+
+
+<h3> After you have a coarse mesh </h3>
+
+使用上面讨论的方法创建一个粗略的网格只是第一步。当你有了它，它通常可以作为进一步细化网格的基础。这并不困难，事实上，如果你的几何体只由直面组成，那就没有其他事情可做。然而，如果你有一个更复杂的几何体，情况往往就不是这样了，除了创建网格之外，还有更多的步骤是必须的。我们将在下面的<a href="#Results">results section</a>中详细介绍这些步骤。
+
+

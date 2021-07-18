@@ -1,0 +1,342 @@
+examples/step-69/doc/intro.dox
+
+<i>
+  This program was contributed by Matthias Maier (Texas A&M University),
+  and Ignacio Tomas (Sandia National Laboratories$^{\!\dagger}$).
+</i>
+
+ $^\dagger$   <em>  桑迪亚国家实验室是一个多任务实验室，由霍尼韦尔国际公司的全资子公司桑迪亚国家技术与工程解决方案有限公司根据合同DE-NA0003525为美国能源部国家核安全局管理和运营。本文件描述了客观的技术结果和分析。文件中可能表达的任何主观观点或意见，不一定代表美国能源部或美国政府的观点。 </em> 
+
+ @note  本教程步骤实现了一个基于一阶精确<i>guaranteed
+maximum wavespeed method</i>的求解欧拉气体动力学方程 @cite GuermondPopov2016  。因此，它主要为教育目的而提出。对于实际的研究计算，你可能要考虑探索相应的<a href="https://github.com/conservation-laws/ryujin">high-performance
+implementation of a second-order accurate scheme</a>，它使用<i>convex
+limiting</i>技术，以及强保稳（SSP）时间积分，见 @cite GuermondEtAl2018  （<a href="https://conservation-laws.43-1.org/">website</a>）。
+
+ @dealiiTutorialDOI{10.5281/zenodo.3698223,https://zenodo.org/badge/DOI/10.5281/zenodo.3698223.svg} 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+本教程提出了一个用于求解可压缩欧拉方程的一阶方案，该方案基于三个要素：在有限元背景下对欧拉方程进行<i>collocation</i>型离散化；基于局部波速的<i>guaranteed</i>上限的图粘性稳定；以及显式时间步进。因此，本教程步骤中提出的观点和技术与步骤33中的观点和技术有很大的不同，后者主要是使用自动微分。从编程的角度来看，本教程将关注在大规模计算中发现的一些技术：混合线程-MPI并行化；自由度的有效局部编号；使用工作线程进行并发的后处理和结果的写出；以及检查点和重启。
+
+应该注意的是，双曲守恒定律背景下的一阶方案需要太多的自由度来解决模拟流体的某些关键特征，因此，通常只能作为高阶方案的基本构建块  @cite GuermondEtAl2018  。然而，我们希望读者在跳入完整的研究代码（如  @cite GuermondEtAl2018  中讨论的二阶方案）之前，仍然认为教程步骤是一个很好的起点（特别是在编程技术方面）。
+
+
+<a name="eulerequations"></a>
+
+<h3>Euler's equations of gas dynamics</h3>
+
+可压缩的欧拉气体动力学方程以保守的形式写成如下。
+
+@f{align}
+\mathbf{u}_t + \text{div} \, \mathbb{f}(\mathbf{u}) = \boldsymbol{0} ,
+
+
+@f}
+
+其中 $\mathbf{u}(\textbf{x},t):\mathbb{R}^{d} \times \mathbb{R}
+\rightarrow \mathbb{R}^{d+2}$  ，和 $\mathbb{f}(\mathbf{u}):\mathbb{R}^{d+2}
+\rightarrow \mathbb{R}^{(d+2) \times d}$  ，以及 $d \geq 1$  是空间维度。我们说 $\mathbf{u} \in \mathbb{R}^{d+2}$ 是状态， $\mathbb{f}(\mathbf{u}) \in  \mathbb{R}^{(d+2) \times d}$ 是系统的通量。在欧拉方程的情况下，状态由 $\textbf{u} = [\rho, \textbf{m},E]^{\top}$ 给出：其中 $\rho \in \mathbb{R}^+$ 表示密度， $\textbf{m} \in \mathbb{R}^d$ 是动量，而 $E
+\in \mathbb{R}^+$ 是系统的总能量。系统的通量 $\mathbb{f}(\mathbf{u})$ 被定义为
+
+@f{align*}
+\mathbb{f}(\textbf{u})
+=
+\begin{bmatrix}
+  \textbf{m}^\top \\
+  \rho^{-1} \textbf{m} \otimes \textbf{m} + \mathbb{I} p\\
+  \tfrac{\textbf{m}^\top}{\rho} (E + p)
+\end{bmatrix},
+
+
+@f}
+
+其中 $\mathbb{I} \in \mathbb{R}^{d \times d}$ 是身份矩阵， $\otimes$ 表示张量积。在这里，我们介绍了压力 $p$ ，一般来说，它是由一个封闭式的状态方程定义的。在本教程中，我们将讨论限制在多晶体理想气体的范畴内，对于这些气体，压力由以下公式给出
+
+@f{align*}
+p = p(\textbf{u}) := (\gamma -1) \Big(E -
+\tfrac{|\textbf{m}|^2}{2\,\rho}
+\Big),
+
+
+@f}
+
+其中因子 $\gamma \in (1,5/3]$ 表示<a
+href="https://en.wikipedia.org/wiki/Heat_capacity_ratio">ratio of specific
+heats</a>。
+
+
+
+
+<h4>Solution theory</h4>
+
+双曲守恒定律，如
+
+@f{align*}
+\mathbf{u}_t + \text{div} \, \mathbb{f}(\mathbf{u}) = \boldsymbol{0},
+
+
+@f}
+
+对解理论构成了重大挑战。一个明显的现象是，以变分形式重写方程并以解本身进行检验并不能导致能量估计，因为配对 $\langle \text{div} \, \mathbb{f}(\mathbf{u}), \mathbf{u}\rangle$ （理解为 $L^2(\Omega)$ 内积或对偶性配对）不能保证是非负的。在这种情况下，诸如能量稳定性或 $L^2(\Omega)$ 稳定性的概念（一般来说）是没有意义的。
+
+历史上，为了加深对双曲守恒定律的理解而采取的最有成效的步骤是假设解被正式定义为 $\mathbf{u} := \lim_{\epsilon \rightarrow
+0^+} \mathbf{u}^{\epsilon}$ ，其中 $\mathbf{u}^{\epsilon}$ 是抛物线正化的解
+
+@f{align}
+\mathbf{u}_t^{\epsilon} + \text{div} \, \mathbb{f}(\mathbf{u}^{\epsilon})
+
+
+- {\epsilon} \Delta \mathbf{u}^{\epsilon} = 0.
+
+
+@f}
+
+这样的解决方案，被理解为在零粘度极限下恢复的解决方案，通常被称为<i>viscosity solutions</i>。这是因为，从物理上看 $\epsilon$ 可以理解为与流体的粘度有关，也就是说，一个表示以不同速度运动的相邻气体粒子对彼此施加的摩擦力大小的量）。欧拉方程本身是在无摩擦的假设下得出的，但在物理上可以预期描述摩擦或粘度消失的极限情况。)这种解决方案的全球存在和唯一性是一个开放的问题。然而，我们至少知道，如果这种粘度解存在，它们必须满足 $\textbf{u}(\mathbf{x},t) \in \mathcal{B}$ 对所有 $\mathbf{x} \in \Omega$ 和 $t \geq 0$ 的约束条件，其中
+
+@f{align}
+  \mathcal{B} = \big\{ \textbf{u} =
+  [\rho, \textbf{m},E]^{\top} \in \mathbb{R}^{d+2} \, \big |
+  \
+  \rho > 0 \, ,
+  \
+  \ E - \tfrac{|\textbf{m}|^2}{2 \rho} > 0 \, ,
+  \
+  s(\mathbf{u}) \geq \min_{x \in \Omega} s(\mathbf{u}_0(\mathbf{x}))
+  \big\}.
+
+
+@f}
+
+这里， $s(\mathbf{u})$ 表示比熵值
+
+@f{align}
+  s(\mathbf{u}) = \ln \Big(\frac{p(\mathbf{u})}{\rho^{\gamma}}\Big).
+
+
+@f}
+
+我们将把 $\mathcal{B}$ 称为欧拉方程的不变量集。换句话说，状态 $\mathbf{u}(\mathbf{x},t)\in\mathcal{B}$ 服从密度的正性，内能的正性，以及比熵的局部最小原则。这个条件是精确（粘性）解所满足的一类点式稳定性约束的简化版本。我们所说的 "点 "是指该约束必须在域的每一点上得到满足，而不仅仅是在平均（积分，或高阶矩）意义上。
+
+在数值逼近的背景下，违反这样的约束有可怕的后果：它几乎肯定会导致数值方案的灾难性失败，失去双曲性，以及总体上，失去（离散）问题的良好解决性。这也意味着我们已经计算了一些不能从物理上解释的东西。例如，我们该如何看待一个具有负密度的计算结果？下面我们将制定一个方案，确保 $\mathbf{u}(\mathbf{x},t)$ 的离散近似仍在 $\mathcal{B}$ 中。
+
+
+
+
+<h4>Variational versus collocation-type discretizations</h4>
+
+在步骤9、步骤12、步骤33和步骤67之后，在这一点上，将欧拉方程的离散化建立在一个（半离散的）变分公式上看起来很诱人。
+
+@f{align*}
+  (\partial_t\mathbf{u}_{h},\textbf{v}_h)_{L^2(\Omega)}
+
+
+  - ( \mathbb{f}(\mathbf{u}_{h}) ,\text{grad} \, \textbf{v}_{h})_{L^2(\Omega)}
+  + s_h(\mathbf{u}_{h},\textbf{v}_h)_{L^2(\Omega)} = \boldsymbol{0}
+  \quad\forall \textbf{v}_h \in \mathbb{V}_h.
+
+
+@f}
+
+这里， $\mathbb{V}_h$ 是一个适当的有限元空间， $s_h(\cdot,\cdot)_{L^2(\Omega)}$ 是一些线性稳定方法（可能辅以一些特殊的冲击捕捉技术，例如见 @cite GuermondErn2004 的第五章和其中的参考文献）。在deal.II教程中描述的大多数随时间变化的离散化方法都是基于这样一种（半离散的）变量方法。从根本上说，从分析的角度来看，变分离散化被认为是为了提供某种全局（积分）稳定性的概念，也就是说，一种估计形式为
+
+@f{align*}
+  |\!|\!| \mathbf{u}_{h}(t) |\!|\!| \leq |\!|\!| \mathbf{u}_{h}(0) |\!|\!|
+
+
+@f}
+
+成立，其中 $|\!|\!| \cdot |\!|\!| $ 可以代表 $L^2(\Omega)$ 准则，或者更广泛地代表一些离散的（可能与网格有关）能量准则。自80年代中期以来，双曲守恒定律的变异离散化非常流行，特别是与SUPG型稳定化和/或上卷技术相结合（见 @cite Brooks1982 和 @cite Johnson1986 的早期工作）。它们已被证明是在亚音速无冲击系统和类似的良性情况下进行模拟的一些最佳方法。
+
+<！--特别是，教程Step-67侧重于使用dG技术研究亚音速体系中的欧拉气体动力学方程。-->
+
+然而，在跨音速和超音速阶段，以及冲击-流体力学应用中，使用变量方案可能是值得怀疑的。事实上，在写这篇文章的时候，大多数冲击-流体力学代码仍然是以有限体积方法为基础的。变分方案在这种极端状态下失败的主要原因是缺乏点状稳定性。这是因为<i>a priori</i>对积分量（如矩积分）的约束一般来说对解的点定性没有影响。虽然其中一些问题可能会通过对正确的冲击捕捉方案的（永久）追逐而得到缓解，但类似有限差分的方案和有限体积方案在许多方面仍有优势。
+
+因此，在这一教程步骤中，我们偏离了变分方案。我们将提出一个完全代数化的表述（具有拼合型方案的味道），该表述在点上保留了约束，即：。
+
+@f{align*}
+  \textbf{u}_h(\mathbf{x}_i,t) \in \mathcal{B}
+  \;\text{at every node}\;\mathbf{x}_i\;\text{of the mesh}.
+
+
+@f}
+
+与有限差分/体积方案相反，本步骤实现的方案最大限度地利用了有限元软件的基础设施，在任何空间维度的任何网格上都能工作，并且理论上保证始终工作，没有例外。这说明deal.II的使用范围远远超出了希尔伯特空间中的变分方案，deal.II中的大量类、模块和命名空间都可以适用于这种目的。
+
+
+
+
+<h3>Description of the scheme </h3>
+
+让 $\mathbb{V}_h$ 为标量值的有限维空间，由基 $\{\phi_i\}_{i \in \mathcal{V}}$ 跨越，其中。   $\phi_i:\Omega \rightarrow
+\mathbb{R}$ 和 $\mathcal{V}$ 是识别网格中每个标量自由度（DOF）的所有指数（非负整数）的集合。因此，标量有限元函数 $u_h \in \mathbb{V}_h$ 可以写成 $u_h = \sum_{i \in \mathcal{V}} U_i \phi_i$ 与 $U_i \in
+\mathbb{R}$  。我们引入矢量值近似空间的符号  $\pmb{\mathbb{V}}_h := \{\mathbb{V}_h\}^{d+2}$  。设 $\mathbf{u}_h
+\in \pmb{\mathbb{V}}_h$  ，则可以写成 $\mathbf{u}_h = \sum_{i
+\in \mathcal{V}} \mathbf{U}_i \phi_i$  ，其中 $\mathbf{U}_i \in
+\mathbb{R}^{d+2}$ 和 $\phi_i$ 是标量值的形状函数。
+
+ @note  我们特意避免在我们的符号中使用矢量值的有限元空间。矢量值有限元空间对于PDE系统（如Navier-Stokes）的变分公式是自然的。在这种情况下，必须计算的相互作用描述了<i>interactions between DOFs</i>：通过对矢量值DoFHandler的适当重新编号（即用FESystem初始化），可以相对容易地计算块矩阵（为了推进解决方案而需要）。然而，在时间明确的搭配型方案（如有限差分和/或本教程中提出的方案）的背景下，必须计算的相互作用可以更好地描述为<i>interactions between nodes</i>（不是在DOF之间）。此外，在我们的案例中，我们不解决线性方程，以推进解决方案。这使得在理论和/或实践中使用矢量值有限元空间的理由非常少。
+
+我们将使用通常的拉格朗日有限元：让 $\{\mathbf{x}_i\}_{i \in
+\mathcal{V}}$ 表示所有支持点的集合（见 @ref GlossSupport "本词汇条"），其中 $\mathbf{x}_i \in \mathbb{R}^d$  。那么每个索引 $i \in
+\mathcal{V}$ 都能唯一识别一个支持点 $\mathbf{x}_i$ ，以及一个标量值的形状函数 $\phi_i$ 。有了这个符号在手，我们可以将（显式时间步进）方案定义为。
+
+@f{align*}{
+  m_i \frac{\mathbf{U}_i^{n+1} - \mathbf{U}_i^{n}}{\tau}
+  + \sum_{j \in \mathcal{I}(i)} \mathbb{f}(\mathbf{U}_j^{n})\cdot
+  \mathbf{c}_{ij} - \sum_{j \in \mathcal{I}(i)}
+  d_{ij} \mathbf{U}_j^{n} = \boldsymbol{0} \, ,
+
+
+@f}
+
+其中
+
+  -  $m_i \dealcoloneq \int_{\Omega} \phi_i \, \mathrm{d}\mathbf{x}$ 是肿块质量矩阵
+
+  -  $\tau$ 是时间步长。
+
+  -  $\mathbf{c}_{ij} \dealcoloneq \int_{\Omega} \nabla\phi_j\phi_i \,
+    \mathrm{d}\mathbf{x}$ （注意， $\mathbf{c}_{ij}\in \mathbb{R}^d$ ）是一个矢量值矩阵，被用来在弱意义上近似通量的发散。
+
+  -  $\mathcal{I}(i) \dealcoloneq \{j \in \mathcal{V} \ | \ \mathbf{c}_{ij}
+    \not \equiv \boldsymbol{0}\} \cup \{i\}$ 是包含与索引 $i$ 耦合的所有自由度的邻接列表。换句话说， $\mathcal{I}(i)$ 包含行索引i的所有非零列索引。 $\mathcal{I}(i)$ 也将被称为 "模版"。
+
+  -  $\mathbb{f}(\mathbf{U}_j^{n})$ 是针对与支持点 $\mathbf{x}_j$ 相关的状态 $\mathbf{U}_j^{n}$ 所评估的双曲系统的通量 $\mathbb{f}$ 。
+
+  - 如果 $d_{ij} \dealcoloneq \max \{ \lambda_{\text{max}}
+    (\mathbf{U}_i^{n},\mathbf{U}_j^{n}, \textbf{n}_{ij}),
+    \lambda_{\text{max}} (\mathbf{U}_j^{n}, \mathbf{U}_i^{n},
+    \textbf{n}_{ji}) \} \|\mathbf{c}_{ij}\|$ 是所谓的<i>graph viscosity</i>。图形粘度作为一个稳定项，它在某种程度上是 $\epsilon \Delta \mathbf{u}$ 的离散对应物，出现在上述的粘度解的概念中。我们将把 $d_{ij}$ 的构造建立在最大局部波速 $\lambda_{\text{max}}$ 的估计上，稍后将详细解释。
+
+  - 粘度矩阵的对角线项被定义为  $d_{ii} = - \sum_{j \in \mathcal{I}(i)\backslash \{i\}} d_{ij}$  。
+
+  -  $\textbf{n}_{ij} = \frac{\mathbf{c}_{ij}}{ \|\mathbf{c}_{ij}\| }$ 是 $\textbf{c}_{ij}$ 矩阵的归一化，它进入了近似黎曼求解器，我们用它来计算本地波速的近似值 $\lambda_{\text{max}}$ 。这将在下文中进一步解释）。
+
+ $\lambda_{\text{max}} (\mathbf{U},\mathbf{V},
+\textbf{n})$ 的定义远非微不足道，我们将推迟精确的定义，以便首先关注一些算法和实现问题。我们注意到
+
+  -  $m_i$ 和 $\mathbf{c}_{ij}$ 不随时间变化（只要我们保持离散化固定）。因此，将这些矩阵/向量在所谓的<i>offline computation</i>中组装一次，并在每个时间步长中重复使用是有意义的。它们是我们将称之为离线数据的一部分。
+
+  - 在每个时间步骤中，我们必须评估 $\mathbb{f}(\mathbf{U}_j^{n})$ 和 $d_{ij} \dealcoloneq \max \{ \lambda_{\text{max}}
+    (\mathbf{U}_i^{n},\mathbf{U}_j^{n}, \textbf{n}_{ij}),
+    \lambda_{\text{max}} (\mathbf{U}_j^{n}, \mathbf{U}_i^{n},
+    \textbf{n}_{ji}) \} \|\mathbf{c}_{ij}\| $ ，这将构成大部分的计算成本。
+
+考虑下面的伪代码，说明在一个新的时间 $\textbf{U}^{n+1}$ 计算解决方案 $t_{n+1} = t_n + \tau_n$ 的可能的直接策略，给定一个在时间 $t_n$ 的已知状态 $\textbf{U}^{n}$  。
+
+@f{align*}
+&\textbf{for } i \in \mathcal{V} \\
+&\ \ \ \  \{\mathbf{c}_{ij}\}_{j \in \mathcal{I}(i)} \leftarrow
+\mathtt{gather\_cij\_vectors} (\textbf{c}, \mathcal{I}(i)) \\
+&\ \ \ \ \{\textbf{U}_j^n\}_{j \in \mathcal{I}(i)} \leftarrow
+\mathtt{gather\_state\_vectors} (\textbf{U}^n, \mathcal{I}(i)) \\
+&\ \ \ \ \ \textbf{U}_i^{n+1} \leftarrow \mathbf{U}_i^{n} \\
+&\ \ \ \ \textbf{for } j \in \mathcal{I}(i)\backslash\{i\} \\
+&\ \ \ \ \ \ \ \  \texttt{compute } d_{ij} \\
+&\ \ \ \ \ \ \ \  \texttt{compute } \mathbb{f}(\mathbf{U}_j^{n}) \\
+&\ \ \ \ \ \ \ \  \textbf{U}_i^{n+1} \leftarrow \textbf{U}_i^{n+1} - \frac{\tau_n}{m_i}
+ \mathbb{f}(\mathbf{U}_j^{n})\cdot \mathbf{c}_{ij} + d_{ij} \mathbf{U}_j^{n} \\
+&\ \ \ \ \textbf{end} \\
+&\ \ \ \ \mathtt{scatter\_updated\_state} (\textbf{U}_i^{n+1}) \\
+&\textbf{end}
+
+
+@f}
+
+
+
+我们在此注意到，。
+
+- 这种 "装配 "不需要任何形式的正交或单元环。
+
+- 这里 $\textbf{c}$ 和 $\textbf{U}^n$ 是一个全局矩阵和一个全局向量，分别包含所有向量 $\mathbf{c}_{ij}$ 和所有状态 $\mathbf{U}_j^n$ 。
+
+-  $\mathtt{gather\_cij\_vectors}$ 、 $\mathtt{gather\_state\_vectors}$ 和 $\mathtt{scatter\_updated\_state}$ 是假设的实现，它们要么收集（来自）全局矩阵和向量，要么写入（进入）。
+
+- 如果我们假设一个二维空间的笛卡尔网格，一阶多项式空间  $\mathbb{Q}^1$  ，并且  $\mathbf{x}_i$  是一个内部节点（即  $\mathbf{x}_i$  不在域的边界上），那么。   $\{\textbf{U}_j^n\}_{j \in \mathcal{I}(i)}$ 应该包含九个状态矢量元素（即与形状函数 $\phi_i$ 相关的补丁/宏元素中的所有状态）。这是与通常基于单元的循环的主要区别之一，在这种循环中，收集功能（在deal.II的情况下编码为FEValuesBase<dim, spacedim>.get_function_values()）只收集本地单元（只是补丁的一个子集）的值。
+
+实际执行将在一个关键方面偏离上述代码：时间步长 $\tau$ 必须根据CFL条件来选择
+
+@f{align*}
+  \tau_n = c_{\text{cfl}}\,\min_{
+  i\in\mathcal{V}}\left(\frac{m_i}{-2\,d_{ii}^{n}}\right),
+
+
+@f}
+
+其中 $0<c_{\text{cfl}}\le1$ 是一个选定的常数。这就需要在实际执行上述更新之前，在一个单独的步骤中计算所有的 $d_{ij}$ 。不过，核心原则没有改变：我们不是在单元格上循环，而是在稀疏图的所有边上循环。
+
+ @note 在有限元界之外，在更广泛的CFD界，遇到这种全代数方案（即没有双线性形式，没有单元环，也没有正交）并不罕见。这类方案有丰富的应用历史，也被称为<i>edge-based</i>或<i>graph-based</i>有限元方案（例如，见 @cite Rainald2008 的历史概述）。然而，需要强调的是，该方案的代数结构（在本教程中介绍）和节点循环并不只是一个性能上的噱头。实际上，这个方案的结构是出于理论上的需要：该方案的点稳定性证明取决于该方案的特定代数结构。此外，使用单元环不可能计算代数粘性 $d_{ij}$ ，因为它们非线性地依赖于跨越多个单元的信息（叠加不成立：将不同单元的贡献相加不会导致正确结果）。
+
+<h3>Stable boundary conditions and conservation properties.</h3>
+
+在本教程步骤中考虑的例子中，我们使用了三种不同类型的边界条件：本质类边界条件（我们在域的左侧边界规定了一个状态），域的右侧边界的流出边界条件（也称为 "无 "边界条件），以及障碍物顶部、底部和表面的 "反射 "边界条件 $\mathbf{m} \cdot
+\boldsymbol{\nu} = 0$ （也称为 "滑动 "边界条件）。我们不会过多地讨论基本的和 "无为 "的边界条件，因为它们的实现相对容易，读者可以直接从（有记录的）源代码中获取实现。在这部分介绍中，我们将只关注 "反射 "边界条件，这在某种程度上是比较棘手的。
+
+ @note  在写这篇文章的时候（2020年初），说双曲守恒定律系统的稳定边界条件的分析和实现都是一个开放的问题，这不是没有道理的。对于变分公式的情况，稳定的边界条件是那些导致良好的（胁迫的）双线性形式。但是对于一般的双曲守恒定律系统（以及本教程中所使用的代数式），胁迫性作为稳定性的一个概念没有适用性和/或意义。在本教程的步骤中，我们将使用不变集的保存作为我们主要的稳定性概念，它（至少）保证了离散问题的良好处理。
+
+对于反射边界条件的情况，我们将按以下步骤进行。
+
+- 对于每一个时间步骤的推进，完全不满足边界条件。
+
+- 让 $\partial\Omega^r$ 成为我们想要强制执行反射边界条件的边界部分。在时间步骤结束时，我们在一个后处理步骤中强烈地执行反射边界条件，在这个步骤中我们执行投影@f{align*}
+    \mathbf{m}_i \dealcoloneq \mathbf{m}_i - (\widehat{\boldsymbol{\nu}}_i
+    \cdot \mathbf{m}_i)  \widehat{\boldsymbol{\nu}}_i \ \
+    \text{where} \ \
+    \widehat{\boldsymbol{\nu}}_i \dealcoloneq
+    \frac{\int_{\partial\Omega} \phi_i \widehat{\boldsymbol{\nu}} \,
+    \, \mathrm{d}\mathbf{s}}{\big|\int_{\partial\Omega} \phi_i
+    \widehat{\boldsymbol{\nu}} \, \mathrm{d}\mathbf{s}\big|}
+    \ \ \text{for all }\mathbf{x}_i \in \partial\Omega^r
+    \ \ \ \ \boldsymbol{(1)}
+    @f} 。
+
+  去掉了 $\mathbf{m}$ 的法线成分。这是一个有点天真的想法，它保留了PDE的一些基本属性，我们在下面解释。
+
+这种方法通常被称为 "边界条件的明确处理"。经验丰富的有限元人可能会发现这种方法值得怀疑。毫无疑问，在求解抛物线或椭圆方程时，我们通常通过使它们成为近似空间的一部分来强制执行基本（类似于Dirichlet）边界条件  $\mathbb{V}$  ，并将自然（例如Neumann）边界条件作为变分公式的一部分。我们也知道，边界条件的明确处理（在抛物线PDEs的背景下）几乎肯定会导致灾难性的后果。然而，在非线性双曲方程的背景下，我们有。
+
+- 证明（对于反映边界条件的情况）边界条件的显式处理不仅是保守的，而且还能保证对所有 $i \in \mathcal{V}$ 的属性 $\mathbf{U}_i \in \mathcal{B}$ 的保存（良好处理性）是比较容易的。这也许是使用显式执行边界条件的最重要原因。
+
+- 就我们所知：我们不知道有任何数学结果证明，在使用边界条件直接执行到近似空间，或者使用Nitsche惩罚方法（例如广泛用于非连续Galerkin方案）的弱执行时，有可能保证所有 $\mathbf{U}_i \in
+\mathcal{B}$ 的属性。此外，其中一些传统的想法导致了相当严格的时间步长约束。
+
+- 有足够的数值证据表明，在CFL条件下，对类似于Dirichlet的边界条件的明确处理是稳定的，不会带来任何精度上的损失。
+
+如果 $\mathbf{u}_t + \text{div} \, \mathbb{f}(\mathbf{u}) = \boldsymbol{0}$ 代表欧拉方程，在整个边界上反映边界条件（即 $\partial\Omega^r \equiv \partial\Omega$ ），我们在空间和时间 $\int_{\Omega}\int_{t_1}^{t_2}$ 中进行积分，我们将得到
+
+@f{align*}
+\int_{\Omega} \rho(\mathbf{x},t_2) \, \mathrm{d}\mathbf{x} =
+\int_{\Omega} \rho(\mathbf{x},t_1) \, \mathrm{d}\mathbf{x} \ , \ \
+\int_{\Omega} \mathbf{m}(\mathbf{x},t_2) \, \mathrm{d}\mathbf{x}
++ \int_{t_1}^{t_2} \! \int_{\partial\Omega} p \boldsymbol{\nu} \,
+\mathrm{d}\mathbf{s} \mathrm{d}t =
+\int_{\Omega} \mathbf{m}(\mathbf{x},t_1) \,
+\mathrm{d}\mathbf{x} \ , \ \
+\int_{\Omega} E(\mathbf{x},t_2) \, \mathrm{d}\mathbf{x} =
+\int_{\Omega} E(\mathbf{x},t_1) \, \mathrm{d}\mathbf{x} \ \ \ \
+\boldsymbol{(2)}
+
+
+@f}
+
+请注意，动量不是一个守恒量（与墙的相互作用导致动量的增加/减少）：然而 $\mathbf{m}$ 必须满足动量平衡。尽管我们不会在整个域中使用反射边界条件，但我们想知道我们对反射边界条件的实现与上述的守恒特性是一致的。特别是，如果我们在整个域中使用投影 $\boldsymbol{(1)}$ ，可以保证以下离散质量平衡。
+
+@f{align*}
+\sum_{i \in \mathcal{V}} m_i \rho_i^{n+1} =
+\sum_{i \in \mathcal{V}} m_i \rho_i^{n} \ , \ \
+\sum_{i \in \mathcal{V}} m_i \mathbf{m}_i^{n+1}
++ \tau_n \int_{\partial\Omega} \Big(\sum_{i \in \mathcal{V}} p_i^{n} \phi_i\Big)
+\widehat{\boldsymbol{\nu}} \mathrm{d}\mathbf{s} =
+\sum_{i \in \mathcal{V}} m_i \mathbf{m}_i^{n} \ , \ \
+\sum_{i \in \mathcal{V}} m_i E_i^{n+1} = \sum_{i \in \mathcal{V}} m_i
+E_i^{n} \ \ \ \
+\boldsymbol{(3)}
+
+
+@f}
+
+其中 $p_i$ 是位于边界的节点上的压力。显然， $\boldsymbol{(3)}$ 是 $\boldsymbol{(2)}$ 的离散对应物。身份 $\boldsymbol{(3)}$ 的证明被省略了，但我们简要地提到，它取决于 $\boldsymbol{(1)}$ 中提供的<i>nodal normal</i> $\widehat{\boldsymbol{\nu}}_i$ 的定义。我们还注意到，这种反映边界条件的执行方式与最初在  @cite GuermondEtAl2018  中提出的方式不同。
+
+

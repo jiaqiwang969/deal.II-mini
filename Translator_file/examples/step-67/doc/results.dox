@@ -1,0 +1,626 @@
+examples/step-67/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Program output</h3>
+
+在一台有40个进程的机器上以默认设置运行该程序，会产生以下输出。
+
+@code
+Running with 40 MPI processes
+Vectorization over 8 doubles = 512 bits (AVX512)
+Number of degrees of freedom: 147,456 ( = 4 [vars] x 1,024 [cells] x 36 [dofs/cell/var] )
+Time step size: 0.00689325, minimal h: 0.3125, initial transport scaling: 0.102759
+
+
+Time:       0, dt:   0.0069, error rho:   2.76e-07, rho * u:  1.259e-06, energy: 2.987e-06
+Time:    1.01, dt:   0.0069, error rho:   1.37e-06, rho * u:  2.252e-06, energy: 4.153e-06
+Time:    2.01, dt:   0.0069, error rho:  1.561e-06, rho * u:   2.43e-06, energy: 4.493e-06
+Time:    3.01, dt:   0.0069, error rho:  1.714e-06, rho * u:  2.591e-06, energy: 4.762e-06
+Time:    4.01, dt:   0.0069, error rho:  1.843e-06, rho * u:  2.625e-06, energy: 4.985e-06
+Time:    5.01, dt:   0.0069, error rho:  1.496e-06, rho * u:  1.961e-06, energy: 4.142e-06
+Time:       6, dt:   0.0083, error rho:  1.007e-06, rho * u:  7.119e-07, energy: 2.972e-06
+Time:       7, dt:   0.0095, error rho:  9.096e-07, rho * u:  3.786e-07, energy: 2.626e-06
+Time:       8, dt:   0.0096, error rho:  8.439e-07, rho * u:  3.338e-07, energy:  2.43e-06
+Time:       9, dt:   0.0096, error rho:  7.822e-07, rho * u:  2.984e-07, energy: 2.248e-06
+Time:      10, dt:   0.0096, error rho:  7.231e-07, rho * u:  2.666e-07, energy: 2.074e-06
+
+
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              |     2.249s    30 |     2.249s |     2.249s     8 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        11 |  0.008066s    13 |   0.00952s |   0.01041s    20 |
+| compute transport speed       |       258 |   0.01012s    13 |   0.05392s |   0.08574s    25 |
+| output                        |        11 |    0.9597s    13 |    0.9613s |    0.9623s     6 |
+| rk time stepping total        |      1283 |    0.9827s    25 |     1.015s |      1.06s    13 |
+| rk_stage - integrals L_h      |      6415 |    0.8803s    26 |    0.9198s |    0.9619s    14 |
+| rk_stage - inv mass + vec upd |      6415 |   0.05677s    15 |   0.06487s |   0.07597s    13 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+
+
+程序输出显示，所有的误差都很小。这是由于我们使用了一个相对较细的 $32^2$ 单元的网格，用5度的多项式来求得一个平滑的解决方案。一个有趣的模式显示在时间步长上：虽然在时间5之前是0.0069，但在后来的时间里增加到0.0096。在时间5和6.5之间，一旦在声速之上有一些运动的旋涡（因此传播速度更快）离开计算域，步长就会增加。在这之后，气流只是在同一方向上是均匀的，与之前均匀速度被漩涡覆盖的状态相比，气体的最大速度有所下降。我们的时间步长公式认识到了这种影响。
+
+最后一块输出显示了关于程序各个部分时间的详细信息；它通过显示最快和最慢的处理器所花费的时间以及平均时间将其分解开来--这在非常大的计算中通常很有用，可以发现是否有处理器持续过热（并因此节制其时钟速度）或因其他原因持续过慢。总结显示，在1.02秒内完成了1283个时间步骤（看所有MPI进程的平均时间），而11个文件的输出又花了0.96秒。将每个时间步数和五个Runge--Kutta阶段分解开来，每次评估的计算时间为0.16毫秒。这种高性能是无矩阵评估器的典型表现，也是显式时间积分对隐式求解器非常有竞争力的原因，特别是对于大规模模拟。程序运行结束时的计算时间细分显示， $\mathcal L_h$ 中的积分评估贡献了大约0.92秒，反质量矩阵的应用贡献了0.06秒。此外，对时间步长计算的运输速度的估计又贡献了0.05秒的计算时间。
+
+如果我们再使用三个级别的全局细化和总共940万个DoF，最终的统计数据如下（对于修改后的Lax--Friedrichs通量， $p=5$  ，和同一系统的40个核心的双插槽Intel Xeon Gold 6230）。
+
+@code
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              |     244.9s    12 |     244.9s |     244.9s    34 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        11 |    0.4239s    12 |    0.4318s |    0.4408s     9 |
+| compute transport speed       |      2053 |     3.962s    12 |     6.727s |     10.12s     7 |
+| output                        |        11 |     30.35s    12 |     30.36s |     30.37s     9 |
+| rk time stepping total        |     10258 |     201.7s     7 |     205.1s |     207.8s    12 |
+| rk_stage - integrals L_h      |     51290 |     121.3s     6 |     126.6s |     136.3s    16 |
+| rk_stage - inv mass + vec upd |     51290 |     66.19s    16 |     77.52s |     81.84s    10 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+
+
+每个时间步长，求解器现在需要0.02秒，大约是147k未知数的小问题的25倍。鉴于该问题涉及64倍的未知数，计算时间的增加并不令人惊讶。由于我们也做了8倍的时间步数，计算时间在理论上应该增加512倍。实际增加的时间是205秒/1.02秒=202。这是因为由于通信开销的原因，小问题的规模不能充分利用40个核心。如果我们研究一下每个时间步长所做操作的细节，这一点就很清楚了。带有近邻通信的微分算子 $\mathcal L_h$ 的评估时间从0.92秒到127秒，也就是说，它增加了138倍。另一方面，应用反质量矩阵和向量更新的成本，完全不需要在MPI进程之间通信，增加了1195倍。这一增长超过了理论上的512倍，因为对于较大的尺寸，操作受限于RAM内存的带宽，而对于较小的尺寸，所有的矢量都适合于CPU的缓存。数字显示，尽管使用了低存储量的Runge-Kutta积分器和合并矢量操作，但质量矩阵评估和矢量更新部分几乎消耗了Runge-Kutta阶段所花费的40%的时间。而且尽管对 $\mathcal L_h$ 算子使用了过度积分。对于更简单的微分算子和更昂贵的时间积分器，花费在质量矩阵和矢量更新部分的比例也可以达到70%。如果我们以每秒处理的DoFs和Runge--Kutta阶段计算一个吞吐量数字，我们得到@f[ \text{throughput} =
+\frac{n_\mathrm{time steps} n_\mathrm{stages}
+n_\mathrm{dofs}}{t_\mathrm{compute}} = \frac{10258 \cdot 5 \cdot
+9.4\,\text{MDoFs}}{205s} = 2360\, \text{MDoFs/s} @f]这个吞吐量数字非常高，因为简单地将一个向量复制到另一个向量的运行速度只有大约10,000 MDoFs/s。
+
+如果我们进入下一个更大的规模，有3770万个DoF，总的模拟时间是2196秒，其中1978秒用于时间步进。L_h算子的运行时间增加了9.3倍（1179秒对127秒），反质量矩阵和向量更新增加了10.3倍（797秒对77.5秒）。运行时间非最佳增长的原因可以追溯到给定硬件上的缓存效应（有40MB的二级缓存和55MB的三级缓存）。虽然不是所有的相关数据都适合940万DoF的缓存（一个向量需要75MB，我们有三个向量加上MatrixFree中的一些额外数据），但还是有能力满足一个半向量的需求。考虑到现代的缓存比天真的最近使用的策略更复杂（在这种情况下，我们几乎没有重复使用，因为数据是以类似流的方式使用的），我们可以假设，在940万DoFs的情况下，确实有相当一部分数据可以从缓存中交付。在更大的情况下，即使有最佳的缓存，也只有不到10%的数据可以放入缓存中，而且会有相关的性能损失。
+
+
+
+
+<h3>Convergence rates for the analytical test case</h3>
+
+对于修改后的Lax--Friedrichs通量和测量动量变量的误差，我们得到以下收敛表（密度和能量变量的速率非常相似）。
+
+ <table align="center" class="doxtable">
+  <tr>
+    <th>&nbsp;</th>
+    <th colspan="3"><i>p</i>=2</th>
+    <th colspan="3"><i>p</i>=3</th>
+    <th colspan="3"><i>p</i>=5</th>
+  </tr>
+  <tr>
+    <th>n_cells</th>
+    <th>n_dofs</th>
+    <th>error mom</th>
+    <th>rate</th>
+    <th>n_dofs</th>
+    <th>error mom</th>
+    <th>rate</th>
+    <th>n_dofs</th>
+    <th>error mom</th>
+    <th>rate</th>
+  </tr>
+  <tr>
+    <td align="right">16</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td align="right">2,304</td>
+    <td align="center">1.373e-01</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="right">64</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td align="right">4,096</td>
+    <td align="center">9.130e-02</td>
+    <td>&nbsp;</td>
+    <td align="right">9,216</td>
+    <td align="center">8.899e-03</td>
+    <td>3.94</td>
+  </tr>
+  <tr>
+    <td align="right">256</td>
+    <td align="right">9,216</td>
+    <td align="center">5.577e-02</td>
+    <td>&nbsp;</td>
+    <td align="right">16,384</td>
+    <td align="center">7.381e-03</td>
+    <td>3.64</td>
+    <td align="right">36,864</td>
+    <td align="center">2.082e-04</td>
+    <td>5.42</td>
+  </tr>
+  <tr>
+    <td align="right">1024</td>
+    <td align="right">36,864</td>
+    <td align="center">4.724e-03</td>
+    <td>3.56</td>
+    <td align="right">65,536</td>
+    <td align="center">3.072e-04</td>
+    <td>4.59</td>
+    <td align="right">147,456</td>
+    <td align="center">2.625e-06</td>
+    <td>6.31</td>
+  </tr>
+  <tr>
+    <td align="right">4096</td>
+    <td align="right">147,456</td>
+    <td align="center">6.205e-04</td>
+    <td>2.92</td>
+    <td align="right">262,144</td>
+    <td align="center">1.880e-05</td>
+    <td>4.03</td>
+    <td align="right">589,824</td>
+    <td align="center">3.268e-08</td>
+    <td>6.33</td>
+  </tr>
+  <tr>
+    <td align="right">16,384</td>
+    <td align="right">589,824</td>
+    <td align="center">8.279e-05</td>
+    <td>2.91</td>
+    <td align="right">1,048,576</td>
+    <td align="center">1.224e-06</td>
+    <td>3.94</td>
+    <td align="right">2,359,296</td>
+    <td align="center">9.252e-10</td>
+    <td>5.14</td>
+  </tr>
+  <tr>
+    <td align="right">65,536</td>
+    <td align="right">2,359,296</td>
+    <td align="center">1.105e-05</td>
+    <td>2.91</td>
+    <td align="right">4,194,304</td>
+    <td align="center">7.871e-08</td>
+    <td>3.96</td>
+    <td align="right">9,437,184</td>
+    <td align="center">1.369e-10</td>
+    <td>2.77</td>
+  </tr>
+  <tr>
+    <td align="right">262,144</td>
+    <td align="right">9,437,184</td>
+    <td align="center">1.615e-06</td>
+    <td>2.77</td>
+    <td align="right">16,777,216</td>
+    <td align="center">4.961e-09</td>
+    <td>3.99</td>
+    <td align="right">37,748,736</td>
+    <td align="center">7.091e-11</td>
+    <td>0.95</td>
+  </tr>
+</table> 
+
+如果我们改用Harten-Lax-van Leer通量，结果如下。   <table align="center" class="doxtable">
+  <tr>
+    <th>&nbsp;</th>
+    <th colspan="3"><i>p</i>=2</th>
+    <th colspan="3"><i>p</i>=3</th>
+    <th colspan="3"><i>p</i>=5</th>
+  </tr>
+  <tr>
+    <th>n_cells</th>
+    <th>n_dofs</th>
+    <th>error mom</th>
+    <th>rate</th>
+    <th>n_dofs</th>
+    <th>error mom</th>
+    <th>rate</th>
+    <th>n_dofs</th>
+    <th>error mom</th>
+    <th>rate</th>
+  </tr>
+  <tr>
+    <td align="right">16</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td align="right">2,304</td>
+    <td align="center">1.339e-01</td>
+    <td>&nbsp;</td>
+  </tr>
+  <tr>
+    <td align="right">64</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td align="right">4,096</td>
+    <td align="center">9.037e-02</td>
+    <td>&nbsp;</td>
+    <td align="right">9,216</td>
+    <td align="center">8.849e-03</td>
+    <td>3.92</td>
+  </tr>
+  <tr>
+    <td align="right">256</td>
+    <td align="right">9,216</td>
+    <td align="center">4.204e-02</td>
+    <td>&nbsp;</td>
+    <td align="right">16,384</td>
+    <td align="center">9.143e-03</td>
+    <td>3.31</td>
+    <td align="right">36,864</td>
+    <td align="center">2.501e-04</td>
+    <td>5.14</td>
+  </tr>
+  <tr>
+    <td align="right">1024</td>
+    <td align="right">36,864</td>
+    <td align="center">4.913e-03</td>
+    <td>3.09</td>
+    <td align="right">65,536</td>
+    <td align="center">3.257e-04</td>
+    <td>4.81</td>
+    <td align="right">147,456</td>
+    <td align="center">3.260e-06</td>
+    <td>6.26</td>
+  </tr>
+  <tr>
+    <td align="right">4096</td>
+    <td align="right">147,456</td>
+    <td align="center">7.862e-04</td>
+    <td>2.64</td>
+    <td align="right">262,144</td>
+    <td align="center">1.588e-05</td>
+    <td>4.36</td>
+    <td align="right">589,824</td>
+    <td align="center">2.953e-08</td>
+    <td>6.79</td>
+  </tr>
+  <tr>
+    <td align="right">16,384</td>
+    <td align="right">589,824</td>
+    <td align="center">1.137e-04</td>
+    <td>2.79</td>
+    <td align="right">1,048,576</td>
+    <td align="center">9.400e-07</td>
+    <td>4.08</td>
+    <td align="right">2,359,296</td>
+    <td align="center">4.286e-10</td>
+    <td>6.11</td>
+  </tr>
+  <tr>
+    <td align="right">65,536</td>
+    <td align="right">2,359,296</td>
+    <td align="center">1.476e-05</td>
+    <td>2.95</td>
+    <td align="right">4,194,304</td>
+    <td align="center">5.799e-08</td>
+    <td>4.02</td>
+    <td align="right">9,437,184</td>
+    <td align="center">2.789e-11</td>
+    <td>3.94</td>
+  </tr>
+  <tr>
+    <td align="right">262,144</td>
+    <td align="right">9,437,184</td>
+    <td align="center">2.038e-06</td>
+    <td>2.86</td>
+    <td align="right">16,777,216</td>
+    <td align="center">3.609e-09</td>
+    <td>4.01</td>
+    <td align="right">37,748,736</td>
+    <td align="center">5.730e-11</td>
+    <td>-1.04</td>
+  </tr>
+</table> 
+
+表中显示，我们对两种数值通量都得到了最佳的 $\mathcal O\left(h^{p+1}\right)$ 收敛率。对于 $p=2$ 的Lax--Friedrichs通量，误差略小，但对于 $p=3$ 的情况则相反；在任何情况下，这个测试案例的差异都相对较小。
+
+对于 $p=5$ ，我们在最细的网格上用两种通量达到了 $10^{-11}$ 的舍入精度。还要注意的是，误差是绝对的，域长为 $10^2$ ，所以相对误差低于 $10^{-12}$ 。HLL通量对于最高度数来说要好一些，这是由于Lax--Friedrichs通量的轻微不准确造成的。Lax--Friedrichs通量对离开域的解设置了一个Dirichlet条件，这导致了一个小的人工反射，这在Lax--Friedrichs通量中被凸显出来。除此之外，我们看到数值通量的影响很小，因为元素内部的多项式部分是引起反射的主要动力。当试图用高阶DG设置来接近更具挑战性的设置时，通量的有限影响也会产生影响。以第33步的参数和网格为例，一旦高质部分接近边界，我们就会在两种通量下得到振荡（这反过来会使密度为负值，并使解决方案爆炸），这与低阶有限体积情况不同（ $p=0$ ）。因此，任何导致溶液中出现冲击的情况都需要某种形式的限制性或人工耗散。对于另一种选择，请参见step-69教程程序。
+
+
+
+
+<h3>Results for flow in channel around cylinder in 2D</h3>
+
+对于渠道中圆柱体周围的流动测试案例，我们需要将第一行代码改为
+
+@code
+  constexpr unsigned int testcase = 1;
+@endcode
+
+这个测试案例从一个马赫数为0.31的恒定速度和恒定的初始密度的背景场开始；气流必须绕过一个圆柱体形式的障碍物。由于我们对圆柱体壁施加了一个无穿透的条件，最初迎面撞上圆柱体的气流必须重新排列，这就产生了一个大的声波。下面的图片显示了二维情况下5级全局细化时0.1、0.25、0.5和1.0（左上至右下）的压力，使用了102,400个单元，多项式程度为5，所有4个求解变量的自由度为1470万。我们清楚地看到，在时间0.1的第一个快照中，不连续现象在上游方向传播缓慢，在下游方向传播较快。在时间0.25，声波已经到达顶部和底部的墙壁并反射到内部。从下壁和上壁反射波的不同距离，我们可以看到以 GridGenerator::channel_with_cylinder() 为代表的Sch&auml;fer-Turek试验案例的轻微不对称性，圆柱体上方的空间与下方相比要多一些。在后来的时间里，画面更加混乱，到处都是许多声波。
+
+ <table align="center" class="doxtable" style="width:85%">
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-67.pressure_010.png" alt="" width="100%">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-67.pressure_025.png" alt="" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-67.pressure_050.png" alt="" width="100%">
+    </td>
+    <td>
+        <img src="https://www.dealii.org/images/steps/developer/step-67.pressure_100.png" alt="" width="100%">
+    </td>
+  </tr>
+</table> 
+
+下一张图片显示了在相同分辨率下，从通道入口向出口看，时间为1.0时的压力仰角图--在这里，我们可以看到大量的反射。在该图中，可以看到两种类型的波。较大振幅的波对应于初始不连续物撞击墙壁时发生的各种反射，而与元素大小相似的小振幅波则对应于数值伪影。它们起源于方案的有限分辨率，并在不连续面通过高阶多项式的元素时出现。这种效应可以通过提高分辨率来治愈。除了这种效应之外，丰富的波浪结构是高阶DG方法的传输精度的结果。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-67.pressure_elevated.jpg" alt="" width="40%"> 
+
+通过2级全局细化，1,600个单元，网格及其在40个MPI进程上的划分情况如下。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-67.grid-owner.png" alt="" width="70%"> 
+
+当我们在40个核心上运行具有4级全局细化的代码时，我们得到以下输出。
+
+@code
+Running with 40 MPI processes
+Vectorization over 8 doubles = 512 bits (AVX512)
+Number of degrees of freedom: 3,686,400 ( = 4 [vars] x 25,600 [cells] x 36 [dofs/cell/var] )
+Time step size: 7.39876e-05, minimal h: 0.001875, initial transport scaling: 0.00110294
+
+
+Time:       0, dt:  7.4e-05, norm rho:   4.17e-16, rho * u:  1.629e-16, energy: 1.381e-15
+Time:    0.05, dt:  6.3e-05, norm rho:    0.02075, rho * u:    0.03801, energy:   0.08772
+Time:     0.1, dt:  5.9e-05, norm rho:    0.02211, rho * u:    0.04515, energy:   0.08953
+Time:    0.15, dt:  5.7e-05, norm rho:    0.02261, rho * u:    0.04592, energy:   0.08967
+Time:     0.2, dt:  5.8e-05, norm rho:    0.02058, rho * u:    0.04361, energy:   0.08222
+Time:    0.25, dt:  5.9e-05, norm rho:    0.01695, rho * u:    0.04203, energy:   0.06873
+Time:     0.3, dt:  5.9e-05, norm rho:    0.01653, rho * u:     0.0401, energy:   0.06604
+Time:    0.35, dt:  5.7e-05, norm rho:    0.01774, rho * u:    0.04264, energy:    0.0706
+
+
+...
+
+
+Time:    1.95, dt:  5.8e-05, norm rho:    0.01488, rho * u:    0.03923, energy:   0.05185
+Time:       2, dt:  5.7e-05, norm rho:    0.01432, rho * u:    0.03969, energy:   0.04889
+
+
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              |     273.6s    13 |     273.6s |     273.6s     0 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        41 |   0.01112s    35 |    0.0672s |    0.1337s     0 |
+| compute transport speed       |      6914 |     5.422s    35 |     15.96s |     29.99s     1 |
+| output                        |        41 |     37.24s    35 |      37.3s |     37.37s     0 |
+| rk time stepping total        |     34564 |     205.4s     1 |     219.5s |     230.1s    35 |
+| rk_stage - integrals L_h      |    172820 |     153.6s     1 |     164.9s |     175.6s    27 |
+| rk_stage - inv mass + vec upd |    172820 |     47.13s    13 |     53.09s |     64.05s    33 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+
+
+这里显示的各种数量的规范是对背景场（即初始条件）的偏差 $\rho'$ 、 $(\rho u)'$ 和 $E'$ 。运行时间的分布总体上与之前的测试案例相似。唯一略有不同的是，与反质量矩阵和矢量更新相比，在 $\mathcal L_h$ 中花费的时间比例较大。这是因为几何体是变形的，无矩阵框架需要从内存中加载额外的几何体阵列，这些阵列在仿生网格的情况下是被压缩的。
+
+将全局细化的数量增加到5，输出就变成了。
+
+@code
+Running with 40 MPI processes
+Vectorization over 8 doubles = 512 bits (AVX512)
+Number of degrees of freedom: 14,745,600 ( = 4 [vars] x 102,400 [cells] x 36 [dofs/cell/var] )
+
+
+...
+
+
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              |      2693s    32 |      2693s |      2693s    23 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        41 |   0.04537s    32 |     0.173s |    0.3489s     0 |
+| compute transport speed       |     13858 |     40.75s    32 |     85.99s |     149.8s     0 |
+| output                        |        41 |     153.8s    32 |     153.9s |     154.1s     0 |
+| rk time stepping total        |     69284 |      2386s     0 |      2450s |      2496s    32 |
+| rk_stage - integrals L_h      |    346420 |      1365s    32 |      1574s |      1718s    19 |
+| rk_stage - inv mass + vec upd |    346420 |     722.5s    10 |     870.7s |      1125s    32 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+
+
+对性能的影响与分析性测试案例相似--理论上，计算时间应该增加8倍，但我们实际上看到时间步骤增加了11倍（219.5秒对2450秒）。这可以追溯到缓存，小的情况下大多适合缓存。一个有趣的效果，是典型的本地通信（积分 $\mathcal L_h$ ）和全局通信（计算运输速度）混合的程序，有一些负载不平衡，可以通过查看分别遇到不同阶段的最小和最大时间的MPI等级来观察。级别0报告了 "rk时间步进总数 "部分的最快吞吐量。同时，对于 "计算传输速度 "部分，它似乎是最慢的，几乎比平均水平慢了2倍，与较快的等级相比几乎是4倍。由于后者涉及到全局通信，我们可以将这部分的缓慢归因于本地Runge--Kutta阶段在这个等级上推进得更快，需要等到其他处理器跟上。在这一点上，人们可以怀疑这种不平衡的原因。在所有的MPI进程中，单元格的数量几乎是相同的。然而，无矩阵框架在位于通道出口处的仿生和笛卡尔单元上速度更快，较低的MPI等级被分配到这些单元。另一方面，报告Runga--Kutta阶段最高运行时间的等级32拥有靠近圆柱体的弯曲单元，对于这些单元不可能有数据压缩。为了提高吞吐量，我们可以在划分 parallel::distributed::Triangulation 对象时给不同的单元类型分配不同的权重，甚至可以测量几个时间步骤的运行时间，然后尝试重新平衡。
+
+对于1470万DoFs的测试案例，在346000个Runge--Kutta阶段中，每个Runge--Kutta阶段的吞吐量可以计算到2085 MDoFs/s，比上面报告的2360 MDoFs/s的笛卡尔网格吞吐量略慢。
+
+最后，如果我们增加一个额外的细化，我们会记录以下输出。
+
+@code
+Running with 40 MPI processes
+Vectorization over 8 doubles = 512 bits (AVX512)
+Number of degrees of freedom: 58,982,400 ( = 4 [vars] x 409,600 [cells] x 36 [dofs/cell/var] )
+
+
+...
+
+
+Time:    1.95, dt:  1.4e-05, norm rho:    0.01488, rho * u:    0.03923, energy:   0.05183
+Time:       2, dt:  1.4e-05, norm rho:    0.01431, rho * u:    0.03969, energy:   0.04887
+
+
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              | 2.166e+04s    26 | 2.166e+04s | 2.166e+04s    24 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        41 |    0.1758s    30 |     0.672s |     1.376s     1 |
+| compute transport speed       |     27748 |     321.3s    34 |     678.8s |      1202s     1 |
+| output                        |        41 |     616.3s    32 |     616.4s |     616.4s    34 |
+| rk time stepping total        |    138733 | 1.983e+04s     1 | 2.036e+04s | 2.072e+04s    34 |
+| rk_stage - integrals L_h      |    693665 | 1.052e+04s    32 | 1.248e+04s | 1.387e+04s    19 |
+| rk_stage - inv mass + vec upd |    693665 |      6404s    10 |      7868s | 1.018e+04s    32 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+
+
+rk时间步数总数 "部分对应的是2010 MDoFs/s的吞吐量。执行139k时间步长的总体运行时间是20k秒（5.7小时）或每秒7个时间步长--对于有近6000万个未知数来说还不错。通过在计算中添加更多的内核，可以实现更多的吞吐量。
+
+
+
+
+<h3>Results for flow in channel around cylinder in 3D</h3>
+
+将通道测试案例切换到3D，并进行3次全局细化，输出结果是
+
+@code
+Running with 40 MPI processes
+Vectorization over 8 doubles = 512 bits (AVX512)
+Number of degrees of freedom: 221,184,000 ( = 5 [vars] x 204,800 [cells] x 216 [dofs/cell/var] )
+
+
+...
+
+
+Time:    1.95, dt:  0.00011, norm rho:    0.01131, rho * u:    0.03056, energy:   0.04091
+Time:       2, dt:  0.00011, norm rho:     0.0119, rho * u:    0.03142, energy:   0.04425
+
+
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              | 1.734e+04s     4 | 1.734e+04s | 1.734e+04s    38 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        41 |    0.6551s    34 |     3.216s |     7.281s     0 |
+| compute transport speed       |      3546 |       160s    34 |     393.2s |     776.9s     0 |
+| output                        |        41 |      1350s    34 |      1353s |      1357s     0 |
+| rk time stepping total        |     17723 | 1.519e+04s     0 | 1.558e+04s | 1.582e+04s    34 |
+| rk_stage - integrals L_h      |     88615 | 1.005e+04s    32 | 1.126e+04s |  1.23e+04s    11 |
+| rk_stage - inv mass + vec upd |     88615 |      3056s    11 |      4322s |      5759s    32 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+
+
+物理原理与二维情况类似，由于引力的作用，在Z方向有轻微的运动。在这种情况下，每个Runge-Kutta阶段的吞吐量为
+
+@f[
+\text{throughput} = \frac{n_\mathrm{time steps} n_\mathrm{stages}
+n_\mathrm{dofs}}{t_\mathrm{compute}} =
+\frac{17723 \cdot 5 \cdot 221.2\,\text{M}}{15580s} = 1258\, \text{MDoFs/s}.
+
+
+@f]
+
+
+
+吞吐量低于二维，因为 $\mathcal L_h$ 项的计算更加昂贵。这是由于 "度+2 "点的过度积分和较大比例的面积分（更差的体积-表面比率），以及更昂贵的通量计算。如果我们只考虑反质量矩阵和矢量更新部分，我们记录到等熵涡旋的二维案例的吞吐量为4857 MDoFs/s，有3770万个未知数，而三维案例的运行速度为4535 MDoFs/s。性能是相似的，因为这两种情况实际上都受到内存带宽的限制。
+
+如果我们进行四级全局细化，我们需要增加进程的数量以在内存中容纳所有的东西--在这种情况下，计算需要大约350GB的RAM内存。另外，通过增加额外的资源，完成35k个时间步骤所需的时间也变得更容易忍受。因此，我们使用了6个节点，每个节点有40个核心，从而使计算有240个MPI进程。
+
+@code
+Running with 240 MPI processes
+Vectorization over 8 doubles = 512 bits (AVX512)
+Number of degrees of freedom: 1,769,472,000 ( = 5 [vars] x 1,638,400 [cells] x 216 [dofs/cell/var] )
+
+
+...
+
+
+Time:    1.95, dt:  5.6e-05, norm rho:    0.01129, rho * u:     0.0306, energy:   0.04086
+Time:       2, dt:  5.6e-05, norm rho:    0.01189, rho * u:    0.03145, energy:   0.04417
+
+
++-------------------------------------------+------------------+------------+------------------+
+| Total wallclock time elapsed              | 5.396e+04s   151 | 5.396e+04s | 5.396e+04s     0 |
+|                                           |                  |                               |
+| Section                       | no. calls |   min time  rank |   avg time |   max time  rank |
++-------------------------------------------+------------------+------------+------------------+
+| compute errors                |        41 |     2.632s   178 |     7.221s |     16.56s     0 |
+| compute transport speed       |      7072 |       714s   193 |      1553s |      3351s     0 |
+| output                        |        41 |      8065s   176 |      8070s |      8079s     0 |
+| rk time stepping total        |     35350 |  4.25e+04s     0 |  4.43e+04s | 4.515e+04s   193 |
+| rk_stage - integrals L_h      |    176750 | 2.936e+04s   134 | 3.222e+04s |  3.67e+04s    99 |
+| rk_stage - inv mass + vec upd |    176750 |      7004s    99 | 1.207e+04s |  1.55e+04s   132 |
++-------------------------------------------+------------------+------------+------------------+
+@endcode
+
+这个模拟有近20亿个未知数--确实是一个相当大的计算量，而每个时间步长仍然只需要大约1.5秒。
+
+
+
+
+<h3>Possibilities for extensions</h3>
+
+这里介绍的代码可以直接扩展到自适应网格，给定适当的指标来设置细化标志。在声波方程的背景下，类似求解器的大规模适应性已经由<a href="https://github.com/kronbichler/exwave">exwave
+project</a>实现。然而，在目前的情况下，自适应性的好处往往只限于靠近声波起源的早期时间和效果，因为波最终会反射和衍射。这就导致了到处都是陡峭的梯度，类似于湍流，以及或多或少的全局细化网格。
+
+我们在结果部分没有讨论的另一个话题是不同时间积分方案的比较。该程序提供了四种低存储量的Runga--Kutta积分器的变体，每一种都有轻微不同的精度和稳定性行为。在这里实现的方案中，高阶方案提供了额外的精度，但在违反CFL条件之前，每级步长的效率略低。一个有趣的扩展是将这里提出的低存储变体与标准的Runge--Kutta积分器进行比较，或者使用与质量矩阵运算分开运行的矢量运算，并比较性能。
+
+
+
+
+<h4>More advanced numerical flux functions and skew-symmetric formulations</h4>
+
+正如介绍中提到的，本程序中采用的修改的Lax--Friedrichs通量和HLL通量只是文献中关于欧拉方程的大量数值通量中的两个变种。一个例子是HLLC通量（Harten-Lax-van Leer-Contact）通量，它增加了HLL通量或Roe通量中缺少的稀疏波效应。正如介绍中提到的，数值通量对高阶DG方案的影响是有争议的（与低阶离散的情况不同）。
+
+为了提高求解器的稳定性，一个相关的改进是也要考虑空间积分项。上面使用的相当幼稚的实现方式的一个缺点是，原始欧拉方程的能量守恒（在没有冲击的情况下）只适用于离散化误差。如果解决方案的分辨率不足，离散化误差会引起数值能量的增加，并最终导致离散化的不稳定。这是因为欧拉方程中的项的不精确数值积分，其中包含有理非线性和弯曲单元的高阶内容。摆脱这种困境的方法是所谓的倾斜对称公式，见 @cite Gassner2013 的一个简单变体。倾斜对称意味着在弱式中切换解 $\mathbf{w}$ 和检验函数 $\mathbf{v}$ 的作用，除了一些边界项外，产生原始量的精确负值。在离散设置中，挑战在于当积分只被近似计算时也要保持这种倾斜对称性（在连续情况下，倾斜对称性是部分积分的结果）。偏斜对称的数值方案平衡了保守形式的空间导数  $(\nabla \mathbf v, \mathbf{F}(\mathbf w))_{K}$  和对流形式的贡献  $(\mathbf v, \tilde{\mathbf{F}}(\mathbf w)\nabla
+\mathbf{w})_{K}$  ，对于某些  $\tilde{\mathbf{F}}$  。准确的条款取决于方程和积分公式，在某些情况下可以通过特殊的倾斜对称有限差分方案来理解。
+
+要想开始，有兴趣的读者可以看看https://github.com/kronbichler/advection_miniapp，其中用deal.II对一个简单的平流方程实现了倾斜对称的DG公式。
+
+<h4>Equipping the code for supersonic calculations</h4>
+
+正如介绍中提到的，欧拉方程的解随着马赫数的增加而产生冲击，这需要额外的机制来稳定方案，例如限制器的形式。除了实际实施限制器或人工粘性方法外，主要的挑战是如何平衡计算，因为在有问题的单元中限制震荡所涉及的额外计算会使它们比没有限制的普通DG单元更昂贵。此外，更好地应对不连续情况的额外数值通量也是一种选择。
+
+对于超音速流动来说，有一个因素也是必要的，那就是适当的边界条件。与介绍中讨论的并在程序中实现的亚音速流出边界相反，所有的特性都是超音速流出边界的外在表现，所以我们不想规定任何外部数据。
+
+@f[
+\mathbf{w}^+ = \mathbf{w}^- = \begin{pmatrix} \rho^-\\
+(\rho \mathbf u)^- \\ E^-\end{pmatrix} \quad
+ \text{(Neumann)}.
+
+
+@f]
+
+
+
+在代码中，我们将简单地添加额外的语句
+
+@code
+            else if (supersonic_outflow_boundaries.find(boundary_id) !=
+                     supersonic_outflow_boundaries.end())
+              {
+                w_p        = w_m;
+                at_outflow = true;
+              }
+@endcode
+
+在 "local_apply_boundary_face() "函数中。
+
+<h4>Extension to the linearized Euler equations</h4>
+
+当对欧拉解的兴趣主要在于声波的传播时，围绕一个背景状态，即一个给定的密度、速度和能量（或压力）场，将欧拉方程线性化，只计算针对这些场的变化，往往是合理的。这就是航空声学的广泛领域的设置。即使有时分辨率要求大大降低，但由于线性化引起了额外的条款，实施起来就变得有些复杂了。从代码的角度来看，在算子评估中，我们还需要为代码配备要线性化的状态。这一信息可以由分析函数（根据正交点的位置进行评估）或由类似于解决方案的矢量提供。基于该矢量，我们将创建一个额外的FEEvaluation对象，从中读取并提供正交点的场值。如果背景速度为零，密度为常数，线性化的欧拉方程进一步简化，可以等效地写成声波方程的形式。
+
+在声音传播的背景下，一个挑战往往是边界条件的定义，因为计算域需要是有限的，而实际模拟往往跨越无限的（或至少大得多）物理域。传统的Dirichlet或Neumann边界条件会引起声波的反射，最终传播到感兴趣的区域，破坏了解决方案。因此，各种非反射边界条件或海绵层的变体，通常以<a
+href="https://en.wikipedia.org/wiki/Perfectly_matched_layer">perfectly
+matched layers</a>的形式出现--其中解决方案被阻尼，没有反射
+
+--是很常见的。
+
+
+
+
+<h4>Extension to the compressible Navier-Stokes equations</h4>
+
+如 @cite FehnWallKronbichler2019 所述，本教程程序中的求解器也可以通过添加粘性项扩展到可压缩的Navier-Stokes方程。为了尽量保持这里获得的性能，尽管有额外的椭圆项的成本，例如通过内部惩罚方法，我们可以像步骤59的教程程序一样，将基础从FE_DGQ切换到FE_DGQHermite。
+
+
+
+
+<h4>Using cell-centric loops and shared memory</h4>
+
+在本教程中，我们使用了以面为中心的循环。在这里，单元和面的积分在不同的循环中处理，导致对结果向量的多次写入访问，这在现代硬件上是比较昂贵的，因为写入操作通常也会导致隐含的读操作。另一方面，以元素为中心的循环是在处理一个单元的同时直接处理其所有的2d面。虽然这种循环意味着通量必须计算两次（对于一个内部面的每一面），但结果向量只需访问一次的事实--以及由此产生的算法没有竞赛条件，因此完全适合共享内存的事实--已经带来了性能的提升。如果你对这些高级主题感兴趣，你可以看一下步骤76，在那里我们对本教程进行了修改，以便我们能够使用这些功能。
+
+

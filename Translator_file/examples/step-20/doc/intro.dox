@@ -1,0 +1,580 @@
+examples/step-20/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+ @dealiiVideoLecture{19,20,21} 
+
+这个程序致力于两个方面：使用混合有限元--特别是Raviart-Thomas元--以及使用块状矩阵来定义求解器、预处理器和使用系统矩阵的子结构的嵌套版本。我们要解决的方程仍然是泊松方程，虽然有一个矩阵值的系数。
+
+@f{eqnarray*}
+
+
+  -\nabla \cdot K({\mathbf x}) \nabla p &=& f \qquad {\textrm{in}\ } \Omega, \\
+  p &=& g \qquad {\textrm{on}\ }\partial\Omega.
+
+
+@f}
+
+ $K({\mathbf x})$ 被假定为均匀正定，即有 $\alpha>0$ ，使得 $K(x)$ 的特征值 $\lambda_i({\mathbf x})$ 满足 $\lambda_i({\mathbf x})\ge \alpha$  。使用符号 $p$ 而不是通常的 $u$ 作为解变量将在下一节中变得清晰。
+
+在讨论了方程和我们要用来解决它的公式之后，这个介绍将包括块状矩阵和向量的使用，求解器和预处理器的定义，以及最后我们要解决的实际测试案例。
+
+我们将在第21步中扩展这个教程程序，不仅要解决混合拉普拉斯方程，还要增加另一个描述两种流体混合物运输的方程。
+
+这里所涉及的方程属于矢量值问题的范畴。这个主题的顶层概述可以在 @ref vector_valued 模块中找到。
+
+
+
+
+<h3>The equations</h3>
+
+在上述形式中，泊松方程（即具有非零右手边的拉普拉斯方程）通常被认为是流体在多孔介质中流动的良好模型方程。当然，人们通常通过<a href="https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations">Navier-Stokes
+equations</a>来模拟流体流动，或者，如果流体速度很慢或粘度很大，则通过<a href="https://en.wikipedia.org/wiki/Stokes_flow">Stokes
+equations</a>（我们在步骤22中涉及）。在这两个模型中，第一个模型的作用力是惯性和粘性摩擦力，而在第二个模型中，只有粘性摩擦力--即一个流体粒子对附近的粒子施加的力。如果你在一个大的领域里有自由流动，例如管道、河流或空气中，这是很合适的。另一方面，如果流体被限制在孔隙中，那么孔壁对流体施加的摩擦力变得越来越重要，而内部粘性摩擦力变得越来越不重要。如果这两种效应都很重要，那么建立模型首先会导致<a href="https://en.wikipedia.org/wiki/Darcy%27s_law#Brinkman_form_of_Darcy's_law">Brinkman
+model</a>，而在非常小的孔隙的限制下会导致<a href="https://en.wikipedia.org/wiki/Darcy%27s_law">Darcy equations</a>。后者只是泊松方程或拉普拉斯方程的不同名称，其内涵是人们想应用它的领域：多孔介质中的缓慢流动。本质上，它说速度与驱动流体通过多孔介质的负压梯度成正比。
+
+达西方程对驱动流动的这种压力进行建模。由于解变量是压力，我们在这里使用 $p$ 这个名字，而不是更常用于偏微分方程解的 $u$ 这个名字）。这种拉普拉斯方程观点的典型应用是为地下水流建模，或者为油藏中的碳氢化合物流动建模。在这些应用中， $K$ 是渗透性张量，即衡量土壤或岩石基质对流体流动的阻力大小。
+
+在上述应用中，数值方案的一个理想特征是它应该是局部保守的，也就是说，无论什么东西流入一个单元，也会从该单元流出（或者如果源不为零，则差值等于每个单元的源项的积分）。然而，事实证明，拉普拉斯方程的通常离散化（如步骤3、步骤4或步骤6中使用的那些）并不满足这一特性。但是，人们可以通过选择问题的不同表述和有限元空间的特定组合来实现这一点。
+
+
+
+
+<h3>Formulation, weak form, and discrete problem</h3>
+
+为此，我们首先引入了第二个变量，称为速度，  ${\mathbf u}=-K\nabla p$  。根据其定义，速度是压力梯度的负方向的一个矢量，乘以渗透性张量。如果渗透率张量与单位矩阵成正比，这个方程就很容易理解和直观：渗透率越高，速度越高；速度与压力梯度成正比，从高压区到低压区（因此是负号）。
+
+有了这第二个变量，就可以找到拉普拉斯方程的另一个版本，称为<i>mixed formulation</i>。
+
+@f{eqnarray*}
+  K^{-1} {\mathbf u} + \nabla p &=& 0 \qquad {\textrm{in}\ } \Omega, \\
+
+
+  -{\textrm{div}}\ {\mathbf u} &=& -f \qquad {\textrm{in}\ }\Omega, \\
+  p &=& g \qquad {\textrm{on}\ } \partial\Omega.
+
+
+@f}
+
+这里，我们将定义速度的方程 ${\mathbf
+u}$ 乘以 $K^{-1}$ ，因为这使得方程组是对称的：其中一个方程有梯度，第二个方程有负发散，这两个当然是彼此相邻的，结果是一个对称的双线性形式，因此在 $K$ 是对称张量的共同假设下，是一个对称的系统矩阵。
+
+这个问题的弱表述是通过将两个方程与测试函数相乘，并对一些项进行分项积分来找到的。
+
+@f{eqnarray*}
+  A(\{{\mathbf u},p\},\{{\mathbf v},q\}) = F(\{{\mathbf v},q\}),
+
+
+@f}
+
+其中
+
+@f{eqnarray*}
+  A(\{{\mathbf u},p\},\{{\mathbf v},q\})
+  &=&
+  ({\mathbf v}, K^{-1}{\mathbf u})_\Omega - ({\textrm{div}}\ {\mathbf v}, p)_\Omega
+
+
+  - (q,{\textrm{div}}\ {\mathbf u})_\Omega
+  \\
+  F(\{{\mathbf v},q\}) &=& -(g,{\mathbf v}\cdot {\mathbf n})_{\partial\Omega} - (f,q)_\Omega.
+
+
+@f}
+
+这里， ${\mathbf n}$ 是边界处的外向法向量。请注意，在这个公式中，原问题的迪里希特边界值被纳入到弱形式中。
+
+为了得到良好的解决，我们必须在空间 $H({\textrm{div}})=\{{\mathbf w}\in L^2(\Omega)^d:\ {\textrm{div}}\ {\mathbf w}\in L^2\}$ 中寻找 $\mathbf u$ 、 $\mathbf v$ 和 $L^2$ 的解和检验函数。几乎每一本关于有限元理论的书都说过一个众所周知的事实，如果选择离散的有限元空间来逼近 ${\mathbf u},p$ 是不恰当的，那么产生的离散问题是不稳定的，离散的解将不会收敛到精确的解。这里考虑的问题的一些细节--属于 "鞍点问题 "的范畴
+
+--可以在维基百科上找到<a
+href="https://en.wikipedia.org/wiki/Ladyzhenskaya%E2%80%93Babu%C5%A1ka%E2%80%93Brezzi_condition">Ladyzhenskaya-Babuska-Brezzi
+(LBB) condition</a>的页面）。)
+
+为了克服这个问题，已经为 ${\mathbf u},p$ 开发了一些不同的有限元对，导致了稳定的离散问题。其中一个对子是对速度 ${\mathbf u}$ 使用Raviart-Thomas空间，对压力 $p$ 使用类 $DQ(k)$ 的不连续元素。关于这些空间的细节，我们特别参考Brezzi和Fortin的关于混合有限元方法的书，但许多其他关于有限元理论的书，例如Brenner和Scott的经典书，也说明了相关结果。在任何情况下，在适当选择函数空间的情况下，离散的表述如下。找到 ${\mathbf
+u}_h,p_h$ ，以便
+
+@f{eqnarray*}
+  A(\{{\mathbf u}_h,p_h\},\{{\mathbf v}_h,q_h\}) = F(\{{\mathbf v}_h,q_h\})
+  \qquad\qquad \forall {\mathbf v}_h,q_h.
+
+
+@f}
+
+
+
+
+在继续之前，让我们简单地停顿一下，说明上面的函数空间的选择为我们提供了所需的局部守恒特性。特别是，由于压力空间由不连续的片断多项式组成，我们可以选择测试函数 $q$ 作为在任何给定单元 $K$ 上等于1，其他地方为0的函数。如果我们也到处选择 ${\mathbf v}=0$ （记住，上面的弱式对<i>all</i>离散测试函数 $q,v$ 必须成立），那么把这些测试函数的选择放入上面的弱式中，特别意味着
+
+@f{eqnarray*}
+
+
+  - (1,{\textrm{div}}\ {\mathbf u}_h)_K
+  =
+
+
+  -(1,f)_K,
+
+
+@f}
+
+当然，我们可以将其以更明确的形式写为
+
+@f{eqnarray*}
+  \int_K {\textrm{div}}\ {\mathbf u}_h
+ =
+  \int_K f.
+
+
+@f}
+
+应用发散定理的结果是，对于每个单元 ${\mathbf
+u}_h$ 的选择， $K$ 必须满足以下关系
+
+@f{eqnarray*}
+  \int_{\partial K} {\mathbf u}_h\cdot{\mathbf n}
+  =
+  \int_K f.
+
+
+@f}
+
+如果你现在记得 ${\mathbf u}$ 是速度，那么左边的积分正好是穿过单元格边界的（离散）通量 $K$  。那么声明是，通量必须等于对 $K$ 内的源的积分。特别是，如果没有源（即 $f=0$ 在 $K$ 中），那么声明是<i>total</i>通量为零，也就是说，任何流入一个单元的东西都必须通过单元边界的其他部分流出。这就是我们所说的<i>local conservation</i>，因为它对每个细胞都是成立的。
+
+另一方面，通常的连续 $Q_k$ 元素在用于压力时不会产生这种性质（例如，我们在步骤-43中所做的），因为我们不能选择一个离散的测试函数 $q_h$ ，在单元 $K$ 上为1，其他地方为0：它将是不连续的，因此不在有限元空间内。严格来说，我们只能说上面的证明对连续元素不起作用。这些元素是否仍然可能导致局部守恒是一个不同的问题，因为人们可以认为不同的证明可能仍然有效；然而，在现实中，这个属性确实不成立）。)
+
+
+
+
+<h3>Assembling the linear system</h3>
+
+deal.II库（当然）实现了任意阶的Raviart-Thomas元素 $RT(k)$ ，以及不连续元素 $DG(k)$  。如果我们暂时忘记它们的特殊属性，那么我们就必须解决一个离散的问题
+
+@f{eqnarray*}
+  A(x_h,w_h) = F(w_h),
+
+
+@f}
+
+的双线性形式和右手边，以及 $x_h=\{{\mathbf u}_h,p_h\}$  ,  $w_h=\{{\mathbf v}_h,q_h\}$  。 $x_h$ 和 $w_h$ 都来自空间 $X_h=RT(k)\times DQ(k)$ ，其中 $RT(k)$ 本身就是一个 $dim$ 维函数的空间，以适应流速为矢量值的事实。那么必要的问题是：我们如何在程序中做到这一点？
+
+矢量值元素已经在以前的教程程序中讨论过了，第一次是在步骤8中详细讨论。那里的主要区别是，矢量值空间 $V_h$ 的所有分量都是统一的：位移矢量的 $dim$ 分量都是相等的，来自同一个函数空间。因此，我们可以做的是将 $V_h$ 建立为 $dim$ 乘以通常的 $Q(1)$ 有限元空间的外积，并以此确保我们所有的形状函数只有一个非零矢量分量。因此，我们在步骤8中所做的不是处理矢量值的形状函数，而是查看（标量）唯一的非零分量，并使用 <code>fe.system_to_component_index(i).first</code> 调用来计算这实际上是哪个分量。
+
+这对Raviart-Thomas元素不起作用：由于它们的构造满足空间 $H({\textrm{div}})$ 的某些规则性属性， $RT(k)$ 的形状函数通常在其所有矢量分量中都是不为零。由于这个原因，如果应用 <code>fe.system_to_component_index(i).first</code> 来确定形状函数 $i$ 的唯一非零分量，就会产生一个例外。我们真正需要做的是在 <em> 中获得一个形状函数的所有 </em> 向量分量。在deal.II的字典中，我们称这样的有限元为 <em> 非原始 </em> ，而那些标量的有限元或者每个矢量值的形状函数只在一个矢量分量中不为零的有限元被称为 <em>  原始 </em> 。
+
+那么，对于非原始元素，我们要怎么做呢？为了弄清楚这个问题，让我们回到教程程序中，几乎是最开始的时候。在那里，我们了解到我们使用 <code>FEValues</code> 类来确定正交点的形状函数的值和梯度。例如，我们会调用  <code>fe_values.shape_value(i,q_point)</code>  来获得  <code>i</code>  第三个形状函数在编号为  <code>q_point</code>  的正交点的值。后来，在step-8和其他教程程序中，我们了解到这个函数调用也适用于矢量值的形状函数（原始有限元），它返回形状函数  <code>i</code>  在正交点  <code>q_point</code>  的唯一非零分量的值。
+
+对于非原始形状函数，这显然是行不通的：形状函数 <code>i</code> 没有单一的非零向量分量，因此调用 <code>fe_values.shape_value(i,q_point)</code> 也就没有什么意义。然而，deal.II提供了第二个函数调用， <code>fe_values.shape_value_component(i,q_point,comp)</code> ，返回正交点 <code>comp</code>th vector component of shape function  <code>i</code> 的值 <code>q_point</code>, where <code>comp</code> 是一个介于零和当前有限元的矢量分量数量之间的索引；例如，我们将用于描述速度和压力的元素将有 $dim+1$ 分量。值得注意的是，这个函数调用也可用于原始形状函数：它将简单地对除一个分量外的所有分量返回零；对于非原始形状函数，它一般会对不止一个分量返回非零值。
+
+我们现在可以尝试用矢量分量来重写上面的双线性形式。例如，在2d中，第一项可以这样改写（注意， $u_0=x_0, u_1=x_1, p=x_2$ ）。
+
+@f{eqnarray*}
+  ({\mathbf u}_h^i, K^{-1}{\mathbf u}_h^j)
+  =
+  &\left((x_h^i)_0, K^{-1}_{00} (x_h^j)_0\right) +
+   \left((x_h^i)_0, K^{-1}_{01} (x_h^j)_1\right) + \\
+  &\left((x_h^i)_1, K^{-1}_{10} (x_h^j)_0\right) +
+   \left((x_h^i)_1, K^{-1}_{11} (x_h^j)_1\right).
+
+
+@f}
+
+如果我们实现了这一点，我们会得到这样的代码。
+
+@code
+  for (unsigned int q=0; q<n_q_points; ++q)
+    for (unsigned int i=0; i<dofs_per_cell; ++i)
+      for (unsigned int j=0; j<dofs_per_cell; ++j)
+        local_matrix(i,j) += (k_inverse_values[q][0][0] *
+                              fe_values.shape_value_component(i,q,0) *
+                              fe_values.shape_value_component(j,q,0)
+                              +
+                              k_inverse_values[q][0][1] *
+                              fe_values.shape_value_component(i,q,0) *
+                              fe_values.shape_value_component(j,q,1)
+                              +
+                              k_inverse_values[q][1][0] *
+                              fe_values.shape_value_component(i,q,1) *
+                              fe_values.shape_value_component(j,q,0)
+                              +
+                              k_inverse_values[q][1][1] *
+                              fe_values.shape_value_component(i,q,1) *
+                              fe_values.shape_value_component(j,q,1)
+                             ) *
+                             fe_values.JxW(q);
+@endcode
+
+
+
+这充其量是繁琐的，容易出错的，而且不是独立的维度。有一些明显的方法可以使事情与维度无关，但最终，代码根本不漂亮。如果我们能够简单地提取形状函数 ${\mathbf u}$ 和 $p$ 的分量，那就更好了。在程序中，我们以如下方式进行。
+
+@code
+  const FEValuesExtractors::Vector velocities (0);
+  const FEValuesExtractors::Scalar pressure (dim);
+
+
+  ...
+
+
+  for (unsigned int q=0; q<n_q_points; ++q)
+    for (unsigned int i=0; i<dofs_per_cell; ++i)
+      for (unsigned int j=0; j<dofs_per_cell; ++j)
+        local_matrix(i,j) += (fe_values[velocities].value (i, q) *
+                              k_inverse_values[q] *
+                              fe_values[velocities].value (j, q)
+
+
+                              -
+                              fe_values[velocities].divergence (i, q) *
+                              fe_values[pressure].value (j, q)
+
+
+                              -
+                              fe_values[pressure].value (i, q) *
+                              fe_values[velocities].divergence (j, q)) *
+                              fe_values.JxW(q);
+@endcode
+
+
+
+事实上，这不仅是双线性形式的第一项，而且是整个事情（不包括边界贡献）。
+
+这段代码的作用是，给定一个 <code>fe_values</code> 对象，提取形状函数 <code>i</code> 在正交点 <code>q</code> 的第一个 $dim$ 分量的值，也就是该形状函数的速度部分。换句话说，如果我们把形状函数 $x_h^i$ 写成元组 $\{{\mathbf u}_h^i,p_h^i\}$ ，那么该函数返回这个元组的速度部分。请注意，速度当然是一个 <code>dim</code> 维的张量，函数返回一个相应的对象。同样地，在我们用压力提取器下标的地方，我们提取标量压力分量。整个机制在 @ref vector_valued 模块中有更详细的描述。
+
+在实践中，如果我们在每个最外层的循环中只评估一次形状函数、它们的梯度和发散，并存储结果，我们可以做得更好一些，因为这样可以节省一些重复的计算（通过提前计算所有相关的量，然后只在实际的循环中插入结果，甚至可以节省更多的重复操作，关于这种方法的实现见步骤22）。最后的结果是这样的，在每个空间维度上都是如此。
+
+@code
+  for (const auto &cell : dof_handler.active_cell_iterators())
+    {
+      fe_values.reinit (cell);
+      local_matrix = 0;
+      local_rhs = 0;
+
+
+      right_hand_side.value_list (fe_values.get_quadrature_points(),
+                                  rhs_values);
+      k_inverse.value_list (fe_values.get_quadrature_points(),
+                            k_inverse_values);
+
+
+      for (unsigned int q=0; q<n_q_points; ++q)
+        for (unsigned int i=0; i<dofs_per_cell; ++i)
+          {
+            const Tensor<1,dim> phi_i_u     = fe_values[velocities].value (i, q);
+            const double        div_phi_i_u = fe_values[velocities].divergence (i, q);
+            const double        phi_i_p     = fe_values[pressure].value (i, q);
+
+
+            for (unsigned int j=0; j<dofs_per_cell; ++j)
+              {
+                const Tensor<1,dim> phi_j_u     = fe_values[velocities].value (j, q);
+                const double        div_phi_j_u = fe_values[velocities].divergence (j, q);
+                const double        phi_j_p     = fe_values[pressure].value (j, q);
+
+
+                local_matrix(i,j) += (phi_i_u * k_inverse_values[q] * phi_j_u
+
+
+                                      - div_phi_i_u * phi_j_p
+
+
+                                      - phi_i_p * div_phi_j_u) *
+                                     fe_values.JxW(q);
+              }
+
+
+            local_rhs(i) += -phi_i_p *
+                            rhs_values[q] *
+                            fe_values.JxW(q);
+          }
+@endcode
+
+
+
+这非常类似于我们最初写下的双线性形式和右手边的形式。
+
+有一个最后的项我们必须注意：右手边包含项 $(g,{\mathbf v}\cdot {\mathbf n})_{\partial\Omega}$ ，构成压力边界条件的弱执行。我们已经在步骤7中看到了如何处理面积分：本质上与域积分完全相同，只是我们必须使用FEFaceValues类而不是 <code>FEValues</code> 。为了计算边界项，我们只需在所有的边界面上进行循环并在那里进行积分。该机制的工作方式与上述相同，即提取器类也对FEFaceValues对象工作。
+
+@code
+        for (const auto &face : cell->face_iterators())
+          if (face->at_boundary())
+            {
+              fe_face_values.reinit(cell, face);
+
+
+              pressure_boundary_values.value_list(
+                fe_face_values.get_quadrature_points(), boundary_values);
+
+
+              for (unsigned int q = 0; q < n_face_q_points; ++q)
+                for (unsigned int i = 0; i < dofs_per_cell; ++i)
+                  local_rhs(i) += -(fe_face_values[velocities].value(i, q) *
+                                    fe_face_values.normal_vector(q) *
+                                    boundary_values[q] *
+                                    fe_face_values.JxW(q));
+@endcode
+
+
+
+在本程序的源代码中，你会发现与上面完全相同的代码。因此，我们在下文中不做过多评论。
+
+
+
+
+<h3>Linear solvers and preconditioners</h3>
+
+在组装好线性系统后，我们就面临着解决它的任务。这里的问题是，矩阵拥有两个不理想的特性。
+
+- 它是<a href="https://en.wikipedia.org/wiki/Definiteness_of_a_matrix">indefinite</a>，也就是说，它有正负两个特征值。   我们不想在这里证明这个属性，但要注意，对于所有形式为 $\left(\begin{array}{cc} M & B \\ B^T & 0 \end{array}\right)$ 的矩阵，如这里的 $M$ 是正定的矩阵，这都是真的。
+
+- 矩阵的右下方有一个零块（在双线性形式中没有将压力 $p$ 与压力测试函数 $q$ 耦合的项）。
+
+至少它是对称的，但是上面的第一个问题仍然意味着共轭梯度法是行不通的，因为它只适用于矩阵是对称和正定的问题。我们将不得不求助于其他迭代求解器，如MinRes、SymmLQ或GMRES，它们可以处理不确定的系统。然而，下一个问题立即浮现。由于零块，对角线上有零，通常的 "简单 "预处理程序（Jacobi、SSOR）都不能工作，因为它们需要除以对角线上的元素。
+
+对于我们期望用这个程序运行的矩阵大小来说，迄今为止最简单的方法是直接使用一个直接求解器（特别是与deal.II捆绑的SparseDirectUMFPACK类）。Step-29走的就是这条路线，它表明只需3、4行代码就可以完成<i>any</i>线性系统的求解。
+
+但是，这是一个教程。我们教的是如何做事情。因此，在下文中，我们将介绍一些可用于类似这种情况的技术。也就是说，我们将考虑线性系统不是由一个大矩阵和向量组成的，而是要将矩阵分解为<i>blocks</i>，这些矩阵对应于系统中出现的各个运算符。我们注意到，所产生的求解器并不是最优的--有更好的方法来有效地计算该系统，例如在步骤22的结果部分所解释的方法，或者我们在步骤43中用于类似于当前问题的方法。在这里，我们的目标只是介绍新的求解技术以及如何在交易中实现它们。
+
+
+
+
+<h4>Solving using the Schur complement</h4>
+
+鉴于使用上述标准求解器和预处理器的困难，让我们再看一下矩阵。如果我们对自由度进行排序，使所有的速度变量排在所有的压力变量之前，那么我们可以将线性系统 $Ax=b$ 细分为以下几个块。
+
+@f{eqnarray*}
+  \left(\begin{array}{cc}
+    M & B \\ B^T & 0
+  \end{array}\right)
+  \left(\begin{array}{cc}
+    U \\ P
+  \end{array}\right)
+  =
+  \left(\begin{array}{cc}
+    F \\ G
+  \end{array}\right),
+
+
+@f}
+
+其中 $U,P$ 分别是速度和压力自由度的值， $M$ 是速度空间上的质量矩阵， $B^T$ 对应于负发散算子， $B$ 是其转置，对应于梯度。
+
+通过区块消除法，我们就可以按以下方式对这个系统重新排序（用系统的第一行乘以 $B^TM^{-1}$ ，然后用第二行减去）。
+
+@f{eqnarray*}
+  B^TM^{-1}B P &=& B^TM^{-1} F - G, \\
+  MU &=& F - BP.
+
+
+@f}
+
+这里，矩阵 $S=B^TM^{-1}B$ （称为 $A$ 的<a href="https://en.wikipedia.org/wiki/Schur_complement">Schur complement</a>）显然是对称的，由于 $M$ 的正定性和 $B$ 具有全列秩， $S$ 也是正定的。
+
+因此，如果我们能计算出 $S$ ，我们就可以对其应用共轭梯度法。然而，计算 $S$ 是昂贵的，因为它需要我们计算（可能很大的）矩阵 $M$ 的逆；而且 $S$ 实际上也是一个完整的矩阵，因为即使 $M$ 是稀疏的，它的逆 $M^{-1}$ 通常是一个密集的矩阵。另一方面，CG算法并不要求我们真正拥有 $S$ 的表示：只需与它形成矩阵-向量乘积即可。我们可以利用矩阵乘积是关联的这一事实，分步进行（也就是说，我们可以通过设置括号来使乘积的计算更加方便）。为了计算 $Sv=(B^TM^{-1}B)v=B^T(M^{-1}(Bv))$ ，我们<ol>  <li> 计算 $w = B v$ ； <li> 解 $My = w$ 为 $y=M^{-1}w$ ，使用CG方法应用于正定和对称质量矩阵 $M$ ； <li> 计算 $z=B^Ty$ ，得到 $z=Sv$  。   </ol>  注意我们如何从右到左评估表达式 $B^TM^{-1}Bv$ 以避免矩阵-矩阵乘积；这样，我们所要做的就是评估矩阵-向量乘积。
+
+在下文中，我们将不得不想出表示矩阵 $S$ 的方法，以便它可以用于共轭梯度求解器，以及定义我们可以预设涉及 $S$ 的线性系统解决方案的方法，并处理与矩阵 $M$ 的线性系统求解（上述第二步骤）。
+
+ @note  这个考虑的关键点是要认识到，为了实现CG或GMRES这样的迭代求解器，我们实际上从来不需要矩阵的实际<i>elements</i>!所需要的只是我们能够形成矩阵-向量乘积。对于预处理程序也是如此。在deal.II中，我们对这一要求进行了编码，只要求给予求解器类的矩阵和预处理器有一个 <code>vmult()</code> 成员函数来做矩阵-向量乘积。一个类如何选择实现这个函数对求解器来说并不重要。因此，类可以通过，例如，做一连串的乘积和线性求解来实现它，正如上面所讨论的。
+
+
+
+
+<h4>The LinearOperator framework in deal.II</h4>
+
+deal.II包括支持以一种非常普遍的方式来描述这种线性操作。这是由LinearOperator类完成的，与 @ref ConceptMatrixType "MatrixType概念 "一样，它定义了<i>applying</i>对矢量进行线性操作的最小接口。
+
+@code
+    std::function<void(Range &, const Domain &)> vmult;
+    std::function<void(Range &, const Domain &)> vmult_add;
+    std::function<void(Domain &, const Range &)> Tvmult;
+    std::function<void(Domain &, const Range &)> Tvmult_add;
+@endcode
+
+然而，LinearOperator和普通矩阵的关键区别在于，LinearOperator不允许对底层对象进行任何进一步的访问。你能用LinearOperator做的就是把它的 "动作 "应用到一个向量上。我们借此机会介绍一下LinearOperator的概念，因为它是一个非常有用的工具，可以让你以非常直观的方式构造复杂的求解器和预处理器。
+
+作为第一个例子，让我们构建一个代表  $M^{-1}$  的 LinearOperator 对象。这意味着每当这个运算符的 <code>vmult()</code> 函数被调用时，它必须解决一个线性系统。这就要求我们指定一个解算器（和相应的）前置条件。假设 <code>M</code> 是对系统矩阵左上块的引用，我们可以写出。
+
+@code
+    const auto op_M = linear_operator(M);
+
+
+    PreconditionJacobi<SparseMatrix<double>> preconditioner_M;
+    preconditioner_M.initialize(M);
+
+
+    ReductionControl reduction_control_M(2000, 1.0e-18, 1.0e-10);
+    SolverCG<Vector<double>>    solver_M(reduction_control_M);
+
+
+    const auto op_M_inv = inverse_operator(op_M, solver_M, preconditioner_M);
+@endcode
+
+我们没有使用SolverControl，而是在这里使用ReductionControl类，当达到绝对公差（我们选择 $10^{-18}$ ）或者当残差减少了某个系数（这里是 $10^{-10}$ ）时，它就会停止迭代。相反，SolverControl类只检查绝对公差。在我们的案例中，我们必须使用ReductionControl来解决一个小问题。我们将送入 <code>op_M_inv</code> 的右手边基本上是由残差形成的，随着外部迭代的进行，残差的规范自然会大大减少。这使得绝对公差的控制非常容易出错。
+
+我们现在有一个LinearOperator  <code>op_M_inv</code> ，我们可以用它来构造更复杂的运算符，如Schur补码  $S$  。假设 <code>B</code> 是对右上角区块的引用，构造一个LinearOperator  <code>op_S</code> 只需两行即可。
+
+@code
+    const auto op_B = linear_operator(B);
+    const auto op_S = transpose_operator(op_B) * op_M_inv * op_B;
+@endcode
+
+在这里，三个LinearOperator对象的乘法产生了一个复合对象 <code>op_S</code> whose <code>vmult()</code> ，该函数首先应用 $B$ ，然后是 $M^{-1}$ （即用 $M$ 解方程），最后是 $B^T$ 到任何指定的输入矢量。在这个意义上， <code>op_S.vmult()</code> 类似于以下代码。
+
+@code
+    B.vmult (tmp1, src); // multiply with the top right block: B
+    solver_M(M, tmp2, tmp1, preconditioner_M); // multiply with M^-1
+    B.Tvmult (dst, tmp2); // multiply with the bottom left block: B^T
+@endcode
+
+(  <code>tmp1</code> and <code>tmp2</code> 是两个临时向量)。这种方法背后的关键点是，我们实际上从未创建一个矩阵的内积。相反，每当我们要用 <code>op_S</code> 进行矩阵向量乘法时，我们只需按上述顺序运行所有单独的 <code>vmult</code> 操作。
+
+ @note 我们可以通过实现一个专门的类 <code>SchurComplement</code> ，提供一个合适的 <code>vmult()</code> 函数，来实现创建一个 "类似矩阵 "的对象的相同目标。跳过一些细节，这可能看起来像下面这样。
+
+@code
+class SchurComplement
+{
+  public:
+
+
+  // ...
+
+
+  void SchurComplement::vmult (Vector<double>       &dst,
+                               const Vector<double> &src) const
+  {
+    B.vmult (tmp1, src);
+    solver_M(M, tmp2, tmp1, preconditioner_M);
+    B.Tvmult (dst, tmp2);
+  }
+};
+@endcode
+
+尽管这两种方法完全等同，但LinearOperator类比这种手工方法有很大的优势。它提供了所谓的［<i><a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugar</a>］［<a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugar</a></i>］。在数学上，我们认为 $S$ 是复合矩阵 $S=B^TM^{-1}B$ ，LinearOperator类允许你或多或少地逐字写出这一点。
+
+@code
+const auto op_M_inv = inverse_operator(op_M, solver_M, preconditioner_M);
+const auto op_S = transpose_operator(op_B) * op_M_inv * op_B;
+@endcode
+
+另一方面，人工方法掩盖了这一事实。
+
+现在我们要做的就是形成定义 $P$ 和 $U$ 的两个方程的右手边，然后分别用舒尔补码矩阵和质量矩阵来解决它们。例如，第一个方程的右手边为 $B^TM^{-1}F-G$  。这可以通过以下方式实现。
+
+@code
+    Vector<double> schur_rhs (P.size());
+    Vector<double> tmp (U.size());
+    op_M_inv.vmult (tmp, F);
+    transpose_operator(op_B).vmult (schur_rhs, tmp);
+    schur_rhs -= G;
+@endcode
+
+同样，这是一个完全有效的方法，但是deal.II要求我们手动调整最终向量和临时向量的大小，而且每一个操作都要占用一个新的行，这让我们很难阅读。这就是线性运算符框架中的第二个类可以将帮助我们的地方。与LinearOperator的精神类似，一个PackagedOperation存储了一个 "计算"。
+
+@code
+    std::function<void(Range &)> apply;
+    std::function<void(Range &)> apply_add;
+@endcode
+
+该类允许<a href="https://en.wikipedia.org/wiki/Lazy_evaluation">lazy evaluation</a>涉及向量和线性运算符的表达式。这是通过存储计算表达式来实现的，只有当对象被转换为向量对象，或者 PackagedOperation::apply() （或 PackagedOperation::apply_add()) 被手动调用时才执行计算。假设 <code>F</code> and <code>G</code> 是右手边的两个向量，我们可以简单地写。
+
+@code
+    const auto schur_rhs = transpose_operator(op_B) * op_M_inv * F - G;
+@endcode
+
+这里， <code>schur_rhs</code> 是一个打包操作，<i>records</i>是我们指定的计算。它不会立即创建一个带有实际结果的向量。
+
+有了这些先决条件，解决 $P$ 和 $U$ 的问题就是创建另一个解算器和反演。
+
+@code
+    SolverControl solver_control_S(2000, 1.e-12);
+    SolverCG<Vector<double>>    solver_S(solver_control_S);
+    PreconditionIdentity preconditioner_S;
+
+
+    const auto op_S_inv = inverse_operator(op_S, solver_S, preconditioner_S);
+
+
+    P = op_S_inv * schur_rhs;
+    U = op_M_inv * (F - op_B * P);
+@endcode
+
+
+
+ @note  我们在这个例子中手工开发的功能在库中已经是现成的。看看schur_complement(), condense_schur_rhs(), and postprocess_schur_solution()。
+
+
+
+
+<h4>A preconditioner for the Schur complement</h4>
+
+有人可能会问，如果我们有一个Schur补数的预处理程序，是否会有帮助  $S=B^TM^{-1}B$  。一般来说，答案是：当然。问题是，我们对这个舒尔补码矩阵一无所知。我们不知道它的条目，我们所知道的只是它的作用。另一方面，我们必须认识到，我们的求解器是昂贵的，因为在每次迭代中，我们必须与舒尔补矩阵做一次矩阵-向量乘积，这意味着我们必须在每次迭代中对质量矩阵做一次反转。
+
+对这样一个矩阵的预处理有不同的方法。一个极端是使用便宜的东西，因此对每次迭代的工作没有实际影响。另一个极端是使用本身非常昂贵的预处理程序，但作为回报，它确实降低了用 $S$ 求解所需的迭代次数。
+
+我们将按照第二种方法进行尝试，既是为了提高程序的性能，也是为了展示一些技术。为此，让我们回顾一下，理想的预处理程序当然是 $S^{-1}$ ，但这是无法实现的。然而，如何
+
+@f{eqnarray*}
+  \tilde S^{-1} = [B^T ({\textrm{diag}\ }M)^{-1}B]^{-1}
+
+
+@f}
+
+作为一个预处理程序？这就意味着，每次我们要做一个预处理步骤时，实际上都要用 $\tilde S$ 来解。起初，这看起来几乎和立即用 $S$ 求解一样昂贵。然而，请注意，在内迭代中，我们不必计算 $M^{-1}$ ，而只需计算其对角线的逆值，这很便宜。
+
+值得庆幸的是，LinearOperator框架使得这一点非常容易写出来。我们之前已经对 <code>preconditioner_M</code> 矩阵使用了雅可比预处理程序（ $M$ ）。所以剩下的就是写出近似的舒尔补码应该是什么样子。
+
+@code
+    const auto op_aS =
+      transpose_operator(op_B) * linear_operator(preconditioner_M) * op_B;
+@endcode
+
+注意这个运算符的不同之处在于，它只是做了一次雅可比扫频（即与对角线的逆数相乘），而不是与整个 $M^{-1}$ 相乘。]的定义：它是与 $M$ 的对角线的倒数相乘；换句话说，对向量 $x$ 的 $({\textrm{diag}\ }M)^{-1}x$ 操作正是PreconditionJacobi所做的）。)
+
+有了这些，我们几乎已经完成了预处理程序：它应该是近似Schur补码的逆。我们再次通过使用inverse_operator()函数创建一个线性算子来实现这一点。然而这一次我们想为CG求解器选择一个相对较小的容忍度（即反转 <code>op_aS</code> ）。理由是 <code>op_aS</code> is only coarse approximation to <code>op_S</code> ，所以我们实际上不需要完全反转它。然而，这产生了一个微妙的问题： <code>preconditioner_S</code> 将被用于最后的外层CG迭代以创建一个正交基础。但为了使其发挥作用，每次调用都必须是精确的线性操作。我们通过使用IterationNumberControl来确保这一点，它允许我们将执行的CG迭代次数固定为一个固定的小数字（在我们的例子中为30）。
+
+@code
+    IterationNumberControl iteration_number_control_aS(30, 1.e-18);
+    SolverCG<Vector<double>>           solver_aS(iteration_number_control_aS);
+    PreconditionIdentity preconditioner_aS;
+    const auto preconditioner_S =
+      inverse_operator(op_aS, solver_aS, preconditioner_aS);
+@endcode
+
+
+
+就这样吧!
+
+很明显，应用这个近似Schur补数的逆运算是一个非常昂贵的预处理程序，几乎和反转Schur补数本身一样昂贵。我们可以期望它能大大减少Schur补数所需的外部迭代次数。事实上，它确实如此：在使用0阶元素的7次细化网格的典型运行中，外部迭代次数从592次下降到39次。另一方面，我们现在必须应用一个非常昂贵的预处理程序25次。因此，更好的衡量标准只是程序的运行时间：在目前的笔记本电脑上（截至2019年1月），对于这个测试案例，它从3.57秒下降到2.05秒。这似乎并不令人印象深刻，但在更细的网格和更高阶的元素上，节省的时间变得更加明显了。例如，一个7倍细化的网格和使用2阶元素（相当于约40万个自由度）产生了1134次到83次的外部迭代的改进，运行时间从168秒到40秒。虽然不是惊天动地，但意义重大。
+
+
+
+
+<h3>Definition of the test case</h3>
+
+在这个教程程序中，我们将求解上述混合公式中的拉普拉斯方程。由于我们想在程序中监测解的收敛性，我们选择右手边、边界条件和系数，以便恢复我们已知的解函数。特别是，我们选择压力解
+
+@f{eqnarray*}
+  p = -\left(\frac \alpha 2 xy^2 + \beta x - \frac \alpha 6 x^3\right),
+
+
+@f}
+
+而对于系数，为了简单起见，我们选择单位矩阵 $K_{ij}=\delta_{ij}$ 。因此，确切的速度满足于
+
+@f{eqnarray*}
+  {\mathbf u} =
+  \left(\begin{array}{cc}
+    \frac \alpha 2 y^2 + \beta - \frac \alpha 2 x^2 \\
+    \alpha xy
+  \end{array}\right).
+
+
+@f}
+
+选择这个解决方案是因为它完全没有发散，使得它成为不可压缩流体流动的一个现实的测试案例。因此，右手边等于 $f=0$ ，作为边界值，我们必须选择 $g=p|_{\partial\Omega}$ 。
+
+对于本程序中的计算，我们选择  $\alpha=0.3,\beta=1$  。你可以在<a name="#Results">results section
+below</a>中找到结果的解决方案，在注释的程序之后。
+
+

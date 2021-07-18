@@ -1,0 +1,513 @@
+examples/step-43/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Chih-Che Chueh (University of Victoria) and
+Wolfgang Bangerth. Results from this program are used and discussed in the
+following publications (in particular in the second one):
+
+
+- Chih-Che Chueh, Marc Secanell, Wolfgang Bangerth, Ned Djilali. Multi-level
+  adaptive simulation of transient two-phase flow in heterogeneous porous
+  media. Computers &amp; Fluids, 39:1585-1596, 2010
+
+
+- Chih-Che Chueh, Ned Djilali, Wolfgang Bangerth. An h-adaptive operator
+  splitting method for two-phase flow in 3D heterogeneous porous
+  media. SIAM Journal on Scientific Computing, 35:B149-B175, 2013.
+
+
+The implementation discussed here uses and extends
+parts of the step-21 and step-31 tutorial programs.
+
+
+The work of the Chih-Che Chueh was funded through the Canada Research Chairs
+Program and the MITACS Network of Centres of Excellence. Parts of the work by
+Wolfgang Bangerth were funded through Award No. KUS-C1-016-04, made by the King
+Abdullah University of Science and Technology, and through an Alfred P. Sloan
+Research Fellowship.
+This material is also in parts based upon work supported by the National
+Science Foundation under Award No. EAR-0426271 and The California Institute of
+Technology; and in a continuation by the National Science
+Foundation under Award No. EAR-0949446 and The University of California
+&ndash; Davis. Any opinions, findings, and conclusions or recommendations
+expressed in this publication are those of the author and do not
+necessarily reflect the views of the National Science Foundation, The
+California Institute of Technology, or of The University of California
+&ndash; Davis.
+</i>
+
+
+<a name="Intro"></a><h1>Introduction</h1> 。
+
+多孔介质中的多相流模拟是一个无处不在的问题，我们以前在步骤20和步骤21中已经以某种形式解决了这个问题。然而，正如在那里很容易看到的那样，它面临两个主要困难：数值精度和效率。第一个问题在第20步的静止求解器中很容易看到：使用最低阶的Raviart-Thomas元素不可能产生高度精确的解决方案。我们需要更精确的方法。第二个原因从时间相关的步骤-21中可以看出：该程序慢得令人发指，没有希望在合理的时间范围内得到高度准确的三维解。
+
+在这个项目中，为了克服这两个问题，有五个方面我们正在努力改进，以实现高性能的模拟器。
+
+ <ul>   <li>  高阶空间离散  <li>  自适应网格细化  <li>  自适应时间步进  <li>  运算器分割  <li>  高效求解器和预处理  </ul> 
+
+这个计划的大部分灵感来自第31步，但这里讨论的几个技术是原创的。
+
+
+
+
+<h3>Advection-dominated two-phase flow mathematical model.</h3>
+
+我们考虑的是两相不相溶的不可压缩流体的流动。毛细管和重力效应被忽略了，粘性效应被假定为主导。这种流动的管理方程与步骤21中使用的方程相同，为
+
+@f{align*}
+  \mathbf{u}_t &= - \mathbf{K} \lambda_t \left(S\right) \nabla p, \\
+  \nabla \cdot \mathbf{u}_t &= q, \\
+  \epsilon \frac{\partial S}{\partial t} + \nabla \cdot \left( \mathbf{u}_t  F\left( S \right) \right)&=0,
+
+
+@f}
+
+其中 $S$ 是第二（润湿）相的饱和度（体积分数在零和一之间）， $p$ 是压力， $\mathbf{K}$ 是渗透率张量， $\lambda_t$ 是总流动性， $\epsilon$ 是孔隙度， $F$ 是湿润相的分流量， $q$ 是源项， $\mathbf{u}_t$ 是总速度。总流动性、润湿相的部分流量和总速度分别由以下公式给出
+
+@f{align*}
+   \lambda_t(S)&= \lambda_w + \lambda_{nw} = \frac{k_{rw}(S)}{\mu_w} + \frac{k_{rnw}(S)}{\mu_{nw}}, \\
+   F(S) &= \frac{\lambda_w}{\lambda_t} = \frac{\lambda_w}{\lambda_w + \lambda_{nw}} = \frac{k_{rw}(S)/\mu_w}{k_{rw}(S)/\mu_w + k_{rnw}(S)/\mu_{nw}}, \\
+   \mathbf{u}_t &= \mathbf{u}_w + \mathbf{u}_{nw} = -\lambda_t(S)\mathbf{K} \cdot \nabla p,
+
+
+@f}
+
+其中下标 $w, nw$ 分别代表湿润和非湿润阶段。
+
+为方便起见，饱和度方程中的孔隙度 $\epsilon$ 可被视为时间变量的比例系数，被设定为1。根据相对渗透率 $k_{rw}$ 和 $k_{rnw}$ 对饱和度的依赖性的常用规定，我们用
+
+@f{align*}
+   k_{rw}  &= S^2, \qquad&\qquad
+   k_{rnw} &= \left( 1-S \right)^2.
+
+
+@f}
+
+
+
+上面的多孔介质方程由饱和度的初始条件和压力的边界条件来补充。由于饱和度和压力梯度唯一地决定了速度，所以速度的边界条件是没有必要的。由于流动方程不包含时间导数，因此不需要速度和压力变量的初始条件。流场将边界分为流入或流出部分。具体来说。
+
+@f[
+   \mathbf{\Gamma}_{in}(t) = \left\{\mathbf{x} \in \partial \Omega:\mathbf{n} \cdot \mathbf{u}_t<0\right\},
+
+
+@f]
+
+我们通过在流入边界上施加饱和变量的边界值，得出一个完整的模型  $\mathbf{\Gamma}_{in}$  。
+
+
+
+
+<h3>Adaptive operator splitting and time stepping.</h3>
+
+从第21步可以看出，一旦我们知道了流量变量，求解速度和压力的流量方程是程序中花费时间远大于饱和度变量的（明确）更新步骤的部分。另一方面，压力和速度对饱和度的依赖性很弱，因此可以考虑每隔几步只求解压力和速度，而每步更新饱和度。如果我们能找到一个关于何时需要更新流量变量的标准，我们把这种拆分称为 "自适应算子拆分 "方案。
+
+在这里，我们使用以下后验标准来决定何时重新计算压力和速度变量（详细的推导和描述可以在[Chueh, Djilali and Bangerth 2011]中找到）。
+
+@f{align*}
+  \theta(n,n_p)
+  =
+    \max_{\kappa\in{\mathbb T}}
+    \left(
+    \left\|
+      \frac 1{\lambda_t\left(S^{(n-1)}\right)}
+
+
+      - \frac 1{\lambda_t\left(S^{(n_p)}\right)} \right\|_{L^\infty(\kappa)}
+    \left\|\|\mathbf{K}^{-1}\|_1\right\|_{L^\infty(\kappa)}
+    \right).
+
+
+@f}
+
+其中括号内的上标表示定义任何数量的饱和时间步数， $n_p<n$ 代表我们实际计算压力和速度的最后一步。如果 $\theta(n,n_p)$ 超过某个阈值，我们就重新计算流量变量；否则，我们在时间步骤 $n$ 中跳过这个计算，只将饱和变量向前移动一个时间步骤。
+
+简而言之，该算法允许我们执行若干长度为 $\Delta t_c^{(n)}=t^{(n)}_c-t^{(n-1)}_c$ 的饱和时间步长，直到上述标准告诉我们重新计算速度和压力变量，导致一个长度为
+
+@f[
+   \Delta t_p^{(n)} = \sum_{i=n_p+1}^{n} \Delta t_c^{(i)}.
+
+
+@f]
+
+我们根据Courant-Friedrichs-Lewy（CFL）限制来选择（微型）步骤的长度，标准是
+
+@f[
+  \Delta t_c = \frac{\textrm{min}_{K}h_{K}}{7 \|\mathbf{u}_t\|_{L^{\infty}\left(\Omega\right)}},
+
+
+@f]
+
+我们已经证实，对于下面讨论的饱和方程的有限元和时间步长方案的选择是稳定的（ $h_K$ 表示单元 $K$ 的直径）。其结果是一个方案，微观和宏观的时间步长都不统一，两者都是自适应选择。
+
+<h3>Time discretization.</h3> 利用这种时间离散化，我们从IMPES方法中得到每个时间步骤的以下方程组（见步骤21）。
+
+@f{align*}
+   \mathbf{u}^{(n)}_t + \lambda_t\left(S^{(n-1)}\right) \mathbf{K} \nabla p^{(n)} =0, \\
+   \nabla \cdot \mathbf{u}^{(n)}_t = q, \\
+   \epsilon \left( \frac{S^{(n-1)}-S^{(n)}}{\Delta t^{(n)}_c} \right) + \mathbf{u}^{(n)}_t \cdot \nabla F\left(S^{(n-1)}\right) + F\left(S^{(n-1)}\right) \nabla \cdot \mathbf{u}^{(n)}_t =0.
+
+
+@f}
+
+
+
+
+利用 $\nabla \cdot \mathbf{u}_t = q$ 这一事实，时间离散的饱和度方程变为
+
+@f{align*}
+  &\epsilon \left( \frac{S^{(n)}-S^{(n-1)}}{\Delta t^{(n)}_c} \right) + \mathbf{u}^{(n)}_t \cdot \nabla F\left(S^{(n-1)}\right) + F\left(S^{(n-1)}\right)q=0.
+
+
+@f}
+
+
+
+<h3>Weak form, space discretization for the pressure-velocity part.</h3>
+
+通过将定义总速度的方程 $\mathbf u_t^{(n)}$ 和用源项表示其发散的方程分别与测试函数 $\mathbf{v}$ 和 $w$ 相乘，然后根据需要进行分项积分，问题的弱形式为。找出 $\mathbf u, p$ ，以便对所有测试函数 $\mathbf{v}, w$ 而言，存在
+
+@f{gather*}
+   \left( \left( \mathbf{K} \lambda_t\left(S^{(n-1)}\right) \right)^{-1} \mathbf{u}^{(n)}_t, \mathbf{v}\right)_{\Omega} - \left(p^{(n)}, \nabla \cdot \mathbf{v}\right)_{\Omega} = -\left(p^{(n)}, \mathbf{n} \cdot \mathbf{v} \right)_{\partial \Omega}, \\
+
+
+   - \left( \nabla \cdot \mathbf{u}^{(n)}_t,w\right)_{\Omega} = - \big(q,w\big)_{\Omega}.
+
+
+@f}
+
+这里， $\mathbf{n}$ 代表 $\partial
+\Omega$ 的单位外向法向量，压力 $p^{(n)}$ 可以在边界 $\partial \Omega$ 的开放部分弱化规定，而在那些规定了速度的部分（例如具有 $\mathbf n \cdot \mathbf
+u=0$ 的不渗透边界，该术语完全消失了，因为 $\mathbf n \cdot \mathbf
+v=0$  。
+
+我们使用连续有限元来离散速度和压力方程。具体来说，我们使用混合有限元来确保同时对矢量变量（如流体速度）和标量变量（如压力）进行高阶逼近。对于鞍点问题，公认的是需要满足所谓的Babuska-Brezzi或Ladyzhenskaya-Babuska-Brezzi（LBB）条件[Brezzi 1991, Chen 2005]以确保压力-速度系统的稳定性。在本工作中，通过使用比压力高一阶的速度元素，即 $u_h \in Q^d_{p+1}$ 和 $p_h \in Q_p$ 来满足这些稳定性条件，其中 $p=1$ ， $d$ 是空间维度， $Q_s$ 表示每个变量的张量积Lagrange多项式的空间 $s$ 。
+
+<h3>Stabilization, weak form and space discretization for the saturation transport equation.</h3>为饱和方程选择的 $Q_1$ 元素在没有上卷或其他类型的稳定化的情况下不会导致稳定的离散化，并且在数值解中会出现虚假的震荡。添加一个人工扩散项是消除这些振荡的一种方法[Chen 2005]。另一方面，添加过多的扩散项会在解中涂抹出尖锐的锋面，并且会出现网格定向困难[Chen 2005]。为了避免这些影响，我们使用了由[Guermond和Pasquetti 2008]提出并在[Chueh, Djilali, Bangerth 2011]和[Kronbichler, Heister and Bangerth, 2011]以及步骤31中验证的人工扩散项。
+
+这种方法修改了饱和度方程的（离散）弱形式，改为
+
+@f{align*}
+  \left(\epsilon \frac{\partial S_h}{\partial t},\sigma_h\right)
+
+
+  -
+  \left(\mathbf{u}_t  F\left( S_h \right),
+    \nabla \sigma_h\right)
+  +
+  \left(\mathbf n \cdot \mathbf{u}_t  \hat F\left( S_h \right),
+    \sigma_h\right)_{\partial\Omega}
+  +
+  (\nu(S_h) \nabla S_h, \nabla \sigma_h)
+  &=0
+  \qquad
+  \forall \sigma_h,
+
+
+@f}
+
+其中 $\nu$ 是人工扩散参数， $\hat F$ 是域的边界上适当选择的数值通量（我们为此选择明显的全上风通量）。
+
+根据[Guermond and Pasquetti 2008]（以及[Chueh, Djilali and Bangerth 2011]中的详细说明），我们将参数作为一个片状常数函数，设置在直径为 $K$ 的每个单元上，为
+
+@f[
+   \nu(S_h)|_{K} = \beta \| \mathbf{u}_t \max\{F'(S_h),1\} \|_{L^{\infty}(K)} \textrm{min} \left\{ h_{K},h^{\alpha}_{K} \frac{\|\textrm{Res}(S_h)\|_{L^{\infty}(K)}}{c(\mathbf{u}_t,S)} \right\}
+
+
+@f]
+
+其中 $\alpha$ 为稳定化指数， $\beta$ 为用户定义的无量纲稳定化常数。按照[Guermond和Pasquetti 2008]以及步骤31的实现，速度和饱和度全局归一化常数 $c(\mathbf{u}_t,S)$ 和残差 $\textrm{Res}(S)$ 分别为
+
+@f[
+   c(\mathbf{u}_t,S) = c_R \|\mathbf{u}_t \max\{F'(S),1\}\|_{L^{\infty}(\Omega)} \textrm{var}(S)^\alpha | \textrm{diam} (\Omega) |^{\alpha - 2}
+
+
+@f]
+
+和
+
+@f[
+   \textrm{Res}(S) = \left( \epsilon \frac{\partial S}{\partial t} + \mathbf{u}_t \cdot \nabla F(S) + F(S)q \right) \cdot S^{\alpha - 1}
+
+
+@f]
+
+其中 $c_R$ 是用户定义的第二个无维常数， $\textrm{diam}(\Omega)$ 是域的直径， $\textrm{var}(S) =
+\textrm{max}_{\Omega} S - \textrm{min}_{\Omega} S$ 是整个计算域中目前饱和值的范围 $\Omega$  。
+
+这种稳定方案与更简单的方案，如有限体积（或不连续Galerkin）方法或流线型上风Petrov Galerkin（SUPG）离散法相比有很多优点。特别是，人工扩散项主要作用于不连续点附近，因为在饱和度平稳的地区，残差很小。因此，它提供了一个更高的精度。另一方面，它是非线性的，因为  $\nu$  取决于饱和度  $S$  。我们通过明确处理所有的非线性项来避免这一困难，这导致了以下时间步长的完全离散问题  $n$  。
+
+@f{align*}
+   &\left( \epsilon S_h^{(n)},\sigma_h\right)_{\Omega} - \Delta t^{(n)}_c \Big(F\left(S_h^{(n-1)}\right)\mathbf{u}^{*}_t,\nabla\sigma_h\Big)_{\Omega} + \Delta t^{(n)}_c \Big(F\left(S_h^{(n-1)}\right)\left(\mathbf{n}\cdot\mathbf{u}^{*}_t\right),\sigma_h\Big)_{\partial\Omega} \nonumber \\
+   & \quad = \left( \epsilon S_h^{(n-1)},\sigma_h\right)_{\Omega} - \Delta t^{(n)}_c \bigg(\nu\left(S_h^{(n-1)}\right)\nabla S_h^{(n-1)},\nabla\sigma_h\bigg)_{\Omega} \nonumber \\
+   & \qquad + \Delta t^{(n)}_c \bigg(\mathbf{n}\cdot\nu\left(S_h^{(n-1)}\right)\nabla S^{(n-1)},\sigma_h\bigg)_{\partial\Omega}
+
+
+@f}
+
+其中 $\mathbf{u}_t^{*}$ 是从 $\mathbf{u}^{(n_p)}_t$ 和 $\mathbf{u}^{(n_{pp})}_t$ 线性外推到当前时间 $t^{(n)}$ 的速度，如果 $\theta<\theta^*$ ，而 $\mathbf{u}_t^{*}$ 是 $\mathbf{u}^{(n_p)}_t$ ，如果 $\theta>\theta^*$  。因此，该方程在 $S_h^{(n)}$ 中是线性的，所需要的是用饱和空间上的质量矩阵来解决。
+
+由于饱和度的Dirichlet边界条件只施加在流入边界上，所以上述方程左边的第三个项需要进一步分成两部分。
+
+@f{align*}
+  &\Delta t^{(n)}_c \Big(F\left(S_h^{(n-1)}\right)\left(\mathbf{n}\cdot\mathbf{u}^{(n)}_t\right),\sigma_h\Big)_{\partial\Omega} \nonumber \\
+  &\qquad= \Delta t^{(n)}_c \Big(F\left(S^{(n-1)}_{(+)}\right)\left(\mathbf{n}\cdot\mathbf{u}^{(n)}_{t(+)}\right),\sigma_h\Big)_{\partial\Omega_{(+)}} + \Delta t^{(n)}_c \Big(F\left(S^{(n-1)}_{(-)}\right)\left(\mathbf{n}\cdot\mathbf{u}^{(n)}_{t(-)}\right),\sigma_h\Big)_{\partial\Omega_{(-)}}
+
+
+@f}
+
+其中 $\partial\Omega_{(-)} = \left\{\mathbf{x} \in \partial\Omega : \mathbf{n}
+  \cdot \mathbf{u}_t<0\right\}$ 和 $\partial\Omega_{(+)} = \left\{\mathbf{x} \in \partial\Omega : \mathbf{n} \cdot
+  \mathbf{u}_t>0\right\}$ 分别代表流入和流出的边界。我们使用上风公式选择数值，即 $S^{(n-1)}_{(+)}$ 和 $\mathbf{u}^{(n)}_{t(+)}$ 对应于从当前单元中提取的数值，而 $S^{(n-1)}_{(-)}$ 和 $\mathbf{u}^{(n)}_{t(-)}$ 的数值是来自邻近的边界 $\partial\Omega_{(-)}$ 。
+
+
+
+
+<h3>Adaptive mesh refinement.</h3>
+
+适应性地选择网格以解决尖锐的饱和前沿是我们算法中实现效率的一个基本要素。在这里，我们使用[Chueh, Djilali and Bangerth 2011]中使用的相同的冲击型细化方法来选择那些应该被细化或粗化的单元。三角形的每个单元 $K$ 的细化指标是通过以下方式计算的
+
+@f[
+   \eta_{K} = |\nabla S_h(\mathbf x_K)|
+
+
+@f]
+
+其中 $\nabla S_h(\mathbf x_K)$ 是在 $\mathbf x_K$ 单元的中心评价的离散饱和变量的梯度。这种方法类似于可压缩流动问题中经常使用的方法，即用密度梯度来表示细化。也就是说，正如我们将在<a href="#Results">results section</a>的结尾处讨论的那样，这被证明不是一个非常有用的标准，因为它基本上到处都导致细化。我们在这里只是为了说明问题而展示它。
+
+
+
+
+<h3>Linear system and its preconditioning.</h3>
+
+按照上面讨论的治理方程的离散化，我们得到一个时间步长为 $(n)$ 的线性方程组，形式如下。
+
+@f[
+ \left(
+  \begin{array}{ccc}
+   \mathbf{M}^{\mathbf{u}} & \mathbf{B}^{T} & \mathbf{0}  \\
+   \mathbf{B}           & \mathbf{0}     & \mathbf{0}   \\
+   \mathbf{H}           & \mathbf{0}     & \mathbf{M}^{S}
+  \end{array}
+ \right)
+ \left(
+  \begin{array}{c}
+   \mathbf{U}^{(n)} \\
+   \mathbf{P}^{(n)} \\
+   \mathbf{S}^{(n)}
+  \end{array}
+ \right)
+ =
+ \left(
+  \begin{array}{c}
+   0 \\
+   \mathbf{F}_{2} \\
+   \mathbf{F}_{3}
+  \end{array}
+ \right)
+
+
+@f]
+
+其中各个矩阵和向量的定义如下，使用形状函数 $\mathbf{v}_i$ 表示速度， $\phi_i$ 表示压力和饱和度。
+
+@f{align*}
+  \mathbf{M}^{\mathbf{u}}_{ij}
+  &= \left( \left( \mathbf{K} \lambda_t\left(S^{(n-1)}\right) \right)^{-1}
+  \mathbf{v}_{i},\mathbf{v}_{j}\right)_{\Omega},
+  &
+  \mathbf{M}^{S}_{ij}           &= \left(\epsilon \phi_i,\phi_j\right)_{\Omega}
+  \\
+  \mathbf{B}_{ij}
+  &= - \left( \nabla \cdot \mathbf{v}_{j},\phi_{i}\right)_{\Omega},
+  &
+  \mathbf{H}_{ij}
+  &= - \Delta t^{(n)}_c \Big( F\left(S^{(n-1)}\right) \mathbf{v}_i,\nabla\phi_j\Big)_{\Omega}
+  \\
+  \left(\mathbf{F}_{2}\right)_i
+  &= - \big(F\left(S^{(n-1)}\right)q,\phi_i\big)_{\Omega},
+
+
+@f}
+
+和 $\mathbf{F}_{3}$ 在稳定传输方程的定义中给出。
+
+如果我们把左上角的 $2\times 2$ 板块的矩阵视为一个板块，那么上面的线性系统是块状三角形形式。因此，我们可以首先求解速度和压力（除非我们决定用 $\mathbf U^{(n_p)}$ 来代替速度），然后再求解饱和度变量。其中第一个步骤要求我们解决
+
+@f[
+ \left(
+  \begin{array}{cc}
+   \mathbf{M}^{\mathbf{u}} & \mathbf{B}^{T}  \\
+   \mathbf{B}           & \mathbf{0}
+  \end{array}
+ \right)
+ \left(
+  \begin{array}{c}
+   \mathbf{U}^{(n)} \\
+   \mathbf{P}^{(n)}
+  \end{array}
+ \right)
+ =
+ \left(
+  \begin{array}{c}
+   0 \\
+   \mathbf{F}_{2}
+  \end{array}
+ \right)
+
+
+@f]
+
+我们对这个线性系统采用广义最小残差（GMRES）方法[Saad和Schultz 1986]。速度-压力系统的理想预处理方法是
+
+@f{align*}
+\mathbf{P} =
+ \left(
+  \begin{array}{cc}
+   \mathbf{M}^{\mathbf{u}} &  \mathbf{0}  \\
+   \mathbf{B}           & -\mathbf{S}
+  \end{array}
+ \right),
+ & \qquad
+ \mathbf{P}^{-1} =
+ \left(
+  \begin{array}{cc}
+   \left(\mathbf{M}^{\mathbf{u}}\right)^{-1}                              &  \mathbf{0}  \\
+   \mathbf{S}^{-1} \mathbf{B} \left(\mathbf{M}^{\mathbf{u}}\right)^{-1}   & -\mathbf{S}^{-1}
+  \end{array}
+ \right)
+ @f}
+
+其中 $\mathbf{S}=\mathbf{B}\left(\mathbf{M}^{\mathbf{u}}\right)^{-1}\mathbf{B}^T$ 是系统的Schur补充[Zhang 2005]。这个预处理程序是最优的，因为
+
+@f{align*}
+ \mathbf{P}^{-1}
+ \left(
+  \begin{array}{cc}
+   \mathbf{M}^{\mathbf{u}} & \mathbf{B}^{T}  \\
+   \mathbf{B}           & \mathbf{0}
+  \end{array}
+ \right)
+ =
+  \left(
+  \begin{array}{cc}
+   \mathbf{I}         &  \left(\mathbf{M}^{\mathbf{u}}\right)^{-1} \mathbf{B}^{T}  \\
+   \mathbf{0}         &  \mathbf{I}
+  \end{array}
+ \right),
+
+
+@f}
+
+对其而言，可以证明GMRES在两次迭代中收敛。
+
+然而，我们当然不能指望使用速度质量矩阵和Schur补数的精确求逆。因此，我们采用[Silvester and Wathen 1994]最初为斯托克斯系统提出的方法。将其适用于当前的方程组，得到预处理程序
+
+@f{align*}
+ \mathbf{\tilde{P}}^{-1} =
+ \left(
+  \begin{array}{cc}
+   \widetilde{\left(\mathbf{{M}}^{\mathbf{u}}\right)^{-1}}
+                              &  \mathbf{0}  \\
+   \widetilde{\mathbf{{S}}^{-1}} \mathbf{B} \widetilde{\left(\mathbf{{M}}^{\mathbf{u}}\right)^{-1}}   & -\widetilde{\mathbf{{S}}^{-1}}
+  \end{array}
+ \right)
+
+
+@f}
+
+其中蒂尔德表示精确逆矩阵的近似值。特别是，由于 $\left(\mathbf{{M}}^{\mathbf{u}}\right)^{-1}=\left( \left(
+    \mathbf{K} \lambda_t \right)^{-1}
+  \mathbf{v}_{i},\mathbf{v}_{j}\right)_{\Omega}$ 是一个稀疏的对称和正定矩阵，我们为 $\widetilde{\left(\mathbf{{M}}^{\mathbf{u}}\right)^{-1}}$ 选择了这个矩阵的稀疏不完全Cholesky分解的单一应用[Golub和Van Loan 1996]。我们注意到，对应于非混合形式的多孔介质流动算子的舒尔补， $-\nabla \cdot [\mathbf K
+\lambda_t(S)]\nabla$ 和 $\mathbf{\tilde {S}} = \left( \left( \mathbf{K} \lambda_t \right) \nabla \phi_{i},\nabla \phi_{j}\right)_{\Omega}$ 应该是实际舒尔补矩阵 $\mathbf
+S$ 的良好近似。由于这两个矩阵又都是对称和正定的，所以我们用 $\mathbf{\tilde S}$ 的不完全Cholesky分解来表示 $\widetilde
+{\mathbf{{S}}^{-1}}$ 。需要注意的是， $\mathbf{\tilde S}$ 需要用Dirichlet边界条件建立，以确保其可逆性。
+
+一旦有了速度 $\mathbf{U}^{(n)} \equiv \mathbf{u}^*_t$ ，我们就可以把 $\mathbf{H}$ 和 $\mathbf{F}_{3}$ 组合起来，用以下方法解决饱和度的问题
+
+@f{align*}
+  \mathbf{M}^{S} \mathbf{S}^{(n)} = \mathbf{F}_{3} - \mathbf{H} \mathbf{U}^{(n)}.
+
+
+@f}
+
+其中质量矩阵 $\mathbf{M}^{S}$ 用共轭梯度法求解，再一次使用不完全的Cholesky分解作为预处理。
+
+<h3>The test cases.</h3>
+
+ @note  这里讨论的实现使用并扩展了这个库的步骤21、步骤31和步骤33教程的部分程序。特别是，如果你想了解它是如何工作的，请参考step-21关于数学问题的讨论，以及step-31，大部分的实现都来自于此。我们将不讨论在步骤31中已经讨论过的实现的各个方面。
+
+我们展示了一些两相流方程的数值结果，这些方程通过适当的初始和边界条件，结合两种不同的渗透率模型的选择而得到增强。在所考虑的问题中，没有内部源项（ $q=0$ ）。如上所述，定量的数值结果在[Chueh, Djilali and Bangerth 2011]中提出。
+
+为了简单起见，我们选择了 $\Omega=[0,1]^d,d=2,3$ ，尽管所有的方法（以及我们的实现）在一般的非结构化网格上都应该同样工作。
+
+初始条件只需要饱和变量，我们选择 $S(\mathbf{x},0)=0.2$ ，即多孔介质最初是由非湿润（80%）和湿润（20%）相的混合物填充。这与步骤21中的初始条件不同，在该步骤中我们采用了 $S(\mathbf{x},0)=0$ ，但由于复杂的数学原因，在那里的长篇评论中提到，目前使用基于熵的人工扩散项的方法在不对方法进行额外修改的情况下不能收敛到这个初始条件的粘度解。因此，我们在目前的计划中选择了这个修改过的版本。
+
+此外，我们在边界上规定了一个线性压力。
+
+@f[
+   p(\mathbf{x},t) = 1 - x \qquad
+   \textrm{on} \quad \partial \Omega \times [0,T].
+
+
+@f]
+
+压力和饱和度唯一地决定了速度，而速度决定了一个边界段是流入还是流出的边界。在边界的流入部分， $\mathbf{\Gamma}_{in}(t)$ ，我们规定
+
+@f{align*}
+   S(\mathbf{x},t) = 1 \qquad & \textrm{on} \quad \mathbf{\Gamma}_{in}(t) \cap \left\{x = 0\right\}, \\
+   S(\mathbf{x},t) = 0 \qquad & \textrm{on} \quad \mathbf{\Gamma}_{in}(t) \backslash \left\{x = 0\right\}.
+
+
+@f}
+
+换句话说，该领域被来自左边的湿润相淹没。对于边界的流出部分，不需要饱和的边界条件。
+
+所有用于二维/三维案例的数值和物理参数都列在下表中。
+
+ <table align="center" class="tutorial" width="50%">
+<tr>
+    <th>Parameter                           </th><th>Symbol          </th><th>Value               </th><th>units     </th></tr><tr>
+    <td>Porosity                            </td><td>$\epsilon$      </td><td>1.0                 </td><td>-                   </td></tr><tr>
+    <td>Viscosity (wetting)                 </td><td>$\mu_w$         </td><td>0.2                 </td><td>$kg \cdot m^{-1} \cdot sec^{-1}$   </td></tr><tr>
+    <td>Viscosity (nonwetting)              </td><td>$\mu_{nw}$      </td><td>1.0                 </td><td>$kg \cdot m^{-1} \cdot sec^{-1}$      </td></tr><tr>
+    <td>Stabilization exponent              </td><td>$\alpha$        </td><td>1.0                 </td><td>-     </td></tr><tr>
+    <td>Stabilization constant              </td><td>$\beta$         </td><td>2D: 0.3; 3D: 0.27   </td><td>- </td></tr><tr>
+    <td>Normalization constant              </td><td>$c_R$           </td><td>1.0                 </td><td>- </td></tr><tr>
+    <td>Number of high-permeability regions </td><td>$N$             </td><td>50; 200             </td><td>- </td></tr><tr>
+    <td>Operator splitting threshold        </td><td>$\theta^\ast$   </td><td>5.0              </td><td>- </td></tr>
+</table> 
+
+
+
+
+<h3>List of references</h3>
+
+
+<ol>  <li>  CC Chueh, N Djilali and W Bangerth.   <br>  三维异质多孔介质中两相流的h-适应性算子分割方法。   <br>  SIAM科学计算杂志，第35卷（2013），第B149-B175页
+
+ <li>  M. Kronbichler, T. Heister, and W. Bangerth  <br>  通过现代数值方法进行高精度地幔对流模拟。   <br>  Geophysics Journal International, vol. 191 (2012), pp.
+
+ <li>  F Brezzi和M Fortin。   <br>  <i>Mixed and Hybrid Finite Element Methods</i>.   <br>  Springer-Verlag, 1991.
+
+ <li>  Z陈。   <br>  <i>Finite Element Methods and Their Applications</i>.   <br>  Springer, 2005.
+
+ <li>  JL Guermond和R Pasquetti.   <br>  基于熵的非线性粘度的守恒定律的傅里叶近似。   <br>  <i>Comptes Rendus Mathematique</i>, 346(13-14): 801-806, 2008.
+
+ <li>  CC Chueh, M Secanell, W Bangerth, and N Djilali.   <br>  异质多孔介质中瞬态两相流的多级自适应模拟。   <br>  <i>Computers and Fluids</i>, 39:1585-1596, 2010.
+
+ <li>  Y Saad和MH Schultz。   <br>  Gmres:用于解决非对称线性系统的广义最小残差算法。   <br>  <i>SIAM Journal on Scientific and Statistical Computing</i>, 7(3):856-869, 1986.
+
+ <li>  F张。   <br>  <i>The Schur Complement and its Applications</i>.   <br>  Springer, 2005.
+
+ <li>  D Silvester和A Wathen。   <br>  稳定的斯托克斯系统的快速迭代解第二部分：使用一般的块状先决条件。   <br>  <i>SIAM Journal on Numerical Analysis</i>, 31(5):1352-1367, 1994.
+
+ <li>  GH Golub和CF van Loan。   <br>  <i>Matrix Computations</i>.   <br>  第三版，约翰霍普金斯大学，1996年。
+
+ <li>  SE Buckley和MC Leverett。   <br>  沙子中流体位移的机制。   <br>  <i>AIME Trans.</i>, 146:107-116, 1942.
+
+ </ol> 
+
+

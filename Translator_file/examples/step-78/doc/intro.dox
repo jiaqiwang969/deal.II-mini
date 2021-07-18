@@ -1,0 +1,393 @@
+examples/step-78/doc/intro.dox
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+布莱克-斯科尔斯方程是一个偏微分方程，它有点不符合普通的方案。它描述了一个 "欧洲看涨 "股票期权的公平价格是多少。不用说得太详细，股票 "期权 "是一个人可以从银行购买的合同，它允许我，但不要求我，在未来某个固定的时间 $T$ 以固定的价格 $K$ 购买特定股票。那么，作为这种期权的买方要回答的问题是："我认为这样的合约值多少钱？"，或者作为卖方，"我需要为这个合约收取多少钱？"，这既是合约在时间 $t<T$ 前的函数，也是股票价格 $S$ 的函数。费舍尔-布莱克和迈伦-斯科尔斯在假设股票价格表现出随机的价格波动，具有一定的 "波动性"，再加上背景的指数价格上涨（可以认为是通货膨胀率，随着时间的推移，所有货币都会贬值）的情况下，得出了这种期权的公平价格 $V(S,t)$ 的偏微分方程。由于他们的工作，布莱克和斯科尔斯在1997年获得了诺贝尔经济科学奖，这使得这是第一个处理有人获得诺贝尔奖的问题的教程程序  @cite black1973pricing  。
+
+该公式如下。
+
+@f{align*}{
+    &\frac{\partial V}{\partial t} + \frac{\sigma^2S^2}{2} \
+    \frac{\partial^2 V}{\partial S^2} + \
+    rS\frac{\partial V}{\partial S} - rV = 0, \
+    \quad\quad &&\forall S\in \Omega, t \in (0,T)
+    \\
+    &V(0,t) = 0, \
+    &&\forall t \in (0,T)
+    \\
+    &V(S,t) \rightarrow S, \
+    && \text{as } S \rightarrow \infty, \forall t \in (0,T)
+    \\
+    &V(S,T) = \max(S-K,0) \
+    &&\forall S \in \Omega
+
+
+@f}
+
+其中
+
+@f{align*}{
+    V(S,t): && \text{Value of call option at time t and asset price S} \\
+    \sigma: && \text{Volatility of the underlying asset} \\
+    r: && \text{Risk free interest rate} \\
+    K : && \text{Strike price for purchasing asset}
+
+
+@f}
+
+
+
+我们应该这样解释这个方程，它是一个时间依赖的偏微分方程，一个 "空间 "变量  $S$  是股票的价格， $V(S,t)$  是时间  $t$  的期权价格，如果当时的股票价格是  $S$  。
+
+<h3>Particularities of the equation system</h3>
+
+在继续讨论其数值解法之前，这个方程中存在一些值得讨论的怪异现象。首先，"空间 "域 $\Omega\subset\mathbb{R}$ 是无界的，因此 $S$ 的值也可以是无界的。这是因为股票价格可能有一个实际的上限，但没有一个概念上的上限。那么边界条件 $V(S,t)\rightarrow S$ 作为 $S\rightarrow \infty$ 可以解释如下。如果股票价格（今天或 $t=T$ 时）是 $S\gg K$ ，那么允许我以价格 $K$ 购买股票的期权的价值是多少？人们期望它是 $V\approx S-K$ 加上一些通货膨胀的调整，或者，如果我们真的真正考虑到 $S$ 的巨大价值，我们可以忽略 $K$ ，得出无限边界的边界值应该是上面所说的 $V\rightarrow S$ 形式。
+
+在实践中，对于我们使用有限元方法来解决这个问题，我们需要对 $\Omega$ 进行约束。由于这个方程描述的是价格，而谈论价格为负值是没有意义的，我们将设定 $\Omega$ 的下限为0。然后，对于上限，我们将选择一个非常大的数字，一个 $S$ 不太可能达到的数字。我们将称其为 $S_\text{max}$ 。所以， $\Omega=[0,S_\text{max}]$  。
+
+第二，在截断域之后，我们需要问在这个现在的有限边界上我们应该摆出什么边界值。为了解决这个问题，我们使用 "看跌-看涨 "平价  @cite stoll1969relationship  。一个 "拉动期权 "是指我们被允许，但不是必须，在未来的某个时间以价格  $K$  向某人出售*股票  $T$  。这说明
+
+@f{align*}{
+    V(S,t)+Ke^{-r(T-t)}=P(S,t)+S
+
+
+@f}
+
+其中 $V(S,t)$ 是看涨期权的价值，而 $P(S,t)$ 是看跌期权的价值。由于我们预计 $P(S,t) \rightarrow 0$ 为 $S \rightarrow \infty$ ，这说明
+
+@f{align*}{
+    V(S,t) \rightarrow S-Ke^{-r(T-t)},
+
+
+@f}
+
+而我们可以用这个作为我们的有限点的合理边界条件  $S_\text{max}$  。
+
+Block-Scholes 方程的第二个复杂之处在于，我们得到的是一个最终条件，而不是初始条件。这是因为我们知道期权在 $t=T$ 时的价值：如果 $T$ 时的股票价格是 $S<K$ ，那么我们就没有动力使用我们的期权买入价格 $K$ ，因为我们可以在公开市场上以更低的价格买入该股票。所以 $V(S,T)=0$ 为 $S<K$  。另一方面，如果在 $T$ 时我们有 $S>K$ ，那么我们可以通过期权以 $K$ 的价格买入股票，并立即在市场上以 $S$ 的价格再次卖出，给我带来 $S-K$ 的利润。换句话说， $V(S,T)=S-K$ 换取 $S>K$  。因此，我们只知道在*结束时间*的 $V$ 的值，而不知道初始时间--事实上，找出当前时间的公平价格（传统上被认为是 $t=0$ ）是解决这些方程的关键所在。
+
+这意味着这不是一个在时间上向前推进的方程，实际上是在时间上*向后推进的。因此，通过改变变量 $\tau=T-t$ 来反向解决这个问题是有意义的，现在 $\tau$ 表示打击时间 $T$ 之前的时间。
+
+有了这一切，我们最终得到了以下问题。
+
+@f{align*}{
+    &-\frac{\partial V}{\partial \tau} + \frac{\sigma^2S^2}{2} \
+    \frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} - rV=0\
+    , \quad\quad &&\forall S\in [0,S_\text{max}], \tau \in [0,T]
+    \\
+    &V(0,\tau) = 0, \
+    &&\forall \tau \in [0,T]
+    \\
+    &V(S_\text{max},\tau)=S_\text{max}-Ke^{-r\tau}, \
+    &&\forall \tau \in [0,T]
+    \\
+    &V(S,0) = \max(S-K,0) \
+    &&\forall S \in [0,S_\text{max}]
+
+
+@f}
+
+
+
+从概念上讲，这是一个变量 $V$ 的平流-扩散-反应问题：有一个二阶导数的扩散项，一个一阶导数的平流项，以及一个零阶反应项。我们可以预期这个问题在实践中会有一些宽容，因为对于现实中的系数值，它是扩散主导的。但是，由于问题中的平流项，我们将不得不小心地进行网格细化和时间步长的选择。还有一个问题是，扩散项是以非保守的形式写的，因此按部分积分并不明显。这将在下一节中讨论。
+
+<h3>Scheme for the numerical solution</h3>
+
+我们将使用IMEX方法解决这个问题。特别是，我们首先用theta方法进行时间离散，随后将为平流和扩散项选择不同的theta值。让 $V^n(S)$ 近似于 $V(S,\tau_n)$  。
+
+@f{align*}{
+    0=&-\frac{V^n(S)-V^{n-1}(S)}{k_n} \\
+    &+\frac{\sigma^2S^2}{2}\left[(1-\theta)\frac{d^2V^{n-1}(S)}{dS^2} + \
+    \theta \frac{d^2V^{n}(S)}{dS^2}\right] \\
+    &+rS\left[(1-\theta)\frac{dV^{n-1}(S)}{dS} + \
+    \theta\frac{dV^{n}(S)}{dS}\right]  \\
+    &-r\left[(1-\theta)V^{n-1}(S) + \theta V^n(S)\right]
+
+
+@f}
+
+这里， $k_n=\tau_n-\tau_{n-1}$ 是时间步长。鉴于这种时间离散化，我们可以通过与测试函数相乘，然后通过部分积分来进行空间离散化。因为其中有一些有趣的细节，由于这个方程中的平流和非平流项，这个过程将被详细解释。
+
+因此，我们首先用测试函数相乘， $\{\phi_i(S)\}_{i\in\mathbb{N}}$  。
+
+@f{align*}{
+    0=&-\int_0^{S_\text{max}}\phi_i(S)\left[V^n(S)-V^{n-1}(S)\right]dS \\
+    &+k_n\int_0^{S_\text{max}}\phi_i(S)\left[\frac{\sigma^2S^2}{2} \
+    \left[(1-\theta)\frac{d^2V^{n-1}(S)}{dS^2} + \
+     \theta \frac{d^2V^{n}(S)}{dS^2}\right]\right]dS \\
+    &+k_n\int_0^{S_\text{max}}\phi_i(S)\left[rS\left[(1-\theta)
+     \frac{dV^{n-1}(S)}{dS}\
+     + \theta\frac{dV^{n}(S)}{dS}\right]\right]dS  \\
+    &-k_n\int_0^{S_\text{max}}\phi_i(S)\left[r\left[(1-\theta)V^{n-1}(S)\
+     + \theta V^n(S)\right]\right]dS
+
+
+@f}
+
+
+
+
+像往常一样，（1）变成 $-\textbf{M}V^n+\textbf{M}V^{n-1}$ ，（4）变成 $k_n\left[-r(1-\theta)\textbf{M}V^{n-1} - \theta r\textbf{M}V^n\right]$ ，其中 $\textbf{M}_{i,j}=\left(\phi_i(S),\phi_j(S)\right)$ ，我们不仅用 $V$ 表示函数 $V(S)$ ，而且用离散化后的节点值向量表示。
+
+有趣的部分来自于（2）和（3）。
+
+
+对于（2），我们有。
+
+@f{align*}{
+    &k_n\int_0^{S_\text{max}}\phi_i(S)\left[\frac{\sigma^2S^2}{2} \
+     \left[(1-\theta)\frac{d^2V^{n-1}(S)}{dS^2} + \
+     \theta \frac{d^2V^{n}(S)}{dS^2}\right]\right]dS \\
+    &=k_n(1-\theta)\int_0^{S_\text{max}}\phi_i(S)\frac{\sigma^2S^2}{2} \
+     \frac{d^2V^{n-1}(S)}{dS^2} \
+    +k_n\theta\int_0^{S_\text{max}}\phi_i(S)\frac{\sigma^2S^2}{2} \
+     \frac{d^2V^{n}(S)}{dS^2}
+
+
+@f}
+
+
+
+这里有两个积分，或多或少都是一样的，区别在于积分前面的系数略有不同，以及V的时间步骤不同。因此，考虑一般的积分，我们将用部分积分的方法来解决这个问题。
+
+@f{align*}{
+    &\int_{0}^{S_\text{max}} \phi_i(S)\frac{\sigma^2S^2}{2}
+        \frac{d^2V^n(S)}{dS^2}dS \\
+    &= \phi_i(S)\frac{1}{2}\sigma^2S^2\frac{dV^n(S)}{dS}\Bigg|_0^{S_{max}} - \
+    \int_0^{S_\text{max}} \phi_i(S)\sigma^2S\frac{dV^n(S)}{dS}dS - \
+    \int_0^{S_\text{max}} \frac{d\phi_i(S)}{dS}\frac{1}{2}\sigma^2S^2 \
+    \frac{dV^n(S)}{dS}dS \\
+    &= -\int_0^{S_\text{max}} \phi_i(S)\sigma^2S\frac{dV^n(S)}{dS}dS - \
+    \int_0^{S_\text{max}} \frac{d\phi_i(S)}{dS}\frac{1}{2}\sigma^2S^2 \
+    \frac{dV^n(S)}{dS}dS \\
+    &= -\int_0^{S_\text{max}} \phi_i(S)\sigma^2S \sum_j V_j^n
+        \frac{d\phi_j(S)}{dS}dS \
+
+
+    -\int_0^{S_\text{max}} \frac{d\phi_i(S)}{dS}\frac{1}{2} \
+    \sigma^2S^2  \sum_k V_k^n \frac{d\phi_k(S)}{dS}dS \\
+    &= -\sum_j \sigma^2 \int_0^{S_\text{max}} \phi_i(S)S
+        \frac{d\phi_j(S)}{dS}dS V_j^n\
+
+
+    - \sum_k \frac{1}{2}\sigma^2 \int_0^{S_\text{max}} \frac{d\phi_i(S)}{dS}S^2\
+    \frac{d\phi_k}{dS}dS V_k^n \\
+    &= -\sum_j \sigma^2 \left(\phi_i(S)S, \frac{d\phi_j(S)}{dS}\right) V_j^n \
+
+
+    - \sum_k \frac{1}{2}\sigma^2 \left(\frac{d\phi_i(S)}{dS}S^2,\
+    \frac{d\phi_k(S)}{dS}\right) V_k^n \\
+    &= -\sigma^2\textbf{B}V^n - \frac{1}{2}\sigma^2\textbf{D}V^n, \quad\quad \
+    \textbf{B}_{i,j} = \left(\phi_i(S)S, \frac{d\phi_j(S)}{dS}\right),\
+    \textbf{D}_{i,j} = \left(\frac{d\phi_i(S)}{dS}S^2,\frac{d\phi_j(S)}{dS}\right)
+
+
+@f}
+
+
+
+因此，在加入常数并将 $V^n$ 换成 $V^{n-1}$ （如适用）后，我们对（2）得出如下结论。
+
+@f{align*}{
+    &k_n\int_0^{S_\text{max}}\phi_i(S)\left[\frac{\sigma^2S^2}{2}
+        \left[(1-\theta)\
+    \frac{d^2V^{n-1}(S)}{dS^2} + \
+    \theta \frac{d^2V^{n}(S)}{dS^2}\right]\right]dS \\
+    &= k_n\left[-(1-\theta)\sigma^2\textbf{B}V^{n-1}\
+
+
+     -(1-\theta)\frac{1}{2}\sigma^2\textbf{D}V^{n-1} \
+
+
+    -\theta\sigma^2\textbf{B}V^{n}
+
+
+     -\theta\frac{1}{2}\sigma^2\textbf{D}V^{n}\right]
+
+
+@f}
+
+但是，由于矩阵 $\textbf{B}$ 涉及一个平流项，我们将在那里选择 $\theta=0$ --换句话说，我们使用显式欧拉方法来处理平流问题。相反，由于矩阵 $\textbf{D}$ 涉及扩散项，我们将在那里选择 $\theta=1/2$ --即我们用二阶Crank-Nicolson方法处理扩散。
+
+因此，我们得出以下结论。
+
+@f{align*}{
+    k_n\left[-\frac{1}{4}\sigma^2\textbf{D}V^{n-1} \
+
+
+    -\frac{1}{4}\sigma^2\textbf{D}V^n \
+
+
+    - \sigma^2\textbf{B}V^{n-1}\right]
+
+
+@f}
+
+
+
+现在，要处理（3）。为此，我们将再次通过考虑上述的一般情况来进行。
+
+@f{align*}{
+    &\int_{0}^{S_\text{max}} \phi_i(S)rS\frac{dV^n}{dS}dS \\
+    &= \phi_i(S)rSV^n\Bigg|_0^{S_\text{max}} - \int_0^{S_\text{max}}
+        \left[r\phi_i(S) \
+    + r\frac{d\phi_i(S)}{dS}S \right]V^ndS \\
+    &= -\int_0^{S_\text{max}} r\phi_i(S)V^ndS - \
+    \int_0^{S_\text{max}} r\frac{d\phi_i(S)}{dS}SV^ndS \\
+    &= -\int_0^{S_\text{max}} r\phi_i(S) \sum_j V_j^n\phi_j(S)dS \
+
+
+    -\int_0^{S_\text{max}} rS\frac{d\phi_i(S)}{dS} \sum_k V_k\phi_k(S)dS \\
+    &= -\sum_j r\left(\phi_i(S), \phi_j(S)\right) V_j^n -\
+     \sum_k r\left(S\frac{d\phi_i(S)}{dS}, \phi_k(S)\right)V_k^n \\
+    &= -r\textbf{M}V^n -r\textbf{A}V^n, \quad\quad\
+    \textbf{M}_{i,j} = \left(\phi_i(S), \phi_j(S)\right),\
+    \textbf{A}_{i,j} = \left(S\frac{d\phi_i(S)}{dS}, \phi_j(S)\right)
+
+
+@f}
+
+
+
+因此，在加入常数并将 $V^n$ 换成 $V^{n-1}$ （如适用）后，我们对（3）得出如下结论。
+
+@f{align*}{
+    &k_n\int_0^{S_\text{max}}\phi_i(S)\left[rS\left[(1-\theta)
+        \frac{dV^{n-1}(S)}{dS} +\
+     \theta\frac{dV^{n}(S)}{dS}\right]\right]dS \\
+    &= k_n\left[-(1-\theta)r\textbf{M}V^{n-1} -(1-\theta)r\textbf{A}V^{n-1}\
+
+
+    -\theta r\textbf{M}V^n -\theta r\textbf{A}V^n\right]
+
+
+@f}
+
+就像以前一样，我们将用 $\theta=0$ 来表示矩阵 $\textbf{A}$ ，用 $\theta=\frac{1}{2}$ 表示矩阵 $\textbf{M}$  。因此，我们对（3）得出以下结果。
+
+@f{align*}{
+    k_n\left[-\frac{1}{2}r\textbf{M}V^{n-1} - \frac{1}{2}r\textbf{M}V^n \
+
+
+    -r\textbf{A}V^{n-1}\right]
+
+
+@f}
+
+
+
+现在，把所有的东西放在一起，我们得到以下布莱克-斯科尔斯方程的离散形式。
+
+@f{align*}{
+    0&= \\
+    &-\textbf{M}V^n+\textbf{M}V^{n-1} \\
+    & +k_n\left[-\frac{1}{4}\sigma^2\textbf{D}V^{n-1} \
+
+
+    -\frac{1}{4}\sigma^2\textbf{D}V^n \
+
+
+    - \sigma^2\textbf{B}V^n \
+
+
+     -\frac{1}{2}r\textbf{M}V^{n-1} - \frac{1}{2}r\textbf{M}V^n \
+
+
+    -r\textbf{A}V^n \
+
+
+     -r\frac{1}{2}\textbf{M}V^{n-1} - \frac{1}{2} r\textbf{M}V^n\right] \\
+    &= -\textbf{M}V^n + \textbf{M}V^{n-1} +\
+    k_n\left[- \frac{1}{4}\sigma^2\textbf{D}V^{n-1} -\
+    \frac{1}{4}\sigma^2\textbf{D}V^n - r\textbf{M}V^{n-1} -\
+    r\textbf{M}V^n  - \sigma^2\textbf{B}V^{n-1} - r\textbf{A}V^{n-1}\right]
+
+
+@f}
+
+因此，我们总共有。
+
+@f{equation}{
+    0 = \textbf{M}V^n - \textbf{M}V^{n-1} +\
+    k_n\left[ \frac{1}{4}\sigma^2\textbf{D}V^{n-1} +\
+    \frac{1}{4}\sigma^2\textbf{D}V^n + r\textbf{M}V^{n-1} + r\textbf{M}V^n  +\
+    \sigma^2\textbf{B}V^{n-1} + r\textbf{A}V^{n-1}\right]\tag{*}
+
+
+@f}
+
+
+
+像往常一样，我们可以把未知量写在左边，把已知量写在右边。这就导致了在每个时间步骤中必须解决的以下线性系统。
+
+@f{align*}{
+    \left[\textbf{M}+\frac{1}{4}k_n\sigma^2\textbf{D}+k_nr\textbf{M}\right]V^n\
+     =\
+    \left[-\frac{1}{4}k_n\sigma^2\textbf{D}-\
+    k_nr\textbf{M}+k_n\sigma^2\textbf{B}-\
+    k_nr\textbf{A}+\textbf{M}\right]V^{n-1}
+
+
+@f}
+
+
+
+
+
+
+
+
+
+<h3>Test Case</h3> 对于这个程序，我们将使用制造解决方案的方法（MMS）来测试它是否正确工作。这意味着，我们将选择我们的解决方案是类似于步骤7的某个函数。对于我们的案例，我们将使用。
+
+@f{align*}{
+    V(S,\tau) = -\tau^2 - S^2 + 6\tag{**}
+
+
+@f}
+
+这意味着，利用我们的PDE，我们得出了以下问题。
+
+@f{align*}{
+    &-\frac{\partial V}{\partial \tau} +\
+    \frac{\sigma^2S^2}{2}\frac{\partial^2 V}{\partial S^2} +\
+    rS\frac{\partial V}{\partial S} - rV = f(S,\tau) \\
+    &V(0,\tau) = -\tau^2 + 6 \\
+    &V(S_\text{max}, \tau) = -S_\text{max}^2 - \tau^2 + 6 \\
+    &V(S, 0) = -S^2 + 6
+
+
+@f}
+
+其中， $f(S,\tau) = 2\tau - \sigma^2S^2 - 2rS^2 - r(-\tau^2 - S^2 + 6)$  。这个设置现在有方程本身和 $S=0$ 处的边界条件的右手边，这是我们以前没有的，同时还有不符合实际情况的 "最终 "条件（或者，用 $\tau$ -时间 "初始条件"）。我们将以这样的方式在代码中实现这一点，以便于交换 -- 上述变化的引入只是为了能够使用制造的解决方案。
+
+如果程序工作正常，那么它应该产生（**）作为解决方案。这确实意味着我们需要在一定程度上修改我们的变异形式，以考虑到非零的右手边。
+
+首先，我们定义如下。
+
+@f{align*}{
+    F^n_i = \left(\phi_i(S), f^n(S)\right), && \text{where } f^n(S) =\
+     f(S,\tau_n)
+
+
+@f}
+
+因此，我们得出了新的方程式。
+
+@f{align*}{
+    \left[\textbf{M}+\frac{1}{4}k_n\sigma^2\textbf{D}+k_nr\textbf{M}\right]V^n\
+     =\
+     \left[-\frac{1}{4}k_n\sigma^2\textbf{D}-\
+     k_nr\textbf{M}+k_n\sigma^2\textbf{B}-\
+     k_nr\textbf{A}+\textbf{M}\right]V^{n-1} -\
+      k_n\left[\frac{1}{2}F^{n-1}+\frac{1}{2}F^n\right]
+
+
+@f}
+
+
+
+然后我们按上述方法解决这个方程。
+
+

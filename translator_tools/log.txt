@@ -1,0 +1,187 @@
+../Origin_file/examples/CMakeLists.txt
+
+../Origin_file/examples/README.md
+
+../Origin_file/examples/doxygen
+
+../Origin_file/examples/step-1
+../Origin_file/examples/step-1/doc/intro.dox ../Origin_file/examples/step-1/doc/results.dox
+../Origin_file/examples/step-10
+../Origin_file/examples/step-10/doc/intro.dox ../Origin_file/examples/step-10/doc/results.dox
+../Origin_file/examples/step-11
+../Origin_file/examples/step-11/doc/intro.dox ../Origin_file/examples/step-11/doc/results.dox
+../Origin_file/examples/step-12
+../Origin_file/examples/step-12/doc/intro.dox ../Origin_file/examples/step-12/doc/results.dox
+../Origin_file/examples/step-12b
+../Origin_file/examples/step-12b/doc/intro.dox ../Origin_file/examples/step-12b/doc/results.dox
+../Origin_file/examples/step-13
+../Origin_file/examples/step-13/doc/intro.dox ../Origin_file/examples/step-13/doc/results.dox
+../Origin_file/examples/step-14
+../Origin_file/examples/step-14/doc/intro.dox ../Origin_file/examples/step-14/doc/results.dox
+../Origin_file/examples/step-15
+../Origin_file/examples/step-15/doc/intro.dox ../Origin_file/examples/step-15/doc/results.dox
+../Origin_file/examples/step-16
+../Origin_file/examples/step-16/doc/intro.dox ../Origin_file/examples/step-16/doc/results.dox
+../Origin_file/examples/step-16b
+../Origin_file/examples/step-16b/doc/intro.dox ../Origin_file/examples/step-16b/doc/results.dox
+../Origin_file/examples/step-17
+../Origin_file/examples/step-17/doc/intro.dox ../Origin_file/examples/step-17/doc/results.dox
+../Origin_file/examples/step-18
+../Origin_file/examples/step-18/doc/intro.dox ../Origin_file/examples/step-18/doc/results.dox
+../Origin_file/examples/step-19
+../Origin_file/examples/step-19/doc/intro.dox ../Origin_file/examples/step-19/doc/results.dox
+../Origin_file/examples/step-2
+../Origin_file/examples/step-2/doc/intro.dox ../Origin_file/examples/step-2/doc/results.dox
+../Origin_file/examples/step-20
+../Origin_file/examples/step-20/doc/intro.dox ../Origin_file/examples/step-20/doc/results.dox
+../Origin_file/examples/step-21
+../Origin_file/examples/step-21/doc/intro.dox ../Origin_file/examples/step-21/doc/results.dox
+../Origin_file/examples/step-22
+../Origin_file/examples/step-22/doc/intro.dox ../Origin_file/examples/step-22/doc/results.dox
+../Origin_file/examples/step-23
+../Origin_file/examples/step-23/doc/intro.dox ../Origin_file/examples/step-23/doc/results.dox
+../Origin_file/examples/step-24
+../Origin_file/examples/step-24/doc/intro.dox ../Origin_file/examples/step-24/doc/results.dox
+../Origin_file/examples/step-25
+../Origin_file/examples/step-25/doc/intro.dox ../Origin_file/examples/step-25/doc/results.dox
+../Origin_file/examples/step-26
+../Origin_file/examples/step-26/doc/intro.dox ../Origin_file/examples/step-26/doc/results.dox
+../Origin_file/examples/step-27
+../Origin_file/examples/step-27/doc/intro.dox ../Origin_file/examples/step-27/doc/results.dox
+../Origin_file/examples/step-28
+../Origin_file/examples/step-28/doc/intro.dox ../Origin_file/examples/step-28/doc/results.dox
+../Origin_file/examples/step-29
+../Origin_file/examples/step-29/doc/intro.dox ../Origin_file/examples/step-29/doc/results.dox
+../Origin_file/examples/step-3
+../Origin_file/examples/step-3/doc/intro.dox ../Origin_file/examples/step-3/doc/results.dox
+../Origin_file/examples/step-30
+../Origin_file/examples/step-30/doc/intro.dox ../Origin_file/examples/step-30/doc/results.dox
+../Origin_file/examples/step-31
+../Origin_file/examples/step-31/doc/intro.dox ../Origin_file/examples/step-31/doc/results.dox
+../Origin_file/examples/step-32
+../Origin_file/examples/step-32/doc/intro.dox ../Origin_file/examples/step-32/doc/results.dox
+../Origin_file/examples/step-33
+../Origin_file/examples/step-33/doc/intro.dox ../Origin_file/examples/step-33/doc/results.dox
+../Origin_file/examples/step-34
+../Origin_file/examples/step-34/doc/intro.dox ../Origin_file/examples/step-34/doc/results.dox
+../Origin_file/examples/step-35
+../Origin_file/examples/step-35/doc/intro.dox ../Origin_file/examples/step-35/doc/results.dox
+../Origin_file/examples/step-36
+../Origin_file/examples/step-36/doc/intro.dox ../Origin_file/examples/step-36/doc/results.dox
+../Origin_file/examples/step-37
+../Origin_file/examples/step-37/doc/intro.dox ../Origin_file/examples/step-37/doc/results.dox
+../Origin_file/examples/step-38
+../Origin_file/examples/step-38/doc/intro.dox ../Origin_file/examples/step-38/doc/results.dox
+../Origin_file/examples/step-39
+../Origin_file/examples/step-39/doc/intro.dox ../Origin_file/examples/step-39/doc/results.dox
+../Origin_file/examples/step-4
+../Origin_file/examples/step-4/doc/intro.dox ../Origin_file/examples/step-4/doc/results.dox
+../Origin_file/examples/step-40
+../Origin_file/examples/step-40/doc/intro.dox ../Origin_file/examples/step-40/doc/results.dox
+../Origin_file/examples/step-41
+../Origin_file/examples/step-41/doc/intro.dox ../Origin_file/examples/step-41/doc/results.dox
+../Origin_file/examples/step-42
+../Origin_file/examples/step-42/doc/intro.dox ../Origin_file/examples/step-42/doc/results.dox
+../Origin_file/examples/step-43
+../Origin_file/examples/step-43/doc/intro.dox ../Origin_file/examples/step-43/doc/results.dox
+../Origin_file/examples/step-44
+../Origin_file/examples/step-44/doc/intro.dox ../Origin_file/examples/step-44/doc/results.dox
+../Origin_file/examples/step-45
+../Origin_file/examples/step-45/doc/intro.dox ../Origin_file/examples/step-45/doc/results.dox
+../Origin_file/examples/step-46
+../Origin_file/examples/step-46/doc/intro.dox ../Origin_file/examples/step-46/doc/results.dox
+../Origin_file/examples/step-47
+../Origin_file/examples/step-47/doc/intro.dox ../Origin_file/examples/step-47/doc/results.dox
+../Origin_file/examples/step-48
+../Origin_file/examples/step-48/doc/intro.dox ../Origin_file/examples/step-48/doc/results.dox
+../Origin_file/examples/step-49
+../Origin_file/examples/step-49/doc/intro.dox ../Origin_file/examples/step-49/doc/results.dox
+../Origin_file/examples/step-5
+../Origin_file/examples/step-5/doc/intro.dox ../Origin_file/examples/step-5/doc/results.dox
+../Origin_file/examples/step-50
+../Origin_file/examples/step-50/doc/intro.dox ../Origin_file/examples/step-50/doc/results.dox
+../Origin_file/examples/step-51
+../Origin_file/examples/step-51/doc/intro.dox ../Origin_file/examples/step-51/doc/results.dox
+../Origin_file/examples/step-52
+../Origin_file/examples/step-52/doc/intro.dox ../Origin_file/examples/step-52/doc/results.dox
+../Origin_file/examples/step-53
+../Origin_file/examples/step-53/doc/intro.dox ../Origin_file/examples/step-53/doc/results.dox
+../Origin_file/examples/step-54
+../Origin_file/examples/step-54/doc/intro.dox ../Origin_file/examples/step-54/doc/results.dox
+../Origin_file/examples/step-55
+../Origin_file/examples/step-55/doc/intro.dox ../Origin_file/examples/step-55/doc/results.dox
+../Origin_file/examples/step-56
+../Origin_file/examples/step-56/doc/intro.dox ../Origin_file/examples/step-56/doc/results.dox
+../Origin_file/examples/step-57
+../Origin_file/examples/step-57/doc/intro.dox ../Origin_file/examples/step-57/doc/results.dox
+../Origin_file/examples/step-58
+../Origin_file/examples/step-58/doc/intro.dox ../Origin_file/examples/step-58/doc/results.dox
+../Origin_file/examples/step-59
+../Origin_file/examples/step-59/doc/intro.dox ../Origin_file/examples/step-59/doc/results.dox
+../Origin_file/examples/step-6
+../Origin_file/examples/step-6/doc/intro.dox ../Origin_file/examples/step-6/doc/results.dox
+../Origin_file/examples/step-60
+../Origin_file/examples/step-60/doc/intro.dox ../Origin_file/examples/step-60/doc/results.dox
+../Origin_file/examples/step-61
+../Origin_file/examples/step-61/doc/intro.dox ../Origin_file/examples/step-61/doc/results.dox
+../Origin_file/examples/step-62
+../Origin_file/examples/step-62/doc/intro.dox ../Origin_file/examples/step-62/doc/results.dox
+../Origin_file/examples/step-63
+../Origin_file/examples/step-63/doc/intro.dox ../Origin_file/examples/step-63/doc/results.dox
+../Origin_file/examples/step-64
+../Origin_file/examples/step-64/doc/intro.dox ../Origin_file/examples/step-64/doc/results.dox
+../Origin_file/examples/step-65
+../Origin_file/examples/step-65/doc/intro.dox ../Origin_file/examples/step-65/doc/results.dox
+../Origin_file/examples/step-66
+../Origin_file/examples/step-66/doc/intro.dox ../Origin_file/examples/step-66/doc/results.dox
+../Origin_file/examples/step-67
+../Origin_file/examples/step-67/doc/intro.dox ../Origin_file/examples/step-67/doc/results.dox
+../Origin_file/examples/step-68
+../Origin_file/examples/step-68/doc/intro.dox ../Origin_file/examples/step-68/doc/results.dox
+../Origin_file/examples/step-69
+../Origin_file/examples/step-69/doc/intro.dox ../Origin_file/examples/step-69/doc/results.dox
+../Origin_file/examples/step-7
+../Origin_file/examples/step-7/doc/intro.dox ../Origin_file/examples/step-7/doc/results.dox
+../Origin_file/examples/step-70
+../Origin_file/examples/step-70/doc/intro.dox ../Origin_file/examples/step-70/doc/results.dox
+../Origin_file/examples/step-71
+../Origin_file/examples/step-71/doc/intro.dox ../Origin_file/examples/step-71/doc/results.dox
+../Origin_file/examples/step-72
+../Origin_file/examples/step-72/doc/intro.dox ../Origin_file/examples/step-72/doc/results.dox
+../Origin_file/examples/step-74
+../Origin_file/examples/step-74/doc/intro.dox ../Origin_file/examples/step-74/doc/results.dox
+../Origin_file/examples/step-75
+../Origin_file/examples/step-75/doc/intro.dox ../Origin_file/examples/step-75/doc/results.dox
+../Origin_file/examples/step-76
+../Origin_file/examples/step-76/doc/intro.dox ../Origin_file/examples/step-76/doc/results.dox
+../Origin_file/examples/step-77
+../Origin_file/examples/step-77/doc/intro.dox ../Origin_file/examples/step-77/doc/results.dox
+../Origin_file/examples/step-78
+../Origin_file/examples/step-78/doc/intro.dox ../Origin_file/examples/step-78/doc/results.dox
+../Origin_file/examples/step-79
+../Origin_file/examples/step-79/doc/intro.dox ../Origin_file/examples/step-79/doc/results.dox
+../Origin_file/examples/step-8
+../Origin_file/examples/step-8/doc/intro.dox ../Origin_file/examples/step-8/doc/results.dox
+../Origin_file/examples/step-9
+../Origin_file/examples/step-9/doc/intro.dox ../Origin_file/examples/step-9/doc/results.dox
+Examples.sh
+README.md
+cc_from.py
+cc_to.py
+examples_from.py
+examples_step1_merge.sh
+examples_step3_distribution.sh
+examples_to.py
+from_T.py
+include_from.py
+include_step1_to_debug.sh
+include_step2_to_wrap_debug.sh
+include_step3_merge.sh
+include_step3_to_wrap_debug.sh
+include_to.py
+include_wrap_debug.py
+log.txt
+translator_to.sh
+wrap.py
+('LaTeX file:', '../translator_factory/examples_collect/examples_collect_all_0.h')
+('Input file:', '../translator_factory/examples_collect/examples_collect_all_0.txt')

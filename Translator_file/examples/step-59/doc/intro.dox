@@ -1,0 +1,121 @@
+examples/step-59/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Katharina Kormann and Martin
+Kronbichler.
+
+
+This work was partly supported by the German Research Foundation (DFG) through
+the project "High-order discontinuous Galerkin for the exa-scale" (ExaDG)
+within the priority program "Software for Exascale Computing" (SPPEXA). </i>
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+无矩阵算子评估使高阶多项式基的离散化得到了非常有效的实现，这是由于一种叫做和因子化的方法。这个概念已经在step-37和step-48教程程序中介绍过。在这个教程程序中，我们将这些概念扩展到包括面积分的非连续Galerkin（DG）方案，这是一类高阶特别普遍的方法。
+
+无矩阵评估的基本思想与连续元素的评估是一样的。迭代求解器或多网格平滑器中出现的矩阵-向量乘积不是由经典的稀疏矩阵核来实现的，而是通过对基础积分的实时评估来隐含地应用。对于用张量积正交规则集成的张量积形状函数，通过使用和-因子化技术，这种评估特别有效，它将最初涉及 $(k+1)^{2d}$ 的插值操作与相关形状函数在 $k$ 度的 $d$ 维的张量积正交点分解为 $d$ 的一维操作，每个成本 $(k+1)^{d+1}$ 。在三维中，这将复杂度降低了 $k$ 的两个次方。当以每个自由度的复杂度来衡量时，复杂度是 $\mathcal O(k)$ 的多项式程度。由于DG中存在面积分，也由于对正交点的操作涉及更多的内存传输，这两者的规模为 $\mathcal O(1)$ ，观察到的复杂度通常是中等 $k\leq 10$ 的常数。这意味着，以每秒自由度计算，高阶方法的评估吞吐量与低阶方法相同。
+
+关于算法的更多信息可参见Martin Kronbichler和Katharina Kormann的预印本 <br>  <a href="https://arxiv.org/abs/1711.03590">Fast matrix-free evaluation of
+discontinuous Galerkin finite element operators</a>，arXiv:1711.03590。
+
+<h3>The symmetric interior penalty formulation for the Laplacian</h3>
+
+在本教程中，我们以无矩阵的DG框架为例，对拉普拉斯进行内部惩罚离散化，即与Step-39教程中使用的方案相同。拉普拉斯的离散化是由以下弱形式给出的
+
+@f{align*}
+&\sum_{K\in\text{cells}} \left(\nabla v_h, \nabla u_h\right)_{K}+\\
+&\sum_{F\in\text{faces}}\Big(-\left<\jump{v_h}, \average{\nabla u_h}\right>_{F} - \left<\average{\nabla v_h}, \jump{u_h}\right>_{F} + \left<\jump{v_h}, \sigma \jump{u_h}\right>_{F}\Big) \\
+&= \sum_{K\in\text{cells}}\left(v_h, f\right)_{K},
+
+
+@f}
+
+其中 $\jump{v} = v^- \mathbf{n}^- + v^+ \mathbf{n}^+ = \mathbf n^{-}
+\left(v^- - v^+\right)$ 表示数量 $v$ 从两个相关单元 $K^-$ 和 $K^+$ 的定向跳跃， $\average{v}=\frac{v^- + v^+}{2}$ 是两边的平均值。
+
+方程中的项代表分项积分后的单元积分，由于分项积分和插入平均通量而在元素界面产生的原始一致性项，为恢复基础矩阵的对称性而添加的邻接一致性项，以及系数为 $\sigma$ 的惩罚项，其大小等于单元在面的法线方向的长度乘以 $k(k+1)$  ，见步骤39。惩罚项的选择是为了使逆向估计成立，并且最终的弱形式是强制性的，即在离散设置中是正定的。邻接一致性项和惩罚项涉及元素界面上的跳跃 $\jump{u_h}$ ，这在解析解中消失了 $u$  。因此，这些项与原始PDE一致，保证了该方法可以保留最佳收敛顺序。
+
+在下面的实现中，我们通过将法向量 $\mathbf{n}^-$ 从跳跃项移到导数中来实现上面的弱形式，形成<i>normal</i>形式的导数。这使得在正交点上的实现稍微有效一些，因为我们只需要处理标量项而不是张量，而且在数学上是等价的。
+
+对于边界条件，我们使用所谓的镜像原理，通过从内部解 $u^-$ 结合给定的边界数据进行外推来定义<i>artificial</i>外部值 $u^+$ ，在迪里希特边界设置 $u^+ = -u^- + 2
+g_\text{D}$ 和 $\mathbf{n}^-\cdot \nabla u^+ = \mathbf{n}^-\cdot \nabla u^-$ ，在纽曼边界设置 $u^+=u^-$ 和 $\mathbf{n}^-\cdot \nabla u^+ =
+
+
+-\mathbf{n}^-\cdot \nabla u^- + 2 g_\text{N}$ ，对于给定的迪里希特值 $g_\text{D}$ 和纽曼值 $g_\text{N}$  。然后将这些表达式插入上述弱形式中。涉及已知量 $g_\text{D}$ 和 $g_\text{N}$ 的贡献最终被移到右手边，而未知值 $\varepsilon(\Delta \mathbf{u}^n(\mathbf{x}_q))$ 被保留在左手边，对矩阵项的贡献与内部面类似。经过这些操作，得到了与步骤39中相同的弱形式。
+
+<h3>Face integration support in MatrixFree and FEFaceEvaluation</h3>
+
+deal.II的无矩阵框架为实现上述离散化方程的作用提供了必要的基础设施。相对于我们在步骤37和步骤48中使用的 MatrixFree::cell_loop() ，我们现在用 MatrixFree::loop() 建立一个代码，它需要三个函数指针，一个用于单元积分，一个用于内面积分，一个用于边界面积分（与步骤39教程程序中使用的MeshWorker的设计相类似）。在这三个函数中的每一个，我们都会在正交点上实现各自的条款。对于向量条目和正交点上的值和梯度之间的插值，我们使用FEEvaluation类来处理单元贡献，FEFaceEvaluation类来处理面的贡献。这些函数的基本用法已经在step-37教程程序中得到了广泛的讨论。
+
+在 MatrixFree::loop(), 中，所有内部面都正好被访问一次，所以必须确保计算来自测试函数 $v_h^-$ 和 $v_h^+$ 的贡献。考虑到两边的测试函数确实是独立的，上面的弱形式实际上意味着我们在用测试函数的法向导数进行测试时，向名为`phi_inner`和`phi_outer`的FEFaceEvaluation对象提交相同的贡献，而在用测试函数的值进行测试时，则提交相反符号的值，因为后者由于跳跃项而涉及相反符号。对于不同细化程度的单元之间的面，从细化的一侧进行整合，FEFaceEvaluation自动执行内插到粗略一侧的子面。因此，一个悬空的节点永远不会明确地出现在用户实现的弱形式中。
+
+每个面被精确访问一次的事实也适用于用MPI并行化时不同处理器之间的子域边界的那些面，其中一个单元属于一个处理器，一个属于另一个。 MatrixFree::reinit() 中的设置将面分成了两边，最终只报告了 MatrixFree::n_inner_face_batches() 和 MatrixFree::n_boundary_face_batches(), 中分别实际处理的面。注意，与步骤37中讨论的单元积分相类似，deal.II在几个面上应用矢量化，以使用SIMD，在我们称之为<i>batch of faces</i>的东西上用一条指令工作。面的批次与单元的批次是独立的，尽管处理面的积分的时间与处理各自单元的积分的时间保持一致，以增加数据定位。
+
+这个程序中的另一个新东西是，我们不再像 FEEvaluation::read_dof_values() 或 FEEvaluation::distribute_local_to_global() 那样将向量访问从求值和积分步骤中分割出来，而是分别调用组合函数 FEEvaluation::gather_evaluate() 和 FEEvaluation::integrate_scatter(), 。这对面积分很有用，因为根据面的评估内容，并非所有单元的向量项都必须首先被触及。例如，想想节点元素FE_DGQ的情况，节点点在元素表面。如果我们对面的形状函数值感兴趣，只有 $(k+ 1)^{d-1}$ 个自由度以非显著的方式对它们做出贡献（用更专业的方式来说，只有 $(k+1)^{d-1}$ 个形状函数在面有非零支持，并对 FiniteElement::has_support_on_face()). 个自由度返回真值。 当与单元的 $(k+1)^d$ 个自由度相比，这要少一个幂。
+
+现在，我们当然不只对函数值感兴趣，而且对单元格上的导数也感兴趣。幸运的是，在deal.II中，有一个元素将这种减少访问的属性也扩展到面的导数上，即FE_DGQHermite元素。
+
+<h3>The FE_DGQHermite element</h3>
+
+FE_DGQHermite元素属于FE_DGQ元素家族，即其形状函数是一维多项式的张量乘积，该元素是完全不连续的。与通常的FE_DGQ元素中的节点特征相反，FE_DGQHermite元素是一个基于Hermite-like概念的节点贡献和导数贡献的混合物。基本的多项式类是 Polynomials::HermiteLikeInterpolation ，可以总结为以下几点。对于三次多项式，我们用两个多项式来表示单位区间左端的函数值和第一次导数， $x=0$  ，用两个多项式来表示函数值和第一次导数以及单位区间的右端， $x=1$  。在相反的两端，形状函数的值和一阶导数都是零，确保四个基础函数中只有两个对各自端部的值和导数有贡献。然而，我们偏离了经典的Hermite内插法，没有严格地为值和一导数指定一个自由度，而是允许一导数是第一和第二形状函数的线性组合。这样做是为了改善插值的调节。另外，当度数超过三时，我们以类似拉格朗日的方式在元素内部增加节点点，在 $x=0$ 和 $x=1$ 这两个点上结合双零。这些额外节点的位置是由一些雅可比多项式的零点决定的，在类的描述中解释过  Polynomials::HermiteLikeInterpolation.  。
+
+使用这个元素，我们只需要访问 $2(k+1)^{d-1}$ 自由度来计算一个面的值和导数。检查是否满足Hermite属性是在 FEFaceEvaluation::gather_evaluate() 和 FEFaceEvaluation::integrate_scatter() 中透明地完成的，它们检查基础的类型，并尽可能地减少对数据的访问。显然，如果我们将 FEFaceEvaluation::read_dof_values() 与 FEFaceEvaluation::evaluate(), 分开，这将是不可能的，因为我们需要读取的条目数量取决于导数的类型（只有值，一阶导数，等等），因此必须交给`read_dof_values()`。
+
+这种优化不仅对计算面的积分有用，而且对MPI的鬼层交换也有用。在一个天真的交换中，如果一个单元的所有自由度由另一个处理器负责计算面的贡献，我们就需要把这个单元的所有自由度发送给另一个处理器。由于我们知道在用FEFaceEvaluation进行的评估中只有部分自由度被触及，所以自然只交换相关的自由度。 MatrixFree::loop() 函数在与 LinearAlgebra::distributed::Vector. 结合时支持选定的数据交换。为了实现这一点，我们需要告诉循环我们要对脸部做什么样的评价，使用 MatrixFree::DataAccessOnFaces, 类型的参数，正如在下面 `LaplaceOperator::vmult()` 的实现中可以看到。在这种情况下，数据交换的方式是如下的。矢量中的幽灵层数据仍然假装代表所有的自由度，这样，FEFaceEvaluation可以继续读取数值，就像单元格是本地拥有的一样。数据交换例程负责将数据打包和解包成这种格式的任务。虽然这听起来很复杂，但我们将在下面的结果部分显示，通过与不指定面孔上的数据访问的基线代码进行性能比较，这确实得到了回报。
+
+<h3>An approximate block-Jacobi smoother using the fast diagonalization method</h3>
+
+按照step-37程序的传统，我们再次用共轭梯度求解器内的几何多网格预处理器解决泊松问题。在这个教程程序中，我们没有计算对角线并使用基本的PreconditionChebyshev作为平滑器，而是选择了一种不同的策略。我们实现了一个块状Jacobi预处理程序，其中块状指的是一个单元上的所有自由度。我们没有在预处理程序中建立完整的单元格矩阵并应用它的LU因子化（或逆），这种操作将受到严重的内存带宽限制，因此相当缓慢；我们通过一种称为快速对角化法的特殊技术对块的逆进行近似处理。
+
+该方法的思路是利用单元矩阵的结构。对于在笛卡尔网格上离散的恒定系数的拉普拉斯，单元矩阵 $L$ 可以写为
+
+@f{align*}{
+L &= A_1 \otimes M_0 + M_1 \otimes A_0
+
+
+@f}
+
+在二维和
+
+@f{align*}{
+L &= A_2 \otimes M_1 \otimes M_0 + M_2 \otimes A_1 \otimes M_0 + M_2 \otimes M_1 \otimes A_0
+
+
+@f}
+
+在三维中。矩阵 $A_0$ 和 $A_1$ 表示一维拉普拉斯矩阵（包括与当前单元值 $u^-_h$ 和 $v^-_h$ 相关的单元和面项）， $M_0$ 和 $M_1$ 是质量矩阵。请注意，一旦单元上有非恒定系数或几何形状不再恒定，这种简单的张量乘积结构就会消失。我们提到，类似的设置也可以用来用这个最终的张量积形式的矩阵来替代计算的积分，这将把算子评估的操作减少到一半以下。然而，考虑到这只适用于直角坐标单元和恒定系数的情况，这是一个相当狭窄的情况，我们避免继续探讨这个想法。
+
+有趣的是，由于1964年<a
+href="http://dl.acm.org/citation.cfm?id=2716130">R. E. Lynch, J. R. Rice,
+D. H. Thomas, Direct solution of partial difference equations by tensor
+product methods, Numerische Mathematik 6, 185-199</a>引入的方法，矩阵 $L$ 的精确逆值可以通过张量积找到。
+
+@f{align*}{
+L^{-1} &= S_1 \otimes S_0 (\Lambda_1 \otimes I + I \otimes \Lambda_0)^{-1}
+S_1^\mathrm T \otimes S_0^\mathrm T,
+
+
+@f}
+
+其中  $S_d$  是给定张量方向上广义特征值问题的特征向量矩阵  $d$  。
+
+@f{align*}{
+A_d s  &= \lambda M_d s, \quad d = 0, \ldots,\mathrm{dim-1},
+
+
+@f}
+
+和 $\Lambda_d$ 是代表广义特征值 $\lambda$ 的对角矩阵。请注意，向量 $s$ 是这样的：它们同时对角化 $A_d$ 和 $M_d$ ，即 $S_d^{\mathrm T} A_d S_d =
+\Lambda_d$ 和 $S_d^{\mathrm T} M_d S_d = I$  。
+
+deal.II库使用这个概念实现了一个类，叫做TensorProductMatrixSymmetricSum。
+
+为了这个程序，我们坚持使用常数系数和直角坐标系网格，尽管基于张量积的近似版本对于更一般的网格仍然是可能的，而且算子评估本身当然是通用的。另外，我们也不关心自适应网格，因为多网格算法需要获得不同细化边缘的通量矩阵，如步骤39所解释的。然而，我们做的一件事是仍然将我们的块状Jacobi预处理包在PreconditionChebyshev里面。这个类使我们不必寻找适当的松弛参数（对于块-雅各比平滑器来说，二维的松弛参数约为0.7，三维的松弛参数约为0.5），而且通常比普通的雅各比平滑器提高了一些平滑效率，因为当设置切比雪夫多项式的度数为1或2时，它可以降低解的时间。
+
+请注意，块状Jacobi平滑器有一个额外的好处：快速对角线化方法也可以解释为从FE_DGQHermite的Hermite-like多项式转变为一个单元拉普拉斯是对角线的基础。因此，它抵消了基础的影响，无论我们使用FE_DGQHermite还是FE_DGQ，都会得到相同的迭代次数。这与使用只有对角线的PreconditionChebyshev类（点Jacobi方案）相比，FE_DGQ和FE_DGQHermite确实表现不同，FE_DGQ需要的迭代次数比FE_DGQHermite少2-5次，尽管对类似Hermite的形状函数做了修改以确保良好的调节。
+
+

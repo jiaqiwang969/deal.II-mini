@@ -1,0 +1,62 @@
+examples/step-4/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+程序的输出看起来如下（迭代次数可能会有一到两次的变化，这取决于你的计算机，因为这通常取决于浮点运算的舍入精度，而这在不同的处理器之间是不同的）。
+
+@code
+Solving problem in 2 space dimensions.
+   Number of active cells: 256
+   Total number of cells: 341
+   Number of degrees of freedom: 289
+   26 CG iterations needed to obtain convergence.
+Solving problem in 3 space dimensions.
+   Number of active cells: 4096
+   Total number of cells: 4681
+   Number of degrees of freedom: 4913
+   30 CG iterations needed to obtain convergence.
+@endcode
+
+很明显，在三个空间维度中，单元格的数量，因此也是自由度的数量要高得多。这里看不到的是，除了矩阵中更多的行和列之外，在三个空间维度中，矩阵的每一行也有明显更多的条目。这就导致了解方程组时需要付出更多的数值努力，当你实际运行程序时，你可以从两个求解步骤的运行时间中感受到这一点。
+
+
+
+
+该程序产生两个文件。   <code>solution-2d.vtk</code> 和 <code>solution-3d.vtk</code> ，可以用VisIt或Paraview程序查看（如果你没有这些程序，你可以很容易地在程序中改变输出格式，使你更容易查看）。解决方案的可视化是一门艺术，但它也可以很有趣，所以你应该玩一玩你最喜欢的可视化工具，熟悉它的功能。下面是我想出的2D解决方案。
+
+<p align="center">  <img src="https://www.dealii.org/images/steps/developer/step-4.solution-2d.png" alt="">   </p>  。
+
+(  @dealiiVideoLectureSeeAlso{11,32})  图片显示了所考虑的问题的解决方案，是一个三维图。可以看出，该解在域的内部几乎是平的，而在边界附近有较高的曲率。当然，这是因为对于拉普拉斯方程来说，解的曲率等于右手边，而右手边被选为四次多项式，在内部几乎为零，只有在接近域的边界时才急剧上升；右手边函数的最大值在域的角落，在那里解的移动也最迅速。很高兴看到解沿着域的边界遵循理想的二次边界值。将计算出的解与分析出的解进行验证也是很有用的。关于这一技术的解释，请参见步骤7。
+
+另一方面，尽管图片中没有明确显示网格线，但你可以看到它们在解决方案中的小疙瘩。这清楚地表明，解决方案还没有被计算到非常高的精度，为了得到更好的解决方案，我们可能必须在更细的网格上进行计算。
+
+在三个空间维度上，可视化就比较困难了。左图显示了解决方案和它在域的表面上计算出来的网格。这很好，但它的缺点是完全掩盖了内部的情况。右图是通过显示解的恒定值的表面（如左上角的图例所示），试图将内部的情况也可视化。如果我们把各个表面弄得稍微透明一些，这样就有可能透过它们看到后面的东西，那么等值面图片看起来就最好了。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-4.solution-3d.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-4.contours-3d.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+ @note  关于可视化的最后一句话：可视化的想法是给人以洞察力，这与显示信息是不同的。特别是，在一张图片上很容易显示过多的信息，但在显示更多的信息的同时，也使人们更难收集到洞察力。举个例子，我用来生成这些图片的程序，VisIt，默认情况下在每个轴上都有刻度线，在 $x$ 轴上贴上一个大胖标签 "X轴"，其他轴也是如此，在左上方显示提取数据的文件名，在右下方显示用户的名字以及时间和日期。这些在这里都不重要：轴同样容易辨认，因为左下方的三脚架仍然可见，而且我们从程序中知道域是 $[-1,1]^3$ ，所以不需要刻度线。因此，我关掉了图片中所有不相干的东西：可视化的艺术在于把图片缩减到那些对看清自己想看的东西很重要的部分，而不是其他。
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+
+基本上，玩这个程序的可能性与前一个程序相同，只是它们现在也适用于3D情况。为了获得灵感，请阅读<a href="step_3.html#extensions"
+target="body">possible extensions in the documentation of step 3</a>。
+
+

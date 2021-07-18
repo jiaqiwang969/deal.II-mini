@@ -1,0 +1,133 @@
+examples/step-77/doc/intro.dox
+
+ <br> 
+
+<i>
+This program was contributed by Wolfgang Bangerth, Colorado State University.
+
+
+This material is based upon work partially supported by National Science
+Foundation grants OAC-1835673, DMS-1821210, and EAR-1925595;
+and by the Computational Infrastructure in
+Geodynamics initiative (CIG), through the National Science Foundation under
+Award No. EAR-1550901 and The University of California-Davis.
+</i> <br>  。
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+第15步程序解决了以下描述最小表面问题的非线性方程。
+
+@f{align*}{
+
+
+    -\nabla \cdot \left( \frac{1}{\sqrt{1+|\nabla u|^{2}}}\nabla u \right) &= 0 \qquad
+    \qquad &&\textrm{in} ~ \Omega
+    \\
+    u&=g \qquad\qquad &&\textrm{on} ~ \partial \Omega.
+
+
+@f}
+
+step-15使用的是牛顿方法，牛顿方法的工作原理是反复求解一个更新 $\delta u_k$ 的*线性化*问题--称为 "搜索方向"--计算 "步长" $\alpha_k$ ，然后将它们结合起来，通过以下方式计算出新的猜测解。
+
+@f{align*}{
+    u_{k+1} = u_k + \alpha_k \, \delta u_k.
+
+
+@f}
+
+
+
+在步骤15的讨论过程中，我们发现计算步长是很尴尬的，所以只是解决了简单的选择。总是选择 $\alpha_k=0.1$  。这当然是没有效率的。我们知道，只有当我们最终能够选择 $\alpha_k=1$ 时，我们才能实现牛顿的二次收敛率，尽管在最初的几次迭代中，我们可能不得不选择较小的步长，因为我们离使用这么长的步长还很遥远。
+
+因此，本方案的目标之一是解决这一缺陷。由于行搜索算法的实现并不完全是微不足道的，因此人们无论如何都要做自己应该做的事。从外部库中导入复杂的功能。为此，我们将利用deal.II与大型非线性求解器包之一的接口，即[SUNDIALS](https://computing.llnl.gov/projects/sundials)套件的[KINSOL](https://computing.llnl.gov/projects/sundials/kinsol)子包。%SUNDIALS的核心是一个用于解决复杂的常微分方程（ODE）和微分代数方程（DAE）的软件包，deal.II接口允许通过SUNDIALS命名空间的类来实现。特别是 SUNDIALS::ARKode 和 SUNDIALS::IDA 类。但是，由于这是用隐式方法解决ODE和DAE的一个重要步骤，%SUNDIALS也有一个非线性问题的求解器，叫做KINSOL，deal.II有一个接口，以 SUNDIALS::KINSOL 类的形式与之连接。这就是我们将用于解决我们的问题的方法。
+
+但是%SUNDIALS不仅仅是一个方便我们避免编写线搜索算法的方法。一般来说，非线性问题的解决是相当昂贵的，人们通常希望尽可能地节省计算时间。一个可以实现这个目标的方法是如下的。第15步中的算法将问题离散化，然后在每次迭代中求解形式为的线性系统
+
+@f{align*}{
+  J_k \, \delta U_k = -F_k
+
+
+@f}
+
+其中 $F_k$ 是使用当前节点值矢量 $U_k$ 计算的残差矢量， $J_k$ 是其导数（称为 "雅各布"），而 $\delta U_k$ 是对应于上述函数 $\delta u_k$ 的更新矢量。步骤15中已经彻底讨论了 $J_k,F_k$ 的构造，以及在每个牛顿迭代中解决线性系统的方法。因此，让我们关注一下非线性求解过程的另一个方面。计算 $F_k$ 是昂贵的，而组装矩阵 $J_k$ 更是如此。我们真的需要在每次迭代中都这样做吗？事实证明，在许多应用中，这实际上是没有必要的。即使我们用近似值 $\tilde J_k$ 代替 $J_k$ ，这些方法通常也能收敛，并解决了
+
+@f{align*}{
+  \tilde J_k \, \widetilde{\delta U}_k = -F_k
+
+
+@f}
+
+代替，然后更新
+
+@f{align*}{
+    U_{k+1} = U_k + \alpha_k \, \widetilde{\delta U}_k.
+
+
+@f}
+
+这可能需要多一两个迭代，因为我们的更新 $\widetilde{\delta U}_k$ 并不像 $\delta U_k$ 那样好，但它可能仍然是一个胜利，因为我们不必经常组装 $J_k$ 。
+
+对于 $J_k$ ，我们希望得到什么样的近似值 $\tilde J_k$ ？理论上说，由于 $U_k$ 收敛于精确解 $U^\ast$ ，我们需要确保 $\tilde J_k$ 需要收敛于 $J^\ast = \nabla F(U^\ast)$  。特别是，由于  $J_k\rightarrow J^\ast$  ，有效的选择是  $\tilde J_k = J_k$  。但是每一次，比如说，第五次迭代选择 $\tilde J_k = J_k$ 也是如此，对于其他的迭代，我们选择 $\tilde J_k$ 等于最后计算的 $J_{k'}$  。这就是我们在这里要做的：我们将只是重新使用前一次迭代中的 $\tilde J_{k-1}$ ，这可能又是我们在之前的迭代中使用的， $\tilde J_{k-2}$  。
+
+如果对于带有 $J_k$ 的线性系统的求解，我们不只是要组装一个矩阵，还要计算一个好的预处理程序，那么这个方案就变得更加有趣。例如，如果我们要通过SparseDirectUMFPACK类使用稀疏LU分解，或者使用几何或代数多重网格。在这些情况下，我们也不必更新预处理程序，因为预处理程序的计算时间可能和当初组装矩阵的时间一样长，甚至更长。事实上，在这种心态下，我们也许应该考虑使用我们能想到的*好的前置条件器，尽管它们的构造通常相当昂贵。我们希望通过将其应用于不止一个线性求解，来摊销计算这个预处理程序的成本。
+
+当然，最大的问题是。我们根据什么标准来决定我们是否可以摆脱基于先前计算的雅各布矩阵 $J_{k-s}$ 的近似 $s$ 步，或者我们是否需要--至少在这个迭代中--实际重新计算雅各布 $J_k$ 和相应的前置条件器？这就像行搜索的问题一样，需要大量的代码来监控整个算法的收敛性。我们*可以*自己实现这些东西，但我们可能*不应该*。KINSOL已经为我们做了这些。它将告诉我们的代码何时要 "更新 "雅各布矩阵。
+
+如果我们要使用迭代求解器而不是上面提到的稀疏直接求解器，还有最后一个考虑。在求解更新 $\delta U_k$ 时，不仅有可能用一些近似值 $J_k$ 代替 $\tilde J_k$ ，而且还可以问是否有必要求解线性系统
+
+@f{align*}{
+  \tilde J_k \widetilde{\delta U}_k = -F_k
+
+
+@f}
+
+准确度高。其思路是这样的。虽然我们目前的解决方案 $U_k$ 离 $U^\ast$ 还很远，但我们为什么要特别精确地解决这个线性系统？更新后的 $U_{k+1}=U_k + \widetilde{\delta U}_k$ 很可能仍然离精确的解决方案很远，那么为什么要花很多时间来解决这个线性系统的精确性？这就是 "Eisenstat-Walker技巧" @cite eiwa96 等算法的基础思维，在该算法中，人们被赋予一个公差，在迭代 $k$ 中必须解决上述线性系统，该公差取决于整个非线性求解器的进展。像以前一样，我们可以尝试自己实现，但是KINSOL已经为我们提供了这种信息--尽管我们不会在这个程序中使用它，因为我们使用的是直接求解器，不需要求解器的容忍度，只是精确求解线性系统到舍入。
+
+作为对所有这些考虑的总结，我们可以说以下几点。没有必要重新发明轮子。就像deal.II提供了大量的有限元功能一样，%SUNDIALS的KINSOL软件包提供了大量的非线性求解器功能，我们最好使用它。
+
+
+
+
+<h3> How deal.II interfaces with KINSOL </h3>
+
+KINSOL，像许多类似的软件包一样，以一种相当抽象的方式工作。在其核心部分，它看到了一个非线性问题，其形式为
+
+@f{align*}{
+    F(U) = 0
+
+
+@f}
+
+并构建一个迭代序列  $U_k$  ，一般来说，迭代序列是与函数返回的向量相同长度的向量  $F$  。要做到这一点，它需要从用户那里得到一些东西。
+
+- 将一个给定的向量调整到正确大小的方法。
+
+- 对于一个给定的向量 $U$ ，评估函数 $F(U)$ 的一种方法。这个函数通常被称为 "剩余 "操作，因为目标当然是找到一个点 $U^\ast$ ，对于这个点 $F(U^\ast)=0$ ；如果 $F(U)$ 返回一个非零向量，那么这就是<a href="https://en.wikipedia.org/wiki/Residual_(numerical_analysis)">"residual"</a>（即 "剩余"，或任何 "剩余"）。做到这一点的函数在本质上与步骤15中的右手边向量的计算相同，但有一个重要区别。   在那里，右手边表示的是残差的*负数，所以我们必须换一个符号。
+
+- 计算矩阵 $J_k$ 的方法，如果这在当前迭代中是必要的，同时可能还有一个预处理程序或其他数据结构（例如，通过SparseDirectUMFPACK进行稀疏分解，如果我们选择用它来解决一个线性系统）。这个操作通常被称为 "设置 "操作。
+
+- 用最后计算的任何矩阵 $\tilde J_k$ 来解决一个线性系统 $\tilde J_k x = b$ 的方法。这个操作一般被称为 "求解 "操作。
+
+所有这些操作都需要由 [std::function](https://en.cppreference.com/w/cpp/utility/functional/function) 对象提供给KINSOL，这些对象接受适当的参数集，通常返回一个表示成功（返回值为零）或失败（返回值为非零）的整数。具体来说，我们要访问的对象是 SUNDIALS::KINSOL::reinit_vector,   SUNDIALS::KINSOL::residual,   SUNDIALS::KINSOL::setup_jacobian,  和  SUNDIALS::KINSOL::solve_jacobian_system  成员变量。(详见这些变量的文档。)在我们的实现中，我们将使用[lambda functions](https://en.cppreference.com/w/cpp/language/lambda)来实现这些 "回调"，反过来可以调用成员函数；然后KINSOL将在其内部算法认为有用时调用这些回调。
+
+
+
+
+<h3> Details of the implementation </h3>
+
+本教程程序的大部分代码与步骤15一样，我们将不作过多评论。实际上只有一个方面需要注意，即一方面给定一个向量 $U$ ，另一方面给定一个向量 $J(U)$ ，如何计算 $U$ 。起初，这似乎很简单：我们只需使用`assemble_system()`函数，在一种情况下抛出所有处理矩阵的代码，在另一种情况下抛出右手边的向量。就这样。问题解决了。
+
+但它并不那么简单。这是因为如果我们有非零的Dirichlet边界值，这两者并不独立，就像我们在这里做的那样。我们要解决的线性系统包含内部和边界自由度，当从那些真正 "自由 "的自由度中消除这些自由度时，使用例如 AffineConstraints::distribute_local_to_global(), ，我们在组装右手边的向量时需要知道矩阵。
+
+当然，这完全违背了原意。如果我们可以不组装矩阵，就不要*组装。我们解决这个问题的方法如下。
+
+- 我们将解向量的起始猜测， $U_0$ ，设定为边界自由度已经有了正确的值。
+
+- 这意味着所有的更新都可以有这些自由度的零更新，我们可以建立残差向量 $F(U_k)$ 和雅各布矩阵 $J_k$ ，对应于线性系统的解在这些向量分量中为零。对于这种特殊情况，矩阵和右手边向量的组装是独立的，可以分解成不同的函数。
+
+这里有一个假设，即每当KINSOL要求用雅各布的（近似值）进行线性求解时，这将是为了更新 $\delta U$ （其边界值为零），其倍数将被添加到解决方案（其已经有正确的边界值）。  这可能不是真的，如果是的话，我们可能要重新考虑我们的方法。也就是说，事实证明，在实践中，这正是KINSOL在使用牛顿方法时的表现，因此我们的方法是成功的。
+
+

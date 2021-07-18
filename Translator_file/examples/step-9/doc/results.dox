@@ -1,0 +1,69 @@
+examples/step-9/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+
+这个程序的结果并不特别引人注目。它们由控制台输出、一些网格文件和每个网格的解决方案组成。首先是控制台的输出。
+
+@code
+Cycle 0:
+   Number of active cells:              64
+   Number of degrees of freedom:        1681
+   Iterations required for convergence: 298
+   Max norm of residual:                3.60316e-12
+Cycle 1:
+   Number of active cells:              124
+   Number of degrees of freedom:        3537
+   Iterations required for convergence: 415
+   Max norm of residual:                3.70682e-12
+Cycle 2:
+   Number of active cells:              247
+   Number of degrees of freedom:        6734
+   Iterations required for convergence: 543
+   Max norm of residual:                7.19716e-13
+Cycle 3:
+   Number of active cells:              502
+   Number of degrees of freedom:        14105
+   Iterations required for convergence: 666
+   Max norm of residual:                3.45628e-13
+Cycle 4:
+   Number of active cells:              1003
+   Number of degrees of freedom:        27462
+   Iterations required for convergence: 1064
+   Max norm of residual:                1.86495e-13
+Cycle 5:
+   Number of active cells:              1993
+   Number of degrees of freedom:        55044
+   Iterations required for convergence: 1251
+   Max norm of residual:                1.28765e-13
+Cycle 6:
+   Number of active cells:              3985
+   Number of degrees of freedom:        108492
+   Iterations required for convergence: 2035
+   Max norm of residual:                6.78085e-14
+Cycle 7:
+   Number of active cells:              7747
+   Number of degrees of freedom:        210612
+   Iterations required for convergence: 2187
+   Max norm of residual:                2.61457e-14
+Cycle 8:
+   Number of active cells:              15067
+   Number of degrees of freedom:        406907
+   Iterations required for convergence: 3079
+   Max norm of residual:                2.9932e-14
+Cycle 9:
+   Number of active cells:              29341
+   Number of degrees of freedom:        780591
+   Iterations required for convergence: 3913
+   Max norm of residual:                8.15689e-15
+@endcode
+
+
+
+相当多的单元格被用在最精细的层面上，以解决解决方案的特征。下面是第四和第十个网格。<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-9-grid-3.png" alt="细化周期中的第四个网格，显示对特征的一些适应性。" width="400" height="400"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-9-grid-9.png" alt="细化周期中的第十个网格，显示完全捕捉到波。" width="400" height="400"> </div> <div> 以及第四和第十的解决方案。<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-9-solution-3.png" alt="第四个解决方案，显示我们解决了大多数特征，但有些仍然没有解决，显得很模糊。" width="400" height="400"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-9-solution-9.png" alt="第十个解决方案，显示完全解决的流动。" width="400" height="400"> </div> </div> 以及网格和解决方案都被放大。<div class="twocolumn" style="width: 80%"> <div> <img src="https://www.dealii.org/images/steps/developer/step-9-solution-3-zoom.png" alt="第四个解决方案的细节，显示我们解决了大多数特征，但有些仍然没有解决，显得模糊不清。特别是，较大的单元格需要细化。" width="400" height="400"> </div> <div> <img src="https://www.dealii.org/images/steps/developer/step-9-solution-9-zoom.png" alt="第十个解决方案的细节，显示我们需要比第四个解决方案中存在的更多单元格。" width="400" height="400"> </div> </div>
+
+解决方案是由那部分沿摆动的平流场从左、下边界传送到右上方的部分，以及由左下角的源所产生的部分，其结果也是沿传送的。上面显示的网格很好地适应了解决这些特征。图中的比较表明，即使我们使用的是高阶近似，我们仍然需要自适应的网格细化来完全解决摆动。
+
+

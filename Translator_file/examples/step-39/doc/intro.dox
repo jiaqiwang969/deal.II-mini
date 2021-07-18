@@ -1,0 +1,92 @@
+examples/step-39/doc/intro.dox
+
+<a name="Intro"></a>
+
+在这个程序中，我们使用内部惩罚方法和Nitsche的弱边界条件来解决Poisson方程。我们在局部细化的网格上使用多网格方法，这些网格是用一个体块准则和一个基于单元和面残差的标准误差估计器生成的。所有的运算符都是用MeshWorker接口实现的。
+
+像步骤12一样，离散化依赖于有限元空间，它在网格单元 $K\in \mathbb T_h$ 内是多项式的，但在单元之间没有连续性。由于这种函数在每个内部面 $F\in \mathbb F_h^i$ 上有两个值，每边一个，我们定义均值和跳跃算子如下：让<i>K</i><sub>1</sub>和<i>K</i><sub>2</sub>是共享一个面的两个单元，让函数的轨迹<i>u<sub>i</sub></i>和外法向量<b>n</b><i><sub>i</sub></i>相应地被标记。然后，在这个面上，我们让
+
+@f[
+	\average{ u } = \frac{u_1 + u_2}2
+
+
+@f]
+
+
+
+注意，如果这样的表达式包含一个法向量，那么平均运算符就会变成一个跳跃。该问题的内部惩罚方法
+
+@f[
+
+
+  -\Delta u = f \text{ in }\Omega \qquad u = u^D \text{ on } \partial\Omega
+
+
+@f]
+
+成为
+
+@f{multline*}
+  \sum_{K\in \mathbb T_h} (\nabla u, \nabla v)_K
+  \\
+  + \sum_{F \in F_h^i} \biggl\{4\sigma_F (\average{ u \mathbf n}, \average{ v \mathbf n })_F
+
+
+  - 2 (\average{ \nabla u },\average{ v\mathbf n })_F
+
+
+  - 2 (\average{ \nabla v },\average{ u\mathbf n })_F
+  \biggr\}
+  \\
+  + \sum_{F \in F_h^b} \biggl\{2\sigma_F (u, v)_F
+
+
+  - (\partial_n u,v)_F
+
+
+  - (\partial_n v,u)_F
+  \biggr\}
+  \\
+  = (f, v)_\Omega + \sum_{F \in F_h^b} \biggl\{
+  2\sigma_F (u^D, v)_F - (\partial_n v,u^D)_F
+  \biggr\}.
+
+
+@f}
+
+
+
+这里， $\sigma_F$ 是惩罚参数，其选择如下：对于<i>F</i>单元格<i>K</i>的一个面，计算数值
+
+@f[
+\sigma_{F,K} = p(p+1) \frac{|F|_{d-1}}{|K|_d},
+
+
+@f]
+
+其中<i>p</i>是有限元函数的多项式程度， $|\cdot|_d$ 和 $|\cdot|_{d-1}$ 表示相应对象的 $d$ 和 $d-1$ 维度的Hausdorff度量。如果面在边界上，选择 $\sigma_F = \sigma_{F,K}$  。对于一个内部的面，我们取这个面的两个值的平均值。
+
+在我们的有限元程序中，我们区分了三种不同的积分，分别对应于上面的单元、内部面和边界面的总和。由于 MeshWorker::loop 为我们组织了这些和，我们只需要实现对每个网格元素的积分。下面的MatrixIntegrator类有这三个函数用于公式的左边，RHSIntegrator类用于右边。
+
+正如我们将在下面看到的，甚至误差估计也是相同的结构，因为它可以写成
+
+@f{align*}
+  \eta^2 &= \eta_K^2 + \eta_F^2 + \eta_B^2
+  \\
+  \eta_K^2 &= \sum_{K\in \mathbb T_h} h^2 \|f + \Delta u_h\|^2
+  \\
+  \eta_F^2 &= \sum_{F \in F_h^i} \biggl\{
+    4 \sigma_F \| \average{u_h\mathbf n} \|^2 + h \|\average{\partial_n u_h}\|^2 \biggr\}
+  \\
+  \eta_B^2 &= \sum_{F \in F_h^b} 2\sigma_F \| u_h-u^D \|^2.
+
+
+@f}
+
+
+
+因此，下面用于组装矩阵、右手和误差估计的函数显示，这些循环都是通用的，可以用同样的方式进行编程。
+
+这个程序与步骤12b有关，因为它使用MeshWorker和非连续Galerkin方法。在那里，我们解决的是一个平流问题，而这里是一个扩散问题。在这里，我们还使用了多网格预处理和一个理论上合理的误差估计器，见Karakashian和Pascal（2003）。Kanschat (2004)详细讨论了多层次方案。Hoppe, Kanschat, and Warburton (2009)讨论了自适应迭代及其收敛性（对于三角形网格）。
+
+

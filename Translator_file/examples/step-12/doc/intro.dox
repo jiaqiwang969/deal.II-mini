@@ -1,0 +1,87 @@
+examples/step-12/doc/intro.dox
+
+ <br> 
+
+<i> Note: A variant called step-12b of this tutorial exists, using
+MeshWorker and LocalIntegrators instead of assembling matrices using
+FEInterfaceValues as is done in this tutorial.
+</i>
+
+<a name="Intro"></a>
+
+<h1>An example of an advection problem using the Discountinuous Galerkin method</h1>
+
+<h3>Overview</h3>
+
+本例专门介绍了 <em> 非连续Galerkin方法 </em> ，简称为DG方法。它包括以下内容。<ol>  <li>  用DG方法对线性平流方程进行离散化。     <li>  使用FEInterfaceValues组装跳跃项和单元间界面上的其他表达式。     <li>  使用 MeshWorker::mesh_loop().   </ol>  组合系统矩阵。
+
+这个项目特别关注的是DG方法的循环。这些被证明是特别复杂的，主要是因为对于面的条件，我们必须分别区分边界、规则的内部面和有悬挂节点的内部面的情况。 MeshWorker::mesh_loop() 处理了单元和面迭代的复杂性，并允许为不同的单元和面项指定 "工作者"。面条款本身的整合，包括对自适应细化面的整合，是通过FEInterfaceValues类完成的。
+
+<h3>The equation</h3>
+
+本例中解决的模型问题是线性平流方程
+
+@f[
+  \nabla\cdot \left({\mathbf \beta} u\right)=0 \qquad\mbox{in }\Omega,
+
+
+@f]
+
+受制于边界条件
+
+@f[
+u=g\quad\mbox{on }\Gamma_-,
+
+
+@f]
+
+在域的边界 $\Gamma=\partial\Omega$ 的流入部分 $\Gamma_-$ 。  这里， ${\mathbf \beta}={\mathbf \beta}({\bf x})$ 表示一个矢量场， $u$ 是（标量）解函数， $g$ 是边界值函数。
+
+@f[
+\Gamma_- \dealcoloneq \{{\bf x}\in\Gamma, {\mathbf \beta}({\bf x})\cdot{\bf n}({\bf x})<0\}
+
+
+@f]
+
+表示域边界的流入部分， ${\bf n}$ 表示边界的单位外向法线 $\Gamma$  。这个方程是本教程第9步中已经考虑过的平流方程的保守版本。
+
+
+在每个单元格 $T$ 上，我们从左边乘以一个测试函数 $v_h$ ，并通过部分整合得到。
+
+@f[
+  \left( v_h, \nabla \cdot (\beta u_h) \right)_T
+= -(\nabla v_h, \beta u_h) + \int_\Gamma v_h u_h \beta \cdot n
+
+
+@f]
+
+当对所有单元 $T$ 求和时，边界积分是在所有内部和外部面进行的，因此，有三种情况。<ol>  <li>  流入的外部边界（我们用给定的 $g$ 代替 $u_h$ ）。     $\int_{\Gamma_-} v_h g \beta \cdot n$   <li>  流出的外部边界。     $\int_{\Gamma_+} v_h u_h \beta \cdot n$   <li> 内面（两边的积分变成了跳跃，我们使用上风速度）。     $\int_F [v_h] u_h^{\text{upwind}} \beta \cdot n$   </ol> 。
+
+这里，跳跃被定义为 $[v] = v^+ - v^-$ ，其中上标指的是面的左（'+'）和右（'-'）值。如果 $\beta \cdot n>0$ ，上风值 $u^{\text{upwind}}$ 被定义为 $u^+$ ，否则为 $u^-$ 。
+
+因此，依赖网格的弱形式为：。
+
+@f[
+\sum_{T\in \mathbb T_h} -\bigl(\nabla \phi_i,{\mathbf \beta}\cdot \phi_j \bigr)_T +
+\sum_{F\in\mathbb F_h^i} \bigl< [\phi_i], \phi_j^{upwind} \beta\cdot \mathbf n\bigr>_{F} +
+\bigl<\phi_i, \phi_j \beta\cdot \mathbf n\bigr>_{\Gamma_+}
+= -\bigl<\phi_i, g \beta\cdot\mathbf n\bigr>_{\Gamma_-}.
+
+
+@f]
+
+这里， $\mathbb T_h$ 是三角形的所有活动单元的集合， $\mathbb F_h^i$ 是所有活动内部面的集合。这种公式被称为上风非连续Galerkin方法。
+
+为了实现这种双线性形式，我们需要用通常的方法计算单元项（第一个和）来实现单元上的积分，用FEInterfaceValues计算界面项（第二个和），以及边界项（另外两个项）。所有这些的求和是通过 MeshWorker::mesh_loop(). 完成的。
+
+
+
+
+<h3>The test problem</h3>
+
+我们在 $\Omega=[0,1]^2$ 上求解平流方程， ${\mathbf \beta}=\frac{1}{|x|}(-x_2, x_1)$ 代表一个圆形的逆时针流场， $g=1$ 代表 ${\bf x}\in\Gamma_-^1 := [0,0.5]\times\{0\}$ ， $g=0$ 代表 ${\bf x}\in
+\Gamma_-\setminus \Gamma_-^1$  。
+
+我们通过估计每个单元的梯度规范，自适应地细化网格，在一连串的网格上求解。在每个网格上求解后，我们以vtk格式输出解决方案，并计算解决方案的 $L^\infty$ 准则。由于精确解是0或1，我们可以用它来衡量数值解的过冲程度。
+
+

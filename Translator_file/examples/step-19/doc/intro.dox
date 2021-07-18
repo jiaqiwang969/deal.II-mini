@@ -1,0 +1,323 @@
+examples/step-19/doc/intro.dox
+
+
+
+ <br> 
+
+<i>
+This program was contributed by Wolfgang Bangerth, Rene Gassmoeller, and Peter Munch.
+
+
+Wolfgang Bangerth acknowledges support through NSF
+awards DMS-1821210, EAR-1550901, and OAC-1835673.
+</i>
+
+ @note  deal.II中存在对粒子的支持，这主要是由于Rene Gassmoeller的最初努力。如果你在自己的工作中使用粒子功能，请引用出版物 @cite GLHPW2018 来确认这项工作。
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+一般来说，有限元方法，特别是deal.II，是为了解决偏微分方程而发明的--换句话说，是为了解决[连续体力学](https://en.wikipedia.org/wiki/Continuum_mechanics)问题。另一方面，有时人们想解决的问题是，跟踪单个物体（"粒子"）以及它们的位置如何演变是有用的。如果这只是导致一组常微分方程，例如，如果你想跟踪太阳系中行星随时间变化的位置，那么deal.II显然不是你合适的工具。另一方面，如果这种演变是由于与偏微分方程的解的相互作用，或者有一个网格来确定哪些粒子与其他粒子相互作用（如在[平滑粒子流体力学（SPH）](https://en.wikipedia.org/wiki/Smoothed-particle_hydrodynamics)方法中），那么deal.II对你有支持。
+
+我们在这里要考虑的情况是带电粒子如何在电场中移动。作为动力，我们将考虑[阴极射线]（https://en.wikipedia.org/wiki/Cathode_ray）。由一块被加热的带负电的金属（"阴极"）发出的电子，然后被电场加速到带正电的电极（"阳极"）。阳极通常是环形的，这样大部分电子可以以电子束的形式飞过孔。在过去，它们可能会照亮由[阴极射线管](https://en.wikipedia.org/wiki/Cathode-ray_tube)制成的电视的屏幕。今天，电子束反而在[X射线机](https://en.wikipedia.org/wiki/X-ray_tube)、[电子束光刻](https://en.wikipedia.org/wiki/Electron-beam_lithography)、[电子束焊接](https://en.wikipedia.org/wiki/Electron-beam_welding)和其他一些领域发挥了作用。
+
+然后我们要考虑的方程如下。首先，我们需要描述电场。通过注意到电势 $V$ 满足方程，这是最容易完成的。
+
+@f[
+
+
+  -\epsilon_0 \Delta V = \rho
+
+
+@f]
+
+其中 $\epsilon_0$ 是真空的介电常数，而 $\rho$ 是电荷密度。这是由我们将选择的边界条件所增强的，如下所示。
+
+@f{align*}{
+  V &= -V_0 && \text{on}\; \Gamma_\text{cathode}\subset\partial\Omega \\
+  V &= +V_0 && \text{on}\; \Gamma_\text{anode}\subset\partial\Omega \\
+  \epsilon\frac{\partial V}{\partial n} &= 0
+   && \text{on}\; \partial\Omega\setminus\Gamma_\text{cathode}\setminus\Gamma_\text{anode}.
+
+
+@f}
+
+换句话说，我们在两个电极上规定电压 $+V_0$ 和 $-V_0$ ，在其他地方规定绝缘（诺伊曼）边界条件。由于粒子的动力学纯粹是由于电场 $\mathbf E=\nabla V$ ，我们也可以在两个电极上规定 $2V_0$ 和 $0$ --所有重要的是两个电极的电压差。
+
+考虑到这个电势 $V$ 和电场 $\mathbf E=\nabla V$ ，我们可以用微分方程来描述 $i$ 这个粒子的轨迹
+
+@f[
+  m {\ddot {\mathbf x}}_i = e\mathbf E,
+
+
+@f]
+
+其中 $m,e$ 是每个粒子的质量和电荷。在实践中，将其写成位置 $\mathbf x$ 和速度 $\mathbf v$ 的一阶微分方程系统很方便。
+
+@f{align*}{
+  {\dot {\mathbf v}}_i &= \frac{e\mathbf E}{m}, \\
+  {\dot {\mathbf x}}_i &= {\mathbf v}_i.
+
+
+@f}
+
+我们将用来处理粒子的deal.II类， Particles::ParticleHandler, 以一种方式存储粒子，因此位置 $\mathbf x_i$ 是 Particles::ParticleHandler 数据结构的一部分。它存储的粒子是按它们所在的单元分类的，因此需要知道每个粒子的位置）。另一方面，速度 $\mathbf v_i$ 与 Particles::ParticleHandler 无关，因此我们将把它存储为每个粒子的 "属性"，并在每个时间步长中更新。属性也可以用来存储我们可能关心的关于每个粒子的任何其他数量：它的电荷，或者如果它们大于一个电子，它的颜色、质量、在空间的位置、化学成分等等。
+
+要完成这个模型，还有两件事要讨论。粒子从哪里开始以及电荷密度 $\rho$ 是什么。
+
+首先，在历史上，阴极射线使用非常大的电场将电子从金属中拉出来。这只产生一个相对较小的电流。我们可以通过加热阴极来做得更好：在这种情况下，统计学上的一部分电子有足够的热能来离开金属；然后电场只要足够强，就可以把它们从宿主的吸引中拉出来。我们将以下列方式对此进行建模。如果（i）电场指向远离电极，即如果 $\mathbf E \cdot \mathbf n < 0$ ，其中 $\mathbf n$ 是指向域外（进入电极）的面的法向量，以及（ii）电场超过一个阈值 $|\mathbf E|\ge E_\text{threshold}$ ，我们将创建一个新粒子。这肯定不是真正发生的足够精确的模型，但对于我们目前的教程程序来说已经足够好了。
+
+第二，原则上我们必须通过以下方式建立电荷密度模型
+
+@f[
+  \rho(\mathbf x) = \sum_i e\delta(\mathbf x-\mathbf x_i).
+
+
+@f]
+
+
+
+ @note 现在的问题是，在现实中，一台老式电视中的阴极射线管产生的电流大约为几毫安培。在粒子加速器的更高能量的光束中，电流可能只有几纳安培。但一个安培是每秒流动的 $6\times 10^{18}$ 个电子。现在，正如你将在结果部分看到的，我们实际上只模拟了几微秒（ $10^{-5}$ 秒），但这仍然导致非常非常多的电子 -- 远远超过我们希望用像目前这样小的程序来模拟。因此，让我们假设每个粒子代表 $N$ 个电子。那么粒子的质量和电荷也是 $Nm$ 和 $Ne$ ，我们要解决的方程式是
+
+@f[
+  (Nm) {\ddot {\mathbf x}}_i = (Ne)\mathbf E,
+
+
+@f]
+
+当然，这与上述情况完全相同。另一方面，这些电子 "团块 "的电荷密度由以下公式给出
+
+@f[
+  \rho(\mathbf x) = \sum_i (Ne)\delta(\mathbf x-\mathbf x_i).
+
+
+@f]
+
+我们将在程序中实现这种形式，其中 $N$ 在程序中被选得相当大，以确保粒子实际影响电场。这在实践中可能并不现实。在大多数情况下，没有足够的电子来实际影响整个电场。但现实主义不是我们的目标）。)
+
+
+
+
+ @note  人们可能会问，为什么电场（或者说，电势）的方程没有时间导数，而电子位置的方程却有。从本质上讲，这是一个建模假设。我们假设粒子移动得很慢，以至于在任何时候电场都处于平衡状态。这就是说，换句话说，电子的速度远远小于光速。换句话说，我们可以用电极电压来重新表述  $V_0$  ：由于每伏特的电动势都会使电子加速约600公里/秒（忽略相对论效应），要求  $|\mathbf v_i\|\ll c$  等于说  $2V_0 \ll 500 \text{V}$  。在这个假设下（以及电子总数很小的假设），我们也可以忽略移动电荷产生的磁场，否则也会影响电子的运动。
+
+
+
+
+<h3>Time discretization</h3>
+
+上面概述的方程形成了一组耦合微分方程。让我们再次把它们集中在一起，以明确这一点。
+
+@f{align*}{
+
+
+  -\epsilon_0 \Delta V &= \sum_i e\delta(\mathbf x-\mathbf x_i)
+  \\
+  {\dot {\mathbf x}}_i &= {\mathbf v}_i,
+  \\
+  {\dot {\mathbf v}}_i &= \frac{e\mathbf E}{m} = \frac{e\mathbf \nabla V}{m}.
+
+
+@f}
+
+由于电势对粒子位置的依赖性很强，我们不想将其作为一个耦合系统来求解，而是采用一种解耦的方法，首先求解每个时间步长的电势，然后再求解粒子的位置。这与我们在第21步、第31步和第32步（仅举几例）所做的工作的精神是一样的，都可以在第58步讨论的算子分割方法的背景下加以理解。
+
+因此，如果我们用大指数 $n$ 表示时间步长，并且如果我们对ODE使用简单的时间离散化，那么这意味着我们必须在每个时间步长中解决以下方程组。
+
+@f{align*}{
+
+
+  -\epsilon_0 \Delta V^{(n)} &= \sum_i e\delta(\mathbf x-\mathbf x_i^{(n-1)})
+  \\
+  \frac{{\mathbf v}_i^{(n)}-{\mathbf v}_i^{(n-1)}}{\Delta t} &= \frac{e\nabla V^{(n)}}{m}
+  \\
+  \frac{{\mathbf x}_i^{(n)}-{\mathbf x}_i^{(n-1)}}{\Delta t} &= {\mathbf v}_i^{(n)}.
+
+
+@f}
+
+当然还有许多更好的方法来做时间离散化（例如简单的[跃迁方案](https://en.wikipedia.org/wiki/Leapfrog_integration)），但这不是本教程程序的重点，因此我们将满足于这里的内容。不过，我们将在本程序的<a href="#extensions">possibilities for extensions</a>部分对这个难题的一个部分进行评论）。
+
+还有一个问题是我们应该如何选择时间步长  $\Delta t$  。这里的限制是， Particles::ParticleHandler 类需要跟踪每个粒子在哪个单元中。如果我们平行运行计算（比如，在step-70中），这尤其是一个问题，因为在这种情况下，每个进程只存储它拥有的那些单元，再加上一层 "幽灵单元"。这在这里并不重要，但一般来说，我们应该确保在每个时间步长中，一个粒子只从一个单元移动到它的任何一个近邻（面、边或顶点的邻居）。如果我们能确保这一点，那么 Particles::ParticleHandler 就能保证能够找出粒子最后在哪个单元。为了做到这一点，一个有用的经验法则是，我们应该选择时间步长，使所有粒子的预期移动距离小于一个细胞的直径。
+
+@f[
+  \Delta t \le \frac{h_i}{\|\mathbf v_i\|} \qquad\qquad \forall i,
+
+
+@f]
+
+或等价的
+
+@f[
+  \Delta t \le \min_i \frac{h_i}{\|\mathbf v_i\|}.
+
+
+@f]
+
+这里， $h_i$ 是粒子 $i$ 所在的单元格最短边的长度--本质上是对单元格大小的衡量。
+
+另一方面，一个粒子可能已经在一个单元的边界上，而邻近的单元可能已经进一步细化。因此，那么穿过那个*邻近*单元的时间实际上将是上述数量的一半，这表明
+
+@f[
+  \Delta t \le \min_i \frac{\tfrac 12 h_i}{\|\mathbf v_i\|}.
+
+
+@f]
+
+
+
+但即使这样也是不够的。上面的公式在每次更新粒子位置时使用的是
+
+@f[
+\frac{{\mathbf x}_i^{(n)}-{\mathbf x}_i^{(n-1)}}{\Delta t} = {\mathbf v}_i^{(n)},
+
+
+@f]
+
+也就是说，使用当前的*速度 ${\mathbf v}_i^{n}$ 。但是当我们需要选择 $\Delta t$ 时，我们还没有当前的速度 -- 也就是在我们更新了潜能 $V^{(n)}$ 之后，但在我们将速度从 ${\mathbf v}_i^{(n-1)}$ 更新到 ${\mathbf v}_i^{(n)}$ 之前。我们有的只是  ${\mathbf v}_i^{(n-1)}$  。所以我们需要一个额外的安全系数来实现我们的最终选择。
+
+@f[
+  \Delta t^{(n)} =
+  c_\text{safety} \min_i \frac{\tfrac 12 h_i}{\|\mathbf v_i^{(n-1)}\|}.
+
+
+@f]
+
+ $c_\text{safety}$ 应该有多大？这取决于与 $\|\mathbf v_i^{(n)}\|$ 相比， $\|\mathbf v_i^{(n-1)}\|$ 可能被低估了多少，而这实际上是很容易评估的。如果沿途遇到的电场大致恒定，那么在一个时间步长中产生的速度为零的粒子，在每个连续的时间步长中大致会获得相等的速度增量。因此， $\|\mathbf v_i^{(n-1)}\|$ 和 $\|\mathbf v_i^{(n)}\|$ 之间的最大差异将是一个系数。因此，我们将选择 $c_\text{safety}=0.5$  。
+
+我们应该考虑的只有另外一种情况。在第一个时间步骤中会发生什么？在那里，任何要被移动的粒子刚刚被创造出来，但它们的速度是零。所以我们不知道我们应该为它们选择什么速度。当然，在所有其他时间步骤中，也有刚刚被创造出来的粒子，但一般来说，具有最高速度的粒子限制了时间步骤的大小，因此新创造出来的具有零速度的粒子并不重要。但是如果我们**只有这样的粒子？
+
+在这种情况下，我们可以使用以下近似值。如果一个粒子从 $\mathbf v^{(0)}=0$ 开始，那么更新公式告诉我们
+
+@f[
+  {\mathbf v}_i^{(1)} = \frac{e\nabla V^{(1)}}{m} \Delta t,
+
+
+@f]
+
+因此
+
+@f[
+    \frac{{\mathbf x}_i^{(1)}-{\mathbf x}_i^{(0)}}{\Delta t} = {\mathbf v}_i^{(1)},
+
+
+@f]
+
+我们可以把它写成
+
+@f[
+    {\mathbf x}_i^{(1)} - {\mathbf x}_i^{(0)} = \frac{e\nabla V^{(1)}}{m} \Delta t^2.
+
+
+@f]
+
+不想让一个粒子移动超过 $\frac 12 h_i$ ，那么就意味着我们应该选择时间步长为
+
+@f[
+  \Delta t
+  \le
+  \min_i
+  \sqrt{ \frac{h_i m}{e \|\nabla V^{(1)}\| }}.
+
+
+@f]
+
+使用关于相邻单元可能小2倍的相同论点，然后得出时间步长为0的最终公式。
+
+@f[
+  \Delta t
+  =
+  \min_i
+  \sqrt{ \frac{\frac 12 h_i m}{e \|\nabla V^{(1)}\| } }.
+
+
+@f]
+
+
+
+严格来说，我们必须在每个粒子的位置评估电势 $V^{(1)}$ ，但一个足够好的近似值是使用各自单元顶点的最大值。为什么是顶点而不是中点？因为拉普拉斯方程的解的梯度，即电场，在位于单元顶点的角落奇点上是最大的）。)这样做的好处是，我们可以很好地利用FEValues功能，只要各单元的正交点相同，就可以循环使用预计算的材料。
+
+我们总是可以运行这种方案来估计 $\mathbf v_i^{(n-1)}$ 和 $\mathbf v_i^{(n)}$ 之间的差异，但它依赖于评估每个单元的电场 $\mathbf E$ ，这很昂贵。因此，我们将把这种方法限制在第一个时间步骤上。
+
+
+
+
+<h3>Spatial discretization</h3>
+
+在讨论了时间离散化之后，对空间离散化的讨论将很简短：我们使用二次有限元，即空间 $Q_2$  ，来近似计算电动势 $V$  。在初始时间步骤中，网格被调整了几次。如果你读过第6步，所有这些都是完全标准的，而且实现起来也没有规定任何形式的惊喜。
+
+
+
+
+<h3>Dealing with particles programmatically</h3>
+
+实际上，在deal.II中，添加和移动粒子并不十分困难。要添加一个粒子，本程序的`create_particles()`函数只需使用以下形式的代码片段。
+
+@code
+  Particles::Particle<dim> new_particle;
+  new_particle.set_location(location);
+  new_particle.set_reference_location
+      (mapping.transform_real_to_unit_cell(cell, location));
+  new_particle.set_id(n_current_particles);
+
+
+  particle_handler.insert_particle(new_particle, cell);
+@endcode
+
+换句话说，它与在 `std::set` 或 `std::map`: 中插入一个对象没有什么不同。 创建对象，设置其属性（这里是当前位置、其参考单元位置和其id）并调用`insert_particle`。唯一可能令人惊讶的是参考位置。为了评估诸如  $\nabla V(\mathbf x_i)$  的东西，有必要在位置  $\mathbf x_i$  评估有限元场。但这需要在参考单元 $\hat{\mathbf x}_i$ 上的点评估有限元形状函数。为了使之有效，每个粒子不仅要存储它的位置和它所在的单元，还要存储该点在单元参考坐标系中对应的位置。
+
+这样，更新粒子的位置就不再困难了。我们只需要调用
+
+@code
+  particle->set_location(new_location);
+@endcode
+
+我们在`move_particles()`函数中这样做。唯一的区别是，我们必须告诉 Particles::ParticleHandler 类也要找到该位置所对应的单元（而且，在并行计算时，哪个进程拥有该单元）。出于效率的考虑，这在更新所有粒子的位置后最容易完成，并通过 Particles::ParticleHandler::sort_particles_into_subdomains_and_cells() 函数实现。
+
+当然，有些时候，粒子可能会离开有关的域。在这种情况下， Particles::ParticleHandler::sort_particles_into_subdomains_and_cells() 不能找到周围的单元，而只是简单地删除该粒子。但是，跟踪以这种方式丢失的粒子的数量往往是有用的，为此， Particles::ParticleHandler 类提供了一个可以附加的 "信号"。我们在主类的构造函数中展示了如何做到这一点，以计算每个时间步骤中损失了多少粒子。具体来说，这种工作方式是， Particles::ParticleHandler 类有一个 "信号"，人们可以附加一个函数，只要信号被触发就会执行。在这里，这看起来如下。
+
+@code
+    particle_handler.signals.particle_lost.connect(
+      [this](const typename Particles::ParticleIterator<dim> &        particle,
+             const typename Triangulation<dim>::active_cell_iterator &cell)
+      {
+        this->track_lost_particle(particle, cell);
+      });
+@endcode
+
+这有点拗口，但实际情况是这样的。我们声明了一个 "捕获"`this`指针的lambda函数（这样我们就可以在lambda函数中访问周围对象的成员函数），它需要两个参数。
+
+- 指的是已经 "丢失 "的粒子。
+
+- 它最后所在的单元格的引用。这个lambda函数然后简单地用这些参数调用 `CathodeRaySimulator::track_lost_particle` 函数。当我们把这个lambda函数附加到信号上时， Particles::ParticleHandler::sort_particles_into_subdomains_and_cells() 函数将为每个找不到新家的粒子触发信号。这让我们有机会记录下粒子的位置，并记录下关于它的统计数据。
+
+
+
+
+ @note  在这个教程程序中，我们通过手工插入粒子，并在我们根据包括静电问题的解决的条件专门选择的位置插入粒子。但在其他情况下，人们主要希望将粒子作为被动对象使用，例如，追踪和可视化流体流动问题的流场。在这些情况下， Particles::Generators 命名空间中有许多函数可以自动生成粒子。例如，这个命名空间中的一个函数也被用于step-70教程程序中。
+
+
+
+
+<h3>The test case</h3>
+
+这里的测试案例并不意味着是对阴极射线管的真实描述，但它具有正确的一般特征，而且在任何情况下，重点只是演示如何实现使用粒子的deal.II代码。
+
+下图显示了我们要使用的几何图形。
+
+<p align="center"> <img src="https://www.dealii.org/images/steps/developer/step-19.geometry.png" alt="本程序中使用的几何图形" width="600">  </p> 
+
+在这幅图中，边界上用红色和蓝色标记的部分是阴极，保持在一个电动势 $V=-V_0$ 。阴极的红色部分是被加热的部分，导致电子离开金属，然后被电场加速（也显示了一些电场线）。边界的绿色部分是阳极，保持在 $V=+V_0$ 。边界的其余部分满足诺伊曼边界条件。
+
+这种设置模仿了真实的设备。重心角导致电势 $V$ ，其导数（电场 $\mathbf E$ ）有一个奇点--换句话说，它在角的附近变得非常大，允许它把电子从金属中扯出来。这些电子然后被加速推向（绿色）阳极，阳极中间有一个孔，电子可以通过这个孔逃离设备并飞到屏幕上，在那里它们激发 "荧光粉"，然后发出我们从这些老式电视屏幕上看到的光。阴极的非加热部分不受电子发射的影响--在代码中，我们将其标记为电子管的 "聚焦元件"，因为它的负电压会排斥电子，并确保它们不只是垂直于边界从阴极的加热部分飞走，而是事实上将它们的路径弯曲到右边的阳极。
+
+图中的电场线也说明了电场分别连接着负极和正极。电子经历的加速力是沿着这些场线的。最后，图片显示了计算中使用的网格，说明在重租角的顶端以及边界条件改变的所有地方都有奇异点；这些奇异点是可见的，因为网格在这些地方被细化。
+
+实际的利益是要弄清楚从阴极发射的电子中有哪一部分真正通过了阳极上的孔--那些只是反弹到阳极本身的电子除了将电转化为热之外，实际上并没有什么用处。因此，在`track_lost_particle()`函数中（为每个离开域的粒子调用，见上文），我们将估计它可能离开域的位置并在输出中报告。
+
+
+
+
+ @note 值得重申的是，这里使用的几何图形，以及事实上这个程序的任何其他方面，都不是为了代表任何半点现实的东西。教程是我们教授deal.II如何工作的工具，我们经常使用我们有某种直觉的情况，因为这有助于我们解释程序的输出，但这就是我们打算让程序除了作为教学工具之外做任何有用的事情的程度。
+
+

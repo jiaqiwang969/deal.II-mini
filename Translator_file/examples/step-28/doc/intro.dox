@@ -1,0 +1,432 @@
+examples/step-28/doc/intro.dox
+
+ <br> 
+
+<i>This program was contributed by Yaqi Wang and Wolfgang
+Bangerth. Results from this program are used and discussed in the publication
+"Three-dimensional h-adaptivity for the multigroup neutron diffusion
+equations" by Yaqi Wang, Wolfgang Bangerth and Jean Ragusa. The paper's full
+bibliographic details are as follows:
+
+
+@code
+@Article{WBR09,
+  author  = {Yaqi Wang and Wolfgang Bangerth and Jean Ragusa},
+  title   = {Three-dimensional h-adaptivity for the multigroup
+             neutron diffusion equations},
+  journal = {Progr. Nucl. Energy},
+  year    = 2009,
+  volume  = 51,
+  pages   = {543--555}
+}
+@endcode@code
+@Article{WBR09,
+  author  = {Yaqi Wang and Wolfgang Bangerth and Jean Ragusa},
+  title   = {Three-dimensional h-adaptivity for the multigroup
+             neutron diffusion equations},
+  journal = {Progr. Nucl. Energy},
+  year    = 2009,
+  volume  = 51,
+  pages   = {543--555}
+}
+@endcode
+
+
+The paper is available <a target="_top"
+href="https://www.semanticscholar.org/paper/Three-dimensional-h-adaptivity-for-the-multigroup-Wang-Bangerth/900592e8e891d9b888d59a69ec58bf2bbda56b4b">here</a><a target="_top"
+href="https://www.semanticscholar.org/paper/Three-dimensional-h-adaptivity-for-the-multigroup-Wang-Bangerth/900592e8e891d9b888d59a69ec58bf2bbda56b4b">here</a>.
+</i>
+
+ <br> 
+
+
+<a name="Intro"></a> <h1>Introduction</h1> 在这个例子中，我们打算解决中子传输方程的多组扩散近似。基本上，看待这个问题的方式如下。在核反应堆中，中子以不同的能量飞驰，被吸收或散射，或开始一个新的裂变事件。如果从足够长的长度尺度来看，中子的运动可以被视为一个扩散过程。
+
+对这一点的数学描述将把中子归入能级，并考虑每个能级或能量组中的中子通量的平衡方程。然后，散射、吸收和裂变事件将成为描述中子通量的扩散方程中的算子。假设我们有能量组 $g=1,\ldots,G$ ，按照惯例，我们假设能量最高的中子在1组，能量最低的中子在 $G$ 组。那么每组的中子通量满足以下公式。
+
+@f{eqnarray*}
+\frac 1{v_g}\frac{\partial \phi_g(x,t)}{\partial t}
+&=&
+\nabla \cdot(D_g(x) \nabla \phi_g(x,t))
+
+
+-
+\Sigma_{r,g}(x)\phi_g(x,t)
+\\
+&& \qquad
++
+\chi_g\sum_{g'=1}^G\nu\Sigma_{f,g'}(x)\phi_{g'}(x,t)
++
+\sum_{g'\ne g}\Sigma_{s,g'\to g}(x)\phi_{g'}(x,t)
++
+s_{\mathrm{ext},g}(x,t)
+
+
+@f}
+
+通过适当的边界条件增强。这里， $v_g$ 是 $g$ 组内中子的速度。换句话说， $g$ 组中的中子通量的时间变化受以下过程支配。   <ul>   <li>  扩散  $\nabla \cdot(D_g(x) \nabla \phi_g(x,t))$  。这里， $D_g$ 是（空间上可变的）扩散系数。   <li>  吸收  $\Sigma_{r,g}(x)\phi_g(x,t)$  （注意是负号）。系数 $\Sigma_{r,g}$ 被称为<i>removal
+  cross section</i>。   <li>  核裂变  $\chi_g\sum_{g'=1}^G\nu\Sigma_{f,g'}(x)\phi_{g'}(x,t)$  。   能量的中子 $g$ 的产生与能量的中子通量 $g'$ 乘以能量的中子 $\Sigma_{f,g'}$ 引起裂变事件的概率 $g'$ 乘以每个裂变事件中产生的中子数量 $\nu$ 乘以该事件中产生的中子具有能量的概率 $g$  。   $\nu\Sigma_{f,g'}$ 被称为<i>fission cross section</i>， $\chi_g$ 被称为<i>fission spectrum</i>。我们将把 $\chi_g\nu\Sigma_{f,g'}$ 这个词表示为程序中的<i>fission distribution cross
+    section</i>。   <li> 能量为 $\sum_{g'\ne g}\Sigma_{s,g'\to g}(x)\phi_{g'}(x,t)$ 的中子的散射 $g'$ 产生能量为 $g$ 的中子 。   $\Sigma_{s,g'\to g}$ 被称为<i>scattering cross
+    section</i>。弹性、群内散射 $g'=g$ 的情况也存在，但我们将其归入清除截面。 $g'<g$ 的情况被称为向下散射，因为中子在这样的事件中失去了能量。另一方面， $g'>g$ 对应于上散射：中子在散射事件中从其周围原子的热运动中获得能量；因此，上散射仅对动能已经与热动能处于同一等级（即在 $eV$ 以下范围）的中子是一个重要过程。   <li>  一个外源  $s_{\mathrm{ext},g}$  。   </ul> 
+
+为了在反应堆分析中进行现实模拟，人们可能希望将中子能量的连续谱分成许多能量组，通常多达100个。然而，如果对某些类型的反应堆（例如压水反应堆，PWR）的中子能谱有足够的了解，那么只用2个能群就有可能获得满意的结果。
+
+在本教程的程序中，我们提供的结构可以根据需要用尽可能多的能量组进行计算。然而，为了保持适度的计算时间，并避免将数百个系数列表，我们只提供上述两组模拟方程的系数，即  $g=1,2$  。然而，我们确实考虑了一个现实的情况，即假设系数不是恒定的，而是取决于以相当复杂的方式装配到反应堆燃料组件的材料（见下文）。
+
+
+
+
+<h3>The eigenvalue problem</h3>
+
+如果我们一次考虑所有的能量组，我们可以将上述方程写成以下算子形式。
+
+@f{eqnarray*}
+\frac 1v \frac{\partial \phi}{\partial t}
+=
+
+
+-L\phi
++
+F\phi
++
+X\phi
++
+s_{\mathrm{ext}},
+
+
+@f}
+
+其中 $L,F,X$ 分别是沉降、裂变和散射算子。  这里的 $L$ 包括扩散和清除项。请注意， $L$ 是对称的，而 $F$ 和 $X$ 不是。
+
+众所周知，如果算子 $-L+F+X$ 的所有特征值都是负的，这个方程就有一个稳定的解。这可以通过将方程乘以 $\phi$ 并在域上进行积分而很容易看出，从而导致
+
+@f{eqnarray*}
+  \frac 1{2v} \frac{\partial}{\partial t}  \|\phi\|^2 = ((-L+F+X)\phi,\phi).
+
+
+@f}
+
+稳定性意味着解决方案不会增长，也就是说，我们希望左手边的值小于零，如果右边算子的特征值都是负的，就会出现这种情况。由于显而易见的原因，如果核反应堆产生的中子通量呈指数增长，这不是很理想，所以特征值分析是核工程师的面包和主食。因此，该程序的要点是考虑特征值问题
+
+@f{eqnarray*}
+  (L-F-X) \phi = \lambda \phi,
+
+
+@f}
+
+其中我们要确保所有的特征值都是正的。请注意， $L$ ，即扩散算子加上吸收（去除），是正定的；因此，所有特征值为正的条件意味着我们要确保裂变和组间散射足够弱，不会使频谱转移到负值。
+
+在核工程中，人们通常会关注特征值问题的一个稍微不同的表述。为此，我们不只是与 $\phi$ 相乘并整合，而是与 $\phi(L-X)^{-1}$ 相乘。然后我们得到以下演化方程。
+
+@f{eqnarray*}
+  \frac 1{2v} \frac{\partial}{\partial t}  \|\phi\|^2_{(L-X)^{-1}} = ((L-X)^{-1}(-L+F+X)\phi,\phi).
+
+
+@f}
+
+如果以下问题的特征值都是负的，那么稳定性就得到了保证。
+
+@f{eqnarray*}
+  (L-X)^{-1}(-L+F+X)\phi = \lambda_F \phi,
+
+
+@f}
+
+等同于特征值问题
+
+@f{eqnarray*}
+  (L-X)\phi = \frac 1{\lambda_F+1} F \phi.
+
+
+@f}
+
+核工程中的典型表述是将其写为
+
+@f{eqnarray*}
+  (L-X) \phi = \frac 1{k_{\mathrm{eff}}} F \phi,
+
+
+@f}
+
+其中 $k_{\mathrm{eff}}=\frac 1{\lambda^F+1}$  。直观地说， $k_{\mathrm{eff}}$ 是类似于每个典型时间尺度的中子的乘法系数，对于反应堆的稳定运行，它应该小于或等于1：如果它小于1，链式反应将消亡，而核弹等的 $k$ -特征值大于1。一个稳定的反应堆应该有 $k_{\mathrm{eff}}=1$  。
+
+对于那些想知道在实践中如何才能做到这一点，而又不至于在不经意间变得稍大而引发核弹的人来说：首先，裂变过程发生在不同的时间尺度上。虽然大多数中子在裂变事件后很快就被释放出来，但少量的中子只有在裂变开始后经过几次进一步的衰变后，才会由子核释放出来，最长可达10-60秒。因此，如果一个人稍稍超过 $k_{\mathrm{eff}}=1$ ，就会有许多秒的反应时间，直到裂变中产生的所有中子重新进入裂变循环。然而，吸收中子的核反应堆中的控制棒--并因此减少 $k_{\mathrm{eff}}$ --被设计成最多在2秒内全部进入反应堆。
+
+因此，如果 $k_{\mathrm{eff}}$ 在一段时间内大于1，正如不断增长的中子通量所显示的那样，人们有10-60秒的时间来调节核反应。调节可以通过持续监测中子通量来实现，必要时通过将吸收中子的控制棒移入或移出反应堆几毫米来增加或减少中子通量。在更大的范围内，冷却反应堆的水含有硼，一种良好的中子吸收剂。每隔几个小时，通过添加硼或稀释冷却剂来调整硼的浓度。
+
+最后，一些吸收和散射反应有一些内置的稳定性；例如，较高的中子通量导致局部温度升高，这降低了水的密度，因此减少了散射体的数量，而这些散射体是在中子开始裂变事件本身之前将其从高能量调节到低能量所必需的。
+
+在这个教程程序中，我们解决上述 $k$ -两个能量组的特征值问题，我们正在寻找最大的乘法因子 $k_{\mathrm{eff}}$  ，它与最小特征值的逆值加1成正比。为了解决特征值问题，我们一般使用<i>inverse power method</i>的修改版。该算法看起来像这样。
+
+<ol>  <li>  用 $\phi_g^{(0)}$ 和 $k_{\mathrm{eff}}^{(0)}$ 初始化 $\phi_g$ 和 $k_{\mathrm{eff}}$ ，让 $n=1$  .
+
+ <li>  通过@f{eqnarray*}
+    s_f^{(n-1)}(x)
+    =
+    \frac{1}{k_{\mathrm{eff}}^{(n-1)}}
+    \sum_{g'=1}^G\nu\Sigma_{f,g'}(x)\phi_{g'}^{(n-1)}(x).
+  @f}定义所谓的<i>fission source</i>。
+
+
+
+ <li>  利用@f{eqnarray*}
+
+
+    -\nabla \cdot D_g\nabla \phi_g^{(n)}
+    +
+    \Sigma_{r,g}\phi_g^{(n)}
+    =
+    \chi_g s_f^{(n-1)}
+    +
+    \sum_{g'< g} \Sigma_{s,g'\to g} \phi_{g'}^{(n)}
+    +
+    \sum_{g'> g}\Sigma_{s,g'\to g}\phi_{g'}^{(n-1)}.
+  @f}求解所有组通量 $\phi_g,g=1,\ldots,G$  。
+
+
+
+ <li>  更新@f{eqnarray*}
+    k_{\mathrm{eff}}^{(n)}
+    =
+    \sum_{g'=1}^G
+    \int_{\Omega}\nu\Sigma_{f,g'}(x)
+    \phi_{g'}^{(n)}(x)dx.
+  @f} 。
+
+
+
+ <li>  比较 $k_{\mathrm{eff}}^{(n)}$ 和 $k_{\mathrm{eff}}^{(n-1)}$  。   如果变化大于规定的公差，则设置  $n=n+1$  从步骤2开始重复迭代，否则结束迭代。   </ol> 
+
+需要注意的是，在这个方案中，我们在每次幂迭代中并不完全求解群通量，而是考虑以前只计算  $\phi_{g'}^{(n)}$  的下散射事件  $g'<g$  。上散射仅通过使用旧的迭代器 $\phi_{g'}^{(n-1)}$ 来处理，实质上是假设散射算子是三角形的。这在物理上是有原因的，因为向上散射在中子散射中并不扮演太重要的角色。此外，实践表明，即使使用这种简化方法，反功率迭代也是稳定的。
+
+还要注意的是，我们可以使用很多外推技术来加速上述的功率迭代。然而，这些都没有在这个例子中实现。
+
+
+
+
+<h3>Meshes and mesh refinement</h3>
+
+人们可能会想，在同一网格上求解各个能量组方程的解是否合适。这个问题可以归结为： $\phi_g$ 和 $\phi_{g'}$ 是否会有类似的光滑度特性？如果是这样的话，那么对两者使用相同的网格是合适的；一个典型的应用可能是化学燃烧，通常所有或大多数化学物种的浓度在火焰前沿快速变化。事实证明，通过观察本教程程序结果部分显示的图形就会发现，然而这里的情况并非如此：由于不同能量组的扩散系数不同，快中子（在小群数 $g$ 的仓中）有一个非常平滑的通量函数，而慢中子（在大群数的仓中）受当地材料特性的影响更大，如果像我们这里计算的情况一样，系数粗糙，则有一个相应的粗糙解决方案。因此，我们要使用不同的网格来计算每个能量组。
+
+这有两个影响，我们将不得不考虑。首先，我们需要找到一种方法来单独细化这些网格。第二，为逆功率迭代组装源项，我们必须将定义在网格 $g'$ 上的解 $\phi_{g'}^{(n)}$ 与定义在网格 $g$ 上的形状函数进行整合，这将成为一项更为复杂的任务。
+
+
+
+
+<h4>Mesh refinement</h4>
+
+我们使用通常的范式：在一个给定的网格上求解，然后为每个网格的每个单元评估一个误差指标。因为它非常方便，我们再次使用Kelly, Gago, Zienkiewicz和Babuska的事后误差估计器，它通过整合每个单元面的解的梯度跳跃来接近每个单元的误差。利用这一点，我们得到指标
+
+@f{eqnarray*}
+\eta_{g,K}, \qquad g=1,2,\ldots,G,\qquad K\in{\cal T}_g,
+
+
+@f}
+
+其中 ${\cal T}_g$ 是用于解决 $\phi_g$ 的三角法。问题是该如何处理这个问题。其一，很明显，只细化那些误差指标最高的单元可能会导致不好的结果。为了理解这一点，必须认识到 $\eta_{g,K}$ 与 $\phi_g$ 的二阶导数成比例。换句话说，如果我们有两个能量组 $g=1,2$ ，它们的解同样平滑，但其中一个大了一万倍，例如，那么只有该网格的单元被细化，而小幅度的解的网格将保持粗糙。这可能不是人们想要的，因为我们可以认为解的两个部分同样重要。
+
+因此，从本质上讲，我们必须用一个重要系数 $z_g$ 来衡量 $\eta_{g,K}$ ，这个系数表示将 $\phi_g$ 解决到任何特定的精度有多重要。这样的重要系数可以用二元性技术来计算（例如，见step-14教程程序，以及那里引用的Bangerth和Rannacher的书的参考）。然而，我们不会去那里，而只是假设所有的能量组都是同等重要的，因此将以解 $\phi_g$ 的最大值来规范 $\eta_{g,K}$ 组的误差指标 $g$  。然后我们对误差满足以下条件的单元进行细化
+
+@f{eqnarray*}
+  \frac{\eta_{g,K}}{\|\phi_g\|_\infty}
+  >
+  \alpha_1
+  \displaystyle{\max_{\begin{matrix}1\le g\le G \\ K\in {\cal T}_g\end{matrix}}
+    \frac{\eta_{g,K}}{\|\phi_g\|_\infty}}
+
+
+@f}
+
+和粗化的细胞，其中
+
+@f{eqnarray*}
+  \frac{\eta_{g,K}}{\|\phi_g\|_\infty}
+  <
+  \alpha_2
+  \displaystyle{\max_{\begin{matrix}1\le g\le G \\ K\in {\cal T}_g\end{matrix}}
+    \frac{\eta_{g,K}}{\|\phi_g\|_\infty}}.
+
+
+@f}
+
+我们在代码中选择了［ $\alpha_1=0.3$ ］和［ $\alpha_2=0.01$ ］。注意，这当然会导致不同能量组的不同网格。
+
+上面的策略实质上意味着以下几点。如果对于能量组 $g$ 来说，有许多单元 $K\in {\cal T}_g$ 的误差很大，例如因为解决方案在整体上非常粗糙，那么许多单元将高于阈值。另一方面，如果有几个单元的误差较大，而许多单元的误差较小，例如因为除少数地方外，解决方案总体上相当平滑，那么只有少数有较大误差的单元将被细化。因此，该策略允许网格很好地跟踪相应的解决方案的全局平滑性属性。
+
+
+
+
+<h4>Assembling terms on different meshes</h4>
+
+如上所述，多组细化策略导致不同解的网格不同  $\phi_g$  。那么问题出在哪里呢？实质上是这样的：在特征值迭代的第3步中，我们要像往常一样通过与定义在网格上的测试函数 $\varphi_g^i$ 相乘来形成要计算的方程的弱形式 $\phi_g^{(n)}$ ；在这个过程中，我们要计算包含以下形式的项的右手向量。
+
+@f{eqnarray*}
+  F_i = \int_\Omega f(x) \varphi_g^i(x) \phi_{g'}(x) \ dx,
+
+
+@f}
+
+其中 $f(x)$ 是用于特征值方程右侧的系数函数 $\Sigma_{s,g'\to g}$ 或 $\nu\chi_g\Sigma_{f,g'}$ 中的一个。现在的困难是， $\phi_{g'}$ 是定义在能量组 $g'$ 的网格上，即它可以扩展为 $\phi_{g'}(x)=\sum_j\phi_{g'}^j \varphi_{g'}^j(x)$ ，基函数 $\varphi_{g'}^j(x)$ 定义在网格 $g'$ 。因此，对右边的贡献可以写成
+
+@f{eqnarray*}
+  F_i = \sum_j \left\{\int_\Omega f(x) \varphi_g^i(x) \varphi_{g'}^j(x)
+  \ dx \right\} \phi_{g'}^j ,
+
+
+@f}
+
+另一方面，测试函数  $\varphi_g^i(x)$  是在网格  $g$  上定义的。这意味着我们不能将积分  $\Omega$  分割成网格  $g$  或  $g'$  上的积分，因为其他的基函数可能没有定义在这些单元上。
+
+这个问题的解决方案在于， $g$ 和 $g'$ 的网格都是通过自适应细化从一个共同的粗略的网格中得到。因此，我们总能找到一组单元，我们用 ${\cal T}_g \cap
+{\cal T}_{g'}$ 表示，它们满足以下条件。   <ul>   <li>  这些单元的联合覆盖了整个领域，并且  <li>  一个单元  $K \in {\cal T}_g \cap {\cal T}_{g'}$  在两个网格中至少有一个是活动的。   </ul>  构建这个集合的方法是，取粗略网格的每个单元，做以下步骤。(i) 如果该单元在 ${\cal T}_g$ 或 ${\cal T}_{g'}$ 上处于活动状态，则将该单元加入该集合；(ii) 否则，即如果该单元在两个网格上都有子节点，则对该单元的每个子节点进行步骤(i)。事实上，deal.II有一个函数 GridTools::get_finest_common_cells ，可以准确地计算出在两个网格中至少有一个处于活动状态的单元的集合。
+
+有了这个，我们可以把上述积分写成如下。
+
+@f{eqnarray*}
+  F_i
+  =
+  \sum_{K \in {\cal T}_g \cap {\cal T}_{g'}}
+  \sum_j \left\{\int_K f(x) \varphi_g^i(x) \varphi_{g'}^j(x)
+  \ dx \right\} \phi_{g'}^j.
+
+
+@f}
+
+在代码中，我们在函数 <code>NeutronDiffusionProblem::assemble_rhs</code> 中计算右手边，其中（除其他外）我们在常见的最精炼的单元格集合上循环，对这些单元格的每一对调用函数 <code>NeutronDiffusionProblem::assemble_common_cell</code> 。
+
+根据结构，现在有三种情况需要考虑。<ol>  <li>  单元 $K$ 在两个网格上都是有效的，也就是说，基函数 $\varphi_g^i$ 以及 $\varphi_{g'}^j$ 都是在 $K$ 上定义。   <li>  单元 $K$ 在网格 $g$ 上是有效的，但在 $g'$ 上不是，即 $\varphi_g^i$ 是在 $K$ 上定义的，而 $\varphi_{g'}^j$ 是在 $K$ 的子网格上定义的。   <li>  单元 $K$ 在网格 $g'$ 上是有效的，但在 $g$ 上不是，其结论与(ii)相反。   </ol> 
+
+为了计算上面的右手边，我们就需要对这三种情况有不同的代码，如下所示。<ol>  <li>  如果单元 $K$ 在两个网格上都是活动的，那么我们可以直接评估积分。事实上，我们甚至不必理会基函数 $\varphi_{g'}$ ，因为我们所需要的只是 $\phi_{g'}$ 在正交点的值。我们可以使用 FEValues::get_function_values 函数来完成这个任务。这在 <code>NeutronDiffusionProblem::assemble_common_cell</code> 函数中直接完成。
+
+ <li>  如果单元格  $K$  在网格  $g$  上是有效的，而不是  $g'$  ，那么基函数  $\varphi_{g'}^j$  只能定义在子单元  $K_c,0\le c<2^{\texttt{dim}}$  上，或者在这些子单元  $K$  上被精炼一次以上。
+
+  让我们假设 $K$ 在网格 $g'$ 上只比在网格 $g$ 上多精炼一次。利用我们使用嵌入式有限元空间的事实，即一个网格上的每个基函数可以写成下一个细化网格上的基函数的线性组合，我们可以将 $\phi_g^i$ 对子单元 $K_c$ 的限制扩展为定义在该子单元上的基函数（即定义了基函数 $\varphi_{g'}^l$ 的单元上）。   @f{eqnarray*}
+    \phi_g^i|_{K_c} = B_c^{il} \varphi_{g'}^l|_{K_c}.
+  @f}
+
+  在这里，以及在下文中，对出现两次的指数进行求和是隐含的。矩阵 $B_c$ 是将数据从一个单元格内插到其 $c$ 的子单元的矩阵。
+
+  那么我们可以把单元格 $K$ 对右侧分量 $F_i$ 的贡献写成@f{eqnarray*}
+    F_i|_K
+    &=&
+    \left\{ \int_K f(x) \varphi_g^i(x) \varphi_{g'}^j(x)
+    \ dx \right\} \phi_{g'}^j
+    \\
+    &=&
+    \left\{
+    \sum_{0\le c<2^{\texttt{dim}}}
+    B_c^{il} \int_{K_c} f(x) \varphi_{g'}^l(x) \varphi_{g'}^j(x)
+    \ dx \right\} \phi_{g'}^j.
+  @f} 。
+
+  在矩阵符号中，这可以写成@f{eqnarray*}
+    F_i|_K
+    =
+    \sum_{0\le c<2^{\texttt{dim}}}
+    F_i|_{K_c},
+    \qquad
+    \qquad
+    F_i|_{K_c} = B_c^{il} M_{K_c}^{lj}  \phi_{g'}^j
+    = (B_c M_{K_c})^{ij} \phi_{g'}^j,
+  @f}
+
+  其中 $M_{K_c}^{lj}=\int_{K_c} f(x) \varphi_{g'}^l(x) \varphi_{g'}^j(x)$ 是单元格 $K$ 的子 $c$ 上的加权质量矩阵。
+
+  下一个问题是，如果 $K$ 的一个子集 $K_c$ 没有被激活，会发生什么？然后，我们必须递归地应用这个过程，即我们必须将基础函数 $\varphi_g^i$ 插值到 $K$ 的子 $K_c$ 上，然后插值到该单元的子 $K_{cc'}$ 上，插值到该单元的子 $K_{cc'c''}$ 上，等等，直到我们找到一个活动单元。然后，我们必须将单元格 $K$ 的所有子代、孙代等的贡献相加，其贡献形式为@f{eqnarray*}
+    F_i|_{K_{cc'}} = (B_cB_{c'} M_{K_{cc'}})^{ij}  \phi_{g'}^j,
+  @f} 。
+
+  或@f{eqnarray*}
+    F_i|_{K_{cc'c''}} = (B_c B_{c'} B_{c''}M_{K_{cc'c''}})^{ij}
+    \phi_{g'}^j,
+  @f}
+
+  等等。我们递归地做这个过程，即如果我们坐在单元格 $K$ 上，看到它在网格 $g'$ 上有孩子，那么我们就用一个身份矩阵调用一个函数 <code>assemble_case_2</code> ；该函数将把它的参数从左边乘以延长矩阵；如果该单元格还有孩子，它将用这个新矩阵调用自己，否则它将进行整合。
+
+ <li>  最后一种情况是 $K$ 在网格 $g'$ 上是有效的，但在网格 $g$ 上不是。在这种情况下，我们必须用定义在单元格  $K$  上的基函数来表达基函数  $\varphi_{g'}^j$  ，而不是像以前那样用  $\varphi_g^i$  来表达。这当然是以完全相同的方式进行的。如果 $K$ 的子单元在网格 $g$ 上是活动的，那么就会导致表达式@f{eqnarray*}
+    F_i|_K
+    &=&
+    \left\{ \int_K f(x) \varphi_g^i(x) \varphi_{g'}^j(x)
+    \ dx \right\} \phi_{g'}^j
+    \\
+    &=&
+    \left\{
+    \sum_{0\le c<2^{\texttt{dim}}}
+    \int_{K_c} f(x) \varphi_g^i(x) B_c^{jl} \varphi_{g}^l(x)
+    \ dx \right\} \phi_{g'}^j.
+  @f} 。
+
+  在矩阵符号中，这个表达式现在读作@f{eqnarray*}
+    F_i|_K
+    =
+    \sum_{0\le c<2^{\texttt{dim}}}
+    F_i|_{K_c},
+    \qquad
+    \qquad
+    F_i|_{K_c} = M_{K_c}^{il} B_c^{jl}  \phi_{g'}^j
+    =
+    (M_{K_c} B_c^T)^{ij} \phi_{g'}^j,
+  @f} 。
+
+  而相应地，对于单元格 $K$ 在网格 $g$ 上被精炼一次以上的情况：@f{eqnarray*}
+    F_i|_{K_{cc'}} = (M_{K_{cc'}} B_{c'}^T B_c^T)^{ij}  \phi_{g'}^j,
+  @f} 。
+
+  或@f{eqnarray*}
+    F_i|_{K_{cc'c''}} = (M_{K_{cc'c''}} B_{c''}^T B_{c'}^T B_c^T)^{ij}
+    \phi_{g'}^j,
+  @f}
+
+  等。换句话说，这个过程与之前的工作方式完全相同，只是我们必须采取延长矩阵的转置，并需要从另一侧乘以质量矩阵。   </ol> 
+
+
+情况（二）和（三）的表达式可以理解为将标量积 $(f \varphi_g^i, \varphi_{g'}^j)_K$ 中的左或右基函数反复插值到子单元上，然后在最后的单元上形成内积（质量矩阵）。为了使这些情况的对称性更加明显，我们可以这样写：对于情况（二），我们有
+
+@f{eqnarray*}
+  F_i|_{K_{cc'\cdots c^{(k)}}}
+  = [B_c B_{c'} \cdots B_{c^{(k)}} M_{K_{cc'\cdots c^{(k)}}}]^{ij}
+    \phi_{g'}^j,
+
+
+@f}
+
+而对于情况（三），我们得到
+
+@f{eqnarray*}
+  F_i|_{K_{cc'\cdots c^{(k)}}}
+  = [(B_c B_{c'} \cdots B_{c^{(k)}} M_{K_{cc'\cdots c^{(k)}}})^T]^{ij}
+    \phi_{g'}^j,
+
+
+@f}
+
+
+
+
+
+
+<h3>Description of the test case</h3>
+
+一个核反应堆的堆芯是由不同类型的组件组成的。一个组件基本上是可以在反应堆内和外移动的最小单元，通常是矩形或方形。然而，组件并不是固定的单位，因为它们是由不同的燃料棒、控制棒和仪器元件组成的复杂晶格组装而成的，这些元件通过永久连接到燃料棒上的间隔件来保持彼此的位置。使事情更加复杂的是，在反应堆中同时使用不同种类的组件，这些组件在其组成的燃料棒的类型和排列上有所不同。
+
+显然，组件的排列以及组件内燃料棒的排列都会影响反应堆内中子通量的分布（这一事实通过查看本方案结果部分中下面显示的解决方案就会很明显）。例如，燃料棒在铀235或钚239的富集程度上彼此不同。另一方面，控制棒具有零裂变，但散射和吸收截面不为零。
+
+这整个安排将使描述或空间上的材料参数变得非常复杂。它不会变得更简单，但我们将做一个近似：我们将每个圆柱形棒和周围的水所居住的体积合并成二次横截面的体积，变成所谓的 "夹子单元"，用核数据库和中子光谱的知识获得这些单元的同质化材料数据。同质化使所有材料数据在带有新燃料的反应堆的求解域上成为片状常数。然后为一个点所在的四元组查询空间相关的材料参数，然后为这个四元组中的四元针单元查询。
+
+在这个教程程序中，我们模拟了一个由 $4
+\times 4$ 组件组成的反应堆的四分之一。我们使用对称性（Neumann）边界条件，将问题缩小到四分之一的领域，因此只模拟 $2\times 2$ 套组件。其中两个将是UO ${}_2$ 燃料，另外两个是MOX燃料。这些组件中的每一个都由不同成分的 $17\times 17$ 棒组成。因此，我们总共创造了一个 $34\times 34$ 棒子的晶格。为了使以后的事情更简单，我们通过创建一个 $34\times 34$ 单元的粗大网格来反映这一事实（尽管领域是一个正方形，我们通常会使用一个单元）。在deal.II中，每个单元都有一个 <code>material_id</code> ，可以用来将每个单元与一个特定的数字联系起来，识别这个单元的体积是由什么材料制成的；我们将使用这个材料ID来识别在这个测试案例中使用的8种不同的杆子中的哪一种组成了一个特定的单元。请注意，在网格细化后，单元格的子代会继承材料ID，这样即使在网格细化后也能简单地跟踪材料。
+
+在结果部分显示的图像中，棒的排列将清晰可见。材料和两个能量组的横截面取自OECD/NEA的基准问题。详细的配置和材料数据在代码中给出。
+
+
+
+
+<h3>What the program does (and how it does that)</h3>
+
+作为对程序具体工作的粗略概述，这里是基本布局：从每个能量组相同的粗略网格开始，我们计算反特征值迭代以计算给定网格集上的 $k$ 特征值。当特征值的变化低于一定的容忍度时，我们停止这些迭代，然后写出每个能量组的网格和解，供图形程序检查。由于解决方案的网格是不同的，我们必须为每个能量组生成一个单独的输出文件，而不是能够将所有能量组的解决方案添加到同一个文件中。
+
+在这之后，我们按照上面某一节的解释对每个网格的误差指标进行评估，并独立地对每个网格的单元进行细化和粗化。由于特征值迭代是相当昂贵的，我们不想在新的网格上重新开始；相反，我们使用SolutionTransfer类在网格细化时将前一个网格的解插到下一个网格。一个简单的实验会让你相信，这比我们省略这一步要省事得多。这样做之后，我们在下一组网格上继续进行特征值迭代。
+
+该程序由一个参数文件控制，使用ParameterHandler类。我们将在本教程的结果部分展示一个参数文件。现在只需说它控制了所使用的有限元的多项式程度、能量组的数量（尽管目前实现的只是2组问题的系数）、停止反特征值迭代的容忍度以及我们要做的细化循环的数量。
+
+

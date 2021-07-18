@@ -1,0 +1,17 @@
+examples/step-16b/doc/intro.dox
+
+ <br> 
+
+<a name="Intro"></a>
+
+<h1>Introduction</h1>
+
+这是第16步的一个变体，唯一的变化是我们使用MeshWorker框架和预制的LocalIntegrator辅助类，而不是手动组装矩阵。
+
+关于这个框架在实践中如何使用的细节，将作为本教程计划的一部分加以解释。
+
+<h3>The testcase</h3>
+
+我们在这里解决的问题与步骤16中的问题相同。
+
+

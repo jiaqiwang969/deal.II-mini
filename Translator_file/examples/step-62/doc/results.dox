@@ -1,0 +1,237 @@
+examples/step-62/doc/results.dox
+
+
+
+<h1>Results</h1>
+
+<h3>Resonance frequency and bandgap</h3>
+
+在[jupyter notebook](https://github.com/dealii/dealii/blob/master/example/step-62/step-62.ipynb)中用以下代码分析了结果
+
+@code{.py}
+h5_file = h5py.File('results.h5', 'r')
+data = h5_file['data']
+
+
+# Gaussian function that we use to fit the resonance
+def resonance_f(freq, freq_m, quality_factor, max_amplitude):
+    omega = 2 * constants.pi * freq
+    omega_m = 2 * constants.pi * freq_m
+    gamma = omega_m / quality_factor
+    return max_amplitude * omega_m**2 * gamma**2 / (((omega_m**2 - omega**2)**2 + gamma**2 * omega**2))
+
+
+frequency = data['displacement']['frequency'][...]
+# Average the probe points
+displacement = np.mean(data['displacement']['displacement'], axis=0)
+calibration_displacement = np.mean(data['calibration']['displacement'], axis=0)
+reflection_coefficient = displacement / calibration_displacement
+reflectivity = (np.abs(np.mean(data['displacement']['displacement'][...]**2, axis=0))/
+                np.abs(np.mean(data['calibration']['displacement'][...]**2, axis=0)))
+
+
+try:
+    x_data = frequency
+    y_data = reflectivity
+    quality_factor_guess = 1e3
+    freq_guess = x_data[np.argmax(y_data)]
+    amplitude_guess = np.max(y_data)
+    fit_result, covariance = scipy.optimize.curve_fit(resonance_f, x_data, y_data,
+                                                      [freq_guess, quality_factor_guess, amplitude_guess])
+    freq_m = fit_result[0]
+    quality_factor = np.abs(fit_result[1])
+    max_amplitude = fit_result[2]
+    y_data_fit = resonance_f(x_data, freq_m, quality_factor, max_amplitude)
+
+
+    fig = plt.figure()
+    plt.plot(frequency / 1e9, reflectivity, frequency / 1e9, y_data_fit)
+    plt.xlabel('frequency (GHz)')
+    plt.ylabel('amplitude^2 (a.u.)')
+    plt.title('Transmission\n' + 'freq = ' + "%.7g" % (freq_guess / 1e9) + 'GHz Q = ' + "%.6g" % quality_factor)
+except:
+    fig = plt.figure()
+    plt.plot(frequency / 1e9, reflectivity)
+    plt.xlabel('frequency (GHz)')
+    plt.ylabel('amplitude^2 (a.u.)')
+    plt.title('Transmission')
+
+
+fig = plt.figure()
+plt.plot(frequency / 1e9, np.angle(reflection_coefficient))
+plt.xlabel('frequency (GHz)')
+plt.ylabel('phase (rad)')
+plt.title('Phase (transmission coefficient)\n')
+
+
+plt.show()
+h5_file.close()
+@endcode
+
+
+
+一个声腔的特点是[共振频率](https://en.wikipedia.org/wiki/Resonance)和[品质因子](https://en.wikipedia.org/wiki/Q_factor)。质量因子等于谐振器中储存的能量与每周期耗散的能量之间的比率，这大约相当于谐振频率与[半满宽度（FWHM）](https://en.wikipedia.org/wiki/Full_width_at_half_maximum)之间的比率。FWHM等于振动功率大于谐振频率的一半的带宽。
+
+@f[
+Q = \frac{f_r}{\Delta f} = \frac{\omega_r}{\Delta \omega} =
+2 \pi \times \frac{\text{energy stored}}{\text{energy dissipated per cycle}}
+
+
+@f]
+
+
+
+机械共振 $a^2$ 的振幅的平方作为频率的函数有一个高斯形状
+
+@f[
+a^2 = a_\textrm{max}^2\frac{\omega^2\Gamma^2}{(\omega_r^2-\omega^2)^2+\Gamma^2\omega^2}
+
+
+@f]
+
+其中 $f_r = \frac{\omega_r}{2\pi}$ 是共振频率， $\Gamma=\frac{\omega_r}{Q}$ 是耗损率。我们在jupyter笔记本中使用前面的方程式来拟合机械共振。
+
+鉴于我们所选择的参数值，人们可以通过分析来估计谐振频率。事实上，我们在这个程序中得到的结果证实了这一点：声子超晶格空腔在20GHz时表现出机械共振，质量系数为5046。下面的图片显示了在共振频率附近的传输振幅和相位与频率的关系。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.05.png" height="400" />  <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.06.png" height="400" />  。
+
+上面的图片表明，周期性结构有其预期的效果：它实际上只让一个非常特定频率的波通过，而所有其他的波都被反射。当然，这正是人们建造这类设备的目的。但这并不十分容易。在实践中，实际上只有一个 "带隙"，也就是说，该设备只在一定的频率范围内阻止20GHz频率以外的波。事实上，要想知道这个被阻挡的 "间隙 "有多大，我们可以通过输入文件中的适当参数将频率范围扩大到16GHz。然后我们得到以下图像。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.07.png" height="400" /> 
+
+这张图片表明的是，在18到22GHz左右的范围内，确实只有频率为20GHz的波被允许通过，但在这个范围之外，还有很多其他频率可以通过该设备。
+
+<h3>Mode profile</h3>
+
+我们可以用Paraview或VisIt检查模态轮廓。正如我们所讨论的，在共振时，所有的机械能都被传递，运动的振幅在腔内被放大。可以看出，PML对于截断解决方案是非常有效的。下图显示了共振时的模式轮廓。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.08.png" height="400" /> 
+
+另一方面，在共振之外，所有的机械能都被反射。下面的图片显示了19.75GHz时的轮廓。注意力脉冲和反射波在位置 $x=-8\mu\textrm{m}$ 的干扰。
+
+ <img alt="Phononic superlattice cavity" src="https://www.dealii.org/images/steps/developer/step-62.09.png" height="400" /> 
+
+<h3>Experimental applications</h3>
+
+声波超晶格空腔在[量子光学机械学](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.86.1391)中找到了应用。这里我们介绍了二维超晶格空腔的模拟，但这个代码也可以用来模拟 "现实世界 "的三维设备，如[微柱超晶格空腔](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.060101)，它是研究宏观量子现象的有希望的候选者。微柱超晶格空腔的20GHz模式本质上是一个机械谐波振荡器，与环境隔离得非常好。如果该装置在稀释冰箱中被冷却到20mK，那么该模式就会成为一个宏观的量子谐波振荡器。
+
+
+
+
+<h3>Possibilities for extensions</h3>
+
+我们可以不在C++文件中设置参数，而是用一个Python脚本来设置参数，并将其保存在HDF5文件中，我们将使用该文件进行模拟。然后deal.II程序将从HDF5文件中读取参数。
+
+@code{.py}
+import numpy as np
+import h5py
+import matplotlib.pyplot as plt
+import subprocess
+import scipy.constants as constants
+import scipy.optimize
+
+
+# This considerably reduces the size of the svg data
+plt.rcParams['svg.fonttype'] = 'none'
+
+
+h5_file = h5py.File('results.h5', 'w')
+data = h5_file.create_group('data')
+displacement = data.create_group('displacement')
+calibration = data.create_group('calibration')
+
+
+# Set the parameters
+for group in [displacement, calibration]:
+    # Dimensions of the domain
+    # The waveguide length is equal to dimension_x
+    group.attrs['dimension_x'] = 2e-5
+    # The waveguide width is equal to dimension_y
+    group.attrs['dimension_y'] = 2e-8
+
+
+    # Position of the probe that we use to measure the flux
+    group.attrs['probe_pos_x']   = 8e-6
+    group.attrs['probe_pos_y']   = 0
+    group.attrs['probe_width_y'] = 2e-08
+
+
+    # Number of points in the probe
+    group.attrs['nb_probe_points'] = 5
+
+
+    # Global refinement
+    group.attrs['grid_level'] = 1
+
+
+    # Cavity
+    group.attrs['cavity_resonance_frequency'] = 20e9
+    group.attrs['nb_mirror_pairs']            = 15
+
+
+    # Material
+    group.attrs['poissons_ratio'] = 0.27
+    group.attrs['youngs_modulus'] = 270000000000.0
+    group.attrs['material_a_rho'] = 3200
+    if group == displacement:
+        group.attrs['material_b_rho'] = 2000
+    else:
+        group.attrs['material_b_rho'] = 3200
+    group.attrs['lambda'] = (group.attrs['youngs_modulus'] * group.attrs['poissons_ratio'] /
+                           ((1 + group.attrs['poissons_ratio']) *
+                           (1 - 2 * group.attrs['poissons_ratio'])))
+    group.attrs['mu']= (group.attrs['youngs_modulus'] / (2 * (1 + group.attrs['poissons_ratio'])))
+
+
+    # Force
+    group.attrs['max_force_amplitude'] = 1e26
+    group.attrs['force_sigma_x']       = 1e-7
+    group.attrs['force_sigma_y']       = 1
+    group.attrs['max_force_width_x']   = 3e-7
+    group.attrs['max_force_width_y']   = 2e-8
+    group.attrs['force_x_pos']         = -8e-6
+    group.attrs['force_y_pos']         = 0
+
+
+    # PML
+    group.attrs['pml_x']            = True
+    group.attrs['pml_y']            = False
+    group.attrs['pml_width_x']      = 1.8e-6
+    group.attrs['pml_width_y']      = 5e-7
+    group.attrs['pml_coeff']        = 1.6
+    group.attrs['pml_coeff_degree'] = 2
+
+
+    # Frequency sweep
+    group.attrs['center_frequency']    = 20e9
+    group.attrs['frequency_range']     = 0.5e9
+    group.attrs['start_frequency']     = group.attrs['center_frequency'] - group.attrs['frequency_range'] / 2
+    group.attrs['stop_frequency']      = group.attrs['center_frequency'] + group.attrs['frequency_range'] / 2
+    group.attrs['nb_frequency_points'] = 400
+
+
+    # Other parameters
+    if group == displacement:
+        group.attrs['simulation_name'] = 'phononic_cavity_displacement'
+    else:
+        group.attrs['simulation_name'] = 'phononic_cavity_calibration'
+    group.attrs['save_vtu_files'] = False
+
+
+h5_file.close()
+@endcode
+
+
+
+为了读取HDF5参数，我们必须使用 HDF5::File::FileAccessMode::open 标志。
+
+@code{.py}
+      HDF5::File data_file("results.h5",
+                           HDF5::File::FileAccessMode::open,
+                           MPI_COMM_WORLD);
+      auto       data = data_file.open_group("data");
+@endcode
+
+
+
+

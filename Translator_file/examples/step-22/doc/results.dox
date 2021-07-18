@@ -1,0 +1,653 @@
+examples/step-22/doc/results.dox
+
+<a name="Results"></a>
+
+<h1>Results</h1>
+
+<h3>Output of the program and graphical visualization</h3>
+
+<h4>2D calculations</h4>
+
+在 <code>main</code> 函数中空间维度设置为2的情况下运行程序，会产生以下输出（在 "释放模式 "下， @dealiiVideoLectureSeeAlso{18}): ）。
+
+@code
+examples/\step-22> make run
+Refinement cycle 0
+   Number of active cells: 64
+   Number of degrees of freedom: 679 (594+85)
+   Assembling...
+   Computing preconditioner...
+   Solving...  11 outer CG Schur complement iterations for pressure
+
+
+Refinement cycle 1
+   Number of active cells: 160
+   Number of degrees of freedom: 1683 (1482+201)
+   Assembling...
+   Computing preconditioner...
+   Solving...  11 outer CG Schur complement iterations for pressure
+
+
+Refinement cycle 2
+   Number of active cells: 376
+   Number of degrees of freedom: 3813 (3370+443)
+   Assembling...
+   Computing preconditioner...
+   Solving...  11 outer CG Schur complement iterations for pressure
+
+
+Refinement cycle 3
+   Number of active cells: 880
+   Number of degrees of freedom: 8723 (7722+1001)
+   Assembling...
+   Computing preconditioner...
+   Solving...  11 outer CG Schur complement iterations for pressure
+
+
+Refinement cycle 4
+   Number of active cells: 2008
+   Number of degrees of freedom: 19383 (17186+2197)
+   Assembling...
+   Computing preconditioner...
+   Solving...  11 outer CG Schur complement iterations for pressure
+
+
+Refinement cycle 5
+   Number of active cells: 4288
+   Number of degrees of freedom: 40855 (36250+4605)
+   Assembling...
+   Computing preconditioner...
+   Solving...  11 outer CG Schur complement iterations for pressure
+@endcode
+
+
+
+上述整个计算在一台相当快的（以2015年的标准）机器上需要大约2秒。
+
+我们立即看到的是，（外部）迭代的次数并没有随着我们细化网格而增加。这证实了介绍中的说法，即用质量矩阵对Schur补码进行预处理，确实可以得到一个与身份矩阵频谱等价的矩阵（即特征值上下受限，与网格大小或单元的相对大小无关）。换句话说，质量矩阵和Schur补码在光谱上是等价的。
+
+在下面的图片中，我们展示了程序中前六个细化步骤的网格。  观察一下网格是如何在解迅速变化的区域被细化的。在上边界，我们的迪里希特边界条件在左半边是-1，右半边是1，所以在 $x=0$ 有一个突然的变化。同样地，在两个上角也有从Dirichlet到Neumann数据的变化，所以那里也需要细化。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.2d.mesh-0.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.2d.mesh-1.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.2d.mesh-2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.2d.mesh-3.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.2d.mesh-4.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.2d.mesh-5.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+最后，下面是一个流场图。它显示了流体随着上层边界的移动而被来自下层的物质所取代。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.2d.solution.png" alt=""> 
+
+该图使用了基于VTK的可视化程序的能力（在这种情况下是VisIt）来显示矢量数据；这是我们将使用中的有限元的速度分量声明为一组矢量分量，而不是本教程程序的 <code>StokesProblem@<dim@>::%output_results</code> 函数中的独立标量分量的结果。
+
+
+
+
+<h4>3D calculations</h4>
+
+在3D中，程序的屏幕输出看起来像这样。
+
+@code
+Refinement cycle 0
+   Number of active cells: 32
+   Number of degrees of freedom: 1356 (1275+81)
+   Assembling...
+   Computing preconditioner...
+   Solving...  13 outer CG Schur complement iterations for pressure.
+
+
+Refinement cycle 1
+   Number of active cells: 144
+   Number of degrees of freedom: 5088 (4827+261)
+   Assembling...
+   Computing preconditioner...
+   Solving...  14 outer CG Schur complement iterations for pressure.
+
+
+Refinement cycle 2
+   Number of active cells: 704
+   Number of degrees of freedom: 22406 (21351+1055)
+   Assembling...
+   Computing preconditioner...
+   Solving...  14 outer CG Schur complement iterations for pressure.
+
+
+Refinement cycle 3
+   Number of active cells: 3168
+   Number of degrees of freedom: 93176 (89043+4133)
+   Assembling...
+   Computing preconditioner...
+   Solving...  15 outer CG Schur complement iterations for pressure.
+
+
+Refinement cycle 4
+   Number of active cells: 11456
+   Number of degrees of freedom: 327808 (313659+14149)
+   Assembling...
+   Computing preconditioner...
+   Solving...  15 outer CG Schur complement iterations for pressure.
+
+
+Refinement cycle 5
+   Number of active cells: 45056
+   Number of degrees of freedom: 1254464 (1201371+53093)
+   Assembling...
+   Computing preconditioner...
+   Solving...  14 outer CG Schur complement iterations for pressure.
+@endcode
+
+
+
+我们再次看到，随着我们对网格的细化，外迭代的次数并没有增加。然而，计算时间明显增加：对于上述每个迭代分别需要约0.14秒、0.63秒、4.8秒、35秒、2分33秒和13分12秒。这种运行时间的整体超线性（未知数的数量）增加是由于我们的内部求解器不是 ${\cal O}(N)$ ：一个简单的实验表明，随着我们不断细化网格，反演速度-速度块 $A$ 的ILU预处理的CG平均迭代次数会增加。
+
+我们将解决如何可能改进我们的解算器<a
+href="#improved-solver">below</a>的问题。
+
+至于图形输出，在解决过程中产生的网格看起来如下。
+
+ <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d.mesh-0.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d.mesh-1.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d.mesh-2.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d.mesh-3.png" alt="">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d.mesh-4.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d.mesh-5.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+同样，它们基本上显示了由边界条件引入的奇异点的位置。计算出的矢量场构成了一个有趣的图形。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.3d.solution.png" alt=""> 
+
+这里显示的等值线也是压力变量的等值线，显示了在不连续的速度边界条件下的奇异现象。
+
+
+
+
+<h3>Sparsity pattern</h3>
+
+正如在生成稀疏模式时解释的那样，在使用不完全LU分解等预处理程序时，必须牢记自由度的编号。使用刚度矩阵中的非零元素的分布可以最方便地看到这一点。
+
+如果我们不对自由度的重新编号做任何特殊处理（即不使用 DoFRenumbering::Cuthill_McKee, ，而是使用 DoFRenumbering::component_wise 来确保自由度被适当地排序到矩阵和向量的相应块中），那么我们在二维的第一次自适应细化后得到以下图像。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.2d.sparsity-nor.png" alt=""> 
+
+为了生成这样的图表，你必须在设置步骤的末尾插入一段类似以下的代码。
+
+@code
+  {
+    std::ofstream out ("sparsity_pattern.gpl");
+    sparsity_pattern.print_gnuplot(out);
+  }
+@endcode
+
+
+
+可以清楚地看到，非零项几乎分布在整个矩阵中。  这使得用ILU进行预处理的效率很低。ILU生成的高斯消除（LU分解）没有填充元素，这意味着更多的暂定填充元素的遗漏将导致完整分解的近似度降低。
+
+因此，在这个程序中，我们选择了一种更高级的元件重新编号的方法。  用 DoFRenumbering::Cuthill_McKee 进行重新编号，并将元件分组为速度和压力，得到以下输出。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.2d.sparsity-ren.png" alt=""> 
+
+很明显，情况有了很大的改善。现在大多数元素都集中在矩阵中（0,0）块的对角线周围。其他区块也可以看到类似的效果。在这种情况下，ILU分解将更接近于完全的LU分解，这就提高了预处理程序的质量。值得注意的是，稀疏直接求解器UMFPACK在实际生成稀疏LU分解之前会对方程进行一些内部重新编号；这个过程导致了与我们从Cuthill-McKee算法中得到的模式非常相似）。
+
+最后，我们想仔细看看三维的稀疏模式。我们只显示了矩阵的(0,0)块，还是在一次自适应细化之后。除了矩阵大小增加的事实之外，还可以看到矩阵中多了很多条目。此外，即使是优化后的重新编号，也会有相当数量的暂定填充元素。这说明了为什么UMFPACK在三维中不是一个好的选择--完整的分解需要许多新的条目，最终无法放入物理内存（RAM）。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-22.3d.sparsity_uu-ren.png" alt=""> 
+
+
+
+
+<h3>Possibilities for extensions</h3>
+
+<a name="improved-solver">
+
+
+<h4>Improved linear solver in 3D</h4><h4>Improved linear solver in 3D</h4>
+</a> 。
+
+我们在计算结果一节中看到，外迭代次数不取决于网格大小，从可扩展性的角度看，这是最佳的。然而，如上所述，这并不适用于整个求解器。在生成矩阵 $A$ 和质量矩阵 $M_p$ 的逆时，我们没有研究内部迭代的数量。当然，这在二维情况下是没有问题的，我们用直接求解器对 $A$ 进行预处理，逆矩阵结构的 <code>vmult</code> 操作将在一个单一的CG步骤中收敛，但这在三维情况下发生变化，我们只使用ILU预处理器。  在那里，反演 $A$ 所需的预处理CG步骤的数量随着网格的细化而增加，每个 <code>vmult</code> 操作平均涉及上述细化步骤中的大约14、23、36、59、75和101次内部CG迭代。(另一方面，应用反压力质量矩阵的迭代次数总是在5次左右，在二维和三维中都是如此)。  总而言之，大部分的工作都花在了用相同的矩阵 $A$ 反复解决线性系统上。让这看起来更糟糕的是，我们实际上反转了一个矩阵，其大小约为整个系统矩阵的95%，并代表了稀疏模式中85%的非零条目。因此，自然的问题是，在计算块状系统的解时，用矩阵 $A$ 解约15次的线性系统是否合理。
+
+当然，答案是，我们可以用其他一些（大多数时候是更好的）方法来做。然而，必须指出的是，正如我们在早期教程中所看到的那样，眼前的这个不确定系统对线性代数的要求确实比标准椭圆问题高得多。如果与类似规模的椭圆问题相比，其改进仍然相当不令人满意。无论如何，我们将在下面介绍一些对线性求解器的改进，我们将在第31步程序中用额外的选项再次重新考虑这一讨论。
+
+<a name="improved-ilu">
+
+
+<h5>Better ILU decomposition by smart reordering</h5><h5>Better ILU decomposition by smart reordering</h5>
+</a> 提高线性求解过程速度的第一个尝试是选择一个道夫重排序，使ILU更接近于全LU分解，这在代码中的注释中已经提到。DoFRenumbering命名空间比较了几种对斯托克斯方程的道夫重新编号的选择。关于计算时间的最佳结果是通过调用 DoFRenumbering::boost::king_ordering. 找到的，通过该程序，内部求解器需要的操作大大减少，例如，在第4周期对 $A$ 进行反演的内部CG迭代约62次，而标准Cuthill-McKee-算法的迭代约75次。另外，在第4周期，对于 <code>solve()</code> 的调用，计算时间从大约17分钟减少到11分钟。然而，King排序（以及一般由 DoFRenumbering::boost 命名空间提供的排序）有一个严重的缺点--它比构建中的交易版本使用更多的内存，因为它作用于抽象图而不是由三角化提供的几何图形。在目前的情况下，重新编号需要大约5倍的内存，这就产生了一个不可行的算法，在3D的最后一个周期有120万未知数。
+
+<h5>Better preconditioner for the inner CG solver</h5>另一个改善情况的想法是选择一个预处理程序，使(0,0)矩阵 $A$ 的CG在一个与网格无关的迭代次数中收敛，比如10到30次。我们在步骤16中已经看到了这样的候选方案：多网格。
+
+<h5>Block Schur complement preconditioner</h5> <a name="block-schur"></a> 即使对 $A$ 有一个好的预处理程序，我们仍然需要反复求解同一个线性系统（虽然右手边不同），以使舒尔补码的求解趋于一致。我们这里要讨论的方法是如何将内部迭代和外部迭代结合起来。如果我们坚持计算舒尔补码，就没有其他的可能性了。
+
+另一种方法是一次性攻击块状系统，并使用近似的Schur补码作为有效的预处理程序。其思路如下。如果我们找到一个块状预处理器 $P$ ，使矩阵
+
+@f{eqnarray*}
+  P^{-1}\left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+
+
+@f}
+
+是简单的，那么使用该预处理程序的迭代求解器将在几次迭代中收敛。使用舒尔补码 $S = B A^{-1} B^T$ ，我们发现
+
+@f{eqnarray*}
+  P^{-1}
+  =
+  \left(\begin{array}{cc}
+    A^{-1} & 0 \\ S^{-1} B A^{-1} & -S^{-1}
+  \end{array}\right)
+
+
+@f}
+
+似乎是个不错的选择，因为
+
+@f{eqnarray*}
+  P^{-1}\left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+  =
+  \left(\begin{array}{cc}
+    A^{-1} & 0 \\ S^{-1} B A^{-1} & -S^{-1}
+  \end{array}\right)\cdot \left(\begin{array}{cc}
+    A & B^T \\ B & 0
+  \end{array}\right)
+  =
+  \left(\begin{array}{cc}
+    I & A^{-1} B^T \\ 0 & I
+  \end{array}\right).
+
+
+@f}
+
+这就是引言中提到的Silvester和Wathen的论文所采取的方法（不同的是Silvester和Wathen使用了右预处理）。在这种情况下，基于Krylov的迭代方法只有在应用 $A$ 和 $S$ 的精确求逆时才会一步收敛，因为所有的特征值都是1（而这种方法的迭代次数是由不同特征值的数量所决定的）。下面，我们将讨论如何为这个问题选择一个适当的求解器。首先，我们要仔细研究一下预处理程序的实现。
+
+由于 $P$ 的目的只是作为一个预处理程序，我们将使用舒尔补码 $S$ 和矩阵 $A$ 的近似反向。因此，舒尔补集将由压力质量矩阵 $M_p$ 近似，我们使用 $A$ 的预处理器（周围没有反矩阵类）来近似 $A^{-1}$ 。
+
+这里有一个实现块舒尔补码预处理的类。根据上面的推导，对块向量的 <code>vmult</code> 操作可以通过三个连续的操作来指定。
+
+@code
+template <class PreconditionerA, class PreconditionerMp>
+class BlockSchurPreconditioner : public Subscriptor
+{
+  public:
+    BlockSchurPreconditioner (const BlockSparseMatrix<double>         &S,
+          const InverseMatrix<SparseMatrix<double>,PreconditionerMp>  &Mpinv,
+          const PreconditionerA &Apreconditioner);
+
+
+  void vmult (BlockVector<double>       &dst,
+              const BlockVector<double> &src) const;
+
+
+  private:
+    const SmartPointer<const BlockSparseMatrix<double> > system_matrix;
+    const SmartPointer<const InverseMatrix<SparseMatrix<double>,
+                       PreconditionerMp > > m_inverse;
+    const PreconditionerA &a_preconditioner;
+
+
+    mutable Vector<double> tmp;
+
+
+};
+
+
+template <class PreconditionerA, class PreconditionerMp>
+BlockSchurPreconditioner<PreconditionerA, PreconditionerMp>::BlockSchurPreconditioner(
+          const BlockSparseMatrix<double>                            &S,
+          const InverseMatrix<SparseMatrix<double>,PreconditionerMp> &Mpinv,
+          const PreconditionerA &Apreconditioner
+          )
+                :
+                system_matrix           (&S),
+                m_inverse               (&Mpinv),
+                a_preconditioner        (Apreconditioner),
+                tmp                     (S.block(1,1).m())
+{}
+
+
+        // Now the interesting function, the multiplication of
+        // the preconditioner with a BlockVector.
+template <class PreconditionerA, class PreconditionerMp>
+void BlockSchurPreconditioner<PreconditionerA, PreconditionerMp>::vmult (
+                                     BlockVector<double>       &dst,
+                                     const BlockVector<double> &src) const
+{
+        // Form u_new = A^{-1} u
+  a_preconditioner.vmult (dst.block(0), src.block(0));
+        // Form tmp = - B u_new + p
+        // (<code>SparseMatrix::residual</code>
+        // does precisely this)
+  system_matrix->block(1,0).residual(tmp, dst.block(0), src.block(1));
+        // Change sign in tmp
+  tmp *= -1;
+        // Multiply by approximate Schur complement
+        // (i.e. a pressure mass matrix)
+  m_inverse->vmult (dst.block(1), tmp);
+}
+@endcode
+
+
+
+由于我们现在对整个区块系统采取行动，我们必须忍受一个缺点：我们需要对整个区块系统而不是较小的压力空间进行求解器迭代。
+
+现在我们转向我们应该对块系统使用哪种求解器的问题。第一个观察结果是，所产生的预处理矩阵不能用CG求解，因为它既不是正定也不是对称的。
+
+deal.II库实现了几个适合手头问题的求解器。一种选择是求解器 @ref SolverBicgstab "BiCGStab"，它被用于解决步骤9中的非对称平流问题。第二个选择，也就是我们要选择的，是 @ref SolverGMRES  "GMRES"（广义最小残差）。这两种方法都有其优点和缺点--在有些问题上，两种候选方法中的一种明显优于另一种，反之亦然。<a href="http://en.wikipedia.org/wiki/GMRES#Comparison_with_other_solvers">Wikipedia</a>关于GMRES方法的文章给出了一个比较的介绍。更全面和有根据的比较可以在J.W.Demmel的书中读到（Applied Numerical Linear Algebra, SIAM, 1997, section 6.6.6）。
+
+对于我们用ILU预处理 $A$ 的具体问题，对于大的问题规模，我们当然需要在块系统上进行数百次迭代（我们不会打败CG！）。实际上，这不利于GMRES。在GMRES迭代过程中，Krylov向量的基础被陆续建立起来，并对这些向量进行一些操作。这个基础上的向量越多，需要的操作和内存就越多。操作的数量以 ${\cal O}(n + k^2)$ 的形式扩展，内存以 ${\cal O}(kn)$ 的形式扩展，其中 $k$ 是Krylov基础中的向量数量， $n$ 是（块）矩阵的大小。为了不让这些需求过度增长，deal.II将基的大小 $k$ 默认限制为30个向量。然后，重新建立基。这种GMRES方法的实现被称为GMRES(k)，默认为  $k=30$  。我们通过这一限制所获得的东西，即对操作和内存需求的约束，将被我们使用不完整的基础这一事实所补偿--这将增加所需的迭代次数。
+
+另一方面，当需要多次迭代时，BiCGStab不会变慢（一次迭代只使用前面一个步骤的结果，而不是像GMRES那样使用所有的步骤）。除了BiCGStab由于需要两个矩阵-向量乘积（相比之下，CG或GMRES只需要一个），所以每一步的成本更高之外，还有一个主要原因使得BiCGStab不适合这个问题：预处理程序通过使用InverseMatrix类应用压力质量矩阵的逆。由于向量的逆矩阵应用只是以近似的方式进行（精确的逆太昂贵了），这也会影响求解器。在BiCGStab的情况下，由于这种扰动，Krylov向量将不会是正交的。虽然这对于少量的步骤（最多50步）来说是不关键的，但当这些扰动在迭代的粗放中增长到相当大的程度时，它就会破坏求解器的性能。
+
+我们用BiCGStab做了一些实验，发现它在细化周期3之前比GMRES快（在3D中），但在周期4和5时变得非常慢（甚至比原来的Schur补码还慢），所以在这种情况下求解器是没有用的。为逆矩阵类选择一个更尖锐的容忍度（ <code>1e-10*src.l2_norm()</code> 而不是 <code>1e-6*src.l2_norm()</code> ）使BiCGStab在第4周期也表现良好，但没有改变在非常大的问题上的失败。
+
+当然，GMRES也会受到近似求逆的影响，但它对正交性不那么敏感，而且对于大尺寸也能保持相对较好的性能，见下面的结果。
+
+说到这里，我们转向用 $k=100$ 临时向量的GMRES实现求解器调用。
+
+@code
+      const SparseMatrix<double> &pressure_mass_matrix
+        = preconditioner_matrix.block(1,1);
+      SparseILU<double> pmass_preconditioner;
+      pmass_preconditioner.initialize (pressure_mass_matrix,
+        SparseILU<double>::AdditionalData());
+
+
+      InverseMatrix<SparseMatrix<double>,SparseILU<double> >
+        m_inverse (pressure_mass_matrix, pmass_preconditioner);
+
+
+      BlockSchurPreconditioner<typename InnerPreconditioner<dim>::type,
+                               SparseILU<double> >
+        preconditioner (system_matrix, m_inverse, *A_preconditioner);
+
+
+      SolverControl solver_control (system_matrix.m(),
+                                    1e-6*system_rhs.l2_norm());
+      GrowingVectorMemory<BlockVector<double> > vector_memory;
+      SolverGMRES<BlockVector<double> >::AdditionalData gmres_data;
+      gmres_data.max_n_tmp_vectors = 100;
+
+
+      SolverGMRES<BlockVector<double> > gmres(solver_control, vector_memory,
+                                              gmres_data);
+
+
+      gmres.solve(system_matrix, solution, system_rhs,
+                  preconditioner);
+
+
+      constraints.distribute (solution);
+
+
+      std::cout << " "
+                << solver_control.last_step()
+                << " block GMRES iterations";
+@endcode
+
+
+
+显然，人们需要添加include文件 @ref SolverGMRES "<lac/solver_gmres.h>"以使其运行。我们用BlockVector模板来调用求解器，以便使GMRES能够对块状向量和矩阵进行操作。还要注意的是，在我们将信息复制到另一个矩阵之后，我们需要将系统矩阵中的（1,1）块设置为零（我们将压力质量矩阵保存在那里，这不是问题的一部分）。
+
+使用定时器类，我们收集了一些统计数据，将块状求解器的运行时间与上述问题实现中的运行时间进行比较。除了两个选项的解决方案，我们还检查了两个变体的解决方案是否接近（即这个求解器给出的解决方案确实与我们之前的解决方案相同），并计算矢量差的无穷大准则。
+
+让我们先看看二维的结果。
+
+@code
+Refinement cycle 0
+   Number of active cells: 64
+   Number of degrees of freedom: 679 (594+85) [0.00162792 s]
+   Assembling...  [0.00108981 s]
+   Computing preconditioner... [0.0025959 s]
+   Solving...
+      Schur complement: 11 outer CG iterations for p  [0.00479603s ]
+      Block Schur preconditioner: 12 GMRES iterations [0.00441718 s]
+   l_infinity difference between solution vectors: 5.38258e-07
+
+
+Refinement cycle 1
+   Number of active cells: 160
+   Number of degrees of freedom: 1683 (1482+201) [0.00345707 s]
+   Assembling...  [0.00237417 s]
+   Computing preconditioner... [0.00605702 s]
+   Solving...
+      Schur complement: 11 outer CG iterations for p  [0.0123992s ]
+      Block Schur preconditioner: 12 GMRES iterations [0.011909 s]
+   l_infinity difference between solution vectors: 1.74658e-05
+
+
+Refinement cycle 2
+   Number of active cells: 376
+   Number of degrees of freedom: 3813 (3370+443) [0.00729299 s]
+   Assembling...  [0.00529909 s]
+   Computing preconditioner... [0.0167508 s]
+   Solving...
+      Schur complement: 11 outer CG iterations for p  [0.031672s ]
+      Block Schur preconditioner: 12 GMRES iterations [0.029232 s]
+   l_infinity difference between solution vectors: 7.81569e-06
+
+
+Refinement cycle 3
+   Number of active cells: 880
+   Number of degrees of freedom: 8723 (7722+1001) [0.017709 s]
+   Assembling...  [0.0126002 s]
+   Computing preconditioner... [0.0435679 s]
+   Solving...
+      Schur complement: 11 outer CG iterations for p  [0.0971651s ]
+      Block Schur preconditioner: 12 GMRES iterations [0.0992041 s]
+   l_infinity difference between solution vectors: 1.87249e-05
+
+
+Refinement cycle 4
+   Number of active cells: 2008
+   Number of degrees of freedom: 19383 (17186+2197) [0.039988 s]
+   Assembling...  [0.028281 s]
+   Computing preconditioner... [0.118314 s]
+   Solving...
+      Schur complement: 11 outer CG iterations for p  [0.252133s ]
+      Block Schur preconditioner: 13 GMRES iterations [0.269125 s]
+   l_infinity difference between solution vectors: 6.38657e-05
+
+
+Refinement cycle 5
+   Number of active cells: 4288
+   Number of degrees of freedom: 40855 (36250+4605) [0.0880702 s]
+   Assembling...  [0.0603511 s]
+   Computing preconditioner... [0.278339 s]
+   Solving...
+      Schur complement: 11 outer CG iterations for p  [0.53846s ]
+      Block Schur preconditioner: 13 GMRES iterations [0.578667 s]
+   l_infinity difference between solution vectors: 0.000173363
+@endcode
+
+
+
+我们看到，块状舒尔补码预处理求解器和舒尔补码本身在求解时间上没有巨大差异。原因很简单：我们使用直接求解作为 $A$ 的预处理程序--所以我们不能指望通过避免内部迭代获得任何收益。我们看到，GMRES的迭代次数略有增加，但总的来说，这两种选择是相当相似的。
+
+画面当然会发生三维变化。
+
+@code
+Refinement cycle 0
+   Number of active cells: 32
+   Number of degrees of freedom: 1356 (1275+81) [0.00845218 s]
+   Assembling...  [0.019372 s]
+   Computing preconditioner... [0.00712395 s]
+   Solving...
+      Schur complement: 13 outer CG iterations for p  [0.0320101s ]
+      Block Schur preconditioner: 22 GMRES iterations [0.0048759 s]
+   l_infinity difference between solution vectors: 2.15942e-05
+
+
+Refinement cycle 1
+   Number of active cells: 144
+   Number of degrees of freedom: 5088 (4827+261) [0.0346942 s]
+   Assembling...  [0.0857739 s]
+   Computing preconditioner... [0.0465031 s]
+   Solving...
+      Schur complement: 14 outer CG iterations for p  [0.349258s ]
+      Block Schur preconditioner: 35 GMRES iterations [0.048759 s]
+   l_infinity difference between solution vectors: 1.77657e-05
+
+
+Refinement cycle 2
+   Number of active cells: 704
+   Number of degrees of freedom: 22406 (21351+1055) [0.175669 s]
+   Assembling...  [0.437447 s]
+   Computing preconditioner... [0.286435 s]
+   Solving...
+      Schur complement: 14 outer CG iterations for p  [3.65519s ]
+      Block Schur preconditioner: 63 GMRES iterations [0.497787 s]
+   l_infinity difference between solution vectors: 5.08078e-05
+
+
+Refinement cycle 3
+   Number of active cells: 3168
+   Number of degrees of freedom: 93176 (89043+4133) [0.790985 s]
+   Assembling...  [1.97598 s]
+   Computing preconditioner... [1.4325 s]
+   Solving...
+      Schur complement: 15 outer CG iterations for p  [29.9666s ]
+      Block Schur preconditioner: 128 GMRES iterations [5.02645 s]
+   l_infinity difference between solution vectors: 0.000119671
+
+
+Refinement cycle 4
+   Number of active cells: 11456
+   Number of degrees of freedom: 327808 (313659+14149) [3.44995 s]
+   Assembling...  [7.54772 s]
+   Computing preconditioner... [5.46306 s]
+   Solving...
+      Schur complement: 15 outer CG iterations for p  [139.987s ]
+      Block Schur preconditioner: 255 GMRES iterations [38.0946 s]
+   l_infinity difference between solution vectors: 0.00020793
+
+
+Refinement cycle 5
+   Number of active cells: 45056
+   Number of degrees of freedom: 1254464 (1201371+53093) [19.6795 s]
+   Assembling...  [28.6586 s]
+   Computing preconditioner... [22.401 s]
+   Solving...
+      Schur complement: 14 outer CG iterations for p  [796.767s ]
+      Block Schur preconditioner: 524 GMRES iterations [355.597 s]
+   l_infinity difference between solution vectors: 0.000501219
+@endcode
+
+
+
+在这里，块状预处理求解器明显优于Schur补数，但是网格点越多，优势就越小。这是因为GMRES(k)随着问题规模的扩大比CG更差，正如我们上面所讨论的。  尽管如此，对于中等规模的问题，3-6倍的改进是相当令人印象深刻的。
+
+
+
+
+<h5>Combining the block preconditioner and multigrid</h5>这个问题的终极线性求解器可以想象为 $A$ 的最佳预处理器（如多网格）和上述的块状预处理器的组合，这就是步骤31和步骤32教程程序（我们使用代数多网格方法）和步骤56（我们使用几何多网格方法）中所采取的方法。
+
+
+
+
+<h5>No block matrices and vectors</h5> 另一个可以考虑的可能性是不设置块状系统，而是一次性解决速度和压力系统。可以选择用UMFPACK直接求解（2D）或用ILU预处理的GMRES（3D）。这应该是很直接的尝试。
+
+
+
+
+<h4>More interesting testcases</h4>
+
+当然，这个程序也可以作为计算更有趣的情况下的流动的基础。编写这个程序的最初动机是希望它能成为一些地球物理流动问题的起点，例如大陆板块漂移分离的地方（例如洋中脊）下的岩浆运动。当然，在这种地方，几何形状比上面的例子更复杂，但要适应这种情况并不难。
+
+例如，通过使用以下对边界值函数的修改
+
+@code
+template <int dim>
+double
+BoundaryValues<dim>::value (const Point<dim>  &p,
+                            const unsigned int component) const
+{
+  Assert (component < this->n_components,
+          ExcIndexRange (component, 0, this->n_components));
+
+
+  const double x_offset = std::atan(p[1]*4)/3;
+
+
+  if (component == 0)
+    return (p[0] < x_offset ? -1 : (p[0] > x_offset ? 1 : 0));
+  return 0;
+}
+@endcode
+
+和以下方式生成网格作为域 $[-2,2]\times[-2,2]\times[-1,0]$ 。
+
+@code
+    std::vector<unsigned int> subdivisions (dim, 1);
+    subdivisions[0] = 4;
+    if (dim>2)
+      subdivisions[1] = 4;
+
+
+    const Point<dim> bottom_left = (dim == 2 ?
+                                    Point<dim>(-2,-1) :
+                                    Point<dim>(-2,-2,-1));
+    const Point<dim> top_right   = (dim == 2 ?
+                                    Point<dim>(2,0) :
+                                    Point<dim>(2,2,0));
+
+
+    GridGenerator::subdivided_hyper_rectangle (triangulation,
+                                               subdivisions,
+                                               bottom_left,
+                                               top_right);
+@endcode
+
+那么我们就会得到断层线是弯曲的图像。   <table width="60%" align="center">
+  <tr>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d-extension.png" alt="">
+    </td>
+    <td align="center">
+      <img src="https://www.dealii.org/images/steps/developer/step-22.3d-grid-extension.png" alt="">
+    </td>
+  </tr>
+</table> 
+
+

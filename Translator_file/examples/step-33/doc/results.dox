@@ -1,0 +1,285 @@
+examples/step-33/doc/results.dox
+
+<a name="Results"></a>
+
+<h1>Results</h1>
+
+我们用网格 <code>slide.inp</code> （该文件与本程序的源代码在同一目录下）和以下的输入牌（在同一目录下有 <code>input.prm</code> ）运行该问题。
+
+@verbatim
+# Listing of Parameters
+# ---------------------
+
+
+# The input grid
+set mesh = slide.inp
+
+
+# Stabilization parameter
+set diffusion power = 2.0
+
+
+# --------------------------------------------------
+# Boundary conditions
+# We may specify boundary conditions for up to MAX_BD boundaries.
+# Your .inp file should have these boundaries designated.
+subsection boundary_1
+  set no penetration = true # reflective boundary condition
+end
+
+
+subsection boundary_2
+  # outflow boundary
+  # set w_2 = pressure
+  # set w_2 value = 1.5 - y
+end
+
+
+subsection boundary_3
+  set no penetration = true # reflective
+  # set w_3 = pressure
+  # set w_3 value = 1.0
+end
+
+
+subsection boundary_4
+  set no penetration = true #reflective
+end
+
+
+# --------------------------------------------------
+# Initial Conditions
+# We set the initial conditions of the conservative variables.  These lines
+# are passed to the expression parsing function.  You should use x,y,z for
+# the coordinate variables.
+
+
+subsection initial condition
+  set w_0 value = 0
+  set w_1 value = 0
+  set w_2 value = 10*(x<-0.7)*(y> 0.3)*(y< 0.45) + (1-(x<-0.7)*(y> 0.3)*(y< 0.45))*1.0
+  set w_3 value = (1.5-(1.0*1.0*y))/0.4
+end
+
+
+# --------------------------------------------------
+# Time stepping control
+subsection time stepping
+  set final time = 10.0 # simulation end time
+  set time step  = 0.02 # simulation time step
+  set theta scheme value = 0.5
+end
+
+
+subsection linear solver
+  set output         = quiet
+  set method         = gmres
+  set ilut fill      = 1.5
+  set ilut drop tolerance = 1e-6
+  set ilut absolute tolerance = 1e-6
+  set ilut relative tolerance = 1.0
+end
+
+
+# --------------------------------------------------
+# Output frequency and kind
+subsection output
+  set step           = 0.01
+  set schlieren plot = true
+end
+
+
+# --------------------------------------------------
+# Refinement control
+subsection refinement
+  set refinement = true # none only other option
+  set shock value = 1.5
+  set shock levels = 1 # how many levels of refinement to allow
+end
+
+
+# --------------------------------------------------
+# Flux parameters
+subsection flux
+ set stab = constant
+ #set stab value = 1.0
+end
+@endverbatim
+
+
+
+当我们运行该程序时，我们会得到以下的输出。
+
+@verbatim
+...
+T=0.14
+   Number of active cells:       1807
+   Number of degrees of freedom: 7696
+
+
+   NonLin Res     Lin Iter       Lin Res
+   _____________________________________
+   7.015e-03        0008        3.39e-13
+   2.150e-05        0008        1.56e-15
+   2.628e-09        0008        5.09e-20
+   5.243e-16        (converged)
+
+
+T=0.16
+   Number of active cells:       1807
+   Number of degrees of freedom: 7696
+
+
+   NonLin Res     Lin Iter       Lin Res
+   _____________________________________
+   7.145e-03        0008        3.80e-13
+   2.548e-05        0008        7.20e-16
+   4.063e-09        0008        2.49e-19
+   5.970e-16        (converged)
+
+
+T=0.18
+   Number of active cells:       1807
+   Number of degrees of freedom: 7696
+
+
+   NonLin Res     Lin Iter       Lin Res
+   _____________________________________
+   7.395e-03        0008        6.69e-13
+   2.867e-05        0008        1.33e-15
+   4.091e-09        0008        3.35e-19
+   5.617e-16        (converged)
+...
+@endverbatim
+
+
+
+这个输出报告了牛顿迭代的进度和时间步长。请注意，我们对牛顿迭代的实现确实显示了预期的二次收敛顺序：每一步的非线性残差的规范大致是上一步的规范的平方。这导致了我们在这里可以看到的非常快速的收敛。这种情况一直保持到 $t=1.9$ 时，这时非线性迭代报告缺乏收敛。
+
+@verbatim
+...
+
+
+T=1.88
+   Number of active cells:       2119
+   Number of degrees of freedom: 9096
+
+
+   NonLin Res     Lin Iter       Lin Res
+   _____________________________________
+   2.251e-01        0012        9.78e-12
+   5.698e-03        0012        2.04e-13
+   3.896e-05        0012        1.48e-15
+   3.915e-09        0012        1.94e-19
+   8.800e-16        (converged)
+
+
+T=1.9
+   Number of active cells:       2140
+   Number of degrees of freedom: 9184
+
+
+   NonLin Res     Lin Iter       Lin Res
+   _____________________________________
+   2.320e-01        0013        3.94e-12
+   1.235e-01        0016        6.62e-12
+   8.494e-02        0016        6.05e-12
+   1.199e+01        0026        5.72e-10
+   1.198e+03        0002        1.20e+03
+   7.030e+03        0001        nan
+   7.030e+03        0001        nan
+   7.030e+03        0001        nan
+   7.030e+03        0001        nan
+   7.030e+03        0001        nan
+   7.030e+03        0001        nan
+
+
+
+
+
+----------------------------------------------------
+Exception on processing:
+
+
+--------------------------------------------------------
+An error occurred in line <2476> of file <\step-33.cc> in function
+    void Step33::ConservationLaw<dim>::run() [with int dim = 2]
+The violated condition was:
+    nonlin_iter <= 10
+The name and call sequence of the exception was:
+    ExcMessage ("No convergence in nonlinear solver")
+Additional Information:
+No convergence in nonlinear solver
+
+
+--------------------------------------------------------
+
+
+Aborting!
+
+
+----------------------------------------------------
+@endverbatim
+
+
+
+我们可以通过查看解决方案的动画来找出原因和可能的补救措施。
+
+运行这些计算的结果是一堆输出文件，我们可以将其传递给我们选择的可视化程序。当我们把它们整理成一个电影时，过去几个时间步骤的结果看起来是这样的。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-33.oscillation.gif " alt="" height="300"> 
+
+正如我们所看到的，当大质量的流体碰到左下角时，会发生一些振荡，导致迭代的发散。解决这个问题的一个懒办法是添加更多的粘性。如果我们将扩散功率设置为 $\eta = 1.5$ ，而不是 $2.0$ ，模拟就能度过这一危机。那么，结果就会是这样。
+
+
+ <img src="https://www.dealii.org/images/steps/developer/step-33.slide.ed2.gif " alt="" height="300"> 
+
+沉重的流体在重力作用下被拉下斜坡，在那里与滑雪屋相撞，并被抛向空中！希望每个人都能逃脱。  希望每个人都能逃过一劫!还有，我们可以看到由于人为的粘性，重质和轻质之间的界限很快就模糊了。
+
+我们还可以直观地看到自适应细化网格的演变。
+
+ <img src="https://www.dealii.org/images/steps/developer/step-33.slide.adapt.ed2.gif " alt="" height="300"> 
+
+根据上面讨论的启发式细化方案，自适应性跟随并先于流动模式。
+
+
+
+
+
+<a name="extensions"></a>
+
+<h3>Possibilities for extensions</h3>
+
+<h4>Stabilization</h4>
+
+我们选择的数值方案在人工粘度小的时候不是特别稳定，而在人工粘度大的时候则过于扩散。此外，众所周知，还有一些更先进的技术来稳定解决方案，例如流线扩散、最小二乘法稳定条款、熵粘性。
+
+
+
+
+<h4>Better linear solvers</h4>
+
+虽然作为非线性求解器的牛顿方法在时间步长足够小的情况下似乎效果很好，但线性求解器是可以改进的。例如，在目前的方案中，只要我们使用迭代求解器，每个牛顿步骤都要重新计算ILU；同样，对于直接求解器，每个步骤都要计算牛顿矩阵的LU分解。这显然是一种浪费：从一个牛顿步骤到另一个牛顿步骤，可能还有不同的时间步骤，牛顿矩阵不会发生根本性的变化：一个牛顿步骤的ILU或稀疏LU分解可能仍然是下一个牛顿或时间步骤的非常好的预处理。因此，避免重新计算将是减少计算时间的一个好办法。
+
+我们可以更进一步：由于接近收敛时，牛顿矩阵只发生一点变化，我们也许可以定义一个准牛顿方案，即在每次牛顿迭代中我们只重新计算残差（即右手边的向量），并重新使用牛顿矩阵。由此产生的方案很可能不是二次收敛的，我们必须期望多做几次非线性迭代；然而，鉴于我们不必每次都花时间建立牛顿矩阵，由此产生的方案很可能更快。
+
+
+
+
+<h4>Cache the explicit part of residual</h4>
+
+在 ConservationLaw::assemble_cell_term 函数中计算的残差为 $R_i = \left(\frac{\mathbf{w}^{k}_{n+1} - \mathbf{w}_n}{\delta t}
+    , \mathbf{z}_i \right)_K  +
+      \theta \mathbf{B}({\mathbf{w}^{k}_{n+1}})(\mathbf{z}_i)_K +
+      (1-\theta) \mathbf{B}({\mathbf{w}_{n}}) (\mathbf{z}_i)_K $ 这意味着我们在一个牛顿迭代步骤中计算了两次空间残差：一次是关于当前解 $\mathbf{w}^{k}_{n+1}$ ，另一次是关于最后一个时间步长的解 $\mathbf{w}_{n}$ ，在一个时间步长的所有牛顿迭代中保持相同。在牛顿迭代过程中缓存残差 $ \mathbf{B}({\mathbf{w}_{n}}) (\mathbf{z}_i)_K$ 的显式部分将节省大量的人力。
+
+
+
+
+<h4>Other conservation laws</h4>
+
+最后，作为超越欧拉方程直接求解的一个方向，本程序非常努力地将所有专门针对欧拉方程的实现分离到一个类中（ <code>EulerEquation</code> 类），而将所有专门用于组装矩阵和向量、非线性和线性求解器以及一般顶层逻辑的实现分离到另一个类中（ <code>ConservationLaw</code> 类）。
+
+通过替换该类中通量矩阵和数值通量的定义，以及那里定义的其他各种部分，应该也可以将 <code>ConservationLaw</code> 类应用于其他双曲守恒定律。
+
+
