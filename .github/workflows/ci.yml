@@ -44,26 +44,17 @@ jobs:
          cp -rf Translator_file/deal.II dealii/include/
          mv dealii/doc/doxygen/headers Origin_file
          cp -rf Translator_file/headers dealii/doc/doxygen/
-         #
-        #  cp -rf ../tests/hello tests/ 
-        #  cp -rf ../tests/mystl_test tests/ 
-        #  cp -rf ../tests/tests.h tests/
-        #  cp -rf ../tests/testfun.h tests/
          cp -rf ../tests/* tests/
          cp -rf ../examples/step-0 examples/
-        #  rm -rf doc && cp -rf ../doc .
-        #  rm -rf include && cp -rf ../include .
-        #  rm -rf source &&cp -rf ../source .
+
          
 
  
       - name: configure
         run: |
          cd dealii
-        #  cmake -D CMAKE_BUILD_TYPE=Debug  -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON  .
          cmake -D CMAKE_BUILD_TYPE=Release -D DEAL_II_CXX_FLAGS='-Werror' -D DEAL_II_EARLY_DEPRECATIONS=ON -DDEAL_II_COMPONENT_PYTHON_BINDINGS=ON -DDEAL_II_COMPONENT_DOCUMENTATION=ON -DDEAL_II_DOXYGEN_USE_MATHJAX=ON .
 
-         #cmake -Stest -Bbuild -DENABLE_TEST_COVERAGE=1 -DCMAKE_BUILD_TYPE=Debug .
 
       - name: build
         run: |
