@@ -331,7 +331,7 @@ public:
 protected:
   /**
    * 声明该访问器类期望从迭代器类中得到的数据类型。由于纯三角迭代器不需要额外的数据，这个数据类型是
-   * @p void. 。
+   * @p void. 
    *
    */
   using AccessorData = void;

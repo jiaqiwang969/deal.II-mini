@@ -17,7 +17,6 @@
 #ifndef dealii_tria_h
 #define dealii_tria_h
 
-
 #include <deal.II/base/config.h>
 
 #include <deal.II/base/geometry_info.h>
@@ -45,11 +44,10 @@
 #include <numeric>
 #include <vector>
 
-
 DEAL_II_NAMESPACE_OPEN
 
 #ifdef signals
-#  error \
+#error \
     "The name 'signals' is already defined. You are most likely using the QT library \
 and using the 'signals' keyword. You can either #include the Qt headers (or any conflicting headers) \
 *after* the deal.II headers or you can define the 'QT_NO_KEYWORDS' macro and use the 'Q_SIGNALS' macro."
@@ -110,9 +108,7 @@ namespace internal
 } // namespace internal
 #endif
 
-
- /*------------------------------------------------------------------------*/ 
-
+/*------------------------------------------------------------------------*/
 
 namespace internal
 {
@@ -123,13 +119,14 @@ namespace internal
   namespace TriangulationImplementation
   {
     /**
-     * 缓存类，用于存储三角剖分中各层内已使用和活动的元素（线或四边形等）的数量。这只是模板的声明，具体实例在下面。
+     * 缓存类，用于存储三角剖分中各层内 已使用和活动 的元素（线或四边形等）的数量。这只是模板的声明，具体实例在下面。
      * 在过去，每当人们想要访问这些数字之一时，就必须在所有的线上执行一个循环，例如，计算元素，直到我们碰到终端迭代器。这很耗时，而且由于访问行数等是一个相当频繁的操作，这并不是一个最佳的解决方案。
      *
      */
     template <int dim>
     struct NumberCache
-    {};
+    {
+    };
 
     /**
      * 缓存类，用于存储三角形的各层中已使用和活跃的元素（线或四边形等）的数量。这个特殊化存储了线的数量。
@@ -184,13 +181,14 @@ namespace internal
 
       /**
        * 使用[BOOST序列化库](https://www.boost.org/doc/libs/1_74_0/libs/serialization/doc/index.html)将此对象的数据读入或写入一个流中，以便进行序列化。
+       * 
+       * 序列化可以把对象转化成一个字节流存储或者传输，在需要时再回复成与原始状态一致的等价对象。
        *
        */
       template <class Archive>
       void
       serialize(Archive &ar, const unsigned int version);
     };
-
 
     /**
      * 缓存类，用于存储三角形的各层中已使用和活动的元素（线或四边形等）的数量。这个特殊化存储四边形的数量。由于从基类NumberCache<1>的继承，线的数量也在这个类中。
@@ -239,13 +237,14 @@ namespace internal
 
       /**
        * 为了使用[BOOST序列化库](https://www.boost.org/doc/libs/1_74_0/libs/serialization/doc/index.html)进行序列化，将此对象的数据读入或写入一个流中。
+       * 
+       * 序列化可以把对象转化成一个字节流存储或者传输，在需要时再回复成与原始状态一致的等价对象。
        *
        */
       template <class Archive>
       void
       serialize(Archive &ar, const unsigned int version);
     };
-
 
     /**
      * 缓存类，用于存储三角图各层中已使用和活动的元素（线或四边形等）的数量。这个特殊化存储的是六边形的数量。由于从基类NumberCache<2>的继承，线和四边形的数量也在这个类中。
@@ -303,9 +302,7 @@ namespace internal
   } // namespace TriangulationImplementation
 } // namespace internal
 
-
- /*------------------------------------------------------------------------*/ 
-
+/*------------------------------------------------------------------------*/
 
 /**
  * 三角形是一个单元的集合，这些单元共同覆盖了人们通常想要解决的偏微分方程的领域。这个域和覆盖它的网格代表了一个
@@ -325,7 +322,9 @@ namespace internal
  * dealii::internal::TriangulationImplementation::TriaLevel
  * 类的复杂结构），以允许代码共享，允许减少将一个维度的代码变化反映到其他维度的代码中的需要。尽管如此，一些函数是依赖于维度的，并且只存在针对不同维度的专门版本。
  * 这个类满足了 @ref ConceptMeshType "MeshType概念 "
- * 的要求。 <h3>Structure and iterators</h3>
+ * 的要求。
+ * 
+ * <h3>Structure and iterators</h3>
  * Triangulation对象的实际数据结构是相当复杂的，如果试图直接对其进行操作的话，是相当不方便的，因为数据分布在相当多的数组和其他地方。然而，有足够强大的方法可以在不知道其确切关系的情况下对这些数据结构进行操作。deal.II使用类的局部别名（见下文）来使事情变得尽可能简单和不依赖维度。
  * Triangulation类提供了迭代器，可以在不知道用于描述单元的确切表示法的情况下，在所有单元上循环操作。更多信息见<tt>TriaIterator</tt>的文档。它们的名字是从迭代器类中导入的别名（从而使它们成为这个类的本地类型），具体如下。
  * <ul>   <li>  <tt>cell_iterator</tt>: 循环处理三角测量中使用的所有单元  <li>  <tt>active_cell_iterator</tt>: 循环处理所有活动单元  </ul>  。
@@ -414,36 +413,7 @@ namespace internal
  *   {
  *     // refine the presently second last cell 17 times
  *     cell = tria.last_active(tria.n_levels()-1);
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- * --cell;
+ *     --cell;
  *     cell->set_refine_flag ();
  *     tria.save_refine_flags (history);
  *     tria.execute_coarsening_and_refinement ();
@@ -692,11 +662,7 @@ namespace internal
  * boost::serialize
  * 将不知道让指针指向哪里，因为它从未得到重新创建最初指向的对象。
  * 由于这些原因，将三角图保存到档案中并不存储所有信息，而只是存储某些部分。更具体地说，被存储的信息是定义网格的所有信息，如顶点位置、顶点索引、顶点与单元的连接方式、边界指示器、子域ID、材料ID等。另一方面，以下信息不被存储。
- *
- *
- *
- *
- *
+ * 
  * - 信号
  *
  * - 以前使用 Triangulation::set_manifold() 设置的Manifold对象的指针。
@@ -707,7 +673,8 @@ namespace internal
  * Triangulation::load() 函数也触发了与
  * Triangulation::create_triangulation(). 相同种类的信号
  *
- *  <h3>Technical details</h3> <h4>%Algorithms for mesh regularization and
+ *  <h3>Technical details</h3> 
+ * <h4>%Algorithms for mesh regularization and
  * smoothing upon refinement</h4>
  * 我们选择了一个归纳的观点：由于在创建三角形时，所有的单元都在同一水平线上，所有关于共享一个共同面、边或顶点的单元的最大水平差异的正则性假设都是成立的。由于我们在网格历史的每一步中都使用了正则化和平滑化，所以在进一步细化时，这些假设也是成立的。
  * 正则化和平滑化是在 @p
@@ -736,6 +703,9 @@ namespace internal
  * @ingroup grid aniso
  *
  */
+
+
+
 template <int dim, int spacedim = dim>
 class Triangulation : public Subscriptor
 {
@@ -745,7 +715,7 @@ private:
    *
    */
   using IteratorSelector =
-    dealii::internal::TriangulationImplementation::Iterators<dim, spacedim>;
+      dealii::internal::TriangulationImplementation::Iterators<dim, spacedim>;
 
 public:
   /**
@@ -819,14 +789,14 @@ public:
      *
      */
     smoothing_on_refinement =
-      (limit_level_difference_at_vertices | eliminate_unrefined_islands),
+        (limit_level_difference_at_vertices | eliminate_unrefined_islands),
     /**
      * 这个标志总结了所有的平滑算法，这些算法可以在粗化时通过标记一些更多的单元格来进行粗化。
      *
      */
     smoothing_on_coarsening =
-      (eliminate_refined_inner_islands | eliminate_refined_boundary_islands |
-       do_not_produce_unrefined_islands),
+        (eliminate_refined_inner_islands | eliminate_refined_boundary_islands |
+         do_not_produce_unrefined_islands),
 
     /**
      * 这个标志包括上述所有的（因此结合了所有实施的平滑算法），但各向异性的平滑算法除外。
@@ -873,7 +843,7 @@ public:
    *
    */
   using active_face_iterator =
-    TriaActiveIterator<TriaAccessor<dim - 1, dim, spacedim>>;
+      TriaActiveIterator<TriaAccessor<dim - 1, dim, spacedim>>;
 
   /**
    * 一个定义了迭代器类型的别名，用于迭代网格的顶点。 迭代器的概念在 @ref Iterators "迭代器文档模块 "
@@ -892,7 +862,7 @@ public:
    *
    */
   using active_vertex_iterator =
-    TriaActiveIterator<dealii::TriaAccessor<0, dim, spacedim>>;
+      TriaActiveIterator<dealii::TriaAccessor<0, dim, spacedim>>;
 
   /**
    * 一个别名，定义了一个网格的（一维）线条的迭代器。在一维网格中，这些线是网格的单元，而在二维网格中，线是单元的面。
@@ -961,7 +931,7 @@ public:
      *
      */
     std::list<typename Triangulation<dim, spacedim>::cell_iterator>
-      distorted_cells;
+        distorted_cells;
   };
 
   /**
@@ -982,8 +952,8 @@ public:
    * 如果设置，这两个函数在遇到扭曲的单元格时可能会抛出一个异常。
    *
    */
-  Triangulation(const MeshSmoothing smooth_grid               = none,
-                const bool          check_for_distorted_cells = false);
+  Triangulation(const MeshSmoothing smooth_grid = none,
+                const bool check_for_distorted_cells = false);
 
   /**
    * 复制构造函数。    你真的应该使用 @p copy_triangulation
@@ -1057,7 +1027,7 @@ public:
    *
    */
   void
-  set_manifold(const types::manifold_id       number,
+  set_manifold(const types::manifold_id number,
                const Manifold<dim, spacedim> &manifold_object);
 
   /**
@@ -1151,8 +1121,6 @@ public:
   /**
    *
    *
-   *
-   *
    * - 例如，它可能是行列式为零(表明你在一个单元中的边缘塌陷了)，但这是可以的，因为你并不打算在这个单元上进行积分。另一方面，变形的单元通常表明网格太粗，无法解决领域的几何问题，在这种情况下，忽略这个例外可能是不明智的。
    * @note  这个函数在  step-14  和  step-19  中使用。
    * @note  这个函数在做完它的工作后会触发 "创建
@@ -1164,8 +1132,8 @@ public:
    */
   virtual void
   create_triangulation(const std::vector<Point<spacedim>> &vertices,
-                       const std::vector<CellData<dim>> &  cells,
-                       const SubCellData &                 subcelldata);
+                       const std::vector<CellData<dim>> &cells,
+                       const SubCellData &subcelldata);
 
   /**
    * 从提供的 TriangulationDescription::Description.
@@ -1179,8 +1147,8 @@ public:
    */
   virtual void
   create_triangulation(
-    const TriangulationDescription::Description<dim, spacedim>
-      &construction_data);
+      const TriangulationDescription::Description<dim, spacedim>
+          &construction_data);
 
   /**
    * 仅用于向后兼容。这个函数按照5.2之前的deal.II版本的要求，以排序方式获取单元格数据，将其转换为新的（lexicographic）排序，并调用create_triangulation()。
@@ -1191,9 +1159,9 @@ public:
   DEAL_II_DEPRECATED
   virtual void
   create_triangulation_compatibility(
-    const std::vector<Point<spacedim>> &vertices,
-    const std::vector<CellData<dim>> &  cells,
-    const SubCellData &                 subcelldata);
+      const std::vector<Point<spacedim>> &vertices,
+      const std::vector<CellData<dim>> &cells,
+      const SubCellData &subcelldata);
 
   /**
    * 还原或翻转dim<spacedim三角形的方向标志，见
@@ -1289,7 +1257,6 @@ public:
    *
    */
 
-
   /**
    * 用于通知派生类中的函数，给定cell_iterator的单元格将如何变化。请注意，这可能与平行计算中cell_iterator中的refine_flag()和coarsen_flag()不同，因为细化约束是本机看不到的。
    *
@@ -1328,8 +1295,7 @@ public:
     using result_type = T;
 
     template <typename InputIterator>
-    T
-    operator()(InputIterator first, InputIterator last) const
+    T operator()(InputIterator first, InputIterator last) const
     {
       return std::accumulate(first, last, T());
     }
@@ -1393,8 +1359,8 @@ public:
      *
      */
     boost::signals2::signal<void(
-      const typename Triangulation<dim, spacedim>::cell_iterator &cell)>
-      pre_coarsening_on_cell;
+        const typename Triangulation<dim, spacedim>::cell_iterator &cell)>
+        pre_coarsening_on_cell;
 
     /**
      * 这个信号对每一个刚刚被粗化的单元格都会被触发。
@@ -1403,8 +1369,8 @@ public:
      *
      */
     boost::signals2::signal<void(
-      const typename Triangulation<dim, spacedim>::cell_iterator &cell)>
-      post_refinement_on_cell;
+        const typename Triangulation<dim, spacedim>::cell_iterator &cell)>
+        post_refinement_on_cell;
 
     /**
      * 每当拥有该信号的三角结构被另一个使用
@@ -1413,8 +1379,8 @@ public:
      *
      */
     boost::signals2::signal<void(
-      const Triangulation<dim, spacedim> &destination_tria)>
-      copy;
+        const Triangulation<dim, spacedim> &destination_tria)>
+        copy;
 
     /**
      * 只要调用 Triangulation::clear()
@@ -1442,7 +1408,7 @@ public:
     boost::signals2::signal<unsigned int(const cell_iterator &,
                                          const CellStatus),
                             CellWeightSum<unsigned int>>
-      cell_weight;
+        cell_weight;
 
     /**
      * 这个信号在
@@ -1728,7 +1694,6 @@ public:
   void
   load_user_flags_quad(const std::vector<bool> &v);
 
-
   /**
    * 清除四边形上的所有用户标志。 也见
    * @ref GlossUserFlags  。
@@ -1995,7 +1960,6 @@ public:
   active_cell_iterator
   end_active(const unsigned int level) const;
 
-
   /**
    * 返回一个指向最后使用的单元格的迭代器。
    *
@@ -2082,15 +2046,15 @@ public:
   IteratorRange<active_cell_iterator>
   active_cell_iterators_on_level(const unsigned int level) const;
 
-  /*  @} 。  
-*
-*/
+  /*
+   * @}
+   */
 
-   /*-------------------------------------------------------------------------*/ 
+  /*-------------------------------------------------------------------------*/
 
   /**
    * @name  面对迭代器函数  
-     * @{ 
+   * @{ 
    *
    */
 
@@ -2133,15 +2097,15 @@ public:
   IteratorRange<active_face_iterator>
   active_face_iterators() const;
 
-  /*  @} .   
-*
-*/
+  /*     
+   * @} 
+   */
 
-   /*-------------------------------------------------------------------------*/ 
+  /*-------------------------------------------------------------------------*/
 
   /**
-   * @name  顶点迭代器函数  @{
-   *
+   * @name  顶点迭代器函数  
+   * @{
    */
 
   /**
@@ -2299,7 +2263,6 @@ public:
   virtual types::global_cell_index
   n_global_active_cells() const;
 
-
   /**
    * 返回层面上的活动单元总数  @p level.
    * 在一个空间维度上映射为<tt>n_active_lines(level)</tt>，依此类推。
@@ -2426,7 +2389,6 @@ public:
   const Triangulation<dim, spacedim> &
   get_triangulation() const;
 
-
   /*  @} .   
 *
 */
@@ -2537,7 +2499,6 @@ public:
   void
   load(Archive &ar, const unsigned int version);
 
-
   /**
    * 将这个函数的参数中给出的（粗略的）面对宣布为周期性的。这样就有可能获得跨越周期性边界的邻居。
    * 该向量可以由函数 GridTools::collect_periodic_faces.
@@ -2550,15 +2511,15 @@ public:
    */
   virtual void
   add_periodicity(
-    const std::vector<GridTools::PeriodicFacePair<cell_iterator>> &);
+      const std::vector<GridTools::PeriodicFacePair<cell_iterator>> &);
 
   /**
    * 返回 periodic_face_map。
    *
    */
   const std::map<
-    std::pair<cell_iterator, unsigned int>,
-    std::pair<std::pair<cell_iterator, unsigned int>, std::bitset<3>>> &
+      std::pair<cell_iterator, unsigned int>,
+      std::pair<std::pair<cell_iterator, unsigned int>, std::bitset<3>>> &
   get_periodic_face_map() const;
 
   /**
@@ -2590,8 +2551,8 @@ public:
 #endif
 
   /**
-   * @name  异常情况  @{
-   *
+   * @name  异常情况  
+   * @{
    */
 
   /**
@@ -2613,13 +2574,13 @@ public:
    *
    */
   DeclException2(
-    ExcTriangulationNotEmpty,
-    int,
-    int,
-    << "You are trying to perform an operation on a triangulation "
-    << "that is only allowed if the triangulation is currently empty. "
-    << "However, it currently stores " << arg1 << " vertices and has "
-    << "cells on " << arg2 << " levels.");
+      ExcTriangulationNotEmpty,
+      int,
+      int,
+      << "You are trying to perform an operation on a triangulation "
+      << "that is only allowed if the triangulation is currently empty. "
+      << "However, it currently stores " << arg1 << " vertices and has "
+      << "cells on " << arg2 << " levels.");
   /**
    * 试图重新读取一个网格，发生了错误。
    * @ingroup Exceptions
@@ -2663,11 +2624,11 @@ public:
    *
    */
   DeclExceptionMsg(
-    ExcInconsistentCoarseningFlags,
-    "A cell is flagged for coarsening, but either not all of its siblings "
-    "are active or flagged for coarsening as well. Please clean up all "
-    "coarsen flags on your triangulation via "
-    "Triangulation::prepare_coarsening_and_refinement() beforehand!");
+      ExcInconsistentCoarseningFlags,
+      "A cell is flagged for coarsening, but either not all of its siblings "
+      "are active or flagged for coarsening as well. Please clean up all "
+      "coarsen flags on your triangulation via "
+      "Triangulation::prepare_coarsening_and_refinement() beforehand!");
 
   /*  @}  * */
 
@@ -2700,10 +2661,10 @@ protected:
    *
    */
   static void
-  write_bool_vector(const unsigned int       magic_number1,
+  write_bool_vector(const unsigned int magic_number1,
                     const std::vector<bool> &v,
-                    const unsigned int       magic_number2,
-                    std::ostream &           out);
+                    const unsigned int magic_number2,
+                    std::ostream &out);
 
   /**
    * 重新读取之前由 @p write_bool_vector
@@ -2714,7 +2675,7 @@ protected:
   read_bool_vector(const unsigned int magic_number1,
                    std::vector<bool> &v,
                    const unsigned int magic_number2,
-                   std::istream &     in);
+                   std::istream &in);
 
   /**
    * 从periodic_face_pairs_level_0重新创建周期性邻居的信息。
@@ -2730,22 +2691,21 @@ protected:
   virtual void
   update_reference_cells();
 
-
 private:
   /**
    * 与创建、细化和粗化相关的三角形具体任务的政策。
    *
    */
   std::unique_ptr<
-    dealii::internal::TriangulationImplementation::Policy<dim, spacedim>>
-    policy;
+      dealii::internal::TriangulationImplementation::Policy<dim, spacedim>>
+      policy;
 
   /**
    * 如果调用add_periodicity()，该变量将给定的周期性面对存储在第0层，以便以后在识别多网格层次的鬼单元和设置period_face_map时访问。
    *
    */
   std::vector<GridTools::PeriodicFacePair<cell_iterator>>
-    periodic_face_pairs_level_0;
+      periodic_face_pairs_level_0;
 
   /**
    * 如果调用add_periodicity()，这个变量将存储活动的周期性面对。
@@ -2753,7 +2713,7 @@ private:
    */
   std::map<std::pair<cell_iterator, unsigned int>,
            std::pair<std::pair<cell_iterator, unsigned int>, std::bitset<3>>>
-    periodic_face_map;
+      periodic_face_map;
 
   /**
    * @name  内部使用的细胞迭代器函数  
@@ -2768,12 +2728,12 @@ private:
    */
   using raw_cell_iterator = TriaRawIterator<CellAccessor<dim, spacedim>>;
   using raw_face_iterator =
-    TriaRawIterator<TriaAccessor<dim - 1, dim, spacedim>>;
+      TriaRawIterator<TriaAccessor<dim - 1, dim, spacedim>>;
   using raw_vertex_iterator =
-    TriaRawIterator<dealii::TriaAccessor<0, dim, spacedim>>;
+      TriaRawIterator<dealii::TriaAccessor<0, dim, spacedim>>;
   using raw_line_iterator = typename IteratorSelector::raw_line_iterator;
   using raw_quad_iterator = typename IteratorSelector::raw_quad_iterator;
-  using raw_hex_iterator  = typename IteratorSelector::raw_hex_iterator;
+  using raw_hex_iterator = typename IteratorSelector::raw_hex_iterator;
 
   /**
    * 迭代器到第一个单元，无论是否使用，在关卡上  @p
@@ -2797,8 +2757,8 @@ private:
 */
 
   /**
-   * @name  内部使用的行迭代器函数  @{
-   *
+   * @name  内部使用的行迭代器函数  
+   * @{
    */
 
   /**
@@ -2848,13 +2808,13 @@ private:
   line_iterator
   end_line() const;
 
-  /*  @} .   
-*
-*/
+  /*    
+   * @} 
+   */
 
   /**
-   * @name  内部使用的四重迭代器函数  @{
-   *
+   * @name  内部使用的四重迭代器函数  
+   * @{
    */
 
   /**
@@ -2979,7 +2939,6 @@ private:
 *
 */
 
-
   /**
    * (公共)函数clear()只有在三角图没有被其他用户订阅的情况下才会工作。现在，clear_despite_subscriptions()函数允许在有订阅的情况下清除三角图。
    * 请确保，在调用这个函数时，你知道你在做什么，因为它的使用只在非常罕见的情况下是合理的。例如，当订阅是针对最初的空三角图的，并且三角图对象希望在由于输入错误而抛出断言之前释放其内存（例如在create_triangulation()函数中）。
@@ -3049,8 +3008,7 @@ private:
    */
   virtual unsigned int
   coarse_cell_id_to_coarse_cell_index(
-    const types::coarse_cell_id coarse_cell_id) const;
-
+      const types::coarse_cell_id coarse_cell_id) const;
 
   /**
    * 将粗略单元的索引转换为其唯一的ID。更多信息请参见术语表中的 @ref GlossCoarseCellId "粗放单元ID "
@@ -3062,15 +3020,15 @@ private:
    */
   virtual types::coarse_cell_id
   coarse_cell_index_to_coarse_cell_id(
-    const unsigned int coarse_cell_index) const;
+      const unsigned int coarse_cell_index) const;
 
   /**
    * 指向在不同层次上存储单元数据的对象的指针阵列。
    *
    */
   std::vector<
-    std::unique_ptr<dealii::internal::TriangulationImplementation::TriaLevel>>
-    levels;
+      std::unique_ptr<dealii::internal::TriangulationImplementation::TriaLevel>>
+      levels;
 
   /**
    * 指向三角剖分的面的指针。在1d中，它不包含任何内容，在2D中，它包含关于线的数据，在3D中，包含四边形和线。
@@ -3078,8 +3036,7 @@ private:
    *
    */
   std::unique_ptr<dealii::internal::TriangulationImplementation::TriaFaces>
-    faces;
-
+      faces;
 
   /**
    * 该三角形的顶点数组。
@@ -3098,14 +3055,13 @@ private:
    *
    */
   std::map<types::manifold_id, std::unique_ptr<const Manifold<dim, spacedim>>>
-    manifold;
+      manifold;
 
   /**
    * 表示是否进行了各向异性的细化的标志。
    *
    */
   bool anisotropic_refinement;
-
 
   /**
    * 一个决定我们是否在创建和细化网格时检查扭曲的单元的标志。
@@ -3127,8 +3083,7 @@ private:
    *
    */
   std::unique_ptr<std::map<unsigned int, types::boundary_id>>
-    vertex_to_boundary_id_map_1d;
-
+      vertex_to_boundary_id_map_1d;
 
   /**
    * 一个将边界顶点的数量与流形指标联系起来的映射。这个字段只在1d中使用。我们之所以有这个字段，是因为在2d及以上版本中，我们将流形指示器信息与面孔一起存储，在这些结构中，我们有存储面孔数据的空间，但在1d中，没有为面孔提供这样的空间。
@@ -3140,7 +3095,7 @@ private:
    *
    */
   std::unique_ptr<std::map<unsigned int, types::manifold_id>>
-    vertex_to_manifold_id_map_1d;
+      vertex_to_manifold_id_map_1d;
 
   // make a couple of classes friends
   template <int, int, int>
@@ -3155,7 +3110,7 @@ private:
 
   friend struct dealii::internal::TriangulationImplementation::Implementation;
   friend struct dealii::internal::TriangulationImplementation::
-    ImplementationMixedMesh;
+      ImplementationMixedMesh;
 
   friend class dealii::internal::TriangulationImplementation::TriaObjects;
 
@@ -3168,10 +3123,7 @@ private:
 #endif
 };
 
-
 #ifndef DOXYGEN
-
-
 
 namespace internal
 {
@@ -3186,7 +3138,6 @@ namespace internal
       ar &n_active_lines &n_active_lines_level;
     }
 
-
     template <class Archive>
     void
     NumberCache<2>::serialize(Archive &ar, const unsigned int version)
@@ -3196,7 +3147,6 @@ namespace internal
       ar &n_quads &n_quads_level;
       ar &n_active_quads &n_active_quads_level;
     }
-
 
     template <class Archive>
     void
@@ -3211,7 +3161,6 @@ namespace internal
   } // namespace TriangulationImplementation
 } // namespace internal
 
-
 template <int dim, int spacedim>
 inline bool
 Triangulation<dim, spacedim>::vertex_used(const unsigned int index) const
@@ -3219,8 +3168,6 @@ Triangulation<dim, spacedim>::vertex_used(const unsigned int index) const
   AssertIndexRange(index, vertices_used.size());
   return vertices_used[index];
 }
-
-
 
 template <int dim, int spacedim>
 inline unsigned int
@@ -3236,15 +3183,12 @@ Triangulation<dim, spacedim>::n_global_levels() const
   return number_cache.n_levels;
 }
 
-
 template <int dim, int spacedim>
 inline unsigned int
 Triangulation<dim, spacedim>::n_vertices() const
 {
   return vertices.size();
 }
-
-
 
 template <int dim, int spacedim>
 inline const std::vector<Point<spacedim>> &
@@ -3253,18 +3197,16 @@ Triangulation<dim, spacedim>::get_vertices() const
   return vertices;
 }
 
-
 template <int dim, int spacedim>
 template <class Archive>
-void
-Triangulation<dim, spacedim>::save(Archive &ar, const unsigned int) const
+void Triangulation<dim, spacedim>::save(Archive &ar, const unsigned int) const
 {
   // as discussed in the documentation, do not store the signals as
   // well as boundary and manifold description but everything else
   ar &smooth_grid;
 
   unsigned int n_levels = levels.size();
-  ar &         n_levels;
+  ar &n_levels;
   for (const auto &level : levels)
     ar &level;
 
@@ -3272,7 +3214,7 @@ Triangulation<dim, spacedim>::save(Archive &ar, const unsigned int) const
   // at least up to 1.65.1. This causes problems with clang-5.
   // Therefore, work around it.
   bool faces_is_nullptr = (faces.get() == nullptr);
-  ar & faces_is_nullptr;
+  ar &faces_is_nullptr;
   if (!faces_is_nullptr)
     ar &faces;
 
@@ -3285,18 +3227,15 @@ Triangulation<dim, spacedim>::save(Archive &ar, const unsigned int) const
   ar &check_for_distorted_cells;
 
   if (dim == 1)
-    {
-      ar &vertex_to_boundary_id_map_1d;
-      ar &vertex_to_manifold_id_map_1d;
-    }
+  {
+    ar &vertex_to_boundary_id_map_1d;
+    ar &vertex_to_manifold_id_map_1d;
+  }
 }
-
-
 
 template <int dim, int spacedim>
 template <class Archive>
-void
-Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
+void Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
 {
   // clear previous content. this also calls the respective signal
   clear();
@@ -3306,18 +3245,18 @@ Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
   ar &smooth_grid;
 
   unsigned int size;
-  ar &         size;
+  ar &size;
   levels.resize(size);
   for (auto &level_ : levels)
-    {
-      std::unique_ptr<internal::TriangulationImplementation::TriaLevel> level;
-      ar &                                                              level;
-      level_ = std::move(level);
-    }
+  {
+    std::unique_ptr<internal::TriangulationImplementation::TriaLevel> level;
+    ar &level;
+    level_ = std::move(level);
+  }
 
   // Workaround for nullptr, see in save().
   bool faces_is_nullptr = true;
-  ar & faces_is_nullptr;
+  ar &faces_is_nullptr;
   if (!faces_is_nullptr)
     ar &faces;
 
@@ -3332,11 +3271,11 @@ Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
   // this here. don't forget to first resize the fields appropriately
   {
     for (auto &level : levels)
-      {
-        level->active_cell_indices.resize(level->refine_flags.size());
-        level->global_active_cell_indices.resize(level->refine_flags.size());
-        level->global_level_cell_indices.resize(level->refine_flags.size());
-      }
+    {
+      level->active_cell_indices.resize(level->refine_flags.size());
+      level->global_active_cell_indices.resize(level->refine_flags.size());
+      level->global_level_cell_indices.resize(level->refine_flags.size());
+    }
     reset_cell_vertex_indices_cache();
     reset_active_cell_indices();
     reset_global_cell_indices();
@@ -3345,7 +3284,7 @@ Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
   reset_policy();
 
   bool my_check_for_distorted_cells;
-  ar & my_check_for_distorted_cells;
+  ar &my_check_for_distorted_cells;
 
   Assert(my_check_for_distorted_cells == check_for_distorted_cells,
          ExcMessage("The triangulation loaded into here must have the "
@@ -3353,10 +3292,10 @@ Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
                     "cell as the one previously stored."));
 
   if (dim == 1)
-    {
-      ar &vertex_to_boundary_id_map_1d;
-      ar &vertex_to_manifold_id_map_1d;
-    }
+  {
+    ar &vertex_to_boundary_id_map_1d;
+    ar &vertex_to_manifold_id_map_1d;
+  }
 
   // trigger the create signal to indicate
   // that new content has been imported into
@@ -3364,29 +3303,23 @@ Triangulation<dim, spacedim>::load(Archive &ar, const unsigned int)
   signals.create();
 }
 
-
-
 template <int dim, int spacedim>
 inline unsigned int
 Triangulation<dim, spacedim>::coarse_cell_id_to_coarse_cell_index(
-  const types::coarse_cell_id coarse_cell_id) const
+    const types::coarse_cell_id coarse_cell_id) const
 {
   return coarse_cell_id;
 }
 
-
-
 template <int dim, int spacedim>
 inline types::coarse_cell_id
 Triangulation<dim, spacedim>::coarse_cell_index_to_coarse_cell_id(
-  const unsigned int coarse_cell_index) const
+    const unsigned int coarse_cell_index) const
 {
   return coarse_cell_index;
 }
 
-
-
- /* -------------- declaration of explicit specializations ------------- */ 
+/* -------------- declaration of explicit specializations ------------- */
 
 template <>
 unsigned int
@@ -3435,10 +3368,8 @@ template <>
 unsigned int
 Triangulation<1, 1>::max_adjacent_cells() const;
 
-
 // -------------------------------------------------------------------
 // -- Explicit specializations for codimension one grids
-
 
 template <>
 unsigned int
@@ -3494,15 +3425,11 @@ unsigned int
 Triangulation<1, 3>::max_adjacent_cells() const;
 
 template <>
-bool
-Triangulation<1, 1>::prepare_coarsening_and_refinement();
+bool Triangulation<1, 1>::prepare_coarsening_and_refinement();
 template <>
-bool
-Triangulation<1, 2>::prepare_coarsening_and_refinement();
+bool Triangulation<1, 2>::prepare_coarsening_and_refinement();
 template <>
-bool
-Triangulation<1, 3>::prepare_coarsening_and_refinement();
-
+bool Triangulation<1, 3>::prepare_coarsening_and_refinement();
 
 extern template class Triangulation<1, 1>;
 extern template class Triangulation<1, 2>;
@@ -3522,5 +3449,3 @@ DEAL_II_NAMESPACE_CLOSE
 #include <deal.II/grid/tria_accessor.h>
 
 #endif
-
-

@@ -17,7 +17,6 @@
 #ifndef dealii_subscriptor_h
 #define dealii_subscriptor_h
 
-
 #include <deal.II/base/config.h>
 
 #include <deal.II/base/exceptions.h>
@@ -41,6 +40,12 @@ DEAL_II_NAMESPACE_OPEN
  * <code>typeid(x).name()</code> 的结果，其中 <code>x</code>
  * 是一些对象。因此，提供给 subscribe() 和 unsubscribe()
  * 的指针必须相同。内容相同的字符串将不会被识别为相同。SmartPointer中的处理方法将照顾到这一点。该类的当前订阅者可以通过调用list_subscribers()获得。
+ * 
+ * 参考setp-7:
+ * 我们将在这里展示库如何设法找出对一个对象仍有活动的引用，并且从使用对象的角度来看，该对象仍然活着。基本上，该方法是沿着以下思路进行的：所有受到这种潜在危险的指针的对象都来自一个叫做Subscriptor的类。例如，Triangulation、DoFHandler和FiniteElement类的一个基类都派生于Subscriptor。后面这个类并没有提供太多的功能，但是它有一个内置的计数器，我们可以订阅这个计数器，因此这个类的名字就叫 "订阅器"。每当我们初始化一个指向该对象的指针时，我们可以增加它的使用计数器，而当我们移开指针或不再需要它时，我们再减少计数器。这样，我们就可以随时检查有多少个对象还在使用该对象。此外，该类需要知道一个指针，它可以用来告诉订阅对象它的无效性。
+ * 如果一个从Subscriptor类派生出来的对象被销毁，它也必须调用Subscriptor类的析构函数。在这个析构器中，我们使用存储的指针告诉所有订阅的对象该对象的无效性。当对象出现在移动表达式的右侧时，也会发生同样的情况，也就是说，在操作后它将不再包含有效的内容。在试图访问被订阅的对象之前，订阅类应该检查存储在其相应指针中的值。
+ * 
+ * 这正是SmartPointer类正在做的事情。它基本上就像一个指针一样，也就是说，它可以被取消引用，可以被分配给其他指针，等等。除此之外，当我们试图解除引用这个类所代表的指针时，它使用上面描述的机制来找出这个指针是否是悬空的。在这种情况下，会抛出一个异常。
  *
  *
  * @ingroup memory
@@ -99,12 +104,12 @@ public:
 
   /**
    * 通过存储指针来订阅该对象的用户  @p validity.
-   * 订阅者可以通过提供的文本来识别  @p identifier.  。
+   * 订阅者可以通过提供的文本来识别  @p identifier.  
    *
    */
   void
   subscribe(std::atomic<bool> *const validity,
-            const std::string &      identifier = "") const;
+            const std::string &identifier = "") const;
 
   /**
    * 从对象中取消用户的订阅。
@@ -114,7 +119,7 @@ public:
    */
   void
   unsubscribe(std::atomic<bool> *const validity,
-              const std::string &      identifier = "") const;
+              const std::string &identifier = "") const;
 
   /**
    * 返回目前对这个对象的订阅数量。这允许使用这个类来确定引用计数的寿命，其中最后一个取消订阅的人也会删除该对象。
@@ -124,7 +129,7 @@ public:
   n_subscriptions() const;
 
   /**
-   * 列出输入的订阅者  @p stream.  。
+   * 列出输入的订阅者  @p stream.  
    *
    */
   template <typename StreamType>
@@ -142,7 +147,7 @@ public:
 
   /**
    * @addtogroup  Exceptions  
-     * @{ 
+   * @{ 
    *
    */
 
@@ -247,18 +252,14 @@ private:
 //---------------------------------------------------------------------------
 
 inline Subscriptor::Subscriptor()
-  : counter(0)
-  , object_info(nullptr)
-{}
-
-
+    : counter(0), object_info(nullptr)
+{
+}
 
 inline Subscriptor::Subscriptor(const Subscriptor &)
-  : counter(0)
-  , object_info(nullptr)
-{}
-
-
+    : counter(0), object_info(nullptr)
+{
+}
 
 inline Subscriptor &
 Subscriptor::operator=(const Subscriptor &s)
@@ -267,15 +268,11 @@ Subscriptor::operator=(const Subscriptor &s)
   return *this;
 }
 
-
-
 inline unsigned int
 Subscriptor::n_subscriptions() const
 {
   return counter;
 }
-
-
 
 template <class Archive>
 inline void
@@ -299,5 +296,3 @@ Subscriptor::list_subscribers(StreamType &stream) const
 DEAL_II_NAMESPACE_CLOSE
 
 #endif
-
-
