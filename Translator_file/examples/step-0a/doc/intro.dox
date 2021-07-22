@@ -1,5 +1,13 @@
 <a name="23个设计模式"></a>
 
+参考: 
+- 《图说设计模式》- https://github.com/me115/design_patterns
+- 《深入设计模式》- Alexander Shvets
+- 《设计模式》- 4人组
+-  博士论文 - A Framework for Developing Finite Element Codes for MultiDisciplinary Applications 
+
+
+
 <h1> 一. 创建型模式 </h1>
 创建型模式提供了创建对象的机制,能够提升已有代码的灵活性和可复用性。
 
@@ -1767,6 +1775,7 @@ class AbstractHandler : public Handler {
 
     return {};
   }
+  // 貌似web显示最多到这里
 };
 
 /**
