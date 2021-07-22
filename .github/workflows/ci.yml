@@ -44,6 +44,7 @@ jobs:
          mv doc/doxygen/headers ../Origin_file
          cp -rf ../Translator_file/headers doc/doxygen/
          cp -rf ../tests/* tests/
+         cp -rf ../Translator_file/options.dox.in doc/doxygen/
 
          
 
