@@ -27,6 +27,7 @@
 namespace DesignPattern
 {
 
+
     namespace Observer
     {
 

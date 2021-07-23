@@ -17,10 +17,8 @@
  */
 namespace DesignPattern
 {
-
-    namespace DesignPattern
+    namespace CreationalDesign
     {
-
         namespace Singleton
         {
             class Singleton
