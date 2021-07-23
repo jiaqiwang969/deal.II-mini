@@ -2,7 +2,7 @@
 #include <string>
 
 /**
- * Abstract Factory Design Pattern
+ * Abstract Factory
  *
  * Intent: Lets you produce families of related objects without specifying their
  * concrete classes.

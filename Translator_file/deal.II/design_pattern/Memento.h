@@ -5,12 +5,14 @@
 #include <vector>
 
 /**
- * Memento Design Pattern
+ * Memento
  *
- * 意图: 让你保存和恢复一个对象以前的状态，而不透露其实现的细节。
+ * 模式动机:
+ * 让你保存和恢复一个对象以前的状态，而不透露其实现的细节。
  */
 
 /**
+ * 模式定义:
  * Memento接口提供了一种检索Memento元数据的方法，例如创建日期或名称。然而，它并没有暴露发起者的状态。
  */
 namespace DesignPattern
@@ -28,8 +30,8 @@ namespace DesignPattern
         };
 
         /**
- * Concrete Memento包含用于存储发起人状态的基础设施。
- */
+         * Concrete Memento包含用于存储发起人状态的基础设施。
+         */
         class ConcreteMemento : public Memento
         {
         private:
@@ -44,15 +46,15 @@ namespace DesignPattern
                 this->date_ = std::ctime(&now);
             }
             /**
-   * 发起人在恢复其状态时使用这种方法。
-   */
+             * 发起人在恢复其状态时使用这种方法。
+             */
             std::string state() const override
             {
                 return this->state_;
             }
             /**
-   * 其余的方法是由看守所用来显示元数据。
-   */
+             * 其余的方法是由看守所用来显示元数据。
+             */
             std::string GetName() const override
             {
                 return this->date_ + " / (" + this->state_.substr(0, 9) + "...)";
@@ -64,13 +66,14 @@ namespace DesignPattern
         };
 
         /**
- * 发起人持有一些可能随时间变化的重要状态。它还定义了一种将状态保存在备忘录内的方法和另一种将状态恢复的方法。
- */
+         * 发起人持有一些可能随时间变化的重要状态。它还定义了一种将状态保存在备忘录内的方法和另一种将状态恢复的方法。
+         */
         class Originator
         {
             /**
-   * @var string 为了简单起见，发起人的状态被储存在一个单一的变量内。
-   */
+             * @var string
+             * 为了简单起见，发起人的状态被储存在一个单一的变量内。
+             */
         private:
             std::string state_;
 
@@ -96,8 +99,8 @@ namespace DesignPattern
                 std::cout << "Originator: My initial state is: " << this->state_ << "\n";
             }
             /**
-   *   发起人的业务逻辑可能会影响其内部状态。因此，在通过save()方法启动业务逻辑的方法之前，客户应该备份状态。
-   */
+             * 发起人的业务逻辑可能会影响其内部状态。因此，在通过save()方法启动业务逻辑的方法之前，客户应该备份状态。
+             */
             void DoSomething()
             {
                 std::cout << "Originator: I'm doing something important.\n";
@@ -106,15 +109,15 @@ namespace DesignPattern
             }
 
             /**
-   * 将当前状态保存在一个Memento内。
-   */
+             * 将当前状态保存在一个Memento内。
+             */
             Memento *Save()
             {
                 return new ConcreteMemento(this->state_);
             }
             /**
-   * 从一个备忘录对象中恢复发起人的状态。
-   */
+             * 从一个备忘录对象中恢复发起人的状态。
+             */
             void Restore(Memento *memento)
             {
                 this->state_ = memento->state();
@@ -123,19 +126,19 @@ namespace DesignPattern
         };
 
         /**
- * Caretaker并不依赖于具体的Memento类。因此，它不能访问存储在Memento中的发起人的状态。它通过基础的Memento接口与所有的纪念品一起工作。
- */
+         * Caretaker并不依赖于具体的Memento类。因此，它不能访问存储在Memento中的发起人的状态。它通过基础的Memento接口与所有的纪念品一起工作。
+         */
         class Caretaker
         {
             /**
-   * @var Memento[]
-   */
+             * @var Memento[]
+             */
         private:
             std::vector<Memento *> mementos_;
 
             /**
-   * @var Originator
-   */
+             * @var Originator
+             */
             Originator *originator_;
 
         public:
@@ -177,8 +180,8 @@ namespace DesignPattern
             }
         };
         /**
- * Client code.
- */
+         * Client code.
+         */
 
         void ClientCode()
         {

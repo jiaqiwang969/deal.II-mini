@@ -14,7 +14,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 /**
  * @page DEALGlossary Glossary
  * 本词汇表解释了一些在deal.II的类文件中经常使用的术语。词汇表通常只给出了一个特定概念的微观观点；如果你对大局感到困惑，那么也值得参考 @ref
@@ -935,7 +934,7 @@
  * author =       {Bruno Turcksin and Martin Kronbichler and Wolfgang Bangerth},
  * title =        {\textit{WorkStream}
  *
- * -- a design pattern for multicore-enabled finite element computations},
+ * -- a for multicore-enabled finite element computations},
  * journal =      {accepted for publication in the ACM Trans. Math. Softw.},
  * year =         2016
  * }
@@ -1035,5 +1034,3 @@
  * </dl>
  *
  */
-
-
