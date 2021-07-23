@@ -5,8 +5,11 @@
 using std::string;
 
 /**
- * Prototype 模式动机:
- * 让你复制现有的对象而不使你的代码依赖于它们的类。
+ * Prototype 
+ * 
+ * - 模式动机:
+ * 
+ *   让你复制现有的对象而不使你的代码依赖于它们的类。
  */
 namespace DesignPattern
 {
