@@ -21,8 +21,8 @@ namespace DesignPattern
             };
 
             /**
-         * Adaptee包含一些有用的行为，但它的接口与现有的客户端代码不兼容。在客户端代码能够使用它之前，适应者需要进行一些调整。
-         */
+             * Adaptee包含一些有用的行为，但它的接口与现有的客户端代码不兼容。在客户端代码能够使用它之前，适应者需要进行一些调整。
+             */
             class Adaptee
             {
             public:
@@ -33,8 +33,8 @@ namespace DesignPattern
             };
 
             /**
-         * 适配器使用多重继承使适应者的接口与目标的接口兼容。
-         */
+             * 适配器使用多重继承使适应者的接口与目标的接口兼容。
+             */
             class Adapter : public Target, public Adaptee
             {
             public:
@@ -48,8 +48,8 @@ namespace DesignPattern
             };
 
             /**
-         * 客户端代码支持所有遵循目标接口的类。
-         */
+             * 客户端代码支持所有遵循目标接口的类。
+             */
             void ClientCode(const Target *target)
             {
                 std::cout << target->Request();

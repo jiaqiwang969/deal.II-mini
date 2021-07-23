@@ -2,22 +2,22 @@
 #include <string>
 #include <vector>
 
-/**
- * ChainofResponsibility
- *
- * - 模式动机:
- * 
- *   让你沿着一个处理程序链传递请求。当收到一个请求时，每个处理程序决定是处理该请求还是将其传递给链中的下一个处理程序。
- */
-/**
- * - 模式定义: 
- * 
- *   处理程序接口声明了一个用于建立处理程序链的方法。它还声明了一个执行请求的方法。
- */
 namespace DesignPattern
 {
     namespace BehavioralDesign
     {
+        /**
+         * ChainofResponsibility
+         *
+         * - 模式动机:
+         *
+         * 让你沿着一个处理程序链传递请求。当收到一个请求时，每个处理程序决定是处理该请求还是将其传递给链中的下一个处理程序。
+         */
+        /**
+         * - 模式定义:
+         *
+         * 处理程序接口声明了一个用于建立处理程序链的方法。它还声明了一个执行请求的方法。
+         */
 
         namespace ChainofResponsibility
         {
@@ -29,13 +29,13 @@ namespace DesignPattern
                 virtual std::string Handle(std::string request) = 0;
             };
             /**
-         * 默认的连锁行为可以在一个基础处理程序类里面实现。
-         */
+             * 默认的连锁行为可以在一个基础处理程序类里面实现。
+             */
             class AbstractHandler : public Handler
             {
                 /**
-             * @var Handler
-             */
+                 * @var Handler
+                 */
             private:
                 Handler *next_handler_;
 
@@ -62,8 +62,8 @@ namespace DesignPattern
             };
 
             /**
-         * 所有的具体处理程序要么处理一个请求，要么将其传递给链上的下一个处理程序。
-         */
+             * 所有的具体处理程序要么处理一个请求，要么将其传递给链上的下一个处理程序。
+             */
             class MonkeyHandler : public AbstractHandler
             {
             public:
@@ -110,8 +110,8 @@ namespace DesignPattern
                 }
             };
             /**
-         * 客户端代码通常适合于与单个处理程序一起工作。在大多数情况下，它甚至不知道处理程序是一个链的一部分。
-         */
+             * 客户端代码通常适合于与单个处理程序一起工作。在大多数情况下，它甚至不知道处理程序是一个链的一部分。
+             */
             void ClientCode(Handler &handler)
             {
                 std::vector<std::string> food = {"Nut", "Banana", "Cup of coffee"};

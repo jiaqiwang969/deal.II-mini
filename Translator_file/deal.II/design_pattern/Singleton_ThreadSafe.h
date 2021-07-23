@@ -3,22 +3,24 @@
 #include <mutex>
 #include <thread>
 
-/**
- * Singleton
- *
- * - 模式动机:
- *   
- *   让你确保一个类只有一个实例，同时为这个实例提供一个全局访问点。
- */
-/**
- * - 模式定义: 
- *  
- *   Singleton类定义了 "GetInstance"方法，作为构造函数的替代方法，让客户反复访问该类的同一实例。
- */
 namespace DesignPattern
 {
     namespace CreationalDesign
     {
+        /**
+         * Singleton
+         *
+         * - 模式动机:
+         *
+         * 让你确保一个类只有一个实例，同时为这个实例提供一个全局访问点。
+         */
+        /**
+         * - 模式定义:
+         *
+         * Singleton类定义了
+         * "GetInstance"方法，作为构造函数的替代方法，让客户反复访问该类的同一实例。
+         */
+
         namespace Singleton
         {
             class Singleton

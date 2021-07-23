@@ -1,7 +1,10 @@
 #!/bin/bash
 # coding=UTF-8
 cd ../
+
 path=Translator_file/deal.II/design_pattern
+rm  -rf temp/design_pattern
+mkdir temp/design_pattern
 fixpath=temp/design_pattern
 files=$(ls $path)
 for filename in $files
