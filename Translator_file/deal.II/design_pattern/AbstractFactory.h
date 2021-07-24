@@ -1,9 +1,8 @@
 #include <iostream>
 #include <string>
-namespace DesignPattern
+namespace Pattern
 {
-    namespace CreationalDesign
-    {
+
         /**
          * AbstractFactory
          *
@@ -179,5 +178,4 @@ namespace DesignPattern
             }
 
         }
-    }
 }
