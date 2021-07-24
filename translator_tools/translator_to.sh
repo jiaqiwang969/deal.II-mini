@@ -26,3 +26,6 @@ do
         # mv $path/$filename/$hfile0 $path/$filename/$hfile2 # bak the file
 
 done
+
+cp -rf temp/design_pattern/* Translator_file/deal.II/design_pattern
+
