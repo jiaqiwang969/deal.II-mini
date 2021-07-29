@@ -3,7 +3,7 @@
 #include <list>
 #include <string>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
@@ -151,7 +151,6 @@ namespace Pattern
 
     }
 }
-
 
 /**
  * 这样，客户端代码就可以支持简单的叶子组件...

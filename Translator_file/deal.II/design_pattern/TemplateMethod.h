@@ -1,9 +1,9 @@
 #include <iostream>
 
-namespace Pattern
+namespace DesignPattern
 {
     /**
-     * TemplateMethod
+     * TemplateMethod < 组件协作
      *
      * - 模式动机: 稳定的操作结构，子步骤变化
      *
@@ -30,6 +30,17 @@ namespace Pattern
 
     /**
      * 设计FEM库：这种方法在各种算法在某些步骤上有差异但在全局上没有差异的情况下很有用。可以用这种模式设计策略，提供一类可由方案改变的算法，或者将这种模式应用于线性求解器的设计，可以使它们独立于矩阵和向量及其操作。 by Pooyan Dadvand
+     * 
+     */
+
+    /**
+     * 个人感悟：
+     * 
+     * 这个模式可以用来对大型的工程问题做变量分析，专门通过虚函数将变化的部分，隔离出来，每次运行，稳定部分的编译不会发生变化。
+     * 
+     * 非常适合做 不同方法 对整体效果的评估，比如论文里面，某些方法的效果对比。
+     * 
+     * 对于大厂开发来说，应用人员被隔离了，他们看不到也偷不走核心技术。
      */
 
     namespace TemplateMethod
@@ -43,13 +54,13 @@ namespace Pattern
         public:
             void TemplateMethod() const
             {
-                this->BaseOperation1();
-                this->RequiredOperations1();
-                this->BaseOperation2();
-                this->Hook1();
-                this->RequiredOperation2();
-                this->BaseOperation3();
-                this->Hook2();
+                this->BaseOperation1();      // defined by Lib
+                this->RequiredOperations1(); // defined by App
+                this->BaseOperation2();      // defined by Lib
+                this->Hook1();               // defined by App
+                this->RequiredOperation2();  // defined by App
+                this->BaseOperation3();      // defined by Lib
+                this->Hook2();               // defined by App
             }
             /**
              * 这些操作已经有了实现。
@@ -70,14 +81,14 @@ namespace Pattern
             /**
              * 这些操作必须在子类中实现。
              */
-            virtual void RequiredOperations1() const = 0;
-            virtual void RequiredOperation2() const = 0;
+            virtual void RequiredOperations1() const = 0; // defined by App
+            virtual void RequiredOperation2() const = 0;  // defined by App
             /**
              * 这些是
              * "钩子"。子类可以覆盖它们，但这不是强制性的，因为这些钩子已经有默认的（但空的）实现。钩子在算法的一些关键地方提供了额外的扩展点。
              */
-            virtual void Hook1() const {}
-            virtual void Hook2() const {}
+            virtual void Hook1() const {} // defined by App
+            virtual void Hook2() const {} // defined by App
         };
         /**
          * 具体类必须实现基类的所有抽象操作。他们也可以用一个默认的实现来覆盖一些操作。
@@ -116,7 +127,7 @@ namespace Pattern
         /**
          * 客户端代码调用模板方法来执行该算法。客户端代码不必知道它所处理的对象的具体类别，只要它通过其基类的接口与对象一起工作即可。
          */
-        void ClientCode(AbstractClass *class_)
+        void ClientCode(AbstractClass *class_) // defined by Lib
         {
             // ...
             class_->TemplateMethod();
@@ -127,15 +138,21 @@ namespace Pattern
 
 }
 
-// int main() {
-//   std::cout << "Same client code can work with different subclasses:\n";
-//   ConcreteClass1 *concreteClass1 = new ConcreteClass1;
-//   ClientCode(concreteClass1);
-//   std::cout << "\n";
-//   std::cout << "Same client code can work with different subclasses:\n";
-//   ConcreteClass2 *concreteClass2 = new ConcreteClass2;
-//   ClientCode(concreteClass2);
-//   delete concreteClass1;
-//   delete concreteClass2;
-//   return 0;
-// }
+// defined by App
+
+/**
+ * 
+ * int main() {
+ *   std::cout << "Same client code can work with different subclasses:\n";
+ *   ConcreteClass1 *concreteClass1 = new ConcreteClass1;
+ *   ClientCode(concreteClass1);
+ *   std::cout << "\n";
+ *   std::cout << "Same client code can work with different subclasses:\n";
+ *   ConcreteClass2 *concreteClass2 = new ConcreteClass2;
+ *   ClientCode(concreteClass2);
+ *   delete concreteClass1;
+ *   delete concreteClass2;
+ *   return 0;
+ * }
+ * 
+ */

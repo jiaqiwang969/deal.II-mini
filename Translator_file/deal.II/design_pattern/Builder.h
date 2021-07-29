@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
@@ -203,4 +203,3 @@ namespace Pattern
 
     }
 }
-

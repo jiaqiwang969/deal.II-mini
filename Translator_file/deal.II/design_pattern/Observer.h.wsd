@@ -1,0 +1,38 @@
+@startuml White
+set namespaceSeparator ::
+
+class DesignPattern::Observer::IObserver {
++ void Update(const int & message_from_subject)
+}
+
+class DesignPattern::Observer::Observer {
++ void Update(const int & message_from_subject)
++ void RemoveMeFromTheList()
++ void PrintInfo()
+}
+
+class DesignPattern::Observer::ISubject {
++ void Attach(class DesignPattern::Observer::IObserver *observer)
++ void Detach(class DesignPattern::Observer::IObserver *observer)
++ void Notify()
+}
+
+class DesignPattern::Observer::Subject {
++ void Attach(class DesignPattern::Observer::IObserver *observer)
++ void Detach(class DesignPattern::Observer::IObserver *observer)
++ void Notify()
++ void CreateMessage(int message)
++ void HowManyObserver()
++ void SomeBusinessLogic()
+}
+
+DesignPattern::Observer::Observer -up-|> DesignPattern::Observer::IObserver 
+
+DesignPattern::Observer::Subject -up-|> DesignPattern::Observer::ISubject 
+
+
+DesignPattern::Observer::IObserver <-left-* DesignPattern::Observer::ISubject 
+
+DesignPattern::Observer::Observer -right-> DesignPattern::Observer::Subject 
+
+@enduml

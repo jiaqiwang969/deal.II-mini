@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
-     * Decorator
+     * Decorator > 单一责任
      *
      * - 模式动机:
      *
@@ -27,6 +27,8 @@ namespace Pattern
      * Pattern)：动态地给一个对象增加一些额外的职责(Responsibility)，就增加对象功能来说，装饰模式比生成子类实现更为灵活。其别名也可以称为包装器(Wrapper)，与适配器模式的别名相同，但它们适用于不同的场合。根据翻译的不同，装饰模式也有人称之为“油漆工模式”，它是一种对象结构型模式。
      *
      * 基础组件接口定义了可由装饰器改变的操作。
+     * 
+     * 组合优于继承，用组合来支持多态。
      */
 
     namespace Decorator
@@ -57,7 +59,7 @@ namespace Pattern
              * @var Component
              */
         protected:
-            Component *component_;
+            Component *component_; // 用组合来支持多态。
 
         public:
             Decorator(Component *component) : component_(component)
@@ -116,4 +118,3 @@ namespace Pattern
 
     }
 }
-

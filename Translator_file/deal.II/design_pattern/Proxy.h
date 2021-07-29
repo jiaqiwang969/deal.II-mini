@@ -1,6 +1,6 @@
 #include <iostream>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
@@ -103,7 +103,6 @@ namespace Pattern
 
     }
 }
-
 
 // int main() {
 //   std::cout << "Client: Executing the client code with a real subject:\n";

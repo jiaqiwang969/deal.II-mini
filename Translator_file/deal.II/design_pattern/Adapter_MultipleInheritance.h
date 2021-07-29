@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     namespace Adapter

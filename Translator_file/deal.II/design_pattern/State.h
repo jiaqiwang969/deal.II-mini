@@ -1,7 +1,7 @@
 #include <iostream>
 #include <typeinfo>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**

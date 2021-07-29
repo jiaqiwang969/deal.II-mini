@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
@@ -164,7 +164,6 @@ namespace Pattern
 
     }
 }
-
 
 /**
  * 客户端代码通常会在应用程序的初始化阶段创建一堆预先填充的飞轮。

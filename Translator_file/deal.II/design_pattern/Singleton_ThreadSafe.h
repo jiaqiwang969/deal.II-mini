@@ -3,7 +3,7 @@
 #include <mutex>
 #include <thread>
 
-namespace Pattern
+namespace DesignPattern
 {
     /**
      * Singleton
@@ -104,4 +104,3 @@ namespace Pattern
         }
     }
 }
-

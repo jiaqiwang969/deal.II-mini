@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
 
-namespace Pattern
+namespace DesignPattern
 {
     /**
-     * FactoryMethod
+     * FactoryMethod > 对象创建模式
      *
      * - 模式动机：
      *

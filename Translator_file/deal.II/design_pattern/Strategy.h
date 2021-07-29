@@ -3,10 +3,10 @@
 #include <string>
 #include <algorithm>
 
-namespace Pattern
+namespace DesignPattern
 {
     /**
-     * Strategy
+     * Strategy < 组件协作
      *
      * - 模式动机:
      *
@@ -43,6 +43,10 @@ namespace Pattern
      * 
      * https://cdn.mathpix.com/snip/images/rdmqc2IRmdEEgNjOdqiHdDIrG7sT47McPdtHOSTLKw0.original.fullsize.png
      */
+
+    /**
+     * 类似vscode 轻量化，需要时安装插件。面对算法的变化。
+     */ 
 
     namespace Strategy
     {

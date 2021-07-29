@@ -2,7 +2,7 @@
 #include <string>
 #include <thread>
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
@@ -114,4 +114,3 @@ namespace Pattern
 
     }
 }
-

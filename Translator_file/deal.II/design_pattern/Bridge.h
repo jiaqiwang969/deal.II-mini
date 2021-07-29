@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
-     * Bridge
+     * Bridge  > 单一责任
      *
      * - 模式动机:
      *
@@ -32,6 +32,10 @@ namespace Pattern
      * and Body)模式或接口(Interface)模式。
      *
      * 实现定义了所有实现类的接口。它不一定要与抽象的接口相匹配。事实上，这两个接口可以完全不同。通常情况下，实现接口只提供原始操作，而抽象接口在这些原始操作的基础上定义了更高层次的操作。
+     * 
+     * 指针做桥连接两个抽象类
+     * 
+     * https://cdn.mathpix.com/snip/images/VCVg2wJqwfcdFV__UHAyPkinvZQtgBJZeZDhvbxHh2Q.original.fullsize.png
      *
      */
 

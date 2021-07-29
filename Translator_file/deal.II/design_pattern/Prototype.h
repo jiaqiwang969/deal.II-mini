@@ -4,7 +4,7 @@
 
 using std::string;
 
-namespace Pattern
+namespace DesignPattern
 {
 
     /**
@@ -149,4 +149,3 @@ namespace Pattern
 
     }
 }
-
