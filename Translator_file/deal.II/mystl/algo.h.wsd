@@ -1,0 +1,717 @@
+@startuml
+set namespaceSeparator ::
+
+
+
+' 检查[first, last)内是否全部元素都满足一元操作 unary_pred 为 true 的情况，满足则返回 true
+class mystl::algo::all_of() <InputIter, UnaryPredicate> <<bool>>{
++ all_of(InputIter, InputIter, UnaryPredicate)
+}
+
+' 检查[first, last)内是否存在某个元素满足一元操作 unary_pred 为 true 的情况，满足则返回 true
+class mystl::algo::any_of() <InputIter, UnaryPredicate> <<bool>>{
++ any_of(InputIter, InputIter, UnaryPredicate)
+}
+
+
+' 检查[first, last)内是否全部元素都不满足一元操作 unary_pred 为 true 的情况，满足则返回 true
+class mystl::algo::none_of() <InputIter, UnaryPredicate> <<bool>>{
++ none_of(InputIter, InputIter, UnaryPredicate)
+}
+
+
+' 对[first, last)区间内的元素与给定值进行比较，缺省使用 operator==，返回元素相等的个数
+class mystl::algo::count() <InputIter, T> <<size_t>>{
++ count(InputIter , InputIter , const T &)
+}
+
+
+' 对[first, last)区间内的每个元素都进行一元 unary_pred 操作，返回结果为 true 的个数
+class mystl::algo::count_if() <InputIter, UnaryPredicate> <<size_t>>{
++ count_if(InputIter , InputIter , UnaryPredicate)
+}
+
+' 在[first, last)区间内找到等于 value 的元素，返回指向该元素的迭代器
+class mystl::algo::find() <InputIter, T> <<InputIter>>{
++ find(InputIter , InputIter , const T &)
+}
+
+
+' 在[first, last)区间内找到第一个令一元操作 unary_pred 为 true 的元素并返回指向该元素的迭代器
+class mystl::algo::find_if() <InputIter, UnaryPredicate> <<InputIter>>{
++ find_if(InputIter , InputIter , UnaryPredicate)
+}
+
+
+' 在[first, last)区间内找到第一个令一元操作 unary_pred 为 false 的元素并返回指向该元素的迭代器
+class mystl::algo::find_if_not() <InputIter, UnaryPredicate> <<InputIter>>{
++ find_if_not(InputIter , InputIter , UnaryPredicate)
+}
+
+
+' 在[first1, last1)中查找[first2, last2)的首次出现点
+class mystl::algo::search() <ForwardIter1, ForwardIter2> <<ForwardIter1>>{
++ search(ForwardIter1 , ForwardIter1 , ForwardIter2, ForwardIter2)
+}
+
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::search() <ForwardIter1, ForwardIter2,Compared> <<ForwardIter1>>{
++ search(ForwardIter1 , ForwardIter1 , ForwardIter2, ForwardIter2,Compared)
+}
+
+' 在[first, last)中查找连续 n 个 value 所形成的子序列，返回一个迭代器指向该子序列的起始处
+class mystl::algo::search_n() <ForwardIter, Size, T> <<ForwardIter>>{
++ search_n(ForwardIter, ForwardIter, Size , const T &)
+}
+
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::search_n() <ForwardIter, Size, T, Compared> <<ForwardIter>>{
++ search_n(ForwardIter, ForwardIter, Size , const T &, Compared)
+}
+
+' 在[first1, last1)区间中查找[first2, last2)最后一次出现的地方，若不存在返回 last1
+class mystl::algo::find_end_dispatch() <ForwardIter1, ForwardIter2> <<ForwardIter>>{
++ find_end_dispatch(ForwardIter1, ForwardIter1, ForwardIter2 , ForwardIter2, forward_iterator_tag,forward_iterator_tag)
+}
+
+' find_end_dispatch 的 bidirectional_iterator_tag 版本
+class mystl::algo::find_end_dispatch() <BidirectionalIter1, BidirectionalIter2> <<BidirectionalIter1>>{
++ find_end_dispatch(BidirectionalIter1, BidirectionalIter1, BidirectionalIter2 , BidirectionalIter2, bidirectional_iterator_tag,bidirectional_iterator_tag)
+}
+
+class mystl::algo::find_end() <ForwardIter1, ForwardIter2> <<ForwardIter1>>{
++ find_end(ForwardIter1, ForwardIter1, ForwardIter2 , ForwardIter2)
+}
+
+
+' find_end_dispatch 的 forward_iterator_tag 版本
+class mystl::algo::find_end_dispatch() <ForwardIter1, ForwardIter2, Compared> <<ForwardIter1>>{
++ find_end_dispatch(ForwardIter1, ForwardIter1, ForwardIter2 , ForwardIter2, Compared)
+}
+
+class mystl::algo::find_end_dispatch() <BidirectionalIter1, BidirectionalIter2, Compared> <<BidirectionalIter1>>{
++ find_end_dispatch(BidirectionalIter1, BidirectionalIter1, BidirectionalIter2 , bidirectional_iterator_tag, bidirectional_iterator_tag)
+}
+
+' 在[first1, last1)中查找[first2, last2)中的某些元素，返回指向第一次出现的元素的迭代器
+class mystl::algo::find_first_of() <InputIter, ForwardIter> <<InputIter>>{
++ find_first_of(InputIter, InputIter, ForwardIter, ForwardIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::find_first_of() <InputIter, ForwardIter, Compared> <<InputIter>>{
++ find_first_of(InputIter, InputIter, ForwardIter, ForwardIter, Compared)
+}
+
+' 使用一个函数对象 f 对[first, last)区间内的每个元素执行一个 operator() 操作，但不能改变元素内容
+class mystl::algo::for_each() <InputIter, Function> <<InputIter>>{
++ for_each(InputIter, InputIter, Function)
+}
+
+' 找出第一对匹配的相邻元素，缺省使用 operator== 比较，如果找到返回一个迭代器，指向这对元素的第一个元素
+class mystl::algo::adjacent_find() <ForwardIter> <<ForwardIter>>{
++ adjacent_find(ForwardIter, ForwardIter, Function)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::adjacent_find() <ForwardIter, Compared> <<ForwardIter>>{
++ adjacent_find(ForwardIter , ForwardIter , Compared )
+}
+
+
+' lbound_dispatch 的 forward_iterator_tag 版本
+class mystl::algo::lbound_dispatch() <ForwardIter, T> <<ForwardIter>>{
++ lbound_dispatch(ForwardIter, ForwardIter,
+                  const T &, forward_iterator_tag)
+}
+
+' lbound_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::lbound_dispatch() <RandomIter, T> <<RandomIter>>{
++ lbound_dispatch(RandomIter, RandomIter,
+                  const T &, random_access_iterator_tag)
+}
+
+class mystl::algo::lower_bound() <ForwardIter, T> <<ForwardIter>>{
++ lower_bound(ForwardIter, ForwardIter,
+                  const T &, forward_iterator_tag, Compared)
+}
+
+' lbound_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::lbound_dispatch() <RandomIter, T> <<ForwardIter>>{
++ lbound_dispatch(RandomIter, RandomIter,
+                  const T &, random_access_iterator_tag, Compared)
+}
+
+class mystl::algo::lbound_dispatch() <ForwardIter, T, Compared> <<ForwardIter>>{
++ lower_bound(ForwardIter, ForwardIter,
+                  const T &, Compared)
+}
+
+
+' 在[first, last)中查找第一个大于value 的元素，并返回指向它的迭代器，若没有则返回 last
+class mystl::algo::ubound_dispatch() <ForwardIter, T> <<ForwardIter>>{
++ ubound_dispatch(ForwardIter, ForwardIter,
+                  const T &, forward_iterator_tag)
+}
+
+' ubound_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::ubound_dispatch() <RandomIter, T> <<RandomIter>>{
++ ubound_dispatch(RandomIter, RandomIter,
+                  const T &, random_access_iterator_tag)
+}
+
+class mystl::algo::upper_bound() <ForwardIter, T> <<ForwardIter>>{
++ upper_bound(ForwardIter , ForwardIter , const T &)
+}
+
+' ubound_dispatch 的 forward_iterator_tag 版本
+class mystl::algo::ubound_dispatch() <ForwardIter, T, Compared> <<ForwardIter>>{
++ ubound_dispatch(ForwardIter , ForwardIter , const T &, Compared)
+}
+
+' ubound_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::ubound_dispatch() <RandomIter, T, Compared> <<RandomIter>>{
++ ubound_dispatch(RandomIter , RandomIter , const T &, Compared)
+}
+
+
+class mystl::algo::upper_bound() <ForwardIter, T, Compared> <<ForwardIter>>{
++ upper_bound(ForwardIter , ForwardIter , const T &, Compared)
+}
+
+' 二分查找，如果在[first, last)内有等同于 value 的元素，返回 true，否则返回 false
+class mystl::algo::binary_search() <ForwardIter, T> <<ForwardIter>>{
++ binary_search(ForwardIter , ForwardIter , const T &)
+}
+
+class mystl::algo::binary_search() <ForwardIter, T, Compared> <<ForwardIter>>{
++ binary_search(ForwardIter , ForwardIter , const T &, Compared)
+}
+
+' 查找[first,last)区间中与 value 相等的元素所形成的区间，返回一对迭代器指向区间首尾
+class mystl::algo::erange_dispatch() <ForwardIter, T> <<mystl::pair<ForwardIter, ForwardIter>>>{
++ erange_dispatch(ForwardIter , ForwardIter , const T &, forward_iterator_tag)
+}
+
+' erange_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::erange_dispatch() <RandomIter, T> <<mystl::pair<RandomIter, RandomIter>>>{
++ erange_dispatch(RandomIter , RandomIter , const T &, forward_iterator_tag)
+}
+
+class mystl::algo::equal_range() <ForwardIter, T> <<mystl::pair<ForwardIter, ForwardIter>>>{
++ mystl::erange_dispatch(ForwardIter, ForwardIter, const T &, iterator_category(ForwardIter))
+}
+
+' erange_dispatch 的 forward iterator 版本
+class mystl::algo::erange_dispatch() <ForwardIter, T, Compared> <<mystl::pair<ForwardIter, ForwardIter>>>{
++ mystl::erange_dispatch((ForwardIter, ForwardIter,
+                  const T &, forward_iterator_tag, Compared)
+}
+
+' erange_dispatch 的 random access iterator 版本
+class mystl::algo::erange_dispatch() <RandomIter, T, Compared> <<mystl::pair<RandomIter, RandomIter>>>{
++ mystl::erange_dispatch((RandomIter, RandomIter,
+                  const T &, random_access_iterator_tag, Compared)
+}
+
+
+' 将函数对象 gen 的运算结果对[first, last)内的每个元素赋值
+class mystl::algo::generate() <ForwardIter, Generator> <<void>>{
++ mystl::generate(ForwardIter, ForwardIter, Generator)
+}
+
+
+' 用函数对象 gen 连续对 n 个元素赋值
+class mystl::algo::generate_n() <ForwardIter,Size, Generator> <<void>>{
++ mystl::generate_n(ForwardIter, Size, Generator)
+}
+
+' 判断序列一S1 是否包含序列二S2
+class mystl::algo::includes() <InputIter1,InputIter2> <<bool>>{
++ mystl::includes(InputIter1 , InputIter1 ,
+                InputIter2 , InputIter2 )
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::includes() <InputIter1,InputIter2, Compared> <<bool>>{
++ mystl::includes(InputIter1 , InputIter1 ,
+                InputIter2 , InputIter2, Compared )
+}
+
+
+' 检查[first, last)内的元素是否为一个堆，如果是，则返回 true
+class mystl::algo::is_heap() <RandomIter> <<bool>>{
++ mystl::is_heap(RandomIter, RandomIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::is_heap() <RandomIter, Compared> <<bool>>{
++ mystl::is_heap(RandomIter, RandomIter, Compared)
+}
+
+' 检查[first, last)内的元素是否升序，如果是升序，则返回 true
+class mystl::algo::is_sorted() <ForwardIter> <<bool>>{
++ mystl::is_sorted(ForwardIter, ForwardIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::is_sorted() <ForwardIter, Compared> <<bool>>{
++ mystl::is_sorted(ForwardIter, ForwardIter, Compared)
+}
+
+' 找出三个值的中间值
+class mystl::algo::median() <T> <<const T &>>{
++ mystl::median(const T &, const T &, const T &)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::median() <T, Compared> <<const T &>>{
++ mystl::median(const T &, const T &, const T &, Compared)
+}
+
+' 返回一个迭代器，指向序列中最大的元素
+class mystl::algo::max_element() <ForwardIter> <<ForwardIter>>{
++ mystl::max_element(ForwardIter, ForwardIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::max_element() <ForwardIter, Compared> <<ForwardIter>>{
++ mystl::max_element(ForwardIter, ForwardIter, Compared)
+}
+
+' 返回一个迭代器，指向序列中最小的元素
+class mystl::algo::min_elememt() <ForwardIter> <<ForwardIter>>{
++ mystl::min_elememt(ForwardIter, ForwardIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::min_elememt() <ForwardIter, Compared> <<ForwardIter>>{
++ mystl::min_elememt(ForwardIter, ForwardIter, Compared)
+}
+
+' 将[first1, last1)从 first2 开始，交换相同个数元素
+class mystl::algo::swap_ranges() <ForwardIter1, ForwardIter2> <<ForwardIter2>>{
++ mystl::swap_ranges(ForwardIter1, ForwardIter1,
+              ForwardIter2)
+}
+
+' 第一个版本以函数对象 unary_op 作用于[first, last)中的每个元素并将结果保存至 result 中
+class mystl::algo::transform() <InputIter, OutputIter, UnaryOperation> <<ForwardIter2>>{
++ mystl::transform(InputIter, InputIter,
+            OutputIter, UnaryOperation)
+}
+
+' 第二个版本以函数对象 binary_op 作用于两个序列[first1, last1)、[first2, last2)的相同位置
+class mystl::algo::transform() <InputIter, OutputIter, BinaryOperation> <<ForwardIter2>>{
++ mystl::transform(InputIter, InputIter,
+            OutputIter, BinaryOperation)
+}
+
+' 移除区间内与指定 value 相等的元素，并将结果复制到以 result 标示起始位置的容器上
+class mystl::algo::remove_copy() <InputIter, OutputIter, T> <<OutputIter>>{
++ mystl::remove_copy(InputIter, InputIter, OutputIter, const T &)
+}
+
+' 移除所有与指定 value 相等的元素,并不从容器中删除这些元素，所以 remove 和 remove_if 不适用于 array
+class mystl::algo::remove() <ForwardIter, T> <<OutputIter>>{
++ mystl::remove(ForwardIter, ForwardIter, const T &)
+}
+
+
+' 移除区间内所有令一元操作 unary_pred 为 true 的元素，并将结果复制到以 result 为起始位置的容器上
+class mystl::algo::remove_copy_if() <InputIter,OutputIter, UnaryPredicate> <<OutputIter>>{
++ mystl::remove_copy_if(InputIter, InputIter,
+                 OutputIter, UnaryPredicate)
+}
+
+' 移除区间内所有令一元操作 unary_pred 为 true 的元素
+class mystl::algo::remove_if() <InputIter, UnaryPredicate> <<ForwardIter>>{
++ mystl::remove_if(ForwardIter, ForwardIter, UnaryPredicate )
+}
+
+' 将区间内所有的 old_value 都以 new_value 替代
+class mystl::algo::remove_if() <ForwardIter, T> <<void>>{
++ mystl::remove_if(ForwardIter, ForwardIter, const T &, const T &)
+}
+
+' 行为与 replace 类似，不同的是将结果复制到 result 所指的容器中，原序列没有改变
+class mystl::algo::replace_copy() <InputIter, OutputIter, T> <<OutputIter>>{
++ mystl::replace_copy(InputIter, InputIter,OutputIter , const T &, const T &)
+}
+
+' 行为与 replace_if 类似，不同的是将结果复制到 result 所指的容器中，原序列没有改变
+class mystl::algo::replace_copy_if() <InputIter, OutputIter, UnaryPredicate,T> <<OutputIter>>{
++ mystl::replace_copy_if(InputIter, InputIter, OutputIter, UnaryPredicate, const T &)
+}
+
+' 将区间内所有令一元操作 unary_pred 为 true 的元素都用 new_value 替代
+class mystl::algo::replace_if() <ForwardIter, UnaryPredicate,T> <<void>>{
++ mystl::replace_if(ForwardIter, ForwardIter,
+                  UnaryPredicate, const T &)
+}
+
+' reverse_dispatch 的 bidirectional_iterator_tag 版本
+class mystl::algo::reverse_dispatch() <BidirectionalIter> <<void>>{
++ mystl::reverse_dispatch(BidirectionalIter, BidirectionalIter,
+                        bidirectional_iterator_tag)
+}
+
+
+' reverse_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::reverse_dispatch() <RandomIter> <<void>>{
++ mystl::reverse_dispatch(RandomIter, RandomIter,
+                        random_access_iterator_tag)
+}
+
+class mystl::algo::reverse_dispatch() <BidirectionalIter> <<void>>{
++ mystl::reverse_dispatch(BidirectionalIter, BidirectionalIter)
+}
+
+
+' 行为与 reverse 类似，不同的是将结果复制到 result 所指容器中
+class mystl::algo::reverse_copy() <BidirectionalIter,OutputIter> <<void>>{
++ mystl::reverse_copy(BidirectionalIter, BidirectionalIter, OutputIter)
+}
+
+' 将[first, last)内的元素次序随机重排,重载版本使用一个产生随机数的函数对象 rand
+class mystl::algo::random_shuffle() <RandomIter> <<void>>{
++ mystl::random_shuffle(RandomIter, RandomIter)
+}
+
+' 重载版本使用一个产生随机数的函数对象 rand
+class mystl::algo::random_shuffle() <RandomIter, RandomNumberGenerator> <<void>>{
++ mystl::random_shuffle(RandomIter, RandomIter, RandomNumberGenerator &)
+}
+
+
+' 将[first, middle)内的元素和 [middle, last)内的元素互换，可以交换两个长度不同的区间返回交换后 middle 的位置
+class mystl::algo::random_shuffle() <RandomIter, RandomNumberGenerator> <<void>>{
++ mystl::random_shuffle(RandomIter, RandomIter, RandomNumberGenerator &)
+}
+
+' 将[first, middle)内的元素和 [middle, last)内的元素互换，可以交换两个长度不同的区间, 返回交换后 middle 的位置
+class mystl::algo::rotate_dispatch() <ForwardIter> <<ForwardIter>>{
++ mystl::rotate_dispatch(ForwardIter, ForwardIter,ForwardIter, forward_iterator_tag)
+}
+
+' rotate_dispatch 的 bidirectional_iterator_tag 版本
+class mystl::algo::rotate_dispatch() <BidirectionalIter> <<BidirectionalIter>>{
++ mystl::rotate_dispatch(BidirectionalIter, BidirectionalIter,BidirectionalIter, bidirectional_iterator_tag)
+}
+
+' 求最大公因子
+class mystl::algo::rgcd() <EuclideanRingElement> <<EuclideanRingElement>>{
++ mystl::rgcd(EuclideanRingElement, EuclideanRingElement)
+}
+
+'  rotate_dispatch 的 random_access_iterator_tag 版本
+class mystl::algo::rotate_dispatch() <RandomIter> <<EuclideanRingElement>>{
++ mystl::rotate_dispatch(RandomIter, RandomIter,
+                  RandomIter, random_access_iterator_tag)
+}
+
+class mystl::algo::rotate_dispatch() <ForwardIter> <<ForwardIter>>{
++ mystl::rotate(ForwardIter, ForwardIter, ForwardIter)
+}
+
+' 行为与 rotate 类似，不同的是将结果复制到 result 所指的容器中
+
+class mystl::algo::rotate_copy() <ForwardIter, OutputIter> <<ForwardIter>>{
++ mystl::rotate(ForwardIter, ForwardIter,
+              ForwardIter, OutputIter)
+}
+
+
+' 判断[first1,last1)是否为[first2, last2)的排列组合
+class mystl::algo::is_permutation_aux() <ForwardIter1, ForwardIter2, BinaryPred> <<bool>>{
++ mystl::is_permutation_aux(ForwardIter1, ForwardIter1,
+                          ForwardIter2, ForwardIter2,
+                          BinaryPred)
+}
+
+
+class mystl::algo::is_permutation() <ForwardIter1, ForwardIter2, BinaryPred> <<bool>>{
++ mystl::is_permutation(ForwardIter1, ForwardIter1,
+                          ForwardIter2, ForwardIter2,
+                          BinaryPred)
+}
+
+class mystl::algo::is_permutation() <ForwardIter1, ForwardIter2> <<bool>>{
++ mystl::is_permutation(ForwardIter1, ForwardIter1,
+                          ForwardIter2, ForwardIter2)
+}
+
+
+' 取得[first, last)所标示序列的下一个排列组合，如果没有下一个排序组合，返回 false，否则返回 true
+class mystl::algo::next_permutation() <BidirectionalIter> <<bool>>{
++ mystl::next_permutation(BidirectionalIter, BidirectionalIter)
+}
+
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::next_permutation() <BidirectionalIter,Compared> <<bool>>{
++ mystl::next_permutation(BidirectionalIter, BidirectionalIter,Compared)
+}
+
+
+' 取得[first, last)所标示序列的上一个排列组合，如果没有上一个排序组合，返回 false，否则返回 true
+class mystl::algo::prev_permutation() <BidirectionalIter> <<bool>>{
++ mystl::prev_permutation(BidirectionalIter, BidirectionalIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::prev_permutation() <BidirectionalIter,Compared> <<bool>>{
++ mystl::prev_permutation(BidirectionalIter, BidirectionalIter,Compared)
+}
+
+' 将两个经过排序的集合 S1 和 S2 合并起来置于另一段空间，返回一个迭代器指向最后一个元素的下一位置
+class mystl::algo::merge() <InputIter1, InputIter2, OutputIter> <<OutputIter>>{
++ mystl::merge(InputIter1, InputIter1,
+        InputIter2, InputIter2,
+        OutputIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::merge() <InputIter1, InputIter2, OutputIter,Compared> <<OutputIter>>{
++ mystl::merge(InputIter1, InputIter1,
+        InputIter2, InputIter2,
+        OutputIter,Compared)
+}
+
+' 把连接在一起的两个有序序列结合成单一序列并保持有序
+class mystl::algo::merge_without_buffer() <BidirectionalIter, Distance> <<BidirectionalIter>>{
++ mystl::merge_without_buffer(BidirectionalIter, BidirectionalIter,
+                            BidirectionalIter, Distance, Distance)
+}
+
+' 把连接在一起的两个有序序列结合成单一序列并保持有序
+class mystl::algo::merge_without_buffer() <BidirectionalIter1, BidirectionalIter2> <<BidirectionalIter1>>{
++ mystl::merge_backward(BidirectionalIter1 , BidirectionalIter1 ,
+                 BidirectionalIter2 , BidirectionalIter2 ,
+                 BidirectionalIter1 )
+}
+
+class mystl::algo::rotate_adaptive() < BidirectionalIter1,  BidirectionalIter2,  Distance> <<BidirectionalIter1>>{
++ mystl::rotate_adaptive(BidirectionalIter1 , BidirectionalIter1 ,BidirectionalIter1 , Distance , Distance ,BidirectionalIter2 , Distance )
+}
+
+' 有缓冲区的情况下合并
+class mystl::algo::merge_adaptive() < BidirectionalIter, Distance,  Pointer> <<void>>{
++ mystl::merge_adaptive(BidirectionalIter , BidirectionalIter ,
+                      BidirectionalIter , Distance , Distance ,
+                      Pointer , Distance  )
+}
+
+class mystl::algo::inplace_merge() <BidirectionalIter> <<void>>{
++ mystl::inplace_merge(BidirectionalIter , BidirectionalIter ,
+                BidirectionalIter )
+}
+
+class mystl::algo::inplace_merge_aux() <BidirectionalIter, T> <<void>>{
++ mystl::inplace_merge_aux(BidirectionalIter , BidirectionalIter , BidirectionalIter , T *)
+}
+
+
+' 重载版本使用函数对象 comp 代替比较操作, 没有缓冲区的情况下合并
+class mystl::algo::merge_without_buffer() <BidirectionalIter,  Distance,  Compared> <<void>>{
++ mystl::inplace_merge_aux(BidirectionalIter , BidirectionalIter , BidirectionalIter , Distance , Distance , Compared )
+}
+
+class mystl::algo::merge_backward() < BidirectionalIter1,  BidirectionalIter2,  Compared> <<BidirectionalIter1>>{
++ mystl::merge_backward(BidirectionalIter1 , BidirectionalIter1 ,
+                 BidirectionalIter2 , BidirectionalIter2 ,
+                 BidirectionalIter1 , Compared )
+}
+
+' 有缓冲区的情况下合并
+class mystl::algo::merge_adaptive() < BidirectionalIter,  Distance,  Pointer,  Compared> <<void>>{
++ mystl::merge_adaptive(BidirectionalIter , BidirectionalIter ,
+                      BidirectionalIter , Distance , Distance ,
+                      Pointer , Distance , Compared )
+}
+
+class mystl::algo::inplace_merge_aux() < BidirectionalIter,  T,  Compared> <<void>>{
++ mystl::inplace_merge_aux(BidirectionalIter , BidirectionalIter , BidirectionalIter , T *, Compared  )
+}
+
+class mystl::algo::inplace_merge() < BidirectionalIter,  Compared> <<void>>{
++ mystl::inplace_merge(BidirectionalIter , BidirectionalIter ,
+                BidirectionalIter , Compared )
+}
+
+' 对整个序列做部分排序，保证较小的 N 个元素以递增顺序置于[first, first + N)中
+class mystl::algo::partial_sort() < RandomIter> <<void>>{
++ mystl::partial_sort(RandomIter, RandomIter, RandomIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::partial_sort() < RandomIter,Compared> <<void>>{
++ mystl::partial_sort(RandomIter, RandomIter, RandomIter,Compared)
+}
+
+
+' 行为与 partial_sort 类似，不同的是把排序结果复制到 result 容器中
+class mystl::algo::psort_copy_aux() <  InputIter,  RandomIter,  Distance> <<RandomIter>>{
++ mystl::psort_copy_aux(InputIter , InputIter ,
+                 RandomIter , RandomIter ,
+                 Distance *)
+}
+
+class mystl::algo::partial_sort_copy() <  InputIter,  RandomIter,  Distance> <<RandomIter>>{
++ mystl::psort_copy_aux(InputIter , InputIter ,
+                    RandomIter , RandomIter )
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::partial_sort_copy() <  InputIter,  RandomIter,  Distance,  Compared> <<RandomIter>>{
++ mystl::psort_copy_aux(InputIter , InputIter ,
+                 RandomIter , RandomIter ,
+                 Distance *, Compared )
+}
+
+
+' 对区间内的元素重排，被一元条件运算判定为 true 的元素会放到区间的前段,该函数不保证元素的原始相对位置
+class mystl::algo::partition() <BidirectionalIter,  UnaryPredicate> <<BidirectionalIter>>{
++ mystl::partition(BidirectionalIter , BidirectionalIter ,
+            UnaryPredicate )
+}
+
+' 行为与 partition 类似，不同的是，将被一元操作符判定为 true 的放到 result_true 的输出区间,其余放到 result_false 的输出区间，并返回一个 mystl::pair 指向这两个区间的尾部
+class mystl::algo::partition_copy() <InputIter,  OutputIter1,  OutputIter2,  UnaryPredicatee> <<mystl::pair<OutputIter1, OutputIter2>>>{
++ mystl::partition_copy(InputIter, InputIter ,
+                 OutputIter1 , OutputIter2 ,
+                 UnaryPredicate )
+}
+
+'  用于控制分割恶化的情况
+class mystl::algo::slg2() <Size> <<Size>>{
++ mystl::slg2(Size)
+}
+
+' 分割函数 unchecked_partition
+class mystl::algo::unchecked_partition() <RandomIter, T> <<RandomIter>>{
++ mystl::unchecked_partition(RandomIter, RandomIter, const T &)
+}
+
+' 内省式排序，先进行 quick sort，当分割行为有恶化倾向时，改用 heap sort
+class mystl::algo::intro_sort() < RandomIter, Size> <<void>>{
++ mystl::intro_sort(RandomIter , RandomIter , Size )
+}
+
+' 插入排序辅助函数 unchecked_linear_insert
+class mystl::algo::unchecked_linear_insert() < RandomIter, T> <<void>>{
++ mystl::unchecked_linear_insert(RandomIter, const T &)
+}
+
+' 插入排序函数 unchecked_insertion_sort
+class mystl::algo::unchecked_insertion_sort() < RandomIter> <<void>>{
++ mystl::unchecked_insertion_sort(RandomIter , RandomIter)
+}
+
+' 插入排序函数 insertion_sort
+class mystl::algo::insertion_sort() < RandomIter> <<void>>{
++ mystl::insertion_sort(RandomIter , RandomIter)
+}
+
+' 最终插入排序函数 final_insertion_sort
+class mystl::algo::final_insertion_sort() < RandomIter> <<void>>{
++ mystl::final_insertion_sort(RandomIter , RandomIter )
+}
+
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::unchecked_partition() < RandomIter,Compared> <<RandomIter>>{
++ mystl::unchecked_partition(RandomIter , RandomIter ,
+                      const T &, Compared )
+}
+
+' 内省式排序，先进行 quick sort，当分割行为有恶化倾向时，改用 heap sort
+class mystl::algo::intro_sort() <RandomIter,  Size,  Compared> <<void>>{
++ mystl::intro_sort(RandomIter , RandomIter ,
+                  Size , Compared )
+}
+
+' 插入排序辅助函数 unchecked_linear_insert
+class mystl::algo::unchecked_linear_insert() <RandomIter,  T,  Compared> <<void>>{
++ mystl::intro_sort(RandomIter , const T &, Compared  )
+}
+
+' 插入排序函数 unchecked_insertion_sort
+class mystl::algo::unchecked_insertion_sort() < RandomIter,  Compared> <<void>>{
++ mystl::intro_sort(RandomIter , RandomIter ,
+                                Compared  )
+}
+
+
+' 插入排序函数 insertion_sort
+class mystl::algo::insertion_sort() < RandomIter,  Compared> <<void>>{
++ mystl::insertion_sort(RandomIter , RandomIter , Compared  )
+}
+
+' 最终插入排序函数 final_insertion_sort
+class mystl::algo::final_insertion_sort() < RandomIter,  Compared> <<void>>{
++ mystl::final_insertion_sort(RandomIter , RandomIter , Compared  )
+}
+
+' 对序列重排，使得所有小于第 n 个元素的元素出现在它的前面，大于它的出现在它的后面
+class mystl::algo::nth_element() <RandomIter> <<void>>{
++ mystl::nth_element(RandomIter, RandomIter, RandomIter)
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::nth_element() <RandomIter,Compared> <<void>>{
++ mystl::nth_element(RandomIter, RandomIter, RandomIter,Compared)
+}
+
+
+' 从[first, last)中将元素复制到 result 上，序列必须有序，如果有重复的元素，只会复制一次
+class mystl::algo::unique_copy_dispatch() <InputIter,  ForwardIter> <<ForwardIter>>{
++ mystl::unique_copy_dispatch(InputIter , InputIter ,
+                       ForwardIter , forward_iterator_tag)
+}
+
+' 由于 output iterator 只能进行只读操作，所以不能有 *result != *first 这样的判断
+class mystl::algo::unique_copy_dispatch() <InputIter,  OutputIter> <<OutputIter>>{
++ mystl::unique_copy_dispatch(InputIter , InputIter ,
+                       OutputIter , output_iterator_tag)
+}
+
+
+class mystl::algo::unique_copy() < InputIter,  OutputIter> <<OutputIter>>{
++ mystl::unique_copy(InputIter , InputIter , OutputIter )
+}
+
+
+'  unique_copy_dispatch 的 forward_iterator_tag 版本
+class mystl::algo::unique_copy_dispatch() < InputIter,  OutputIter,Compared> <<ForwardIter>>{
++ mystl::unique_copy_dispatch(InputIter , InputIter ,
+                       ForwardIter , forward_iterator_tag, Compared  )
+}
+
+' 由于 output iterator 只能进行只读操作，所以不能有 *result != *first 这样的判断
+class mystl::algo::unique_copy_dispatch() < InputIter,  OutputIter,  Compared> <<OutputIter>>{
++ mystl::unique_copy_dispatch(InputIter , InputIter ,
+                       OutputIter , output_iterator_tag, Compared )
+}
+
+class mystl::algo::unique_copy() < InputIter,  OutputIter,  Compared> <<OutputIter>>{
++ mystl::unique_copy_dispatch(InputIter , InputIter , OutputIter , Compared )
+}
+
+' 移除[first, last)内重复的元素，序列必须有序，和 remove 类似，它也不能真正的删除重复元素
+class mystl::algo::unique() < ForwardIter> <<OutputIter>>{
++ mystl::unique(ForwardIter , ForwardIter )
+}
+
+' 重载版本使用函数对象 comp 代替比较操作
+class mystl::algo::unique() < ForwardIter, Compared> <<ForwardIter>>{
++ mystl::unique(ForwardIter , ForwardIter , Compared )
+}
+
+
+
+
+
+@enduml

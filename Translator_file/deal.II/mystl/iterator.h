@@ -1,12 +1,12 @@
 ﻿#ifndef MYTINYSTL_ITERATOR_H_
 #define MYTINYSTL_ITERATOR_H_
+// 参考https://zhuanlan.zhihu.com/p/358113531
 
 // 这个头文件用于迭代器设计，包含了一些模板结构体与全局函数，
 
 #include <cstddef>
 
 #include <deal.II/mystl/type_traits.h>
-
 
 #include <deal.II/base/config.h>
 
@@ -69,6 +69,8 @@ namespace mystl
   {
   };
 
+  // 定义了所有迭代器都有的公共类型信息
+
   template <class Iterator>
   struct iterator_traits_impl<Iterator, true>
   {
@@ -122,8 +124,7 @@ namespace mystl
 
   template <class T, class U, bool = has_iterator_cat<iterator_traits<T>>::value>
   struct has_iterator_cat_of
-      : public m_bool_constant<std::is_convertible<
-            typename iterator_traits<T>::iterator_category, U>::value>
+      : public m_bool_constant<std::is_convertible<typename iterator_traits<T>::iterator_category, U>::value>
   {
   };
 

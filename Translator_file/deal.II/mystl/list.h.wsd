@@ -1,0 +1,214 @@
+@startuml
+set namespaceSeparator ::
+
+
+class mystl::list_node_base <T> { 
++ typedef typename node_traits<T>::base_ptr base_ptr
++ typedef typename node_traits<T>::node_ptr node_ptr 
+
++ list_node_base()
++ node_ptr as_node()
++ void unlink()
++ base_ptr self()
+}
+
+class  mystl::list_node <T> {
++ typedef typename node_traits<T>::base_ptr base_ptr
++ typedef typename node_traits<T>::node_ptr node_ptr
+
++ list_node()
++ list_node(const T &)
++ list_node(T &&)
++ base_ptr as_base()
++ node_ptr self()
+}
+
+
+class mystl::list_iterator <T> {
++ typedef T value_type
++ typedef T *pointer
++ typedef T &reference
++ typedef typename node_traits<T>::base_ptr base_ptr
++ typedef typename node_traits<T>::node_ptr node_ptr
++ typedef list_iterator<T> self
+
++ 构造函数()
++ list_iterator()
++ list_iterator(base_ptr)
++ list_iterator(node_ptr)
++ list_iterator(const list_iterator &)
+
++ 重载操作符()
++ reference operator*() const
++ pointer operator->() const
++ self &operator++()
++ self operator++(int)
++ self &operator--()
++ self operator--(int)
++ bool operator==(const self &rhs) const 
++ bool operator!=(const self &rhs) const
+}
+
+
+
+class mystl::list_const_iterator <T> {
++ typedef T value_type
++ typedef const T *pointer
++ typedef const T &reference
++ typedef typename node_traits<T>::base_ptr base_ptr
++ typedef typename node_traits<T>::node_ptr node_ptr
++ typedef list_const_iterator<T> self
+
++ list_const_iterator()
++ list_const_iterator(base_ptr)
++ list_const_iterator(node_ptr )
++ list_const_iterator(const list_iterator<T> &)
++ list_const_iterator(const list_const_iterator &)
+
++ reference operator*()
++ pointer operator->()
++ self &operator++()
++ self operator++(int)
++ self &operator--()
++ self operator--(int)
++ bool operator==(const self &) const
+}
+
+
+
+
+class mystl::list <T> {
++ list 的嵌套型别定义
++ type allocator<T> allocator_type
++ type allocator<T> data_allocator
++ type allocator<list_node_base<T>> base_allocator
++ type allocator<list_node<T>> node_allocator
+
++ type value_type
++ type pointer
++ type const_pointer
++ type reference
++ type const_reference
++ type size_type
++ type difference_type
+
++ type list_iterator<T>  iterator
++ type list_const_iterator<T> const_iterator
++ type reverse_iterator<iterator> reverse_iterator
++ type reverse_iterator<const_iterator> const_reverse_iterator
+
++ type base_ptr // 销毁结点
++ type node_ptr // 创建结点
+
+
++ 构造、复制、移动、析构函数()
++ list()
++ list(size_type)
++ list(size_type , const T &)
++ list<Iter>(Iter, Iter)
++ list(initializer_list<T> )
++ list(const list &)
++ list(list &&)
++ list &operator=(const list &)
++ list &operator=(list &&)
++ list &operator=(std::initializer_list<T>)
++ ~list()
+
++ 迭代器相关操作()
++ iterator begin()
++ const_iterator begin() const 
++ iterator end()
++ const_iterator end() const
++ reverse_iterator rbegin()
++ const_reverse_iterator rbegin() const
++ reverse_iterator rend()
++ const_reverse_iterator rend() const
++ const_iterator cbegin() const
++ const_iterator cend() const
++ const_reverse_iterator crbegin() const
++ const_reverse_iterator crend() const
+
++ 容量相关操作()
++ bool empty() const
++ size_type size() const
++ size_type max_size() const
+
++ 访问元素相关操作()
++ reference front()
++ const_reference front() const
++ reference back()
++ const_reference back() const
+
++ 调整容器相关操作()
++ void assign(size_type, const value_type &)
++ void assign(Iter, Iter)
++ void assign(initializer_list<T>)
+
++ void emplace_front<class... Args>(Args &&...)
++ void emplace_back<class... Args>(Args &&...args)
++ iterator emplace<class... Args>(const_iterator, Args &&...)
+
++ iterator insert(const_iterator, const value_type &)
++ iterator insert(const_iterator, value_type &&)
++ iterator insert(const_iterator, size_type, const value_type &)
++ iterator insert<Iter>(const_iterator, Iter, Iter)
++ void push_front(const value_type &)
++ void push_front(value_type &&)
++ void push_back(const value_type &)
++ void push_back(value_type &&)
++ void pop_front()
++ void pop_back()
++ iterator erase(const_iterator) // 删除 pos 处的元素
++ iterator erase(const_iterator, const_iterator) // 删除 [first, last) 内的元素
++ void clear() //清空 list
+
++ void resize(size_type) 
++ void resize(size_type , const value_type &) // 重置容器大小
++ void swap(list &)
+
++ list 相关操作()
++ void splice(const_iterator, list &) // 将 list x 接合于 pos 之前
++ void splice(const_iterator, list &, const_iterator) // 将 it 所指的节点接合于 pos 之前
++ void splice(const_iterator, list &, const_iterator, const_iterator) // 将 list x 的 [first, last) 内的节点接合于 pos 之前
++ void remove(const value_type &)
++ void remove_if<class UnaryPredicate>(UnaryPredicate) // 将另一元操作 pred 为 true 的所有元素移除
++ void unique()
++ void unique<class BinaryPredicate>(BinaryPredicate) // 移除 list 中满足 pred 为 true 重复元素
++ void merge(list &)
++ void merge<class Compare>(list &, Compare) // 与另一个 list 合并，按照 comp 为 true 的顺序
++ void sort()
++ void sort<class Compared>(Compared comp)
++ void reverse() // 将 list 反转
+
+- node_ptr create_node<class... Args>(Args &&...)
+- void destroy_node(node_ptr)
+- void fill_init(size_type, const value_type &) // 用 n 个元素初始化容器
+- void copy_init<class Iter>(Iter, Iter) // 以 [first, last) 初始化容器
+- iterator link_iter_node(const_iterator, base_ptr) // 在 pos 处连接一个节点
+- void link_nodes(base_ptr, base_ptr , base_ptr ) // 在 pos 处连接 [first, last] 的结点
+- void link_nodes_at_front(base_ptr , base_ptr ) // 在头部连接 [first, last] 结点
+- void link_nodes_at_back(base_ptr , base_ptr ) // 在尾部连接 [first, last] 结点
+- void unlink_nodes(base_ptr , base_ptr) // 容器与 [first, last] 结点断开连接
+- void fill_assign(size_type, const value_type &) // 用 n 个元素为容器赋值
+- void copy_assign<class Iter>(Iter, Iter) // 复制[f2, l2)为容器赋值
+
+- iterator fill_insert(const_iterator, size_type, const value_type &) // 在 pos 处插入 n 个元素
+- iterator copy_insert<class Iter>(const_iterator, size_type, Iter ) // 在 pos 处插入 [first, last) 的元素
+- iterator list_sort<class Compared>(iterator, iterator, size_type, Compared) // 对 list 进行归并排序，返回一个迭代器指向区间最小元素的位置
+
+}
+
+class mystl::iterator<bidirectional_iterator_tag, T>{}
+
+
+
+mystl::list_iterator -up-|> mystl::iterator
+mystl::list_const_iterator -up-|> mystl::iterator
+mystl::list_node -up-|> mystl::list_node_base
+
+
+mystl::list "iterator"*.up.> mystl::list_iterator
+mystl::list "const_iterator"*.up.> mystl::list_const_iterator
+mystl::list "node_allocator"*.up.> mystl::list_node
+
+@enduml

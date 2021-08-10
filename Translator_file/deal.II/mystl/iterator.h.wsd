@@ -1,0 +1,159 @@
+@startuml
+set namespaceSeparator ::
+
+' 继承上下，bind左右
+
+class "mystl::iterator_tag::input_iterator_tag" <<struct>>{}
+class "mystl::iterator_tag::output_iterator_tag" <<struct>>{}
+    "mystl::iterator_tag::forward_iterator_tag" -up-|> "mystl::iterator_tag::input_iterator_tag"
+class "mystl::iterator_tag::forward_iterator_tag" <<struct>>{}
+    "mystl::iterator_tag::bidirectional_iterator_tag" -up-|> "mystl::iterator_tag::forward_iterator_tag"
+class "mystl::iterator_tag::bidirectional_iterator_tag" <<struct>>{}
+    "mystl::iterator_tag::random_access_iterator_tag" -up-|> "mystl::iterator_tag::bidirectional_iterator_tag"
+class "mystl::iterator_tag::random_access_iterator_tag" <<struct>>{}
+    "mystl::iterator_tag::input_iterator_tag" "temp"...> "mystl::iterator_tag::output_iterator_tag"
+
+' iterator 模板
+class "mystl::iterator::iterator" < Category,  T,  Distance , Pointer, Reference> <<struct>>{
++ iterator_category : Category;
++ value_type : T;
++ pointer : Pointer = T *;
++ reference : Reference = T &;
++ difference_type : Distance = ptrdiff_t;
+}
+
+
+' iterator traits
+class mystl::iterator::has_iterator_cat<T> <<struct>> {
++ static const bool value = sizeof(test<T>(0)) == sizeof(char);
+}
+
+
+    
+    class "mystl::iterator::iterator_traits_impl `0"< Iterator, bool> <<struct>>{}
+    "mystl::iterator::iterator_traits_impl `1" "bind".up.> "mystl::iterator::iterator_traits_impl `0" 
+class "mystl::iterator::iterator_traits_impl `1"<Iterator, true> <<struct>>{
++ iterator_category : Iterator::iterator_category
++ value_type : Iterator::value_type
++ reference : Iterator::reference
++ difference_type : Iterator::difference_type
+}
+
+    class "mystl::iterator::iterator_traits_helper `0"<Iterator, bool> <<struct>>{}
+    "mystl::iterator::iterator_traits_helper `1" -up-|> "mystl::iterator::iterator_traits_impl `2"
+    "mystl::iterator::iterator_traits_helper `1" "bind".up.> "mystl::iterator::iterator_traits_helper `0"
+    class "mystl::iterator::iterator_traits_impl `2"< Iterator,is_convertible... > <<struct>>{}
+    "mystl::iterator::iterator_traits_impl `2" "bind".up.>  "mystl::iterator::iterator_traits_impl `0"
+class "mystl::iterator::iterator_traits_helper `1"<Iterator, true> <<struct>>{}
+
+
+
+' 萃取迭代器的特性
+
+    "mystl::iterator::iterator_traits `0" -up-|> "mystl::iterator::iterator_traits_helper `2"
+    "mystl::iterator::iterator_traits_helper `2" "bind".up.> "mystl::iterator::iterator_traits_helper `0"
+    class "mystl::iterator::iterator_traits_helper `2"<Iterator, has_iterator_cat<Iterator>::value> <<struct>>{}
+    ' "mystl::iterator::iterator_traits_helper `2" *--> "mystl::iterator::has_iterator_cat"
+class "mystl::iterator::iterator_traits `0"< Iterator>{}
+
+
+' 针对原生指针的偏特化版本
+    mystl::iterator::iterator_traits .right. "mystl::iterator::iterator_traits `0"
+class mystl::iterator::iterator_traits<T *>{
++ iterator_category : random_access_iterator_tag
++ value_type : T
++ *pointer : T
++ &reference : T
++ difference_type : ptrdiff_t
+}
+
+    class "mystl::type_traits::m_integral_constant" <T, T v>
+    {
+    + static constexpr T value = v;
+    + m_bool_constant : m_integral_constant<bool, b> 
+    }
+    class "mystl::type_traits::m_bool_constant `1" <is_convertible...,>{} 
+    "mystl::type_traits::m_bool_constant `0"  "bind".up.> "mystl::type_traits::m_integral_constant"
+    "mystl::iterator::has_iterator_cat_of `0" -up-|> "mystl::type_traits::m_bool_constant `0" 
+class "mystl::iterator::has_iterator_cat_of `0" <T, U, bool> <<struct>> {
++ bool : has_iterator_cat<iterator_traits<T>>::value
+}
+
+' 萃取某种迭代器
+    class "mystl::type_traits::m_false_type"
+    {
+    + m_bool_constant<false> m_false_type
+    }
+    "mystl::iterator::has_iterator_cat_of `1" -up-|> "mystl::type_traits::m_false_type"
+    "mystl::iterator::has_iterator_cat_of `1" "bind".up.> "mystl::iterator::has_iterator_cat_of `0"
+class "mystl::iterator::has_iterator_cat_of `1" <T, U, false> <<struct>> {
++ bool : has_iterator_cat<iterator_traits<T>>::value
+}
+    
+    class  "mystl::iterator::has_iterator_cat_of `2" <Iter, input_iterator_tag>{}
+    "mystl::iterator::has_iterator_cat_of `2"  "bind".up.> "mystl::iterator::has_iterator_cat_of `0"
+    "mystl::iterator::is_input_iterator" -up-|> "mystl::iterator::has_iterator_cat_of `2" 
+class "mystl::iterator::is_input_iterator" <Iter> <<struct>> {
+}
+    "mystl::iterator::is_output_iterator" -up-|> "mystl::iterator::has_iterator_cat_of `2" 
+class "mystl::iterator::is_output_iterator" <Iter> <<struct>> {
+}
+    "mystl::iterator::is_forward_iterator" -up-|> "mystl::iterator::has_iterator_cat_of `2" 
+class "mystl::iterator::is_forward_iterator" <Iter> <<struct>> {
+}
+    class  "mystl::iterator::has_iterator_cat_of `3" <Iter, bidirectional_iterator_tag>{}
+    "mystl::iterator::has_iterator_cat_of `3"  "bind".up.> "mystl::iterator::has_iterator_cat_of `0"
+    "mystl::iterator::is_bidirectional_iterator" -up-|> "mystl::iterator::has_iterator_cat_of `3" 
+class "mystl::iterator::is_bidirectional_iterator" <Iter> <<struct>> {
+}
+    class  "mystl::iterator::has_iterator_cat_of `4" <Iter, random_access_iterator_tag>{}
+    "mystl::iterator::has_iterator_cat_of `4"  "bind".up.> "mystl::iterator::has_iterator_cat_of `0"
+    "mystl::iterator::is_random_access_iterator" -up-|> "mystl::iterator::has_iterator_cat_of `4" 
+class "mystl::iterator::is_random_access_iterator" <Iter> <<struct>> {
+}
+    class "mystl::type_traits::m_bool_constant `1" <is_input_iterator is_output_iterator...,>{} 
+    "mystl::type_traits::m_bool_constant `1"  "bind".up.> "mystl::type_traits::m_integral_constant"
+    "mystl::iterator::is_iterator" -up-|> "mystl::type_traits::m_bool_constant `1" 
+class "mystl::iterator::is_iterator" <Iter> <<struct>> {
+}
+
+
+' 萃取某个迭代器的 category
+class mystl::iterator_function::iterator_category() <Iterator> <<iterator_traits<Iterator>::iterator_category>>{
+- Category(); // 调用
+}
+
+' 萃取某个迭代器的 distance_type
+class mystl::iterator_function::distance_type() <Iterator> <<iterator_traits<Iterator>::difference_type *>>{
+- static_cast<typename iterator_traits<Iterator>::difference_type *>(0); // 调用
+}
+
+
+' 萃取某个迭代器的 value_type
+class mystl::iterator_function::value_type() <Iterator> <<iterator_traits<Iterator>::value_type *>>{
+- static_cast<typename iterator_traits<Iterator>::value_type *>(0); // 调用
+}
+
+
+
+' 以下函数用于计算迭代器间的距离
+class mystl::iterator_function::distance() <InputIterator> <<iterator_traits<InputIterator>::difference_type>>{
+- distance_dispatch(InputIterator, InputIterator, iterator_category(InputIterator)); // 调用
++ distance_dispatch(InputIterator, InputIterator,input_iterator_tag)
++ distance_dispatch(RandomIter, RandomIter,random_access_iterator_tag)
+}
+
+
+
+' 以下函数用于让迭代器前进 n 个距离
+class mystl::iterator_function::advance() <InputIterator, Distance> <<void>>{
+- advance_dispatch(InputIterator &, Distance, iterator_category(InputIterator &)); // 调用
++ void advance_dispatch(InputIterator &, Distance, input_iterator_tag)
++ void advance_dispatch(BidirectionalIterator &, Distance, bidirectional_iterator_tag)
++ void advance_dispatch(RandomIter &, Distance, random_access_iterator_tag)
+}
+
+
+
+
+@enduml

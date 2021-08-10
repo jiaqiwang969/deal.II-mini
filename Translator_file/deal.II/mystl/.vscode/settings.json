@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "iterator": "cpp",
+        "__bit_reference": "cpp",
+        "__hash_table": "cpp",
+        "algorithm": "cpp",
+        "deque": "cpp",
+        "functional": "cpp",
+        "unordered_map": "cpp",
+        "numeric": "cpp"
+    }
+}

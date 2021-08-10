@@ -1,0 +1,26 @@
+@startuml
+set namespaceSeparator ::
+
+class mystl::allocator <T> {
++ value_type : T
++ *pointer : T
++ *const_pointer : const T
++ &reference : T
++ &const_reference : const T 
++ size_type : size_t
++ difference_type : ptrdiff_t
+
+
++ static T *allocate()
++ static T *allocate(size_type)
++ static void deallocate(T *)
++ static void deallocate(T *, size_type )
++ static void construct(T *)
++ static void construct(T *, const T & )
++ static void construct(T *, T && )
++ static void construct<class... Args>(T *, Args &&...)
++ static void destroy(T *)
++ static void destroy(T *, T *)
+}
+
+@enduml

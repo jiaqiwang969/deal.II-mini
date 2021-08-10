@@ -1,0 +1,93 @@
+@startuml
+set namespaceSeparator ::
+
+class mystl::vector <T> {
++ type iterator
++ type const_iterator
++ type reverse_iterator
++ type const_reverse_iterator
+
++ 构造、复制、移动、析构函数()
++ vector()
++ vector(size_type)
++ vector(size_type , const value_type &)
++ vector(Iter , Iter )
++ vector(const vector &)
++ vector(vector &&)
++ vector(initializer_list<value_type> )
++ vector &operator=(const vector &)
++ vector &operator=(vector &&)
++ vector &operator=(initializer_list<value_type> )
++ ~vector()
+
++ 迭代器相关操作()
++ iterator begin()
++ const_iterator begin()
++ iterator end()
++ const_iterator end() const
++ reverse_iterator rbegin()
++ const_reverse_iterator rbegin() const
++ reverse_iterator rend()
++ const_reverse_iterator rend() const
++ const_iterator cbegin() const
++ const_iterator cend() const
++ const_reverse_iterator crbegin() const
++ const_reverse_iterator crend() const 
+
++ 容量相关操作()
++ bool empty() const
++ size_type size() const
++ size_type max_size() const
++ size_type capacity() const
++ void reserve(size_type)
++ void shrink_to_fit()
+
++ 访问元素相关操作()
++ reference operator[](size_type)
++ const_reference operator[](size_type) const
++ reference at(size_type n)
++ const_reference at(size_type) const
++ reference front()
++ const_reference front() const
++ reference back()
++ const_reference back() const
++ pointer data()
++ const_pointer data()
+
++ 修改容器相关操作()
++ void assign(size_type, const value_type &)
++ void assign<Iter>(Iter, Iter )
++ void assign(initializer_list<value_type>)
++ iterator emplace(const_iterator , Args &&...)
++ void emplace_back(Args &&...)
++ void push_back(const value_type &)
++ void push_back(value_type &&)
++ void pop_back()
++ iterator insert(const_iterator , const value_type &)
++ iterator insert(const_iterator , value_type &&)
++ iterator insert(const_iterator , size_type , const value_type &)
++ void insert<Iter>(const_iterator , Iter , Iter )
++ iterator erase(const_iterator)
++ iterator erase(const_iterator, const_iterator)
++ void clear()
++ void resize(size_type)
++ void reverse()
++ void swap(vector &)
+
+- void try_init()
+- void init_space(size_type, size_type)
+- void fill_init(size_type, const value_type &)
+- void range_init<Iter>(Iter, Iter)
+- void destroy_and_recover(iterator, iterator, size_type)
+- size_type get_new_cap(size_type)
+- void fill_assign(size_type, const value_type &)
+- void copy_assign<IIter>(IIter, IIter, input_iterator_tag)
+- void copy_assign<FIter>(FIter first, FIter last, forward_iterator_tag)
+- void reallocate_emplace(iterator, Args &&...)
+- void reallocate_insert(iterator, const value_type &);
+- iterator fill_insert(iterator, size_type, const value_type &)
+- void copy_insert<IIter>(iterator, IIter, IIter)
+- void reinsert(size_type)
+}
+
+@enduml

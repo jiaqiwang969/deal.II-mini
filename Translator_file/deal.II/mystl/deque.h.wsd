@@ -1,0 +1,99 @@
+@startuml
+set namespaceSeparator ::
+
+class mystl::deque <T> {
+
++ type iterator
++ type const_iterator
++ type reverse_iterator
++ type const_reverse_iterator
+
++ 构造、复制、移动、析构函数()
++ deque()
++ deque(size_type)
++ deque(size_type, const value_type &)
++ deque<IIter>(IIter, IIter)
++ deque(std::initializer_list<value_type>)
++ deque(const deque &)
++ deque(deque &&)
++ deque &operator=(const deque &)
++ deque &operator=(deque &&)
++ deque &operator=(initializer_list<value_type>)
++ ~deque()
+
++ 迭代器相关操作()
++ iterator begin()
++ const_iterator begin()
++ iterator end() 
++ const_iterator end() const
++ reverse_iterator rbegin()
++ const_reverse_iterator rbegin() const
++ reverse_iterator rend()
++ const_reverse_iterator rend() const 
++ const_iterator cbegin() const
++ const_iterator cend() const
++ const_reverse_iterator crbegin() const
++ const_reverse_iterator crend() const
+
++ 容量相关操作()
++ bool empty() const
++ size_type size() const
++ size_type max_size()
++ void resize(size_type) 
++ void resize(size_type, const value_type &)
++ void shrink_to_fit()
+
++ 访问元素相关操作()
++ reference operator[](size_type)
++ const_reference operator[](size_type) const
++ reference at(size_type)
++ const_reference at(size_type) const
++ reference front()
++ const_reference front() const
++ reference back()
++ const_reference back() const
+
++ 修改容器相关操作()
++ void assign(size_type, const value_type &)
++ void assign<IIter>(IIter, IIter)
++ void assign(initializer_list<value_type>)
++ void emplace_front<class... Args>(Args &&...)
++ void emplace_back<class... Args>(Args &&...)
++ iterator emplace<class... Args>(iterator, Args &&...)
++ void push_front(const value_type &)
++ void push_back(const value_type &)
++ void push_front(value_type &&)
++ void push_back(value_type &&)
++ void pop_front()
++ void pop_back()
++ iterator insert(iterator, const value_type &)
++ iterator insert(iterator, value_type &&)
++ void insert(iterator, size_type, const value_type &)
++ void insert<IIter>(iterator, IIter, IIter)
++ iterator erase(iterator)
++ iterator erase(iterator, iterator)
++ void clear()
++ void swap(deque &)
+
+- void create_buffer<map_pointer>(map_pointer nstart, map_pointer nfinish)
+- void destroy_buffer<map_pointer>(map_pointer nstart, map_pointer nfinish)
+- void map_init(size_type)
+- void fill_init(size_type, const value_type &)
+- void copy_init<IIter>(IIter, IIter, input_iterator_tag)
+- void copy_init<FIter>(FIter, FIter, forward_iterator_tag)
+- void fill_assign(size_type, const value_type &)
+- void copy_assign<IIter>(IIter, IIter, input_iterator_tag)
+- void copy_assign<FIter>(FIter, FIter, forward_iterator_tag)
+- iterator insert_aux<class... Args>(iterator, Args &&...)
+- void fill_insert(iterator, size_type, const value_type &)
+- void copy_insert<FIter>(iterator, FIter, FIter, size_type)
+- void insert_dispatch<IIter>(iterator, IIter, IIter, input_iterator_tag)
+- void insert_dispatch<FIter>(iterator, FIter, FIter, forward_iterator_tag)
+- void require_capacity(size_type, bool)
+- void reallocate_map_at_front(size_type)
+- void reallocate_map_at_back(size_type)
+
+
+}
+
+@enduml
