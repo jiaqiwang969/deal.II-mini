@@ -8,6 +8,8 @@ R. Rossi \\
 }
 
 
+
+
 \begin{abstract}。
 本论文讨论了在多物理学框架内实现不可压缩和可压缩流动的流体求解器 Kratos 。基于有限元方法（`FEM`）的环境介绍, 和对多学科问题的一般介绍是这项工作的起点，有助于更容易地理解以下方法。
 
@@ -98,7 +100,7 @@ Kratos是一个开源的$C++$框架，用于执行基于有限元方法的多学
 
 面向对象结构的主要目标是将整个问题分割成几个对象并定义它们的接口。关于使用`FEM`模拟多学科问题，Kratos中定义的对象是基于一般有限元方法。[图2.6]说明了主要类别。
 
-`Vector`, `Matrix`和`Quadrature`是由基本数值概念设计的。  `Node` , Element, `Condition` 和 `Dof` 是直接从有限元概念中定义的。  `Model`、`Mesh`和`Properties`来自有限元建模中使用的实际方法，由`ModelPart`和`SpatialContainer`完成，以更好地组织所有必要的分析数据。  `I0`、`LinearSolver`、`Process`和`Strategy`表示有限元程序流程的不同步骤。最后，`Kernel`和`Application`处理库管理和定义Kratos'接口。
+Vector, `Matrix`和`Quadrature`是由基本数值概念设计的。  `Node`,  Element, `Condition` 和 `Dof` 是直接从有限元概念中定义的。  `Model`、`Mesh`和`Properties`来自有限元建模中使用的实际方法，由`ModelPart`和`SpatialContainer`完成，以更好地组织所有必要的分析数据。  `I0`、`LinearSolver`、`Process`和`Strategy`表示有限元程序流程的不同步骤。最后，`Kernel`和`Application`处理库管理和定义Kratos接口。
 
 \subsubsection{Multi-Layer Design}
 
@@ -109,11 +111,11 @@ Kratos使用`multi-layer`的方法，其中每个对象只与本层或下层的�
 
 \textbf{Basic Tools Layer} 拥有Kratos中使用的所有基本工具，即数学定义、求解程序和数据结构的建立。为了使其性能最大化，$\mathrm{C}++$中的高级技术在这一层中是必不可少的。
 
-\textbf{Base Finite Element Layer} 包含实现有限元公式所需的成分。元素对象`Node`、`Properties`、`Condition`和`Degrees of freedom`在此定义，可以说是隐藏在有限元开发者中。
+\textbf{Base Finite Element Layer} 包含实现有限元公式所需的成分。element对象`Node`、`Properties`、`Condition`和`Degrees of freedom`在此定义，可以说是隐藏在有限元开发者中。
 
 \textbf{Finite Element Layer} 仅限于语言的基本和平均特征，并使用下面的两层来优化性能，而不进入细节。
 
-\textbf{Data Structures Layer} 包含组织数据结构的所有对象。这一层将受到基于节点的实现的影响，需要一个 `edge-based data structure`的压缩稀疏行格式。
+\textbf{Data Structures Layer} 包含组织数据结构的所有对象。这一层将受到`Edge-based`的实现的影响，需要一个 `edge-based data structure`的压缩稀疏行格式。
 
 \textbf{Base Algorithms Layer} 提供了构建算法的可扩展结构的组件。
 
@@ -127,7 +129,7 @@ Kratos使用`multi-layer`的方法，其中每个对象只与本层或下层的�
 
 \subsubsection{Python Interface}
 
-使用Python模拟的启动脚本已被证明是非常方便的，因为它允许用户根据自己的特殊需要调整程序，这在调试应用程序或解决问题时非常有用。此外，几乎任何参数（如公差值、初始和边界条件等）都可以 "即时" 改变，而不必重新编译整个$\mathrm{C}++$源代码。
+使用Python模拟的启动脚本已被证明是非常方便的，因为它允许用户根据自己的特殊需要调整程序，这在调试应用程序或解决问题时非常有用。此外，几乎任何参数（如公差值、初始和边界条件等）都可以“即时” 改变，而不必重新编译整个$\mathrm{C}++$源代码。
 
 本文附件(A)附有一个完整的Python脚本，用于移动网格上的流动模拟，下面给出最相关的部分，以说明上述优点。
 
@@ -135,14 +137,14 @@ Kratos使用`multi-layer`的方法，其中每个对象只与本层或下层的�
 # ##################################################################
 #settings to be changed...
 #INITIALIZE FLUID DOMAIN
-for node in model_part . Nodes :
+for node in model_part.Nodes :
   #change properties and initial values
   initial_velocity = 1.0
-  node . SetSolutionStepValue ( VELOCITY_X ,0 , initial_velocity )
-  node . SetSolutionStepValue ( VELOCITY_Y ,0 ,0.0)
-  node . SetSolutionStepValue ( VELOCITY_Z ,0 ,0.0)
-  pressure = 20 - (0.1 * node . X )
-  node . SetSolutionStepValue ( PRESSURE ,0 , pressure )
+  node.SetSolutionStepValue ( VELOCITY_X, 0,  initial_velocity )
+  node.SetSolutionStepValue ( VELOCITY_Y, 0, 0.0)
+  node.SetSolutionStepValue ( VELOCITY_Z, 0, 0.0)
+  pressure = 20 - (0.1 * node.X )
+  node.SetSolutionStepValue ( PRESSURE, 0,  pressure )
 
 #CHANGE BOUNDARY CONDITIONS
 #boundary flags:
@@ -158,10 +160,10 @@ for node in model_part.Nodes :
   #set boundary values
   if( node.GetSolutionStepValue ( IS_BOUNDARY ) == 1.0) :
     inlet_velocity = 10.0
-    node.SetSolutionStepValue ( VELOCITY_X ,0 , inlet_velocity )
-  if( node . GetSolutionStepValue ( IS_BOUNDARY ) == 4.0 or node.GetSolutionStepValue ( IS_BOUNDARY ) == 5.0) :
-    pressure_outlet = node . GetSolutionStepValue ( PRESSURE )
-    node.SetSolutionStepValue ( EXTERNAL_PRESSURE ,0 , pressure_outlet )
+    node.SetSolutionStepValue ( VELOCITY_X, 0,  inlet_velocity )
+  if( node.GetSolutionStepValue ( IS_BOUNDARY ) == 4.0 or node.GetSolutionStepValue ( IS_BOUNDARY ) == 5.0) :
+    pressure_outlet = node.GetSolutionStepValue ( PRESSURE )
+    node.SetSolutionStepValue ( EXTERNAL_PRESSURE, 0,  pressure_outlet )
 #SET FURTHER VALUES
 #time step size and output interval
 dt = 0.01
@@ -195,13 +197,13 @@ n_it_max = 100
 
 \textbf{Geometry description} - 除了通过点、线和面手动定义模型的二维和三维几何之外，还可以导入标准计算机辅助设计（CAD）软件工具的多种数据格式。
 
-\textbf{Mesh generation} - 在为几何实体指定了网格的质量和间距标准后，用户可以处理各种选项。他可以选择结构化网格`linear and quadratic Elements`、自动生成的非结构化网格和半结构化体积网格（在一个方向上结构化），包括三角形、四边形、六面体、棱镜和四面体元素。进一步的编辑工具，如通过分割元素、边缘塌陷和平滑来细化网格，也是可用的。
+\textbf{Mesh generation} - 在为几何实体指定了网格的质量和间距标准后，用户可以处理各种选项。他可以选择结构化网格`linear and quadratic Elements`、自动生成的非结构化网格和半结构化体积网格（在一个方向上结构化），包括三角形、四边形、六面体、棱镜和四面体element。进一步的编辑工具，如通过分割element、Edge塌陷和平滑来细化网格，也是可用的。
 
-\textbf{Visualization of results} - 一旦模拟运行后，结果可以通过各种图表来显示：计数器和`Vector`图、变形几何形状、等值面和流线，这只是最常用的例子。此外，动画序列可以被记录下来，与时间有关的数据可以被提取出来，以执行进一步的操作，如快速傅里叶变换（FFT）。此外，与常见的后处理工具如STL、NASTRAN和TECPLOT的数据交换也是可能的。GiD的主要目标之一是它的自适应特性，愿意为任何类型的数值模拟程序提供一个兼容的接口，与所采用的代码无关（有限元、有限体积、有限差分、无网格）。为了成功满足这一要求，必须为每个应用设计一个所谓的`problemtype`，定义可选的`Properties`和条件以及格式转换选项。到目前为止，这种问题类型存在于固体和结构力学、流体力学、传热学、电磁学和地质力学的应用中。
+\textbf{Visualization of results} - 一旦模拟运行后，结果可以通过各种图表来显示：计数器和Vector图、变形几何形状、等值面和流线，这只是最常用的例子。此外，动画序列可以被记录下来，与时间有关的数据可以被提取出来，以执行进一步的操作，如快速傅里叶变换（FFT）。此外，与常见的后处理工具如STL、NASTRAN和TECPLOT的数据交换也是可能的。GiD的主要目标之一是它的自适应特性，愿意为任何类型的数值模拟程序提供一个兼容的接口，与所采用的代码无关（有限元、有限体积、有限差分、无网格）。为了成功满足这一要求，必须为每个应用设计一个所谓的`problemtype`，定义可选的`Properties`和条件以及格式转换选项。到目前为止，这种问题类型存在于固体和结构力学、流体力学、传热学、电磁学和地质力学的应用中。
 
 \subsubsection{Preparation of the Model}
 
-首先，模型的几何形状是由点、线、面和体积定义的。然后选择一种材料，并定义域的特征和边界。对于已经实现的流动求解器来说，在 "流体元素类型 "下为二维和三维领域只选择元素`Fluid2D`和`Fluid3D`是至关重要的。此外，"流体边界条件 "下的边界条件`Condition2D`和`Condition3D`也必须被设置。由于边界通常被分为几个不同的部分，Kratos标志变量`IS_BOUNDARY`用于指示
+首先，模型的几何形状是由点、线、面和体积定义的。然后选择一种材料，并定义域的特征和边界。对于已经实现的流动求解器来说，在“流体element类型”下为二维和三维领域只选择element`Fluid2D`和`Fluid3D`是至关重要的。此外，“流体边界条件”下的边界条件`Condition2D`和`Condition3D`也必须被设置。由于边界通常被分为几个不同的部分，Kratos标志变量`IS_BOUNDARY`用于指示
 
 0. 内部点。
 
@@ -227,25 +229,29 @@ n_it_max = 100
 
 从不可压缩流的`Euler equations`推导开始，有限元方法被应用于空间离散化。使用分步方案，压力和速度分量是不耦合的。
 
-为了避免某些信息的冗余，许多简单的基于元素的流动求解器都受到影响（由于间接寻址操作的成本），我们选择了一个基于边的数据结构。因此，这一节的注意力将被引向基于边的数据的存储和访问的必要变化，以及边对全局系统矩阵的贡献的计算。
+为了避免某些信息的冗余，许多简单的`Element-based`的流动求解器都受到影响（由于间接寻址操作的成本），我们选择了一个`Edge-based`的数据结构。因此，这一节的注意力将被引向`Edge-based`的数据的存储和访问的必要变化，以及边对全局系统矩阵的贡献的计算。
 
 此外，该算法被扩展到亚音速系统的可压缩流动。最后，为了验证，对二维和三维测试案例进行了数值流动模拟。
 
 \subsection{Motivation}
 
-在晚期$1950 \mathrm{~s}$引入的飞机工业中，有限元方法已经成为迄今为止设计的最强大的数值方法之一。它的主要优点，导致了广泛的接受和普及，包括
+在晚期 1950~s 引入的飞机工业中，有限元方法已经成为迄今为止设计的最强大的数值方法之一。它的主要优点，导致了广泛的接受和普及，包括
 
 - 复杂几何形状建模的便利性。
 
-- 对微分型边界条件的一致处理和
+- 对微分型边界条件的一致处理
 
 - 有可能以灵活和通用的格式进行编程。
 
-标准的有限元近似是基于加权残差法的`Galerkin`公式。这个公式在固体/结构力学和其他情况下的应用被证明是非常成功的，例如由扩散型方程支配的热传导问题。这可以解释为，当应用于由自交椭圆或抛物线偏微分方程支配的问题时，`Galerkin`有限元方法会导致对称的刚度矩阵。在这种情况下，有限元解和精确解之间的差异在能量准则方面是最小的。
+标准的有限元近似是基于加权残差法的`Galerkin`公式。这个公式在固体/结构力学和其他情况下的应用被证明是非常成功的，例如由扩散型方程支配的热传导问题。这可以解释为，当应用于由自交椭圆或抛物线偏微分方程支配的问题时，`Galerkin`有限元方法会导出对称的刚度矩阵。在这种情况下，有限元解和精确解之间的差异在能量准则方面是最小的。
 
-然而，在基于拉格朗日以外的运动学描述的流体流动问题中，非对称对流算子出现在公式中，因此，当对流在传输过程中占主导地位时，`Galerkin`方法的能量准则的最佳近似特性就会丢失。在实践中，这些问题的`Galerkin`解往往被虚假的`Node-to-Node`振荡所破坏。由于严重的网格和时间步长的细化显然会破坏该方法的实际效用，所以必须应用稳定技术。此外，在真正的瞬态情况下，由于双曲问题中信息传播的方向性，时空耦合特别关键[^10]。
+然而，在基于拉格朗日以外的运动学描述的流体流动问题中，`非对称对流算子`出现在公式中，因此，当对流在传输过程中占主导地位时，`Galerkin`方法的能量准则的最佳近似特性就会丢失。在实践中，这些问题的`Galerkin`解往往被虚假的`Node-to-Node`振荡所破坏。由于严重的网格和时间步长的细化显然会破坏该方法的实际效用，所以必须应用`稳定技术`。此外，在真正的瞬态情况下，由于双曲问题中信息传播的方向性，时空耦合特别关键[^10]。
 
 \subsection{Governing Equations in Fluid Dynamics}
+
+《Jiaqi笔记》：https://www.youtube.com/watch?v=mH0oCDa74tE
+![](https://cdn.mathpix.com/snip/images/Aqv-JyEZwe-F-X4yfcj0HVTlbv7sO_yAI3UN019OUwA.original.fullsize.png)
+
 
 气体和液体等流体物质的运动是由`NavierStokes equations`命名的`Claude-Louis Navier`和`George-Gabriel Stokes`决定的。它们代表一组非线性偏微分方程，建立了速度和压力变化率之间的关系。严格地说，它们只说明了动量守恒，因此，根据流量`Properties`，需要进一步的质量和能量守恒定律来完全描述运动。
 
@@ -253,15 +259,15 @@ n_it_max = 100
 
 1.  \textbf{Dirichlet} ，规定了未知函数的值。
 
-2.  \textbf{Neumann} ，施加法线梯度，和
+2.  \textbf{Neumann} ，施加法线梯度。
 
-3.  \textbf{Robin} ，规定了未知函数和其梯度的组合，为什么这种类型通常被称为混合边界条件。
+3.  \textbf{Robin} ，规定了未知函数和其梯度的组合，这种类型通常被称为混合边界条件。
 
 \subsubsection{Basic Conservation Equations}
 
 \textbf{Mass Conservation}
 
-材料体积（永久包含所考虑的连续体的相同粒子的体积）中包含的质量守恒是牛顿力学的一个基本定律。根据[^10]的研究，它可以写成
+`material volume`（永久包含所考虑的连续体的相同粒子的体积）中包含的质量守恒是牛顿力学的一个基本定律。根据[^10]的研究，它可以写成
 
 \begin{equation}
 \frac{d M}{d t}=\frac{d}{d t} \int_{V_{m}(t)} \rho d V=0
@@ -269,15 +275,15 @@ n_it_max = 100
 \end{equation}
 其中质量 $M$ 由流体密度的体积积分表示 $\rho$ 。
 
-标量函数 $f(\boldsymbol{x}, t)$ 在时间变化的材料体积上的积分的材料时间导数 $V_{m}(t)$ 由 `Reynolds transport theorem` 给出。
+标量函数 $f(\boldsymbol{x}, t)$ 在时间变化的`material volume`上的积分的材料时间导数 $V_{m}(t)$ 由 `Reynolds transport theorem` 给出。
 
 \begin{equation}
 \frac{d}{d t} \int_{V_{m}(t)} f(\boldsymbol{x}, t) d V=\int_{V_{c} \equiv V_{m}(t)} \frac{\partial f(\boldsymbol{x}, t)}{\partial t} d V+\int_{A_{c} \equiv A_{m}(t)} f(\boldsymbol{x}, t) \boldsymbol{u} \cdot \boldsymbol{n} d A
 \label{3.2}
 \end{equation}
-这对平滑函数来说是成立的 $f(\boldsymbol{x}, t)$ 。右手边的体积积分是在一个控制体积$V_{c}$上定义的（在空间上是固定的），与所考虑的瞬间$t$的移动材料体积重合。同样，固定的控制面$A_{c}$在时间$\mathrm{t}$与封闭面$A_{m}(t)$相吻合，并与材料体积$V_{m}(t)$相界。在表面积分中，$\boldsymbol{u}$表示边界$A_{m}(t)$上各点的材料速度，而$\boldsymbol{n}$是在考虑的瞬间对表面$A_{m}(t)$的单位外向法向。
+这对平滑函数来说是成立的 $f(\boldsymbol{x}, t)$ 。右手边的体积积分是在一个控制体积$V_{c}$上定义的（在空间上是固定的），与所考虑的瞬间$t$的移动`material volume`重合。同样，固定的控制面$A_{c}$在时间$\mathrm{t}$与封闭面$A_{m}(t)$相吻合，并与`material volume`$V_{m}(t)$相界。在表面积分中，$\boldsymbol{u}$表示边界$A_{m}(t)$上各点的材料速度，而$\boldsymbol{n}$是在考虑的瞬间对表面$A_{m}(t)$的单位外向法向。
 
-应用于质量守恒定律，方程（3.1）可以改写为以下形式。
+应用于质量守恒定律，方程\ref{3.1}可以改写为以下形式。
 
 \begin{equation}
 \frac{d M}{d t}=\int_{V_{m}(t)} \frac{\partial \rho}{\partial t} d V+\int_{A_{m}(t)} \rho \boldsymbol{u} \cdot \boldsymbol{n} d A=\int_{V_{m}(t)}\left(\frac{\partial \rho}{\partial t}+\boldsymbol{\nabla} \cdot(\rho \boldsymbol{u})\right) d V=0
@@ -301,7 +307,7 @@ n_it_max = 100
 
 动量方程可以从牛顿第二定律推导出来[^33]。
 
-"运动的改变永远是与所施加的动力成正比的，而且是朝着该动力所施加的正确线路的方向进行的。"
+“运动的改变永远是与所施加的动力成正比的，而且是朝着该动力所施加的正确线路的方向进行的。”
 
 应用于流动，这一说法是：在选定的流体体积中，动量的变化等于所有作用在这一选定体积上的力$\boldsymbol{F}$的总和，包括例如耗散性粘性力（类似于摩擦力）、压力变化、重力和其他作用在流体内部的力[^3]。
 
@@ -311,7 +317,7 @@ n_it_max = 100
 \end{equation}
 一般来说，流体的一部分受到体积和表面力的作用。
 
-1.用$\boldsymbol{g}$表示每单位质量流体的体积力，所选部分流体的总体积力为
+1. 用$\boldsymbol{g}$表示每单位质量流体的体积力，所选部分流体的总体积力为
 
 \begin{equation}
 \int_{V_{m}(t)} \rho \boldsymbol{g} d V
@@ -319,7 +325,7 @@ n_it_max = 100
 \end{equation}
 
 
-2.在面积$d A$和法线$\boldsymbol{n}$的表面元素上施加的表面力的$k$分量由$\sigma_{k l} n_{l} d A$给出--使用重复指数的求和惯例--因此，周围物质对流体选定部分施加的总力可以用`Cauchy`应力来表示为
+2. 在面积$d A$和法线$\boldsymbol{n}$的表面element上施加的表面力的$k$分量由$\sigma_{k l} n_{l} d A$给出--使用重复指数的求和惯例--因此，周围物质对流体选定部分施加的总力可以用`Cauchy`应力来表示为
 
 \begin{equation}
 \int_{A_{m}(t)} \sigma_{k l} n_{l} d A=\int_{V_{m}(t)} \frac{\partial \sigma_{k l}}{\partial x_{l}} d V \text { or } \int_{A_{m}(t)} \boldsymbol{\sigma} \cdot \boldsymbol{n} d A=\int_{V_{m}(t)} \boldsymbol{\nabla} \cdot \boldsymbol{\sigma} d V
@@ -333,7 +339,7 @@ n_it_max = 100
 \sigma_{k l}=-p \delta_{k l}+\tau_{k l} \quad \text { or } \quad \boldsymbol{\sigma}=-p \boldsymbol{I}+\boldsymbol{\tau}
 \end{equation}
 
-- a `mean hydrostatic stress tensor` $-p \boldsymbol{I}$ ，它以各向同性的方式倾向于改变流体的体积，只取决于其热力学状态，以及
+- `mean hydrostatic stress tensor` $-p \boldsymbol{I}$ ，它以各向同性的方式倾向于改变流体的体积，只取决于其热力学状态。
 
 - 一个称为`stress deviator tensor`$\boldsymbol{\tau}$的偏离分量，它倾向于扭曲流体，并与它的变形状态基本相关。
 
@@ -345,7 +351,7 @@ n_it_max = 100
 \end{equation}
 
 
-再次使用`Reynolds transport theorem`（这次是以`Vector`的形式），方程\ref{3.7}的左边，也就是材料表面$A_{m}(t)$所包围的体积$V_{m}(t)$的流体部分的动量，可以表示为
+再次使用`Reynolds transport theorem`（这次是以Vector的形式），方程\ref{3.7}的左边，也就是材料表面$A_{m}(t)$所包围的体积$V_{m}(t)$的流体部分的动量，可以表示为
 
 \begin{equation}
 \begin{aligned}
@@ -364,7 +370,7 @@ n_it_max = 100
 \end{equation}
 
 
-在这项工作中，我们将使用指数$k$和$l$来表示空间尺寸，而$i$和$j$则保留给节点值和形状函数。此外，只要出现重复的指数，就采用求和惯例。将方程（3.7）和（3.8）的右手边相等，写出所选材料体积的流体的动量平衡，这就说明了之前的两个动作。
+在这项工作中，我们将使用指数$k$和$l$来表示空间尺寸，而$i$和$j$则保留给`节点值`和`形函数`。此外，只要出现重复的指数，就采用求和惯例。将方程\ref{3.7}和\ref{3.8} 的右手边相等，写出所选`material volume`的流体的动量平衡，这就说明了之前的两个动作。
 
 \begin{equation}
 \int_{V_{m}(t)}\left(\frac{\partial(\rho \boldsymbol{u})}{\partial t}+\boldsymbol{\nabla} \cdot(\rho \boldsymbol{u} \otimes \boldsymbol{u})\right) d V=\int_{V_{m}(t)}(\rho \boldsymbol{g}+\boldsymbol{\nabla} \cdot \boldsymbol{\sigma}) d V
@@ -372,7 +378,7 @@ n_it_max = 100
 \end{equation}
 
 
-这个积分关系对于材料体积的所有选择都是成立的$V_{m}(t)$，因此我们最终得到所谓的运动方程。
+这个积分关系对于`material volume`的所有选择都是成立的$V_{m}(t)$，因此我们最终得到所谓的运动方程。
 
 \begin{equation}
 \frac{\partial(\rho \boldsymbol{u})}{\partial t}+\boldsymbol{\nabla} \cdot(\rho \boldsymbol{u} \otimes \boldsymbol{u}-\boldsymbol{\sigma})=\rho \boldsymbol{g}
@@ -388,7 +394,7 @@ n_it_max = 100
 \end{equation}
 
 
-我们可以很容易地推断出动量方程\ref{3.10a}的非线性特征，因为对流加速项$(\boldsymbol{u} \cdot \boldsymbol{\nabla}) \boldsymbol{u}$来自线性化，描述了流体相对于空间的时间无关的加速。这代表了一个更重要的特征，因为它不仅使解决方案复杂化，而且还需要应用有限元方法进行特殊处理，这一点将在后面显示。
+我们可以很容易地推断出动量方程\ref{3.10a}的非线性特征，因为`对流加速项` $(\boldsymbol{u} \cdot \boldsymbol{\nabla}) \boldsymbol{u}$来自`线性化`，描述了`流体相对于空间的时间无关的加速`。这代表了一个更重要的特征，因为它不仅使解决方案复杂化，而且还需要应用有限元方法进行特殊处理，这一点将在后面显示。
 
 \textbf{Energy Conservation and Equation of State}
 
@@ -409,7 +415,7 @@ n_it_max = 100
 \end{equation}
 
 
-其中$R$是介质的特定气体常数。在这种一般情况下，有必要用`energy conservation`的方程来补充治理方程系统。这个方程确实很有意义，即使它不是耦合的，因为它提供了关于系统行为的额外信息。根据[^34]，部分时间导数方面的总能量方程为
+其中$R$是介质的特定气体常数。在这种一般情况下，有必要用`energy conservation`的方程来补充主控方程系统。这个方程确实很有意义，即使它不是耦合的，因为它提供了关于系统行为的额外信息。根据[^34]，部分时间导数方面的总能量方程为
 
 \begin{equation}
 \frac{\partial(\rho e)}{\partial t}+\boldsymbol{\nabla} \cdot((\rho e+p) \boldsymbol{u})-\lambda \boldsymbol{\nabla}^{2} T-q_{H}+\boldsymbol{\nabla} \cdot(\boldsymbol{\tau} \cdot \boldsymbol{u})=\boldsymbol{u} \cdot \rho \boldsymbol{g}
@@ -435,15 +441,15 @@ M a=\frac{|\boldsymbol{u}|}{c}
 \end{equation}
 
 
-被定义为流体速度$\boldsymbol{u}$和正量$c=\sqrt{\frac{d p}{d \rho}}$的模数之比，称为介质中的声速。局部定义的`Mach number`，给出了在任何给定点的流动的可压缩性的概念。当`incompressible flows`被考虑时，密度梯度与压力梯度没有关系。事实上，密度被认为是一个常数。在这种情况下，声速可以被认为是一个常数，比局部对流速度大得多。另一方面，在可压缩流中，它是一个随着热力学变化而在空间中变化的量 `Properties` 。
+被定义为流体速度$\boldsymbol{u}$和正量$c=\sqrt{\frac{d p}{d \rho}}$的模数之比，称为介质中的声速。局部定义的`Mach number`，给出了在任何给定点的流动的可压缩性的概念。当`incompressible flows`被考虑时，密度梯度与压力梯度没有关系。事实上，密度被认为是一个常数。在这种情况下，声速可以被认为是一个常数，比局部对流速度大得多。另一方面，在可压缩流中，它是一个随着热力学变化而在空间中变化的参量。
 
-在这种情况下，我们将介绍两个近似值，我们将在以后使用[^29]。在`slightly compressible flows`的情况下，我们将使用以下关系
+在这种情况下，我们将介绍两个近似值，我们将在以后使用[^29]。在弱可压的情况下，我们将使用以下关系
 
 \begin{equation}
 \frac{d \rho}{d p}=\frac{1}{c^{2}}
 \label{3.16}
 \end{equation}
-通过为`speed of sound`定义一个常数值来连接密度和压力梯度。注意，通过考虑 $c \rightarrow \infty$ ，不可压缩的情况被隐含地包括在内。
+通过为`speed of sound`定义一个常数值来联系密度和压力梯度。注意，通过考虑 $c \rightarrow \infty$ ，不可压缩的情况被隐含地包括在内。
 
 第二个简化涉及到可压缩的各向异性流动，也就是说，有一个只涉及密度和压力，而不涉及温度的状态方程的流体。一般来说，我们把这个方程写成$p=p(\rho)$，但我们将把它具体化为以下情况
 
@@ -462,7 +468,7 @@ p=A \rho^{\gamma}
 
 \subsubsection{Navier-Stokes Equations}
 
-前面几节中得出的治理方程可以写成一般的保守形式
+前面几节中得出的主控方程可以写成一般的保守形式
 
 \begin{equation}
 \frac{\partial \boldsymbol{V}}{\partial t}+\frac{\partial \boldsymbol{F}_{k}}{\partial x_{k}}+\frac{\partial \boldsymbol{G}_{k}}{\partial x_{k}}+\boldsymbol{Q}=\mathbf{0}
@@ -470,9 +476,9 @@ p=A \rho^{\gamma}
 \end{equation}
 
 
-其中质量、动量和能量的守恒方程提供了下面提出的`Vector`s的特定条目，为了清晰起见，曾经用表记法表示。
+其中质量、动量和能量的守恒方程提供了下面提出的向量的特定条目，为了清晰起见，曾经用表记法表示。
 
-- 自变量 `Vector`
+- 自变量向量
 
 \begin{equation}
 \boldsymbol{V}=\left[\begin{array}{c}
@@ -484,7 +490,7 @@ p=A \rho^{\gamma}
 \end{array}\right]
 \label{3.20a}
 \end{equation}
-- 对流通量 `Vector` 
+- 对流通量向量
 
 \begin{equation}
 \boldsymbol{F}_{k}=\left[\begin{array}{c}
@@ -497,7 +503,7 @@ u_{k}(\rho e+p)
 \label{3.20n}
 \end{equation}
 
-- 扩散通量`Vector`
+- 扩散通量向量
 
 \begin{equation}
 \boldsymbol{G}_{k}=\left[\begin{array}{c}
@@ -509,7 +515,7 @@ u_{k}(\rho e+p)
 \end{array}\right] \\
 \label{3.20c}
 \end{equation}
-- 和源项`Vector`
+- 和源项向量
 
 \begin{equation}
 \boldsymbol{Q}=\left[\begin{array}{c}
@@ -528,7 +534,7 @@ u_{k}(\rho e+p)
 
 粘度和热传导的影响在位于流域中的固体表面附近或在其边界处非常重要。必须考虑粘性和传导的区域被称为`boundary layer`，代表了各自轮廓线周围的一个非常薄的层。在`boundary layer`之外，流动可以被认为是`ideal fluid`的一种。一个`ideal fluid`被定义为不粘性，粘性力的张量在动量守恒方程中消失。
 
-在方程\ref{3.19} 提出的完整方程组中引入无粘性流体的假设，并忽略热传导的影响，可以得到一个特殊情况 $(\boldsymbol{G}=\mathbf{0})-$ ，称为 `Euler equations` 。
+在方程\ref{3.19} 提出的完整方程组中引入无粘性流体的假设，并忽略热传导的影响，可以得到一个特殊情况 $(\boldsymbol{G}=\mathbf{0})$ ，称为 `Euler equations` 。
 
 \begin{equation}
 \frac{\partial \boldsymbol{V}}{\partial t}+\frac{\partial \boldsymbol{F}_{k}}{\partial x_{k}}+\boldsymbol{Q}=\mathbf{0}
@@ -536,9 +542,9 @@ u_{k}(\rho e+p)
 \end{equation}
 
 
-其中数组$\boldsymbol{V}, \boldsymbol{F}_{k}$ 和 $\boldsymbol{Q}$的定义如前。
+其中数组$\boldsymbol{V}, \boldsymbol{F}_{k}$ 和 $\boldsymbol{Q}$的定义在前面定义过。
 
-以下方程明确改写了可压缩流的 `Euler equations` ，假设没有热源 $\left(q_{H}=0\right)$ 。
+以下方程为展开的可压缩流的 `Euler equations` ，假设没有热源 $\left(q_{H}=0\right)$ 。
 
 
 \begin{equation}
@@ -550,15 +556,14 @@ u_{k}(\rho e+p)
 \label{3.22}
 \end{equation}
 
-方程组：用于可压缩流的`Euler equations`的集合
 
 
 
-上述方程组是方便和有物理意义的，定义了重要数量的守恒。然而，文献中给出了上述方程的许多替代形式，通过各种方程的组合获得。这样做，我们应记住，在存在冲击不连续的问题上，以`non-conservative`形式书写的方程可能产生不正确的、没有物理意义的结果。
+尽管，上述方程组是方便和有物理意义的，定义了重要数量的守恒。然而，文献中给出了上述方程的许多替代形式，通过各种方程的组合获得。原因是，在存在冲击不连续的问题上，以`non-conservative`形式书写的方程可能产生不正确的、没有物理意义的结果。
 
-正确的做法是，这项工作的主要兴趣是研究亚音速流动，在这里可以暂时接受这个缺点。然而，在未来将求解器扩展到超声速系统的前景下，将使用保守形式，以避免误解。
+在这里，主要兴趣是研究亚音速流动，可以暂时接受这个缺点。然而，在未来将求解器扩展到`跨音速系统`的前景下，将使用`守恒形式`，以避免错误。
 
-为了简单起见，实现将从`incompressible flows`的求解器开始。在连续介质力学中，不可压缩流是指速度发散$\boldsymbol{u}$为零的固体或流体流动。这更精确地称为` isochoric`流。
+为了简单起见，实现将从不可压的求解器开始。在连续介质力学中，不可压缩流是指速度$\boldsymbol{u}$的散度为零的固体或流体流动。这更精确地称为` isochoric flow`。
 
 \begin{equation}
 \boldsymbol{\nabla} \cdot \boldsymbol{u}=0
@@ -566,7 +571,7 @@ u_{k}(\rho e+p)
 \end{equation}
 
 
-注意，`isochoric`以及不可压缩性描述的是流动，而不是指材料 `Properties` 。然而，在`continuity equation`\ref{3.4a}中使用不可压缩性假设，声称质量密度在材料要素之后是不变的。
+注意，`isochoric`以及不可压缩性描述的是流动，而不是指材料属性 。然而，在`continuity equation`\ref{3.4a}中使用不可压缩性假设，可以当作质量密度在材料要素之后是不变的。
 
 \begin{equation}
 \frac{d \rho}{d t}+\rho \boldsymbol{\nabla} \cdot \boldsymbol{u}=\frac{d \rho}{d t}=0
@@ -583,15 +588,16 @@ u_{k}(\rho e+p)
 \end{aligned}
 \label{3.25}
 \end{equation}
-方程组：`incompressible flows`的`Euler equations`的集合
+
+
 
 \subsection{Edge-Based Data Structure}
 
-以基于节点的方式实现上述`Euler equations`的动机有两个。一方面，众所周知的`Properties`的有限元方法和经验可以被充分使用。另一方面，使用基于边的数据结构不仅可以在离散水平上执行全局守恒和对称性，还可以通过预先计算某些积分来促进`Matrix`-`Vector`的乘法。
+以`Edge-based`的方式实现上述`Euler equations`的动机有两个。一方面，众所周知的有限元方法的特性和经验可以被充分使用。另一方面，使用`Edge-based`的数据结构不仅可以在离散水平上执行`global conservation`和`symmetry`，还可以通过预先计算某些积分来加速计算`Matrix-Vector`的乘法。
 
 \subsubsection{Nodal Implementation}
 
-考虑到带有形状函数的有限元近似$N_{i}$，典型的右手边（RHS）的形成需要对积分进行评估，给出的积分为
+考虑到带有`形函数`的有限元近似$N_{i}$，典型的右手边（RHS）需要对积分进行评估，给出的积分为
 
 \begin{equation}
 \boldsymbol{r}_{i}=\int N_{i} \boldsymbol{r}(\boldsymbol{u}) d \Omega=\sum_{\text {elem }} \int N_{i} \boldsymbol{r}\left(N_{j} \boldsymbol{u}_{j}\right) d \Omega_{e l}
@@ -601,21 +607,21 @@ u_{k}(\rho e+p)
 
 这些积分对两组数据进行操作。
 
-- `point-data`为 $\boldsymbol{r}_{i}$ 和 $\boldsymbol{u}_{i}$，和
+- `point-data`为得到 $\boldsymbol{r}_{i}$ 和 $\boldsymbol{u}_{i}$。
 
-- `Element-data`为体积、形状函数及其导数。
+- `Element-data`为计算得到体积、`形函数`及其导数。
 
-信息的流动情况如下。
+具体过程如下：
 
-1. 将点信息收集到要素中, 例如 $\boldsymbol{u}_{i}$ 。
+1. 将`point-data`收集到`Element`中, 例如 $\boldsymbol{u}_{i}$ 。
 
-2. 对`Element-data`进行操作，评估方程\ref{3.26}中的积分，并且
+2. 对`Element-data`进行操作，评估方程\ref{3.26}中的积分
 
-3. 将元素RHS的数据分散添加到 `point-data`中，以获得$\boldsymbol{r}_{i}$ 。
+3. 将`Element`RHS的分散数据累加到 `point-data`中，以获得$\boldsymbol{r}_{i}$ 。
 
-对于许多在`Vector-machines`上操作的简单流动求解器来说，与步骤1和步骤3的间接寻址操作的成本相比，步骤2的努力是很小的[^16]。对于低阶元素来说，这个问题可以通过将基于元素的数据结构改为基于边的结构来解决，这样可以消除某些冗余的信息。这对CPU时间的要求很高：[^24]的研究表明，基于元素的实现和基于边缘的实现之间的FLOPs（浮点运算）开销比约为$2.5$ 。
+对于许多流场求解器来说，与步骤1和步骤3的间接寻址操作的成本相比，步骤2的成本是很小的[^16]。对于低阶element来说，这个问题可以通过将`Element-based`的数据结构改为`Edge-based`的结构来解决，这样可以消除某些冗余的信息。这对CPU时间的要求很高：[^24]的研究表明，`Element-based`的实现和`Edge-based`缘的实现之间的FLOPs（浮点运算）开销比约为$2.5$ 。
 
-此外，由于对`Matrix`项$i j$的贡献来自于不止一个元素，所以元素循环的标准共享内存并行化是复杂的。因此，需要一种着色算法来避免不同处理器中的元素同时访问边缘数据$i j$。相比之下，在所提出的基于边的实现中的并行化是直接的：两个嵌套的循环被执行，主循环--这是要并行化的--在Mesh点$i$上，内循环在其邻居$j$上，由边$i j$连接。边$i j$的贡献只有在访问节点$i$时才会被计算，因此不需要着色算法。有可能，特别是关于拉普拉斯类项的对称性，通过只存储一半的值而从中受益。然而，在这项工作中并没有实现这一点。为了促进设想的并行化，边$j i$（只对节点$j$访问）被认为与边$i j$不同。基于边的数据结构的节点实现[Codina-2004]的想法是将所有的贡献表达为
+此外，由于对`Matrix`项$i j$的贡献来自于不止一个element，所以element循环的标准共享内存并行化是复杂的。因此，需要一种着色算法来避免不同处理器中的element同时访问edge data $i j$。相比之下，在所提出的`Edge-based`的实现中的并行化是直接的：两个嵌套的循环被执行，主循环--这是要并行化的--在Mesh点$i$上，内循环在其邻居$j$上，由边$i j$连接。边$i j$的贡献只有在访问节点$i$时才会被计算，因此不需要着色算法。有可能，特别是关于拉普拉斯类项的`symmetry`，通过只存储一半的值而从中受益。然而，在这项工作中并没有实现这一点。为了促进设想的并行化，边$j i$（只对节点$j$访问）被认为与边$i j$不同。`Edge-based`的数据结构的节点实现[Codina-2004]的想法是将所有的贡献表达为
 
 \begin{equation}
 \int_{\Omega} N_{i} N_{j} \mathrm{~d} \Omega, \quad \int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} \frac{\partial N_{j}}{\partial x_{l}} \mathrm{~d} \Omega, \quad \int_{\Omega} N_{i} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega \quad \text { and } \quad \int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} N_{j} \mathrm{~d} \Omega
@@ -624,7 +630,7 @@ u_{k}(\rho e+p)
 
 
 
-这些表达式可以从元素积分中得到，被称为`Galerkin weighted residual approximations`, 如[图3.1]所示,并将被称为质量矩阵 $\mathrm{M}$、拉普拉斯算子$\mathbf{L}$、梯度$\mathbf{G}$和转置梯度$\mathbf{G}^{T}$的边缘贡献。对于固定域，\ref{3.27}中的所有积分都可以预先计算，也就是说，在模拟运行的开始，然后以标准的压缩稀疏行格式存储。只有当域被重新划分时，积分才需要重新计算。
+这些表达式可以从element积分中得到，被称为`Galerkin weighted residual approximations`, 如[图3.1]所示,并将被称为质量矩阵 $\mathrm{M}$、拉普拉斯算子$\mathbf{L}$、梯度$\mathbf{G}$和转置梯度$\mathbf{G}^{T}$的Edge贡献。对于固定域，\ref{3.27}中的所有积分都可以预先计算，也就是说，在模拟运行的开始，然后以标准的压缩稀疏行格式存储。只有当域被重新划分时，积分才需要重新计算。
 
 下面代码显示了 Kratos 内提出的数据结构的定义。
 
@@ -656,7 +662,7 @@ namespace Kratos
 
 \subsubsection{Compressed-Sparse-Row Format}
 
-非结构化稀疏矩阵的事实上的标准存储格式是`compressedsparse-row`（CSR）格式。CSR背后的想法是通过只存储非零元素来打包每一行[^31]。显然，这在基于节点的实现中是非常有效的，因为对节点项$\boldsymbol{r}_{i}$的贡献仅由边$i j$与其邻居$j$的连接点提供。
+非结构化稀疏矩阵的事实上的标准存储格式是`compressed sparse-row`（CSR）格式。CSR背后的想法是通过只存储非零element来打包每一行[^31]。显然，这在`Edge-based`的实现中是非常有效的，因为对节点项$\boldsymbol{r}_{i}$的贡献仅由边$i j$与其邻居$j$的连接点提供。
 
 \begin{equation}
 \boldsymbol{A}=\left(\begin{array}{cccc}
@@ -670,9 +676,9 @@ namespace Kratos
 
 示意图：压缩稀疏行格式的存储示例
 
-考虑到表`Matrix`$\boldsymbol{A}$左侧的示意图，人们很快就会注意到，每一行都可能有自己的结构。这就是每一行的起始索引（`mRowStartIndex[i_Node] ` ) as well as the column index of the non-zero entries (` mColumnIndex [csr_index]`）必须同时存储的原因。最后，第三个一维数组用于存储值$a_{i j}$（`mEdgeValue[csr_index] `). 右侧的示意图表示CSR storage of ` Matrix` $\boldsymbol{A}$ ，其中CSR索引提示了列索引和边缘值在其余两个一维数组中的位置。
+考虑到表`Matrix`$\boldsymbol{A}$左侧的示意图，人们很快就会注意到，每一行都可能有自己的结构。这就是每一行的起始索引（`mRowStartIndex[i_Node] ` ) as well as the column index of the non-zero entries (` mColumnIndex [csr_index]`）必须同时存储的原因。最后，第三个一维数组用于存储值$a_{i j}$（`mEdgeValue[csr_index] `). 右侧的示意图表示CSR storage of ` Matrix` $\boldsymbol{A}$ ，其中CSR索引提示了列索引和Edge值在其余两个一维数组中的位置。
 
-有了CSR中的稀疏`Matrix`，`Matrix-Vector`的乘法就可以用一对简单的嵌套循环来实现。清单$3.2$说明了实现$\mathrm{C}++$源代码中所有边的循环。而外循环是在`Matrix`$\boldsymbol{A}$的行上进行的，内循环则是在一个非零行元素之后处理。
+有了CSR中的稀疏`Matrix`，`Matrix-Vector`的乘法就可以用一对简单的嵌套循环来实现。以下代码说明了实现$\mathrm{C}++$源代码中所有边的循环。而外循环是在`Matrix`$\boldsymbol{A}$的行上进行的，内循环则是在一个非零行element之后处理。
 
 
 ~~~C++
@@ -714,17 +720,17 @@ void DoEdgeLoop(ModelPart &rModelPart, MatrixContainer &rMatrixContainer)
 
 
 
-迭代稀疏解算器的核心操作之一是稀疏`Matrix-Vector`乘法。这种乘法的并行实现必须保持可扩展性，以实现高性能。这种可扩展性取决于矩阵和`Vector`s在分布式处理器之间的平衡映射，取决于处理器间通信的最小化和高单`Node`性能。
+迭代稀疏解算器的核心操作之一是稀疏`Matrix-Vector`乘法。这种乘法的并行实现必须保持可扩展性，以实现高性能。这种可扩展性取决于矩阵和Vectors在分布式处理器之间的平衡映射，取决于处理器间通信的最小化和高单`Node`性能。
 
-在Kratos内的并行实现，例如通过OpenMP的偏向，需要将基于边缘的稀疏矩阵的行分布在处理器之间，将某个处理器的本地行存储在CSR中。  `Matrix-Vector`然后使用 "所有者计算 "策略进行乘法。
+在Kratos内的并行实现，例如通过OpenMP的偏向，需要将`Edge-based`缘的稀疏矩阵的行分布在处理器之间，将某个处理器的本地行存储在CSR中。  `Matrix-Vector`然后使用 "所有者计算 "策略进行乘法。
 
 在使用所提出的边上循环之前，CSR数据必须被计算出来。这是由两个函数`ConstructCSRVector`和`BuildCSRData`完成的，其重要部分由附录中的列表B.1和B.2所示。
 
-在第一种情况下，会对网格的所有节点（`i_Node`）进行循环，以确定它们的邻居（`j_neighbour`）。为了正确定义`CSR Vector`的结构，这一步骤是必要的。此外，对相邻的`Nodes`的嵌套循环被用来初始化边缘贡献为零。
+在第一种情况下，会对网格的所有节点（`i_Node`）进行循环，以确定它们的邻居（`j_neighbour`）。为了正确定义`CSR Vector`的结构，这一步骤是必要的。此外，对相邻的`Nodes`的嵌套循环被用来初始化Edge贡献为零。
 
-这种初始化是非常方便的，因为在建立边缘数据的过程中，必须对积分进行求和。因此，如清单B.2所示，必须在元素上执行一个主循环。在这个循环中，在所考虑的元素的`Nodes`上的两个进一步的循环被嵌套，以便将元素贡献分配给各自的边。请注意，没有存储 "对角线条目"：一方面，这将是奇怪的，因为没有边$i i$存在，另一方面，它们是在必要时通过强制保存`Properties`计算的。
+这种初始化是非常方便的，因为在建立edge data 的过程中，必须对积分进行求和。因此，如附录B.2所示，必须在element上执行一个主循环。在这个循环中，在所考虑的element的`Nodes`上的两个进一步的循环被嵌套，以便将element贡献分配给各自的边。请注意，没有存储 “对角线条目”：一方面，这将是奇怪的，因为没有边$i i$存在，另一方面，它们是在必要时通过强制保存`Properties`计算的。
 
-在下面的两个小节中，将根据[^16]的观点，推导出从基于元素的数据结构到 `edge-based data structure`所需的几何表达式。
+在下面的两个小节中，将根据[^16]的观点，推导出从`Element-based`的数据结构到 `edge-based data structure`所需的几何表达式。
 
 \subsubsection{Laplacian Operator}
 
@@ -735,13 +741,13 @@ void DoEdgeLoop(ModelPart &rModelPart, MatrixContainer &rMatrixContainer)
 \label{3.28}
 \end{equation}
 
-这个积分可以分成与$N_{i}$相同的形状函数和不同的形状函数 $(j \neq i)$ 。
+这个积分可以分成与$N_{i}$相同的`形函数`和不同的`形函数` $(j \neq i)$ 。
 
 \begin{equation}
 \boldsymbol{r}_{i}=-\sum_{j \neq i}\left[\sum_{\text {elem }} \int_{\Omega} \nabla N_{i} \cdot \nabla N_{j} \mathrm{~d} \Omega\right] \boldsymbol{u}_{j}-\sum_{\text {elem }} \int_{\Omega} \nabla N_{i} \cdot \nabla N_{i} \mathrm{~d} \Omega \boldsymbol{u}_{i}
 \label{3.29}
 \end{equation}
-引入形状函数导数的守恒特性
+引入`形函数`导数的守恒特性
 
 \begin{equation}
 \frac{\partial N_{i}}{\partial x_{k}}=-\sum_{j \neq i} \frac{\partial N_{j}}{\partial x_{k}}
@@ -762,18 +768,18 @@ void DoEdgeLoop(ModelPart &rModelPart, MatrixContainer &rMatrixContainer)
 \label{3.32}
 \end{equation}
 
-可以看出，改变指数$\left(i j\right.$与$j i$）会导致$l_{i j}=l_{j i}$，这是由拉普拉斯算子的对称性所预期的。
+可以看出，改变指数$\left(i j\right.$与$j i$）会导致$l_{i j}=l_{j i}$，这是由拉普拉斯算子的`symmetry`所预期的。
 
 \subsubsection{Gradient and Transposed Gradient}
 
-我们现在开始研究一阶导数，欧拉通量是一个典型的例子。RHS是由以下形式的表达式给出的
+我们现在开始研究一阶导数，`Euler fluxes`是一个典型的例子。RHS是由以下形式的表达式给出的
 
 \begin{equation}
 \boldsymbol{r}_{i}=-\int_{\Omega} N_{i} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega \boldsymbol{F}_{j, k}
 \label{3.33}
 \end{equation}
 
-其中$\boldsymbol{F}_{j, k}$表示在`Node`$\mathrm{j}$处的$\mathrm{k}$-次元的流量。这个积分又被分成不等于$N_{i}$的形状函数和等于的形状函数。
+其中$\boldsymbol{F}_{j, k}$表示在`Node` $\mathrm{j}$处的$\mathrm{k}$维度的`flux`。这个积分又被分成不等于$N_{i}$的`形函数`和等于的`形函数`。
 
 \begin{equation}
 \boldsymbol{r}_{i}=-\sum_{j \neq i}\left[\sum_{\text {elem }} \int_{\Omega} N_{i} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega\right] \boldsymbol{F}_{j, k}-\sum_{\text {elem }} \int_{\Omega} N_{i} \frac{\partial N_{i}}{\partial x_{k}} \mathrm{~d} \Omega \boldsymbol{F}_{i, k}
@@ -794,23 +800,23 @@ void DoEdgeLoop(ModelPart &rModelPart, MatrixContainer &rMatrixContainer)
 \end{equation}
 
 
-这被证明是非常方便的，因为梯度$g_{i i}$不出现在方程中，因此没有原始元素矩阵的 "对角线条目 "需要被存储。这意味着整个装配过程（见附录B.2）可以在所有边上的一个循环中进行，其贡献一个接一个地存储在CSR `Vector` 中。
+这被证明是非常方便的，因为梯度$g_{i i}$不出现在方程中，因此没有原始element矩阵的 “对角线条目”需要被存储。这意味着整个装配过程（见附录B.2）可以在所有边上的一个循环中进行，其贡献一个接一个地存储在CSR Vector 中。
 
-当问题的变异表述施加了一个弱梯度时
+当问题的变形表述施加了一个弱梯度时
 
 \begin{equation}
 \boldsymbol{r}_{i}=-\int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} N_{j} \mathrm{~d} \Omega \boldsymbol{F}_{j, k}
 \label{3.37}
 \end{equation}
 
-例如，由于部分积分以强加边界值，可以遵循类似的路径来推导出相应的声明。在拆分了相对于形状函数的积分之后
+例如，由于部分积分以强加边界值，可以遵循类似的路径来推导出相应的声明。在拆分了相对于`形函数`的积分之后
 
 \begin{equation}
 \boldsymbol{r}_{i}=-\sum_{j \neq i}\left[\sum_{\text {elem }} \int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} N_{j} \mathrm{~d} \Omega\right] \boldsymbol{F}_{j, k}-\sum_{\text {elem }} \int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} N_{i} \mathrm{~d} \Omega \boldsymbol{F}_{i, k}
 \label{3.38}
 \end{equation}
 
-再次应用形状函数导数的守恒特性\ref{3.30}。
+再次应用`形函数`导数的守恒特性\ref{3.30}。
 
 \begin{equation}
 \boldsymbol{r}_{i}=-\sum_{j \neq i}\left[\sum_{\text {elem }} \int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} N_{j} \mathrm{~d} \Omega\right] \boldsymbol{F}_{j, k}+\sum_{\text {elem }} \int_{\Omega} \sum_{j \neq i} \frac{\partial N_{j}}{\partial x_{k}} N_{i} \mathrm{~d} \Omega \boldsymbol{F}_{i, k}
@@ -820,7 +826,7 @@ void DoEdgeLoop(ModelPart &rModelPart, MatrixContainer &rMatrixContainer)
 
 \begin{equation}
 \begin{aligned}
-\boldsymbol{r}_{i}=\sum_{j \neq i}\left(g_{i j, k} \boldsymbol{F}_{i, k}-g_{j i . k} \boldsymbol{F}_{j, k}\right) \quad \text { with } \quad g_{i j, k} &=\sum_{e l e m} \int_{\Omega} N_{i} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega \\
+\boldsymbol{r}_{i}=\sum_{j \neq i}\left(g_{i j, k} \boldsymbol{F}_{i, k}-g_{j i.k} \boldsymbol{F}_{j, k}\right) \quad \text { with } \quad g_{i j, k} &=\sum_{e l e m} \int_{\Omega} N_{i} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega \\
 \text { and } g_{j i, k} &=\sum_{\text {elem }} \int_{\Omega} \frac{\partial N_{i}}{\partial x_{k}} N_{j} \mathrm{~d} \Omega
 \end{aligned}
 \label{3.40}
@@ -835,21 +841,21 @@ g_{j i, k}=-g_{i j, k}+\int_{\Gamma} N_{j} N_{i} n_{k} \mathrm{~d} \Gamma
 \end{equation}
 
 
-通过部分积分获得。当然，由于非对称算子的存在，这也是意料之中的。使用方程\ref{3.41}，额外的边界积分将需要在边界边缘上单独的循环，只增加（不对称的）`Node` $j$ 。
+通过部分积分获得。当然，由于非对称算子的存在，这也是意料之中的。使用方程\ref{3.41}，额外的边界积分将需要在边界Edge上单独的循环，只增加（不对称的）`Node` $j$ 。
 
-请注意，我们在边缘水平上取差，然后在两个端点上加贡献。这意味着对第一导数给出的守恒定律没有反映在边一级，尽管它仍然保持在点一级。对于反映边缘层次上的守恒特性的第二种形式，请参考[^16]。
+请注意，我们在Edge水平上取差，然后在两个端点上加贡献。这意味着对第一导数给出的守恒定律没有反映在边一级，尽管它仍然保持在点一级。对于反映Edge层次上的守恒特性的第二种形式，请参考[^16]。
 
 \subsubsection{Consistent and Lumped Mass Matrix}
 
-对于形状函数本身，存在一个类似于方程\ref{3.30} 的守恒属性
+对于`形函数`本身，存在一个类似于方程\ref{3.30} 的守恒属性
 
 \begin{equation}
 N_{i}=1-\sum_{j \neq i} N_{j}
 \label{3.42}
 \end{equation}
-然而，如果我们试图用它来简化质量项的实施，它是完全没有价值的。由于我们在建立过程中不考虑元素矩阵的对角线项，缺失的项$m_{i i}$事实上对我们来说是一个问题。
+然而，如果我们试图用它来简化质量项的实施，它是完全没有价值的。由于我们在建立过程中不考虑element矩阵的对角线项，缺失的项$m_{i i}$事实上对我们来说是一个问题。
 
-为了避免这种不便，我们决定将`lumped mass Matrix`以节点参数列表`mLumpedMas sMatrix`的形式存储。这使得我们有可能直接使用块状版本，这有利于编程，但可能并不总是足够的，或者通过在一个临时变量中加总边的贡献来计算缺少的对角线元素，并利用
+为了避免这种不便，我们决定将`lumped mass Matrix`以节点参数列表`mLumpedMas sMatrix`的形式存储。这使得我们有可能直接使用块状版本，这有利于编程，但可能并不总是足够的，或者通过在一个临时变量中加总边的贡献来计算缺少的对角线element，并利用
 
 \begin{equation}
 m_{i i}=m_{i}^{\text {lumped }}-\sum_{j \neq i} m_{i j}
@@ -885,9 +891,9 @@ p &=p_{\infty} & & \text { on } \Gamma_{N}, t \in[0, T] \\
 \label{3.44}
 \end{equation}
 
-其中$\boldsymbol{f}$是力`Vector`（也是每单位质量），$\boldsymbol{u}_{0}$表示初始速度场。在无滑移边界的情况下，Dirichlet边界条件为$\boldsymbol{u}_{D}=\mathbf{0}$，如果应用滑移条件，$\boldsymbol{u}_{D}=\boldsymbol{u}-\boldsymbol{u} \cdot \boldsymbol{n}$为向外的单位法线。  $\Gamma_{D}$和Neumann边界$\Gamma_{N}$（在该边界上，外部压力$p_{\infty}$是给定的）是$\Gamma$的不相交的组成部分。为了写出问题\ref{3.44} 的弱形式，我们需要引入一些符号（Codina and Folch, 2004）。我们用$\mathcal{H}^{1}(\Omega)$表示其一阶导数属于$\mathcal{L}^{2}(\Omega)$的函数的Sobolev空间，用$\mathcal{H}_{0}^{1}(\Omega)$表示在$\Gamma$上具有零轨迹的函数的$\mathcal{H}^{1}(\Omega)$子空间。这些空间的`Vector`对应方使用了一个黑体字。集合$\omega$中的$\mathcal{L}^{2}(\Omega)$标量积用$(\cdot, \cdot)_{\omega} .$表示。 当$\omega$与$\Omega$重合时，下标省略。为了提出问题，我们还需要函数空间$\mathcal{V}_{s t}=\mathcal{H}_{0}^{1}(\Omega)^{n}$和$\mathcal{Q}_{s t}=\left\{q \in \mathcal{L}^{2}(\Omega) \mid \int_{\Omega} q=0\right\}$以及$\mathcal{V}=\mathcal{L}^{2}\left(0, T ; \mathcal{V}_{s t}\right)$和$\mathcal{Q}=\mathcal{L}^{2}\left(0, T ; \mathcal{Q}_{s t}\right)$来解决瞬态问题。
+其中$\boldsymbol{f}$是力Vector（也是每单位质量），$\boldsymbol{u}_{0}$表示初始速度场。在无滑移边界的情况下，Dirichlet边界条件为$\boldsymbol{u}_{D}=\mathbf{0}$，如果应用滑移条件，$\boldsymbol{u}_{D}=\boldsymbol{u}-\boldsymbol{u} \cdot \boldsymbol{n}$为向外的单位法线。  $\Gamma_{D}$和Neumann边界$\Gamma_{N}$（在该边界上，外部压力$p_{\infty}$是给定的）是$\Gamma$的不相交的组成部分。为了写出问题\ref{3.44} 的弱形式，我们需要引入一些符号（Codina and Folch, 2004）。我们用$\mathcal{H}^{1}(\Omega)$表示其一阶导数属于$\mathcal{L}^{2}(\Omega)$的函数的Sobolev空间，用$\mathcal{H}_{0}^{1}(\Omega)$表示在$\Gamma$上具有零轨迹的函数的$\mathcal{H}^{1}(\Omega)$子空间。这些空间的Vector对应方使用了一个黑体字。集合$\omega$中的$\mathcal{L}^{2}(\Omega)$标量积用$(\cdot, \cdot)_{\omega} .$表示。 当$\omega$与$\Omega$重合时，下标省略。为了提出问题，我们还需要函数空间$\mathcal{V}_{s t}=\mathcal{H}_{0}^{1}(\Omega)^{n}$和$\mathcal{Q}_{s t}=\left\{q \in \mathcal{L}^{2}(\Omega) \mid \int_{\Omega} q=0\right\}$以及$\mathcal{V}=\mathcal{L}^{2}\left(0, T ; \mathcal{V}_{s t}\right)$和$\mathcal{Q}=\mathcal{L}^{2}\left(0, T ; \mathcal{Q}_{s t}\right)$来解决瞬态问题。
 
-为简单起见，假设力`Vector`是可方整的，\ref{3.44} 的弱形式包括找到$\left(\boldsymbol{u}, p_{\text {kin }}\right) \in \mathcal{V} \times \mathcal{Q}$，以便
+为简单起见，假设力Vector是可方整的，\ref{3.44} 的弱形式包括找到$\left(\boldsymbol{u}, p_{\text {kin }}\right) \in \mathcal{V} \times \mathcal{Q}$，以便
 
 \begin{equation}
 \begin{aligned}
@@ -956,7 +962,7 @@ h_{i, \min }=\min _{j} l_{i j}
 \end{equation}
 
 
-其中$u$和$p$分别是节点速度和运动压力的数组。保持$3.2 .2$节中介绍的索引惯例（索引$k$和$l$表示空间尺寸，而$i$和$j$用于节点值和形状函数），离散问题\ref{3.51}中所涉及的数组的组成部分为
+其中$u$和$p$分别是节点速度和运动压力的数组。保持$3.2 .2$节中介绍的索引惯例（索引$k$和$l$表示空间尺寸，而$i$和$j$用于`节点值`和`形函数`），离散问题\ref{3.51}中所涉及的数组的组成部分为
 
 \begin{equation}
 \begin{aligned}
@@ -970,9 +976,9 @@ h_{i, \min }=\min _{j} l_{i j}
 \end{equation}
 
 
-其中$\delta_{k l}$是克罗内克三角洲。注意属性 $\mathbf{G}=-\mathbf{D}^{T}$ 。除了$\mathrm{f}$，它是一个`Vector`，所有的数组都是矩阵，其组成部分可以通过将第一个空间和节点索引$(k$和可能的$i)$组合在一起得到，对第二个索引$(l$和可能的$j$做同样处理）。)不过，我们并没有真正 "构建 "这些矩阵，因为我们将使用$3.3$节中提出的预先计算的边缘数据来进行操作。
+其中$\delta_{k l}$是克罗内克三角洲。注意属性 $\mathbf{G}=-\mathbf{D}^{T}$ 。除了$\mathrm{f}$，它是一个Vector，所有的数组都是矩阵，其组成部分可以通过将第一个空间和节点索引$(k$和可能的$i)$组合在一起得到，对第二个索引$(l$和可能的$j$做同样处理）。)不过，我们并没有真正 “构建”这些矩阵，因为我们将使用$3.3$节中提出的预先计算的edge data 来进行操作。
 
-在这种情况下，必须提到对流`Galerkin`项的贡献。在一个基于元素的实现中，它们被计算为
+在这种情况下，必须提到对流`Galerkin`项的贡献。在一个`Element-based`的实现中，它们被计算为
 
 \begin{equation}
 C_{i j, l l}=\sum_{k=1}^{n_{d o f}} \int_{\Omega} N_{i} a_{k} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega
@@ -987,7 +993,7 @@ C_{i j, l l} \approx \sum_{k=1}^{n_{d o f}} a_{i j, k} \int_{\Omega} N_{i} \frac
 \label{3.54}
 \end{equation}
 
-其中$a_{i j, k}$是与边$i j$相关的平流速度的第$k$个分量。第一个想法是将$\boldsymbol{a}_{i j}$作为节点$i$和$j$的平均速度，并通过计算对角线作为同行非对角线项的减法来执行守恒特性$\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{\text {`Dof` }}} C_{i j, l k}\right)=0$。然而，这个过程会破坏对流项的二阶`Galerkin`或中心差分近似（假设使用了线性元素）。这种二阶近似反映在离散水平上，即$C_{i i, l l}=0$为内部结点，这在使用线性元素的标准有限元近似（或使用中心方案的有限差分）中自然产生。
+其中$a_{i j, k}$是与边$i j$相关的平流速度的第$k$个分量。第一个想法是将$\boldsymbol{a}_{i j}$作为节点$i$和$j$的平均速度，并通过计算对角线作为同行非对角线项的减法来执行守恒特性$\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{\text {`Dof` }}} C_{i j, l k}\right)=0$。然而，这个过程会破坏对流项的二阶`Galerkin`或中心差分近似（假设使用了线性element）。这种二阶近似反映在离散水平上，即$C_{i i, l l}=0$为内部结点，这在使用线性element的标准有限元近似（或使用中心方案的有限差分）中自然产生。
 
 满足这一条件并保持方法$-$的一致性的唯一方法是将$\boldsymbol{a}_{i j}$作为只有结点$i\left(\boldsymbol{a}_{i j}=\boldsymbol{a}_{i}\right)$的函数。在这种情况下，对于内部点很容易验证
 
@@ -1012,7 +1018,7 @@ a_{i, k}=\frac{m_{i j} u_{j, k}}{\sum_{j=1}^{n_{p t s} m_{i j}}} & \forall j & \
 
 其中$m_{i j}$是一致质量`Matrix`的项$i j$，$u_{j, k}$是节点$j$处速度的第$k$个分量。注意，计算只在与点$i$相连的邻域$j$上进行--使用解释过的边上的CSR环--因为否则贡献为零。
 
-数值经验表明，与节点$i$相关的对流速度方程\ref{3.56}产生了更好的收敛率和更准确的结果，而仅仅是采取$\boldsymbol{a}_{i}=\boldsymbol{u}_{i}$ [^24]。此外，可以检查一下，给定一个离散速度场$\boldsymbol{u}$，采用基于元素的标准实现方式得到的对流RHS
+数值经验表明，与节点$i$相关的对流速度方程\ref{3.56}产生了更好的收敛率和更准确的结果，而仅仅是采取$\boldsymbol{a}_{i}=\boldsymbol{u}_{i}$ [^24]。此外，可以检查一下，给定一个离散速度场$\boldsymbol{u}$，采用`Element-based`的标准实现方式得到的对流RHS
 
 \begin{equation}
 f_{i, l}^{\text {Element }}=\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{d o f}} \int_{\Omega} N_{i} u_{k} \frac{\partial N_{j}}{\partial x_{k}} \mathrm{~d} \Omega u_{j, l}\right)
@@ -1038,7 +1044,7 @@ f_{i, l}^{\text {Element }}=\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{d o f}} \
 
 
 
-因为动量方程的拆分是纯代数的。数组$\tilde{u}^{n+1}$包含称为分速度的辅助变量的节点值，$\gamma$是一个数值参数，其感兴趣的值是0（一阶分裂）和1（二阶分裂）。在这一点上，我们可以做一个基本的近似值
+因为动量方程的拆分是纯代数的。数组$\tilde{u}^{n+1}$包含称为分速度的辅助变量的`节点值`，$\gamma$是一个数值参数，其感兴趣的值是0（一阶分裂）和1（二阶分裂）。在这一点上，我们可以做一个基本的近似值
 
 \begin{equation}
 \mathbf{C}\left(\mathrm{u}^{n+1}\right) \mathrm{u}^{n+1} \approx \mathbf{C}\left(\tilde{\mathbf{u}}^{n+1}\right) \tilde{u}^{n+1}
@@ -1047,7 +1053,7 @@ f_{i, l}^{\text {Element }}=\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{d o f}} \
 
 可以解释为原问题\ref{3.58}的不完全块状LU因子化。这种离散方法的优点是，现在不存在中间变量的边界条件问题 $\tilde{u}^{n+1}$ ：由于边界条件被纳入离散问题中 \ref{3.58}  ，对分数速度的规定与对步末速度的规定完全相同 $\mathrm{u}^{n+1}$ [^4]。
 
-通过方程 \ref{3.58} , $\mathrm{u}^{n+1}$可以用$\tilde{\mathrm{u}}^{n+1}$表示，并插入方程\ref{3.58}中，从而得到以下待解方程组。
+通过方程 \ref{3.58},  $\mathrm{u}^{n+1}$可以用$\tilde{\mathrm{u}}^{n+1}$表示，并插入方程\ref{3.58}中，从而得到以下待解方程组。
 
 \begin{equation}
 \begin{aligned}
@@ -1084,7 +1090,7 @@ f_{i, l}^{\text {Element }}=\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{d o f}} \
 
 在不可压缩流问题的数值近似中对压力的处理仍然是一个积极的研究课题，主要有两个原因。一方面，它的近似值需要与速度场的近似值不同，以便获得稳定的数值方案。另一方面，它与速度分量的耦合使得方程离散化产生的线性系统的求解从计算的角度来看要求很高[^6]。
 
-- 参照`pressure approximation`，如果使用标准的`Galerkin`公式，使用有限元方法会导致速度和压力有限元空间出现众所周知的inf-sup稳定性条件。要么使用满足inf-sup条件的速度压力对，要么必须修改问题的离散变异公式以规避该条件。这类有限元公式基本上可以分为两类：稳定简单元素的技术，如$Q_{1} / P_{0}$对（多线速度，片状恒定压力）和允许使用等距插值（因此是连续压力）的方法。我们将在这项工作中应用后者。
+- 参照`pressure approximation`，如果使用标准的`Galerkin`公式，使用有限元方法会导致速度和压力有限元空间出现众所周知的inf-sup稳定性条件。要么使用满足inf-sup条件的速度压力对，要么必须修改问题的离散变异公式以规避该条件。这类有限元公式基本上可以分为两类：稳定简单element的技术，如$Q_{1} / P_{0}$对（多线速度，片状恒定压力）和允许使用等距插值（因此是连续压力）的方法。我们将在这项工作中应用后者。
 
 - 关于速度-压力耦合，不可压缩的Navier-Stokes方程的分数步长方法受到广泛欢迎，因为它们的计算效率是基于压力与速度分量的解耦。然而，与这些方法有关的几个问题仍然值得进一步分析，也许是边界附近的计算压力和压力本身的稳定性。
 
@@ -1092,7 +1098,7 @@ f_{i, l}^{\text {Element }}=\sum_{j=1}^{n_{p t s}}\left(\sum_{k=1}^{n_{d o f}} \
 
 \textbf{Orthogonal Subscale Stabilization}
 
-再一次从问题的弱形式开始，通过近似$\boldsymbol{u}$和$p_{k i n}$得到离散问题。如果$\boldsymbol{u}_{h}$和$p_{k i n, h}$是有限元未知数，我们把$\boldsymbol{u} \approx \boldsymbol{u}_{h}+\hat{\boldsymbol{u}}$和$p_{\text {kin }} \approx p_{k i n, h}$ 。也就是说，速度由其有限元分量加上一个附加项来近似，而为了简单起见，压力子尺度将被视为零。  $\boldsymbol{u}^{n} \approx \boldsymbol{u}_{*}^{n}:=\boldsymbol{u}_{h}^{n}+\hat{\boldsymbol{u}}^{n}$和$p_{k i n}^{n} \approx p_{k i n, h}^{n}$被称为时间层次的速度和（运动）压力 $n$ 。考虑到空间离散化，我们假设$\boldsymbol{u}_{h}^{n}$和$p_{k i n, h}^{n}$是用标准的有限元插值法构造的。特别是，在 `orthogonal subscale stabilization`的情况下，等速-压力插值是可能的。关于$\hat{\boldsymbol{u}}^{n}$的行为，假定有一个类似气泡的函数，因此它在元素间边界上消失。然而，与通常的做法相反，在元素域内没有假定速度子尺度的特殊行为。紧跟[^6]的操作和修改，我们最终得到了一个离散问题
+再一次从问题的弱形式开始，通过近似$\boldsymbol{u}$和$p_{k i n}$得到离散问题。如果$\boldsymbol{u}_{h}$和$p_{k i n, h}$是有限元未知数，我们把$\boldsymbol{u} \approx \boldsymbol{u}_{h}+\hat{\boldsymbol{u}}$和$p_{\text {kin }} \approx p_{k i n, h}$ 。也就是说，速度由其有限元分量加上一个附加项来近似，而为了简单起见，压力子尺度将被视为零。  $\boldsymbol{u}^{n} \approx \boldsymbol{u}_{*}^{n}:=\boldsymbol{u}_{h}^{n}+\hat{\boldsymbol{u}}^{n}$和$p_{k i n}^{n} \approx p_{k i n, h}^{n}$被称为时间层次的速度和（运动）压力 $n$ 。考虑到空间离散化，我们假设$\boldsymbol{u}_{h}^{n}$和$p_{k i n, h}^{n}$是用标准的有限元插值法构造的。特别是，在 `orthogonal subscale stabilization`的情况下，等速-压力插值是可能的。关于$\hat{\boldsymbol{u}}^{n}$的行为，假定有一个类似气泡的函数，因此它在element间边界上消失。然而，与通常的做法相反，在element域内没有假定速度子尺度的特殊行为。紧跟[^6]的操作和修改，我们最终得到了一个离散问题
 
 \begin{equation}
 \begin{aligned}
@@ -1129,13 +1135,13 @@ $\boldsymbol{y}_{h}^{n+1}$和$\boldsymbol{z}_{h}^{n+1}$的解是
 \begin{equation}
 \tau=\frac{h^{2}}{4 \nu+2|\boldsymbol{u}| h} \label{3.66}
 \end{equation}
-其中$h$和$\boldsymbol{u}$分别是典型的元素大小和速度，$\nu$是流体的黏度。特别是对于我们 `edge-based data structure`和设想的节点实现，我们再次使用由公式（3.48）计算的最小边缘长度$h_{i, \min }$。方程（3.66）的 "无粘性版本 "指出
+其中$h$和$\boldsymbol{u}$分别是典型的element大小和速度，$\nu$是流体的黏度。特别是对于我们 `edge-based data structure`和设想的节点实现，我们再次使用由公式（3.48）计算的最小Edge长度$h_{i, \min }$。方程（3.66）的 “无粘性版本”指出。
 
 \begin{equation}
 \tau_{i}=\frac{h_{i}}{2\left|\boldsymbol{u}_{i}\right|+\varepsilon} \label{3.67}
 \end{equation}
 
-通过选择一个相对较小的参数$\varepsilon$，我们保证分母与零不同。在可压缩的情况下`Euler equations`，可以考虑到 "反应项 "的影响，这将使这最后一项措施成为不必要的。
+通过选择一个相对较小的参数$\varepsilon$，我们保证分母与零不同。在可压缩的情况下`Euler equations`，可以考虑到 “反应项”的影响，这将使这最后一项措施成为不必要的。
 
 请注意，$\tau$已被包括在内积中，因为原则上，它从一个点到另一个点都在变化。与这个参数相乘的项负责增强与标准`Galerkin`方法有关的稳定性，这就是为什么我们称它们为`stabilization terms` 。
 
@@ -1166,7 +1172,7 @@ $\boldsymbol{y}_{h}^{n+1}$和$\boldsymbol{z}_{h}^{n+1}$的解是
 \end{equation}
 
 
-使用已知的节点指数$i, j$和空间指数$k, l$的惯例。为了避免解决投影项的方程系统，使用了块状质量`Matrix`，这样方程$(3.68 \mathrm{~d})$和（3.68e）就可以分别在（3.68a）和（3.68b）内以基于边缘的方式考虑。
+使用已知的节点指数$i, j$和空间指数$k, l$的惯例。为了避免解决投影项的方程系统，使用了块状质量`Matrix`，这样方程$(3.68 \mathrm{~d})$和（3.68e）就可以分别在（3.68a）和（3.68b）内以`Edge-based`缘的方式考虑。
 
 \begin{equation}
 \begin{aligned}
@@ -1229,7 +1235,7 @@ $\boldsymbol{y}_{h}^{n+1}$和$\boldsymbol{z}_{h}^{n+1}$的解是
 \begin{equation}
 \frac{\partial U_{l}}{\partial t}+\frac{\partial\left(U_{l} u_{k}\right)}{\partial x_{k}}+\frac{\partial p}{\partial x_{l}}=F_{l} \label{3.72}
 \end{equation}
-请注意，我们现在处理的是真实的热力学压力$p$，这次的力`Vector`是由$\boldsymbol{F}=\rho \boldsymbol{g}$定义的。很明显，与不可压缩的情况相比，我们得到的对流项略有不同。这就是为什么离散问题的对流`Matrix`$\mathbf{C}^{*}$在下文中用星号标记。建议使用第3.3.4节中提到的基于边缘的欧拉通量技术来整体实现该术语。尽管如此，也可以使用线性化形式$U_{l} \frac{\partial u_{k}}{\partial x_{k}}+u_{k} \frac{\partial U_{l}}{\partial x_{k}}$。
+请注意，我们现在处理的是真实的热力学压力$p$，这次的力Vector是由$\boldsymbol{F}=\rho \boldsymbol{g}$定义的。很明显，与不可压缩的情况相比，我们得到的对流项略有不同。这就是为什么离散问题的对流`Matrix`$\mathbf{C}^{*}$在下文中用星号标记。建议使用第3.3.4节中提到的`Edge-based`缘的`Euler fluxes`技术来整体实现该术语。尽管如此，也可以使用线性化形式$U_{l} \frac{\partial u_{k}}{\partial x_{k}}+u_{k} \frac{\partial U_{l}}{\partial x_{k}}$。
 
 关于质量守恒，一个新的术语出现在`continuity equation`中，即密度的时间导数
 
@@ -1253,7 +1259,7 @@ $\boldsymbol{y}_{h}^{n+1}$和$\boldsymbol{z}_{h}^{n+1}$的解是
 \end{equation}
 
 
-其中$N_{i}$是与有限元网格的$i$-第`Node`相关的形状函数，我们假设所有变量都是插值的。
+其中$N_{i}$是与有限元网格的$i$-第`Node`相关的`形函数`，我们假设所有变量都是插值的。
 
 \subsubsection{Generalization of the Algorithm}
 
@@ -1428,7 +1434,7 @@ p_{\infty}=\frac{\rho_{\infty}}{\gamma}\left(\frac{u_{\infty}}{M a_{\infty}}\rig
 \subsubsection{NACA 0012 Airfoil}
 
 
-在NACA 0012机翼上使用了圆柱体测试案例中已知的自由流动条件，该机翼被倾斜的攻角 $\alpha=3^{\circ}$ 。这一次，滑移条件也被应用在机翼轮廓上。如上所述，在`boundary layer`附近创建了一个非常精细的网格，而在远离机翼的地方则采用了巨大的单元。[图3.10]中显示了大约$11.500$元素组成的网格。
+在NACA 0012机翼上使用了圆柱体测试案例中已知的自由流动条件，该机翼被倾斜的攻角 $\alpha=3^{\circ}$ 。这一次，滑移条件也被应用在机翼轮廓上。如上所述，在`boundary layer`附近创建了一个非常精细的网格，而在远离机翼的地方则采用了巨大的单元。[图3.10]中显示了大约$11.500$element组成的网格。
 
 
 
@@ -1443,13 +1449,13 @@ C_{l}=\int_{L E}^{T E}\left(C_{p l}(x)-C_{p u}(x)\right) d x \label{3.82}
 \end{equation}
 
 
-其中$C_{p l}$和$C_{p u}$分别为下表面和上表面的压力系数，缩写LE和TE代表机翼的前缘和后缘。对于$M a=0$，压力系数$C_{p}$已经在机翼的轮廓上被计算出来，再次使用公式$(3.79)$，并与相对弦长作图。图$3.11$将数值结果与势能理论得出的理论结果进行了比较。除了上表面的压力系数的峰值外 $C_{p u}$ ,我们的结果与分析方案完全吻合。轻微的差异表明在这个区域的网格不够精细。我们可以非常肯定这一点，因为我们在使用相同网格的可压缩情况下也会遇到类似的行为。
+其中$C_{p l}$和$C_{p u}$分别为下表面和上表面的压力系数，缩写LE和TE代表机翼的前缘和后缘。对于$M a=0$，压力系数$C_{p}$已经在机翼的轮廓上被计算出来，再次使用公式$(3.79)$，并与相对弦长作图。图$3.11$将数值结果与势能理论得出的理论结果进行了比较。除了上表面的压力系数的峰值外 $C_{p u}$, 我们的结果与分析方案完全吻合。轻微的差异表明在这个区域的网格不够精细。我们可以非常肯定这一点，因为我们在使用相同网格的可压缩情况下也会遇到类似的行为。
 
 
 
 [图3.12]中给出了压力系数的典型等高线填充。
 
-仔细观察机翼前缘（[图3.13](a)），我们可以说停滞点的位置是正确的，它的压力系数$/left(C_{p}=1/right)$也是正确的。此外，后缘看起来也很好，特别是因为我们把 "节点 "当作一个内部点（由两个相邻面定义的法线在物理上没有任何意义，因此应用滑移条件可能会扭曲流动）。
+仔细观察机翼前缘（[图3.13](a)），我们可以说停滞点的位置是正确的，它的压力系数$/left(C_{p}=1/right)$也是正确的。此外，后缘看起来也很好，特别是因为我们把“节点”当作一个内部点（由两个相邻面定义的法线在物理上没有任何意义，因此应用滑移条件可能会扭曲流动）。
 
 
 
@@ -1472,7 +1478,7 @@ C_{l}=\int_{L E}^{T E}\left(C_{p l}(x)-C_{p u}(x)\right) d x \label{3.82}
 
 
 
-我们之前已经看到，为了正确解决`boundary layer`的问题，需要一个精细的Mesh。这意味着对ONERA机翼的充分模拟在计算上变得很昂贵，即使是基于边缘的实现。这就是为什么我们把运行和与某些切面的实验数据的比较安排在夏季，届时代码将被完全并行化，`CIMNE`集群将有望工作。
+我们之前已经看到，为了正确解决`boundary layer`的问题，需要一个精细的Mesh。这意味着对ONERA机翼的充分模拟在计算上变得很昂贵，即使是`Edge-based`缘的实现。这就是为什么我们把运行和与某些切面的实验数据的比较安排在夏季，届时代码将被完全并行化，`CIMNE`集群将有望工作。
 
 
 
@@ -1499,7 +1505,7 @@ C_{l}=\int_{L E}^{T E}\left(C_{p l}(x)-C_{p u}(x)\right) d x \label{3.82}
 
 
 
-作为$\mathcal{L}_{i}$应用于各子系统$S_{i}$领域的算子，图示`one-way`耦合系统的治理方程可写为
+作为$\mathcal{L}_{i}$应用于各子系统$S_{i}$领域的算子，图示`one-way`耦合系统的主控方程可写为
 
 \begin{equation}
 \begin{aligned}
@@ -1536,7 +1542,7 @@ C_{l}=\int_{L E}^{T E}\left(C_{p l}(x)-C_{p u}(x)\right) d x \label{3.82}
 
 
 
-使用与上述相同的符号，现在考虑的`two-way`耦合系统的治理方程可以写为
+使用与上述相同的符号，现在考虑的`two-way`耦合系统的主控方程可以写为
 
 \begin{equation}
 \begin{aligned}
@@ -1623,13 +1629,13 @@ f_{2}(t)
 
 \subsubsection{Lagrangian vs. Eulerian Description}
 
-描述运动中的连续体，有两种主要方式。第一种是选择一个特定的粒子，在[图4.5]中表示为流体元素$\boldsymbol{F E}$，并在时间过程中跟踪其运动$\boldsymbol{\xi}\left(t, \boldsymbol{\xi}_{0}\right)$。
+描述运动中的连续体，有两种主要方式。第一种是选择一个特定的粒子，在[图4.5]中表示为流体element $\boldsymbol{F E}$，并在时间过程中跟踪其运动$\boldsymbol{\xi}\left(t, \boldsymbol{\xi}_{0}\right)$。
 
-[图4.5] (a)中的观察者$\boldsymbol{A}$代表这个拉格朗日观点。然而观察者$\boldsymbol{B}$位于空间领域的一个固定位置$\boldsymbol{x}$。从他的欧拉观点来看，他监视着经过的不同流体元素，$\boldsymbol{\xi}_{0}$和$\boldsymbol{\xi}_{\mathbf{0}}^{\prime}$，如[图4.5] (b)$ 。
+[图4.5] (a)中的观察者$\boldsymbol{A}$代表这个拉格朗日观点。然而观察者$\boldsymbol{B}$位于空间领域的一个固定位置$\boldsymbol{x}$。从他的欧拉观点来看，他监视着经过的不同流体element，$\boldsymbol{\xi}_{0}$和$\boldsymbol{\xi}_{\mathbf{0}}^{\prime}$，如[图4.5] (b)$ 。
 
 
 
-在`Lagrangian algorithms`中--主要用于结构力学--计算网格的每个个体`Node`在运动过程中跟随相关材料粒子，如[图4.6]上部所示。显然，这有利于对自由表面和不同材料之间的界面进行跟踪。此外，由于拉格朗日网格的每个有限元都包含相同的材料粒子，因此可以很容易地处理具有历史依赖性的材料构成关系。它的弱点是无法跟踪计算域的巨大变形而不需要频繁的重新网格化操作。
+在`Lagrangian algorithms`中--主要用于结构力学--计算网格的每个个体`Node`在运动过程中跟随相关材料粒子，如[图4.6]上部所示。显然，这有利于对自由表面和不同材料之间的界面进行跟踪。此外，由于拉格朗日网格的每个有限元都包含相同的材料粒子，因此可以很容易地处理具有历史依赖性的材料构成关系。它的弱点是无法跟踪计算域的巨大变形，因而需要频繁的重新网格化操作。
 
 在`Eulerian algorithms`中--广泛用于流体动力学-，计算网格是固定的，连续体相对于网格移动。随着时间的演变，与通过固定空间区域的流体粒子相关的物理量被检验。这意味着可以相对容易地处理连续体运动中的大扭曲。然而，界面的定义和流动细节的分辨率通常不太精确。
 
@@ -1641,16 +1647,9 @@ f_{2}(t)
 
 - 以欧拉方式保持固定，或
 
-- 如[图4.6]所示，以某种任意规定的方式移动。
+- 如[图4.6]所示，以某种任意规定的方式移动，以提供连续的改区能力。
 
-以提供连续的改区能力。
-
-在现在将根据Donea等人（2004）得出的ALE运动描述中，由物质粒子$\boldsymbol{X}$组成的物质域$R_{X}$和由空间点$\boldsymbol{x}$组成的空间域$R_{\boldsymbol{x}}$都不被作为参考。相反，引入了第三个域：参考配置$R_{\chi}$，其参考坐标$\chi$识别网格点。图$4.7$显示了这些域和与配置相关的一对一转换。参考域$R_{\chi}$被映射到材料和空间上。
-
-
-
-
-分别为$\Phi$和$\Psi$。然后，粒子运动$\varphi$可以表示为$\varphi=\boldsymbol{\Phi} \circ \boldsymbol{\Psi}^{-1}$，清楚地显示了这三种映射的依赖性。
+在现在将根据Donea等人（2004）得出的ALE运动描述中，由物质粒子$\boldsymbol{X}$组成的物质域$R_{X}$和由空间点$\boldsymbol{x}$组成的空间域$R_{\boldsymbol{x}}$都不被作为参考。相反，引入了第三个域：参考配置$R_{\chi}$，其参考坐标$\chi$识别网格点。[图4.7]显示了这些域和与配置相关的一对一转换。参考域$R_{\chi}$被映射到材料和空间上，分别为$\Phi$和$\Psi$。然后，粒子运动$\varphi$可以表示为$\varphi=\boldsymbol{\Phi} \circ \boldsymbol{\Psi}^{-1}$，清楚地显示了这三种映射的依赖性。
 
 - 应用$\varphi$表示从材料域$R_{\boldsymbol{X}}$到空间域$R_{\boldsymbol{x}}$的映射，将材料点$\boldsymbol{X}$的运动与空间坐标$\boldsymbol{x}$相联系。它的定义是这样的
 
@@ -1682,7 +1681,7 @@ f_{2}(t)
 
 
 
-其中$\mathbf{0}^{T}$是一个空行- `Vector`，材料速度$\boldsymbol{u}$是
+其中$\mathbf{0}^{T}$是一个空行- Vector，材料速度$\boldsymbol{u}$是
 
 \begin{equation}
 \boldsymbol{u}(\boldsymbol{X}, t)=\left.\frac{\partial \boldsymbol{x}}{\partial t}\right|_{\boldsymbol{X}}
@@ -1927,7 +1926,7 @@ f^{* *}(\boldsymbol{X}, t)=f\left(\boldsymbol{\Psi}^{-1}(\boldsymbol{X}, t), t\r
 
 \subsection{Preliminary Tests}
 
-在本节中，我们将进行一些 "准"`FSI`模拟。这意味着我们在移动的Meshes上进行测试，其运动是由代数函数定义的，而不是由结构应用的耦合来定义的。
+在本节中，我们将进行一些“准FSI”模拟。这意味着我们在移动的Meshes上进行测试，其运动是由代数函数定义的，而不是由结构应用的耦合来定义的。
 
 由于我们通过一个代数函数来规定网格点的运动，因此通过以下方法来计算网格速度$\boldsymbol{u}_{\text {Mesh }}$似乎是合乎逻辑的
 
@@ -1937,7 +1936,7 @@ f^{* *}(\boldsymbol{X}, t)=f\left(\boldsymbol{\Psi}^{-1}(\boldsymbol{X}, t), t\r
 \end{equation}
 
 
-其中$\boldsymbol{x}^{n}$和$\boldsymbol{x}^{n+1}$分别是$n$和$n+1$时间层的节点位置`Vector`s。尽管如此，我们通过节点位移的偏差来计算$\boldsymbol{u}_{\text {Mesh }}$。
+其中$\boldsymbol{x}^{n}$和$\boldsymbol{x}^{n+1}$分别是$n$和$n+1$时间层的节点位置Vectors。尽管如此，我们通过节点位移的偏差来计算$\boldsymbol{u}_{\text {Mesh }}$。
 
 \begin{equation}
 \boldsymbol{u}_{m e s h}^{n+\frac{1}{2}}=\frac{d^{n+1}-\boldsymbol{d}^{n}}{t^{n+1}-t^{n}}
@@ -1946,7 +1945,7 @@ f^{* *}(\boldsymbol{X}, t)=f\left(\boldsymbol{\Psi}^{-1}(\boldsymbol{X}, t), t\r
 
 其中$\boldsymbol{d}^{n}=\boldsymbol{x}^{n}-\boldsymbol{x}^{0}$指的是初始几何，因为一旦流动求解器与结构应用相耦合，我们就必须这样做。
 
-此外，一个移动的网格意味着其元素的几何数据的变化。这意味着边缘数据必须由函数`MatrixContainer`重新计算。`BuildCSRData`每当网格点改变位置时，都要重新计算边缘数据。当然，这导致基于边缘的实现失去了在弱耦合问题中预先计算积分数据的优势，在这种情况下，流动和结构求解器之间的一次迭代就足够了。然而，在强耦合的问题中，这绝对是有意义的，因为两个求解器之间的多次迭代是必要的，直到达到特定时间步长内的解决方案的收敛。
+此外，一个移动的网格意味着其element的几何数据的变化。这意味着edge data 必须由函数`MatrixContainer`重新计算。`BuildCSRData`每当网格点改变位置时，都要重新计算edge data 。当然，这导致`Edge-based`缘的实现失去了在弱耦合问题中预先计算积分数据的优势，在这种情况下，流动和结构求解器之间的一次迭代就足够了。然而，在强耦合的问题中，这绝对是有意义的，因为两个求解器之间的多次迭代是必要的，直到达到特定时间步长内的解决方案的收敛。
 
 \subsubsection{Geometric Conservation Law}
 
@@ -1987,7 +1986,7 @@ f^{* *}(\boldsymbol{X}, t)=f\left(\boldsymbol{\Psi}^{-1}(\boldsymbol{X}, t), t\r
 \end{equation}
 
 
-这说明从$t^{n}$到$t^{n+1}$每个元素的体积（或二维面积）的变化必须等于元素边界在该时间间隔内扫过的体积（面积）。假设方程\ref{4.31}左手边的体积$\Omega_{\text {elem }}$可以精确计算，这相当于要求右手边的通量也要精确计算。这就对网格位置和速度的更新程序提出了一些限制。特别是在`FSI`问题的情况下，网格运动是
+这说明从$t^{n}$到$t^{n+1}$每个element的体积（或二维面积）的变化必须等于element边界在该时间间隔内扫过的体积（面积）。假设方程\ref{4.31}左手边的体积$\Omega_{\text {elem }}$可以精确计算，这相当于要求右手边的通量也要精确计算。这就对网格位置和速度的更新程序提出了一些限制。特别是在`FSI`问题的情况下，网格运动是
 
 
 
@@ -2018,7 +2017,7 @@ y(x, t)=\left(1+\frac{1}{4} \sin \left(\frac{2 \pi t}{T}\right) \cos \left(\frac
 \end{equation}
 
 
-[图4.11]显示了考虑到方程\ref{4.33}时，周期$4.10$的两个极端情况下的速度`Vector`s。而速度`Vector`s的方向跟随边界运动，它们的长度--表示节点速度的模块--反映了连续性方程，也就是说质量守恒。
+[图4.11]显示了考虑到方程\ref{4.33}时，周期$4.10$的两个极端情况下的速度Vectors。而速度Vectors的方向跟随边界运动，它们的长度--表示节点速度的模块--反映了连续性方程，也就是说质量守恒。
 
 
 
@@ -2048,7 +2047,7 @@ y(x, t)=\left(1+\frac{1}{4} \sin \left(\frac{2 \pi t}{T}\right) \cos \left(\frac
 
 \Subsection{Résumé of Results}。
 
-用于不可压缩和可压缩流动的一般算法被证明在亚音速系统的二维和三维模拟中能提供令人满意的结果。从定性的角度来看，基于边缘的算法在计算效率方面比基于元素的算法更有优势。定量的比较仍有待完成。
+用于不可压缩和可压缩流动的一般算法被证明在亚音速系统的二维和三维模拟中能提供令人满意的结果。从定性的角度来看，`Edge-based`缘的算法在计算效率方面比`Element-based`的算法更有优势。定量的比较仍有待完成。
 
 关于`FSI`问题的模拟，所实施的求解器已经准备好了，由于守恒方程的ALE配方而进行了修改。一些初步的测试导致了积极的结果，因此在Kratos环境中的耦合应该工作良好。
 
@@ -2073,16 +2072,16 @@ kratos_libs_path = '/ usr / local / kratos / kratosR1 / libs ' ## kratos_root / 
  # kratos_libs_path = 'C:/ kratosR1 / libs ' ## kratos_root / libs
 kratos_applications_path = '/ usr / local / kratos / kratosR1 / applications/ ' ## kratos_root /applications
 import sys
-sys . path . append ( kratos_libs_path )
-sys . path . append ( kratos_applications_path )
+sys.path.append ( kratos_libs_path )
+sys.path.append ( kratos_applications_path )
 # importing Kratos main library
 from Kratos import *
 kernel = Kernel () # defining kernel
 # importing applications
 import applications_interface
-applications_interface . Import_IncompressibleFluidApplication = True
-applications_interface . Import_ExternalSolversApplication = False
-applications_interface . ImportApplications ( kernel , atos_applications_path )
+applications_interface.Import_IncompressibleFluidApplication = True
+applications_interface.Import_ExternalSolversApplication = False
+applications_interface.ImportApplications ( kernel,  atos_applications_path )
 
  # #################################################################
  ## from now on the order is not crucial anymore
@@ -2093,30 +2092,30 @@ from KratosR1IncompressibleFluidApplication import *
 model_part = ModelPart (" FluidPart ");
 ## importing the solver files and adding the variables
 import compressible_fluid_solver
-compressible_fluid_solver . AddVariables ( model_part )
-model_part . AddNodalSolutionStepVariable ( IS_BOUNDARY )
-model_part . AddNodalSolutionStepVariable ( NORMAL )
-model_part . AddNodalSolutionStepVariable ( AUX_INDEX )
-model_part . AddNodalSolutionStepVariable ( EXTERNAL_PRESSURE )
-model_part . AddNodalSolutionStepVariable ( BODY_FORCE )
-model_part . AddNodalSolutionStepVariable ( FRACT_VEL )
-model_part . AddNodalSolutionStepVariable ( MACH_NUMBER )
-model_part . AddNodalSolutionStepVariable ( PRESSURE_COEFFICIENT )
-model_part . AddNodalSolutionStepVariable ( IS_INTERFACE )
-model_part . AddNodalSolutionStepVariable ( DISPLACEMENT )
-model_part . AddNodalSolutionStepVariable ( MESH_VELOCITY )
-model_part . AddNodalSolutionStepVariable ( FORCE )
+compressible_fluid_solver.AddVariables ( model_part )
+model_part.AddNodalSolutionStepVariable ( IS_BOUNDARY )
+model_part.AddNodalSolutionStepVariable ( NORMAL )
+model_part.AddNodalSolutionStepVariable ( AUX_INDEX )
+model_part.AddNodalSolutionStepVariable ( EXTERNAL_PRESSURE )
+model_part.AddNodalSolutionStepVariable ( BODY_FORCE )
+model_part.AddNodalSolutionStepVariable ( FRACT_VEL )
+model_part.AddNodalSolutionStepVariable ( MACH_NUMBER )
+model_part.AddNodalSolutionStepVariable ( PRESSURE_COEFFICIENT )
+model_part.AddNodalSolutionStepVariable ( IS_INTERFACE )
+model_part.AddNodalSolutionStepVariable ( DISPLACEMENT )
+model_part.AddNodalSolutionStepVariable ( MESH_VELOCITY )
+model_part.AddNodalSolutionStepVariable ( FORCE )
 
  ## reading a model
-gid_io = GidIO (" GeomConsLaw ", GiDPostMode . GiD_PostBinary )
-## gid_io . ReadMesh ( model_part . GetMesh ())
-gid_io . ReadModelPart ( model_part )
-gid_io . WriteMesh (( model_part ) . GetMesh () , domain_size , GiDPostMode.GiD_PostBinary );
+gid_io = GidIO (" GeomConsLaw ", GiDPostMode.GiD_PostBinary )
+## gid_io.ReadMesh ( model_part.GetMesh ())
+gid_io.ReadModelPart ( model_part )
+gid_io.WriteMesh (( model_part ).GetMesh (),  domain_size,  GiDPostMode.GiD_PostBinary );
 print model_part
 ## the buffer size should be set up here after the mesh is read for first time
-model_part . SetBufferSize (3)
+model_part.SetBufferSize (3)
 ## adding degrees of freedom to all of the nodes
-compressible_fluid_solver . AddDofs ( model_part )
+compressible_fluid_solver.AddDofs ( model_part )
 # #################################################################
 ## settings to be changed
 ## SETTING FREESTREAM CONDITIONS
@@ -2128,17 +2127,17 @@ inlet [1] = 0.0
 inlet [2] = 0.0
 inlet_list = []
 density = 1.2
-ext_press = pow ( inlet [0]/ Mach ,2.0) * density / gamma
+ext_press = pow ( inlet [0]/ Mach, 2.0) * density / gamma
 print ext_press
 ## INITIALIZING FLUID
 velocity = inlet [0]
 pressure = ext_press
-for node in model_part . Nodes :
-node . SetSolutionStepValue ( DENSITY ,0 , density )
-node . SetSolutionStepValue ( VELOCITY_X ,0 , velocity )
-node . SetSolutionStepValue ( VELOCITY_Y ,0 ,0.0)
-node . SetSolutionStepValue ( VELOCITY_Z ,0 ,0.0)
-node . SetSolutionStepValue ( PRESSURE ,0 , pressure )
+for node in model_part.Nodes :
+node.SetSolutionStepValue ( DENSITY, 0,  density )
+node.SetSolutionStepValue ( VELOCITY_X, 0,  velocity )
+node.SetSolutionStepValue ( VELOCITY_Y, 0, 0.0)
+node.SetSolutionStepValue ( VELOCITY_Z, 0, 0.0)
+node.SetSolutionStepValue ( PRESSURE, 0,  pressure )
 ## SETTING BOUNDARY FLAGS
 #1 - velocity inlet ( Dirichlet )
 #2 - no - slip condition ( Dirichlet )
@@ -2146,12 +2145,12 @@ node . SetSolutionStepValue ( PRESSURE ,0 , pressure )
 #4 - pressure & slip node
 #5 - pressure outlet ( Neumann )
 ## SETTING BOUNDARY VALUES
-for node in model_part . Nodes :
+for node in model_part.Nodes :
     if( node.GetSolutionStepValue ( IS_BOUNDARY ) == 1.0) :
-        node.SetSolutionStepValue ( VELOCITY_X ,0 , inlet [0])
+        node.SetSolutionStepValue ( VELOCITY_X, 0,  inlet [0])
         inlet_list.append ( node )
     if( node.GetSolutionStepValue ( IS_BOUNDARY ) == 4.0 or node.SolutionStepValue ( IS_BOUNDARY ) == 5.0) :
-        node.SetSolutionStepValue ( EXTERNAL_PRESSURE ,0 , ext_press )
+        node.SetSolutionStepValue ( EXTERNAL_PRESSURE, 0,  ext_press )
 
  ## SETTING VELOCITY RAMP -UP
  ramp_up_steps = 0
@@ -2178,50 +2177,50 @@ for node in model_part . Nodes :
  fluid_solver = FluidSolver2D ()
 
  ## finding the neighbours
- neighbour_finder = FindNodalNeighboursProcess ( model_part ,10 ,10) ;
- neighbour_finder . Execute () ; ##at wish ... when it is needed
+ neighbour_finder = FindNodalNeighboursProcess ( model_part, 10, 10) ;
+ neighbour_finder.Execute () ; ##at wish ... when it is needed
 
  ## pre - computing edge - data
- matrix_container . ConstructCSRVector ( model_part )
- matrix_container . BuildCSRData ( model_part )
+ matrix_container.ConstructCSRVector ( model_part )
+ matrix_container.BuildCSRData ( model_part )
 
  ## initializing flow solver
- fluid_solver . Initialize ( model_part , matrix_container )
- fluid_solver . SetFreeFlowConditions ( inlet , ext_press , density , gamma )
- ## fluid_solver . SetAlpha (0.0 , model_part . Nodes )
+ fluid_solver.Initialize ( model_part,  matrix_container )
+ fluid_solver.SetFreeFlowConditions ( inlet,  ext_press,  density,  gamma )
+ ## fluid_solver.SetAlpha (0.0,  model_part.Nodes )
  pPrecond = DiagonalPreconditioner ()
  ## pPrecond = ILU0Preconditioner ()
- linear_solver = BICGSTABSolver (1 e -6 ,5000 , pPrecond )
- ## linear_solver = CGSolver (1e -6 ,5000 , pPrecond )
+ linear_solver = BICGSTABSolver (1 e -6, 5000,  pPrecond )
+ ## linear_solver = CGSolver (1e -6, 5000,  pPrecond )
 
  ## time loop
  while time < Time :
     ## determining time - step size
     if( step < ramp_up_steps ) : 
         delta_t = initial_dt
-        model_part . ProcessInfo [ DELTA_TIME ] = delta_t
+        model_part.ProcessInfo [ DELTA_TIME ] = delta_t
     else :
-        fluid_solver . ComputeTimeStep ( model_part , CFL_number )
-        delta_t = model_part . ProcessInfo [ DELTA_TIME ]
+        fluid_solver.ComputeTimeStep ( model_part,  CFL_number )
+        delta_t = model_part.ProcessInfo [ DELTA_TIME ]
 
     ## creating time - step data
     time = time + delta_t
     step = step + 1
     print time
-    model_part . CloneTimeStep ( time )
+    model_part.CloneTimeStep ( time )
 
     ## considering velocity ramp -up
     if( step < ramp_up_steps ) :
         inlet [0] = ramp_up_vel * step / ramp_up_steps
     else :
         inlet [0] = ramp_up_vel
-        fluid_solver . SetFreeFlowConditions ( inlet , ext_press , density , gamma )
+        fluid_solver.SetFreeFlowConditions ( inlet,  ext_press,  density,  gamma )
 
     ## moving mesh
-    fluid_solver . MoveMesh ( model_part )
-    fluid_solver . ComputeMeshVelocity ( model_part )
-    matrix_container . BuildCSRData ( model_part )
-    fluid_solver . ComputeNormals ( model_part )
+    fluid_solver.MoveMesh ( model_part )
+    fluid_solver.ComputeMeshVelocity ( model_part )
+    matrix_container.BuildCSRData ( model_part )
+    fluid_solver.ComputeNormals ( model_part )
 
     ## solving fluid problem
     if( step > 3) :
@@ -2230,7 +2229,7 @@ for node in model_part . Nodes :
       abs_norm = 1.0 + abs_tol
       n_it = 0
       while ( ratio > tolerance and abs_norm > abs_tol and n_it < n_it_max ) :
-      norms = fluid_solver . SolveStep1 ( model_part , matrix_container )
+      norms = fluid_solver.SolveStep1 ( model_part,  matrix_container )
       if ( norms [1] == 0.0) :
       abs_norm = norms [0]
       else :
@@ -2243,39 +2242,39 @@ for node in model_part . Nodes :
       print " Absolute difference = " + str ( abs_norm )
     
       ## STEP 2
-      fluid_solver . SolveStep2 ( model_part , matrix_container , linear_solver )
+      fluid_solver.SolveStep2 ( model_part,  matrix_container,  linear_solver )
       print " Step 2 cleared "
     
       ## STEP 3
-      fluid_solver . SolveStep3 ( model_part , matrix_container )
+      fluid_solver.SolveStep3 ( model_part,  matrix_container )
       print " Step 3 cleared "
     
       ## STEP 4
-      fluid_solver . SolveStep4 ( model_part . Nodes )
+      fluid_solver.SolveStep4 ( model_part.Nodes )
       print " Step 4 cleared "
 
     ## print results
     if( out == output_step ) :
        print " Output "
-       gid_io . WriteNodalResults ( AUX_INDEX , model_part . Nodes , time ,0)
-       gid_io . WriteNodalResults ( IS_BOUNDARY , model_part . Nodes , time,0)
-       gid_io . WriteNodalResults ( AUX_INDEX , model_part . Nodes , time ,0)
+       gid_io.WriteNodalResults ( AUX_INDEX,  model_part.Nodes,  time, 0)
+       gid_io.WriteNodalResults ( IS_BOUNDARY,  model_part.Nodes,  time,0)
+       gid_io.WriteNodalResults ( AUX_INDEX,  model_part.Nodes,  time, 0)
 
-       gid_io . WriteNodalResults ( PRESSURE , model_part . Nodes , time ,0)
-       gid_io . WriteNodalResults ( VELOCITY , model_part . Nodes , time ,0)
-       gid_io . WriteNodalResults ( DENSITY , model_part . Nodes , time ,0)
+       gid_io.WriteNodalResults ( PRESSURE,  model_part.Nodes,  time, 0)
+       gid_io.WriteNodalResults ( VELOCITY,  model_part.Nodes,  time, 0)
+       gid_io.WriteNodalResults ( DENSITY,  model_part.Nodes,  time, 0)
 
-       gid_io . WriteNodalResults ( FRACT_VEL , model_part . Nodes , time ,0)
-       fluid_solver . CalculateCoefficients ( model_part . Nodes )
-       gid_io . WriteNodalResults ( PRESSURE_COEFFICIENT , model_part.Nodes , time ,0)
-       gid_io . WriteNodalResults ( MACH_NUMBER , model_part . Nodes , time ,0)
+       gid_io.WriteNodalResults ( FRACT_VEL,  model_part.Nodes,  time, 0)
+       fluid_solver.CalculateCoefficients ( model_part.Nodes )
+       gid_io.WriteNodalResults ( PRESSURE_COEFFICIENT,  model_part.Nodes,  time, 0)
+       gid_io.WriteNodalResults ( MACH_NUMBER,  model_part.Nodes,  time, 0)
 
-       gid_io . WriteNodalResults ( IS_INTERFACE , model_part . Nodes , time,0)
-       gid_io . WriteNodalResults ( MESH_VELOCITY , model_part . Nodes , time ,0)
-       gid_io . WriteNodalResults ( DISPLACEMENT , model_part . Nodes , time,0)
-       gid_io . WriteNodalResults ( FORCE , model_part . Nodes , time ,0)
+       gid_io.WriteNodalResults ( IS_INTERFACE,  model_part.Nodes,  time,0)
+       gid_io.WriteNodalResults ( MESH_VELOCITY,  model_part.Nodes,  time, 0)
+       gid_io.WriteNodalResults ( DISPLACEMENT,  model_part.Nodes,  time,0)
+       gid_io.WriteNodalResults ( FORCE,  model_part.Nodes,  time, 0)
 
-       gid_io . Flush ()
+       gid_io.Flush ()
        out = 0
     out = out + 1
  print " Simulation run terminated correctly "
@@ -2437,7 +2436,7 @@ for (typename ModelPart ::ElementsContainerType ::iterator elem_it = model_part.
 
 
 
-[^1]: N.A. Adams. Fluidmechanik I - Einführung in die Dynamik der Fluide. Technical report, Lehrstuhl für Aerodynamik, Technische Universität München, 2007 . 
+[^1]: N.A. Adams. Fluidmechanik I - Einführung in die Dynamik der Fluide. Technical report, Lehrstuhl für Aerodynamik, Technische Universität München, 2007.
 
 [^2]: T. Belytschko, W. K. Liu, and B. Moran. Nonlinear Finite Elements for Continua and Structures. John Wiley \& Sons, 2000 .
 
@@ -2491,7 +2490,7 @@ for (typename ModelPart ::ElementsContainerType ::iterator elem_it = model_part.
 
 [^27]: J. Vierendeels. Implicit Coupling of Partitioned Fluid-Structure Interaction Solvers using Reduced-Order Models. In Fluid-Structure Interaction: Modelling, Simulation, Optimisation, volume 53. Springer, 2006 .
 
-[^28]: H. Voß. Math mode. CTAN - the Comprehensive TeX Archive Network, February 2008 . Version 2.32.
+[^28]: H. Voß. Math mode. CTAN - the Comprehensive TeX Archive Network, February 2008.Version 2.32.
 
 [^29]: M. Vázquez, R. Codina, and O.C. Zienkiewicz. Numerical Modelling of compressible laminar and turbulent flow: The CBS algorithm. CIMNE Monography, 1999 .
 

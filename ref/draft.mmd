@@ -1,0 +1,579 @@
+
+
+\section{A. The Dune Build System}
+
+Any nontrivial piece of software in a compiled language requires a build system. Such a system not only compiles, links, and installs the code, but it also tracks external dependencies, provides ways to steer the build process via parameters, and may help to organize automated code testing.
+
+Several standard build systems are currently on the market, and they fulfill the requirements of most software projects. However, as DUNE is a set of inter-dependent modules rather than a monolithic code, building and installing DUNE poses a few special challenges. For example, dependency tracking differs a bit from what is done for other software libraries, and it is frequently required to build an entire set of modules together with the same set of parameters. Therefore, DUNE has always had its own build system, which nowadays is written on top of the standard tool `cmake`. 
+
+An introductory example of how to use the DUNE build system has already appeared in Chapter 3. Readers that are new to DUNE and want to build their first example should start there. The present chapter explains the DUNE build system and the internal structure of DuNE modules a bit more thoroughly.
+
+\section{A.1. Building and Installing Dune Modules}
+
+DUNE modules are the building blocks of the DUNE software system. Each module is a separate $\mathrm{C}++$ source tree from which libraries and/or executables are built. Additionally, as DUNE uses a great deal of $\mathrm{C}++$ template programming, a lot of code resides in $\mathrm{C}++$ header files, of which there are a lot in most DUNE modules. The directory hierarchies of the source trees must conform to a predefined structure, and each module must contain a bit of meta data and a few cmake configuration files. [FigA.1] shows a schematic drawing of the DUNE modules discussed in this book, with build dependencies between modules shown as arrows. The advantages of this modular design have been discussed in Chapter $4.2$.
+
+To build a set of modules from source, each module has to be downloaded and built separately. Each module can only be built if its dependencies have already been built before. This implies that the modules have to be built in a suitable order. For itself, each DUNE module uses a standard `cmake` build system, only augmented by a few DUNE-specific macros provided by the `dune-common` module.
+
+DUNE modules can be built and installed in two ways. Many important modules are now available in major Linux distributions, and can be installed easily using the standard package management systems. If packages are not available for a given platform, or if bleeding-edge features are needed that are not in a release yet, the modules will need to be downloaded, built, and installed manually.
+
+\section{A.1.1. The `dunecontrol` Program}
+
+While the process of building and installing the modules can, in principle, be done by hand, the `dune-common` module provides the `dunecontrol` program, which makes building and installing DUNE modules much easier. The `dunecontrol` program works much like a Linux package manager in that it tracks the dependencies in a network of DUNE modules, computes an appropriate build order, and then builds the modules one by one using their cmake build systems. The main difference is that `dunecontrol` does not download the module source codes. This step has to be done separately. The rest of this section describes the major features of dunecontrol.
+
+\section{dunecontrol Build Commands}
+
+The `dunecontrol` program is a command-line tool. A call to `dunecontrol` has the following form:
+
+~~~C++
+dunecontrol [OPTIONS] COMMAND(S) [COMMAND-OPTIONS]
+~~~
+
+
+The program is given a command (or a colon-separated list of commands), possibly followed by command-specific options. In addition, preceding the commands, `dunecontrol` also accepts general options. We only discuss the more important commands here; see `dunecontrol` -help or the program manpage for a complete list.
+
+The most frequently used commands are `cmake` and `make`, which build a collection of DuNE modules in a suitable order. For the following, assume that a set of DUNE module sources has been downloaded to a common directory. Assume further that all DUNE modules depended upon are either part of the set, or are available as system-wide installation. To build all modules in the common directory, enter that directory and run
+
+~~~Shell
+dunecontrol cmake
+dunecontrol make
+~~~
+
+
+This will build (but not install) all modules in the current directory. In more detail, the first of the two calls performs the following three steps:
+
+1. For each module that `dunecontrol` finds, it checks (recursively) whether the modules that are listed as dependencies can be found. The build process aborts if not all required dependencies are found. Dependencies can be versioned (see Appendix A.2.2). Missing dependencies marked as suggestions merely lead to a warning. The dependency graph of modules is then sorted, which produces a valid module build order. The list of modules in build order can be seen by running dunecontrol print.
+
+2. Unless specified otherwise, a build directory called `build-cmake` is created in each module source tree. Names and locations of these build directories can be controlled with the `-builddir` option (see below).
+
+3. The program `cmake` is called for each module. This checks for the properties of the build toolchain, looks for the dependencies that are not DUNE modules, and creates the makefiles. The `cmake` program not finding certain external dependencies may result in hard errors, but it may also simply disable certain features.
+
+The subsequent call to
+
+~~~Shell
+dunecontrol make
+~~~
+
+then performs the following fourth step:
+
+4. The `make` program is run for each module. This compiles all code of the module. All executables, libraries, and other generated files are placed in the module's build directory. If desired, the DUNE build system can be configured to use an alternative to the `make` program here, such as for example ninja,  which is reported to be faster than make (see Appendix A.1.3 for an example of how this is done). Also, the build tool may have to be replaced by something platform-specific on non-unix platforms.
+
+As all four steps are usually performed together, there are shortcuts to trigger them. First, as the `dunecontrol` program can be called with more than one command (the commands then separated by a colon), all four steps can be triggered by
+
+~~~Shell
+dunecontrol cmake : make
+~~~
+
+If this is still too much typing, another alternative is
+
+~~~Shell
+dunecontrol all
+~~~
+
+Be aware, however, that the word all here refers to "all build steps", not "all modules". So far, the modules have been configured and built, but they have not been installed yet. Installing DUNE is a contentious subject. Indeed, installing DUNE modules is not required as long as all downstream code uses the `dunecontrol` program. If desired, DUNE modules can be installed by calling
+
+~~~Shell
+dunecontrol make install
+~~~
+
+
+which installs the modules into the default system location. This may require administrator privileges - to install the modules locally with user rights, pass the installation path as a `cmake` option, as explained in Appendix A.1.3. At the time of writing, working with installed modules is unfortunately not well tested, and may need further improvements.
+
+\section{dunecontrol Build Options}
+
+The configuration and build process can be influenced by various options for the `dunecontrol` program. For example, to consider only a subset of the modules in the current directory, the -only and -module options restrict the set of modules to be considered by `dunecontrol`. In particular
+
+~~~Shell
+dunecontrol --only=<module-name> all
+~~~
+
+will perform the four steps listed above for the single module called <module-name> only.  Similarly,
+
+~~~Shell
+dunecontrol --module=<module-name> all
+~~~
+
+will do the four steps for the module <module-name> and for all of its direct and indirect dependencies.
+
+By default, an individual build directory called `build-cmake` is created inside each module source tree. The name and relative location can be changed by passing a relative path as the `-builddir` option. For example,
+
+~~~Shell
+dunecontrol --builddir=build-debug --module=dune-foo all
+~~~
+
+will build the module dune-foo and all of the DUNE modules it depends on in `build` directories called `build-debug` that are created in the root directories of the respective source trees. By choosing an absolute path instead, it is possible to specify a custom build directory at an arbitrary location in the file system:
+
+~~~Shell
+dunecontrol --builddir=$HOME/dune-build-dir all
+~~~
+
+This will create a new directory `dune-build-dir` in the user's home directory, and the `build` directories of the individual modules will appear as subdirectories of `dune-build-dir`. Their names will be identical to the module names as specified in the `dune.module` files (Appendix A.2.2).
+
+
+
+\section{Further dunecontrol Commands}
+
+There are further useful commands of dunecontrol. For example,
+
+~~~Shell
+dunecontrol exec <command>
+~~~
+
+will loop over all source directories and call `<command>` in each of them. Likewise,
+
+~~~Shell
+dunecontrol bexec <command>
+~~~
+
+will do the same for the build directories. So, for example,
+
+~~~Shell
+dunecontrol --module=dune-foo bexec "rm -rf *"
+~~~
+
+
+will empty the build directory of the dune-foo module and of all of its direct and indirect dependencies. This particular example is useful for forcing `cmake` to do a full rebuild. Such a rebuild can become necessary when a dependency has changed, for example if a suggested but absent DUNE module has suddenly become available.
+
+Finally, several commands exist to perform version control operations on sets of modules. Running
+
+~~~Shell
+dunecontrol status
+~~~
+
+shows the version control status of each module, and
+
+~~~Shell
+dunecontrol update
+~~~
+
+tries to update the sources from their upstream repositories. Both are currently implemented for the GIT and SUBVERSION version control systems. For more finegrained control, the commands
+
+~~~Shell
+dunecontrol git <git command>
+dunecontrol svn <svn command>
+~~~
+
+allow to execute individual `git` or `svn` commands in each module source directory. See the online help of `dunecontrol` for a full list of commands and options.
+
+\section{A.1.2. Specifying the Module Search Path with the `DUNE_CONTROL_PATH` Variable}
+
+Above, it has been assumed for simplicity that all modules to be built are contained in a single directory. This is sometimes too restrictive, and therefore more general settings are supported. To understand how `dunecontrol` searches for modules, it is important to understand that `dunecontrol` must find DUNE modules for two slightly different reasons: It needs to find the modules it is supposed to build, and it needs to find modules that serve as dependencies for other modules. The latter ones may have been built by `dunecontrol` previously, but they may also have come preinstalled in binary form by the system package manager.
+
+By default, `dunecontrol` looks for modules to be built in the current directory and its subdirectories. When looking for dependencies, the globally installed modules are considered in addition. If `dunecontrol` finds a local module and a global module with the same name, then the local module is preferred. If it finds two local modules with the same name, it will abort with an error message. Note that the name of the module is the corresponding string in the dune.module file (Appendix A.2.2), not the name of the module source directory (even though the two should usually coincide).
+
+Alternatively, `dunecontrol` can be given a set of directories where to look for DUNE modules in the `DUNE_CONTROL_PATH` environment variable. This allows to keep the set of DUNE modules distributed across several directories, or to call `dunecontrol` from other directories than the one where the module source trees reside. Lists of directories must be separated by colons. When looking for build dependencies, globally installed modules will still be considered, even if the global installation path is not part of `DUNE_CONTROL_PATH`. On the other hand, similar to how other environment variables are handled on Unix systems, when `DUNE_CONTROL_PATH` is set then the current directory is not automatically considered. It must be explicitly added to the `DUNE_CONTROL_PATH` variable if desired.
+
+The following small oddity is worth mentioning again: The traditional Unix way is that a piece of software gets built, installed, and can then serve as dependency for others. It is a peculiarity of DUNE that the installation step can be skipped for modules: up-to-date build directories can serve as dependencies for other modules, even if they have not been installed. In other words, when looking for dependencies, `dunecontrol` makes no difference between installed modules and build directories. If all DUNE modules are kept locally (i.e., in a directory tree that belongs to the user account), there is no need to actually install the modules. This can simplify developing DUNE modules that many other modules depend upon, but it is not explicitly recommended.
+
+\section{A.1.3. Setting Build Options for Sets of Modules}
+
+In many cases there is the need to pass options to the build process for each module. The most common cases are nonstandard installation directories, external libraries located in nonstandard locations, or optimization options for the compiler. When building a single module directly, such options can be passed directly to the cmake build system as described in the cmake documentation. For example, the following commands build dune-grid with $-03$ optimization and install it in the folder dune-inst of the user's home directory:
+
+~~~Shell
+cd dune-grid
+mkdir build-cmake
+cd build-cmake
+cmake -DCMAKE_CXX_FLAGS=’-O3’ -DCMAKE_INSTALL_PREFIX=$HOME/dune-inst ..
+make
+make install
+~~~
+
+
+Passing options this way is convenient when working with a single module. However, it gets tedious when entire groups of modules have to be built, and it is usually important to ensure that all modules of such a group are built with the same set of options. When using `dunecontrol` to build modules, these options can be given to `dunecontrol`, which then passes them on to cmake. For this, `dunecontrol` allows to write
+
+~~~Shell
+dunecontrol --[COMMAND]-opts=<options> COMMAND(S)
+~~~
+
+This passes options to the cmake or make commands emitted by `dunecontrol`. For example, the following commands will build and install all modules in the current directory with the same options as in the previous example:
+
+~~~Shell
+dunecontrol --cmake-opts="-DCMAKE_CXX_FLAGS=’-O3’ \
+                            -DCMAKE_INSTALL_PREFIX=$HOME/dune-inst" cmake
+dunecontrol make
+dunecontrol make install
+~~~
+
+
+Alternatively, it is possible to write the cmake options directly after the command:
+
+~~~Shell
+dunecontrol cmake "-DCMAKE_CXX_FLAGS=’-O3’ \
+                    -DCMAKE_INSTALL_PREFIX=$HOME/dune-inst"
+dunecontrol make
+dunecontrol make install
+~~~
+
+
+Similarly, using `-make-opts` allows to pass options to the `make` program. The most frequent use is to pass $-j<n>$, to build with $\mathrm{n}$ processes in parallel.
+
+The set of options can be long, and it can get tedious to pass them all on the command line. A better way is then to store the options in a dedicated options file. Such a file can be given to `dunecontrol` using the `-opts` option:
+
+~~~Shell
+dunecontrol --opts=<options file> COMMAND(S)
+~~~
+
+The options file is a text file in shell syntax that is run to set the values of certain variables. In most cases it will simply contain lines like
+
+
+~~~Shell
+CMAKE_FLAGS="<...>"
+~~~
+
+or
+
+~~~Shell
+MAKE_FLAGS="<...>"
+~~~
+
+together with comment lines starting with #. The values are then passed to the build environment. The following variables can currently be set:
+
+~~~Shell
+CMAKE:                   The precise cmake executable to use
+CMAKE_FLAGS:             Flags to be passed to the cmake program
+CMAKE_MODULE_PATH:       Semicolon-separated list of folders specifying a search path
+                         for cmake modules
+MAKE_FLAGS:              Flags to be passed to the make program
+~~~
+
+
+Here is a small example:
+
+~~~Shell
+# Use a particular compiler (clang++),
+# install to a custom directory
+# disable the external library SuperLU,
+# use ninja instead of make as the build-tool
+CMAKE_FLAGS="-DCMAKE_CXX_COMPILER=clang++ \
+-DCMAKE_INSTALL_PREFIX=’$HOME/user/dune-inst’ \
+-DCMAKE_DISABLE_FIND_PACKAGE_SuperLU=true \
+-GNinja"
+# Build with four processes in parallel
+MAKE_FLAGS="-j 4"
+
+~~~
+
+
+This example uses cmake's -D option to select a particular compiler and a local installation directory, and the `-G` option for a build system generator, in this case ninja. See the cmake documentation for details.
+
+As can also be seen from the example, the `-D` option of cmake is also used to switch off features at configuration time. To disable an external dependency Foo, add
+
+~~~Shell
+-DCMAKE_DISABLE_FIND_PACKAGE_Foo=true
+~~~
+
+
+to the `CMAKE_FLAGS` variable. The name of the dependency is case sensitive, but there is no canonical naming scheme. The correct package name can be found in the cmake output. For example, to have a sequential build despite an installed MPI library, the MPI dependency can be disabled explicitly by setting
+
+~~~Shell
+-DCMAKE_DISABLE_FIND_PACKAGE_MPI=true
+~~~
+
+in the CMAKE_FLAGS.
+
+Errors occurring during the build process get noted in a file called `CMakeError.log` in the directory CMakeFiles in the build directory of the corresponding DUNE module. This is not particular to DUNE, but rather a standard cmake feature. The content of CMakeError. log usually provides a hint at what the problem is. Note, though, that cmake caches aggressively, and running it after a modification to the build system or the build environment may not actually pick up the change unless cmake is forced to do a complete rerun. For this, delete the file `CMakeCache.txt` from the module's build directory. To be on the safe side, delete the entire build directory.
+
+Many build errors actually result from faulty interplay between the build systems of several modules. When in doubt, one may want to trigger a rebuild of all DUNE modules currently in use. This can be done conveniently by calling
+
+~~~Shell
+dunecontrol bexec "rm CMakeCache.txt"
+~~~
+
+before the build. It deletes the CMakeCache. txt files in all modules. 
+
+\section{A.2. Dune Modules}
+
+This section describes the structure of a typical DUNE module. A DUNE module is a source tree that adheres to certain conventions regarding naming and the directory hierarchy. It must contain certain configuration files (mainly for cmake), and a file with meta information called `dune.module`.
+
+\section{A.2.1. The Structure of Dune Modules}
+
+A freshly created DUNE module dune-foo has the following directory structure: 
+
+
+~~~Shell
+dune-foo
+|-- cmake
+| ‘-- modules
+| |-- CMakeLists.txt
+| ‘-- DuneFooMacros.cmake
+|-- CMakeLists.txt
+|-- config.h.cmake
+|-- doc
+| |-- CMakeLists.txt
+| ‘-- doxygen
+| |-- CMakeLists.txt
+| ‘-- Doxylocal
+|-- dune
+| |-- CMakeLists.txt
+| ‘-- foo
+| |-- CMakeLists.txt
+| ‘-- foo.hh
+|-- dune-foo.pc.in
+|-- dune.module
+|-- README
+‘-- src
+|-- CMakeLists.txt
+‘-- dune-foo.cc
+~~~
+
+
+
+The source tree contains 7 directories and 15 files. These contain the build system configuration, module meta information, and a minimal $\mathrm{C}++$ example. The main directory name typically matches the module name, but this is not strictly required. By convention, the directory name should start with a `dune-` prefix, but this is not a technical requirement.
+
+The top level directory has four subdirectories:
+
+1. The directory cmake contains build system macros particular to the module. These have to be located in the directory cmake/modules. Any cmake code in this directory can be used by the `dune-foo` module itself and by all downstream DUNE modules that depend on `dune-foo`.
+
+The file cmake/modules/DuneFooMacros. cmake is special: Its contents are always executed when configuring the module `dune-foo`, or any other DUNE module that has `dune-foo` as a required or optional dependency. If the `dune-foo` module has dependencies that are not DUNE modules themselves, then they should be checked for in the file `DuneFooMacros.cmake` (see also Appendix A.2.5). Typically, cmake `find_package` can be used for this. In a DUNE module freshly created by `duneproject`, the file is present but empty.
+
+2. The doc directory is meant to hold module documentation. By default, it contains the infrastructure to build an online code documentation using the DOXYGEN tool  (Chapter A.2.6). Several core modules also use this directory to store manuals and tutorials in `IATEX` format.
+
+3. The subtree rooted at the dune directory keeps the code of the module. As DUNE uses $\mathrm{C}++$ templates extensively, most code is contained in header files, but code to be compiled into a library should be stored in the dune subtree, too.
+
+The dune directory itself is expected to be empty, except for a `CMakeLists.txt` file and another directory. This other directory contains the actual code, possibly in further subdirectories. It is to be named like the module name without the `dune-` prefix. So, for example, in the module `dune-grid`, this directory is called grid. The effect of this convention is that header #include directives have a standardized form: Code that includes headers from `dune-grid `does so by writing
+
+
+~~~C++
+#include <dune/grid/...>
+~~~
+
+
+and headers from dune-istl are included by
+
+~~~C++
+#include <dune/istl/...>
+~~~
+
+It is hence obvious, from reading the `#include` directive, what module a particular header comes from. C++ header files in DUNE modules traditionally have a `.hh` suffix.
+
+4. Finally, the src directory holds the code for executables contained in the module. These are typically programs that perform some sort of numerical simulation using the DUNE modules being depended upon. Compilable C++ sources files should always end with .cc. Newly created DUNE modules contain a short example program called `dune-<modulename>.cc` here. If a module only provides a library, then the src directory can be empty, too.
+
+Sometimes the executables are example programs for the features of the module, rather than serious simulation codes. In that case the src directory may be renamed to examples. This is the case, e.g., in the `dune-functions` module.
+
+
+As for files in the main source tree directory, the two central ones `dune.module` and `config.h.cmake` are discussed in dedicated sections below. The file `dune-foo.pc.in` contains information used by the pkg-config tool $^{9}$ to find the `dune-foo` module.
+
+Finally, every directory in the DUNE module contains a file called `CMakeLists.txt`, which is written in the cmake language. Upon calling cmake, the CMakeLists. txt file in the main module directory is executed. Whenever an `add_subdirectory` command is encountered, the `CMakeLists.txt` file of that sub-directory is executed. The top-level CMakeLists.txt file is special, because it sets up the entire DUNE module correctly. Users are free to add more code to it, but the parts generated by `duneproject` must not be deleted.
+
+\section{A.2.2. The `dune.module` File}
+
+Each DUNE module contains a small text file called `dune.module`, which contains meta data of the module. In particular, it lists the official module name (which could, in principle, differ from the name of the source directory), and the dependencies of the module.
+
+A typical `dune.module` file looks like this:
+
+~~~Shell
+################################
+# Dune module information file #
+################################
+# Name of the module
+Module: dune-foo
+Version: 3.1.4
+Maintainer: paul.atreides@dune-project.org
+# Required build dependencies
+Depends: dune-grid dune-localfunctions
+# Optional build dependencies
+#Suggests:
+~~~
+
+
+It consists of lines of the form
+
+~~~Shell
+<keyword>: <value(s)>
+~~~
+
+Lines starting with a # are treated as comments. The possible keywords are:
+
+- `Module`: The official module name for the `dunecontrol` build system. Dependencies of other modules on this one must use this name. Only changing this string is not enough to completely change the module name, however. The name is also hard-coded in the main CMakeLists.txt file of the module, and it is part of the name of the `dune-foo.pc.in` file.
+
+- `Version`: A string that encodes the module version. Besides documentation value, it allows to depend on particular versions of a module. The version string should follow the X.Y.Z scheme, but additional arbitrary suffixes may be appended. By convention, the version on the current development branch is X.Y-git, where X.Y is the planned number of the next release. The version number is also available in the $\mathrm{C}++$ code via preprocessor variables defined in the file `config.h` (see Appendix A.2.3).
+
+- `Maintainer`: Contact email address(es) of the person or group of persons responsible for module maintenance and bugfixing. Appears in the `PACKAGE_BUGREPORT` preprocessor variable defined in the file `config.h`.
+
+- `Depends`: Whitespace-separated list of DUNE modules that the present module needs to build and run properly. The names used here are the ones given in the dune.module files of the respective modules. Note that no distinction is made between build and run-time dependencies. Only the direct dependencies need to be listed here -indirect dependencies are resolved automatically by `dunecontrol`.
+
+The dependencies can be versioned, meaning that only modules in a particular version or range of versions satisfy a dependency. Version requirements appear in parentheses after the module name, and have the form (<operator><version>). Valid operators are $<=,=,>=,<$, and $>.$ For example, $(>=2.7 .0)$ states that the module must have version $2.7 .0$ or later. Two conditions can be combined by \&\& for "and" and || for "or". For example, a version between $2.7.0$ and $3.0.0$ is requested by writing $(>=2.7 \& \&<3.0)$.
+
+On the other hand, the `dunecontrol` option -skipversioncheck allows to disregard these checks.
+
+- `Suggests`: Whitespace-separated list of DUNE modules that the module can use, but that are not strictly necessary to build the module. Typically, such modules allow to enable additional features when present at build time. When a suggested dependency is not met, `dunecontrol` issues a warning, but does not abort the build process. For example, the `dune-grid` module lists `dune-uggrid` as a suggestion.
+
+If a suggested dependency is found, this is signaled to cmake by defining the variable `<module>_FOUND`, where `<module>` is the name of the DUNE module. Hence, for example, in a `CMakeLists.txt` file, compilation can be controlled by constructions like
+
+~~~C++
+if (dune-uggrid_FOUND)
+    add_executable("unstructured-grid-example" unstructured-grid-example.cc)
+endif ()
+~~~
+
+
+Presence of the suggested dependency is signaled to $\mathrm{C}++$ code by defining the preprocessor variable `HAVE_<MODULE_NAME>` to 1 . Here `<MODULE_NAME>` is the module name, but written in capitals and with hyphens replaced by underscores. 
+
+
+\section{A.2.3. The Files `config.h` and `config.h.` cmake}
+
+As is common in $\mathrm{C}++$ software on Unix systems, the build system of each DUNE module writes a file called `config.h` into the module's build directory. This file contains some of the build system knowledge about the build environment, transferred to the $\mathrm{C}++$ code by a list of preprocessor macros. All non-header $\mathrm{C}++$ files in a DUNE module are expected to include `config.h` as their first header.
+
+The first block of information in a `config.h` file contains some of the meta data specified in the `dune.module` file. For example, the `config.h` file for the module with the `dune.module` file of Appendix A.2.2 will contain the definitions
+
+~~~C++
+#define HAVE_DUNE_GRID 1
+~~~
+
+as well as the `dune-grid` version number in form of
+
+~~~C++
+#define DUNE_GRID_VERSION "2.7.0"
+#define DUNE_GRID_VERSION_MAJOR 2
+#define DUNE_GRID_VERSION_MINOR 7
+#define DUNE_GRID_VERSION_REVISION 0
+~~~
+
+
+In addition, the file contains similar definitions for all direct and indirect dependencies. If the module depends on dune-grid, for example, then its config.h file will contain
+
+as well as the `dune-grid` version number in form of
+
+The header `dune/common/version.hh` from the `dune-common` module contains tools to conveniently deal with this version information in $\mathrm{C}++$ code.
+
+In addition, any module can supply any kind of additional module-specific information in its `config.h` file. Furthermore, such information will appear in the `config.h` files of all downstream modules. Information intended to appear in `config.h` needs to be written into the template file `config.h.cmake`, which is part of each DUNE module. The process strictly follows cmake's procedure, and will not be explained here. Please see the cmake documentation for details.
+
+\section{A.2.4. Adding New Code to a Dune Module}
+
+New code is added to a DUNE module roughly like to any other $\mathrm{C}++$ software with a cmake build system, but there are a few DUNE-specific features.
+
+As DUNE uses $\mathrm{C}++$ templates almost everywhere, a lot of typical DUNE code is kept in header files. New headers should be placed in the folder `dune/<modulename>`, or in subfolders thereof. All headers in a template-heavy code are typically required by downstream modules, and therefore they have to be installed. The standard cmake machinery is used for this: In the `CMakeLists.txt` file of the directory of the header to be installed, add the header to the list of files given to the install directive: 
+
+~~~Shell
+install(FILES
+header1.hh
+header2.hh
+[...]
+DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/<header path in source tree>)
+~~~
+
+The header path given is relative to the main module installation directory, i.e., it should start with `dune/`.
+
+Actually compiling code requires DUNE-specific cmake macros. To create a library, use the cmake command
+
+
+~~~Shell
+dune_add_library(<basename> SOURCES <sourcefile>.cc)
+~~~
+
+
+This creates both static and shared libraries. On a Unix system they will be called `lib<basename>.a` and `lib<basename>` . so, respectively. The option SOURCES specifies a whitespace-separated list of source files that are compiled and linked into the library. Other libraries can be incorporated with the `ADD_LIBS` option. Consult the online documentation for further possibilities.
+
+Files that are to be compiled into executables (such as simulation codes or examples) have to be announced to cmake by the standard cmake command
+
+~~~Shell
+add_executable(<executablename> <sourcefile>.cc)
+~~~
+
+which compiles the source file called <sourcefile>.cc into an executable called <executablename>. Various options allow to influence the compilation and linking process. Source code for such executables is normally placed in the src directory in the main module source directory, not under dune.
+
+Executables need to be given information about their dependencies, in form of include paths, libraries to link to, and compiler and linker options. All of this is handled automatically by a cmake macro called `dune_enable_all_packages`, which gets invoked in the top-level `CMakeLists.txt` file (before any calls to `add_subdirectory`). This macro adds paths, flags, etc. of all dependencies found by the build system to all executables. This means that all of them typically build and link out of the box as long as the corresponding `add_executable` call is there. The price is a long list of possibly unneeded paths and flags being handed to the compiler and linker when building executables, but that is not usually a problem.
+
+For users that do want more control, the DUNE build system offers dedicated macros to add individual dependencies to an executable. For example, in any DUNE module that depends on `dune-istl`, the line
+
+~~~Shell
+add_dune_umfpack_flags(<executablename>)
+~~~
+
+will add all flags and paths that are necessary to build <executablename> if it uses the direct sparse solver `UMFPACK` [^46] .$ Likewise, there are `add_dune_mpi_flags`, `add_dune_parmetis_flags`, and many others. No such macros are needed if the dependency is a DUNE module itself! Manually linking libraries can be done through the `target_link_libraries` command. Even more control is possible using cmake features like `set_property` and `get_property`.
+
+\section{A.2.5. Dependencies that are not Dune Modules}
+
+Not all dependencies of a DUNE module are other DUNE modules. Such external dependencies are not handled automatically by the `dunecontrol` program, and need to be treated by cmake directly. The cmake program looks for such dependencies with its `find_package` command. If the external code is sufficiently cmake-aware, then it may have provided a `config-file` package in one of the standard locations. The `find_package` command will then find the external dependency's library, headers, and all further relevant information along with it.
+
+If there is no `config-file` package, the DUNE module itself has to provide a so-called `find-module` package, which looks for the dependency, and determines the various compiler and linker flags it requires. Each custom `find-module` is a dedicated file, and must be kept in the `cmake/modules` folder of the first DUNE module that uses it. For an external package called SomePackage, the cmake `find-module` must be called `FindSomePackage.cmake`. $^{11}$ If cmake encounters a `find_package`(SomePackage) command and cannot find a corresponding `config-file` package, it searches for the file `FindSomePackage.cmake`, and executes the code it contains. This code should determine all relevant information, and write it into the standard cmake variables. Many such `find-module` packages are available on the web. Depending on how common the external dependency is, there may be no need to write the `find-module` from scratch.
+
+The compiler and linker flags of the new dependency are applied to the building of all executables by virtue of the `dune_enable_all_packages` mechanism (see above). To make `dune_enable_all_packages` pick up the new dependency, the new flags need to be registered. This is done by means of the macro
+
+~~~Shell
+dune_register_package_flags(INCLUDE_DIRS <list of directories>
+                                LIBRARIES <list of libraries>)
+~~~
+
+which should be called near the end of the `find-module`. The options allow to add header paths and libraries to the global list of flags kept by `dune_enable_all_packages`. Furthermore, `COMPILE_OPTIONS` allows to set particular compiler options, and the option `COMPILE_DEFINITIONS` can be used to set preprocessor flags.
+
+For each custom `find-module` that looks for a software called SomePackage, it is also good style to provide a macro `add_dune_somepackage_flags`, which should be defined in a file called AddSomePackageFlags. cmake in the folder cmake/modules. This macro should provide all necessary paths and options to an individual executable (see above), and is the tool to use when `dune_enable_all_packages` is not appropriate.
+
+
+\section{A.2.6. Documentation}
+
+The DuNE build system offers infrastructure to build documentation using the DOXYGEN tool for code, and IATEX for general documents. All documentation of a DUNE module is created by calling
+
+~~~Shell
+make doc
+~~~
+
+in the module's build directory.
+
+The DOXYGEN program parses source code, extracts comment blocks from it, and builds documentation in various output formats from these comments. By default, the DUNE build system will call DOXYGEN such as to produce HTML output. The HTML documentation will appear in the folder `doc/doxygen/html` in the build directory, and the main page is `doc/doxygen/html/index.html`.
+
+DOXYGEN is controlled by a large set of options. These are stored in a text file which is usually called Doxyfile. In principle, each DUNE module could have its own Doxyfile; however, typical Doxyfiles differ little from module to module. The DUNE build system therefore contains the common part factored out in a separate file called Doxystyle, which is located in `dune-common/doc/doxygen`. Each downstream module only keeps a text file called Doxylocal with the module-specific bits. When make doc is called, the two files are joined, and placeholders for module names and directories are replaced with actual values. Here is the default Doxylocal file as written by `duneproject`, in slightly shortened form:
+
+~~~Shell
+# The INPUT tag can be used to specify the files and/or directories that contain
+# documented source files. You may enter file names or directories, separated
+# by spaces.
+
+INPUT += @top_srcdir@/dune/
+
+# The EXCLUDE tag can be used to specify files and/or directories that should
+# be excluded from the INPUT source files.
+
+# EXCLUDE += @top_srcdir@/dune/foo/test
+
+# The EXAMPLE_PATH tag can be used to specify one or more files or
+# directories that contain example code fragments that are included
+# with the \include command.
+
+# EXAMPLE_PATH += @top_srcdir@/src
+# The IMAGE_PATH tag can be used to specify one or more files or
+# directories that contain image that are included with the \image command.
+
+# IMAGE_PATH += @top_srcdir@/dune/foo/pics
+
+~~~
+
+
+\section{A. The DUNE Build System}
+
+The file mainly determines where to look for source files, images, and other input. The variable `@top_srcdir` is replaced by the absolute path of the module source directory. Further `DOXYGEN` options can be added to Doxylocal, and will then override the defaults in the Doxystyle file in the `dune-common` module.
+
+By default, the doc directory of a module contains only the doxygen subdirectory and a trivial `CMakeLists.txt` file. However, it may also contain further subfolders with module information in other formats. For `IATEX` documents, the DUNE build system ships the UseLatexMk. cmake tool, which uses latexmk to build pdf files from `IATEX` sources. It offers a single command
+
+~~~Shell
+add_latex_document(SOURCE <texsource>.tex)
+~~~
+
+where <texsource>. tex should be a single `IATEX` file. As the latexmk program is used for invoking the $\mathrm{T}_{\mathrm{E}} \mathrm{X}$ engine, all dependency tracking happens internally, and the required number of calls to pdflatex, bibtex, etc. is performed automatically without further user intervention. The add_latex_document macro has further options, which are described in the online documentation.
+
+The `UseLatexMk.cmake` macro also introduces a make target called `clean_latex`, which removes all files created by the IAT $_{\mathrm{E}} \mathrm{X}$ toolchain. This allows to build the $\mathrm{AT}_{\mathrm{E}} \mathrm{X}$ documents of a DuNE module from scratch without touching the build of the C++ code.
+
+\section{A.2.7. Automated Tests}
+
+Many DUNE modules contain test programs that check individual parts of the module's functionality. These can range from small unit tests that verify the functioning of specific details of individual classes all the way to full-blown integration tests that run a complete numerical simulation and check whether the result is correct. Having such tests is an important part of professional software development, in particular for template-rich code like DUNE, where a lot of code is not really exercised when building the module. Without tests, a lot of bugs become visible only when using a module's code downstream. The test sources are usually collected in directories named test. There may be one or more of those, at different places in the directory hierarchy of a module.
+
+The tests are not built automatically when building a module. Rather, compiling and linking tests needs to be triggered manually, using the command
+
+in the build directory. This produces a set of test executables that can be run individually just like other executables. The entire set of tests can be run using the ctest command that is part of a normal cmake installation. It calls all available tests of a module, and reports the results in overview form. Check ctest -help for a lot of useful options, such as choosing the set of tests to be run by matching regular expressions or showing the output of failed tests.
+
+A newly written test is announced to the DUNE build system by the cmake macro
+
+~~~Shell
+dune_add_test(SOURCES <testsource>.cc)
+~~~
+
+It adds the test to the `build_tests` target, supplies the necessary compiler and linker flags, and adds the test to the list of programs to be run by ctest. Test behavior can be controlled by various options of the `dune_add_test` command:
+
+- `COMPILE_ONLY`: If set, the given test will be compiled during make `build_tests`, but it will not be run by ctest. This can be useful to reduce testing time.
+
+- `CMAKE_GUARD`: This allows conditional building of unit tests based on cmake variables. Its argument is a boolean condition. If this condition evaluates to `FALSE`, the test sources will be replaced by a dummy source that only returns the value 77 , and ctest will ignore the test result. This approach is preferable to guarding the call to `dune_add_test` with a cmake if-clause: The test at least appears in the list of test results, even if it could not be built or run.
+
+- `MPI_RANKS`: To test features regarding distributed computing, a test may need to be run on more than one process. A list of numbers may be given to the `MPI_RANKS` option, and the test is run once for each number in this list. The number determines how many processes are used for that run. A global limit can be set in form of the environment variable `DUNE_MAX_TEST_CORES`.
+
+- `TIMEOUT`: Maximum time permitted for running the test (in seconds). This prevents dead-locked distributed tests from completely locking up the system. It defaults to 5 minutes, but an explicit value has to be set when the `MPI_RANKS` option is used.
+
+These are just the more prominent options; consult the online documentation for a full list. 
