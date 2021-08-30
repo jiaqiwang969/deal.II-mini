@@ -1,0 +1,7 @@
+<map id="DesignPattern::Memento::Caretaker" name="DesignPattern::Memento::Caretaker">
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Memento_1_1Memento.html" title="{DesignPattern::Memento\l::Memento\n||+ GetName()\l+ date()\l+ state()\l}" alt="" coords="5,160,172,281"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="196,182,312,259"/>
+<area shape="rect" id="node6" href="$classDesignPattern_1_1Memento_1_1Originator.html" title="{DesignPattern::Memento\l::Originator\n||+ Originator()\l+ DoSomething()\l+ Save()\l+ Restore()\l&#45; GenerateRandomString()\l}" alt="" coords="328,359,503,509"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="375,182,455,259"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="352,5,479,97"/>
+</map>

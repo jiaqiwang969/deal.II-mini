@@ -1,0 +1,14 @@
+<map id="Particles::ParticleHandler&lt; dim, spacedim &gt;" name="Particles::ParticleHandler&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="297,660,465,1016"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="619,160,658,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="1083,160,1163,237"/>
+<area shape="rect" id="node24" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l Triangulation\&lt; dim,\l spacedim \&gt;, Particles\l::ParticleHandler\&lt; dim,\l spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1146,697,1302,979"/>
+<area shape="rect" id="node27" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1192,329,1339,553"/>
+<area shape="rect" id="node28" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l Mapping\&lt; dim, spacedim\l \&gt;, Particles::ParticleHandler\l\&lt; dim, spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1525,704,1715,972"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="990,5,1117,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="936,160,1059,237"/>
+<area shape="rect" id="node22" title="STL class. " alt="" coords="2454,160,2605,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="465,160,581,237"/>
+<area shape="rect" id="node32" title="STL class. " alt="" coords="2109,403,2249,480"/>
+<area shape="rect" id="node16" href="$structParticles_1_1ParticleHandler_1_1Signals.html" title="{Particles::ParticleHandler\l\&lt; dim, spacedim \&gt;::Signals\n||}" alt="" coords="743,792,926,884"/>
+</map>

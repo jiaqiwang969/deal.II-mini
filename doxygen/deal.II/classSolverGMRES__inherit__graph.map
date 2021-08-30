@@ -1,0 +1,4 @@
+<map id="SolverGMRES&lt; VectorType &gt;" name="SolverGMRES&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classSolverBase.html" title="{SolverBase\&lt; VectorType \&gt;\n|# static_vector_memory\l# memory\l# iteration_status\l|+ SolverBase()\l+ SolverBase()\l+ connect()\l}" alt="" coords="35,468,215,604"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n|&#45; counter\l&#45; counter_map\l&#45; validity_pointers\l&#45; object_info\l&#45; mutex\l|+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="41,5,209,420"/>
+</map>

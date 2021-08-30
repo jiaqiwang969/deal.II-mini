@@ -1,0 +1,4 @@
+<map id="internal::DoFHandlerImplementation::DoFObjects&lt; dim &gt;" name="internal::DoFHandlerImplementation::DoFObjects&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classinternal_1_1DoFHandlerImplementation_1_1DoFObjects.html" title="{internal::DoFHandlerImplementation\l::DoFObjects\&lt; 1 \&gt;\n|+ dofs\l|+ set_dof_index()\l+ get_dof_index()\l+ n_active_fe_indices()\l+ fe_index_is_active()\l+ memory_consumption()\l+ serialize()\l}" alt="" coords="5,233,236,399"/>
+<area shape="rect" id="node3" href="$classinternal_1_1DoFHandlerImplementation_1_1DoFObjects.html" title="{internal::DoFHandlerImplementation\l::DoFObjects\&lt; 2 \&gt;\n|+ dofs\l|+ set_dof_index()\l+ get_dof_index()\l+ n_active_fe_indices()\l+ fe_index_is_active()\l+ memory_consumption()\l+ serialize()\l}" alt="" coords="260,233,491,399"/>
+</map>

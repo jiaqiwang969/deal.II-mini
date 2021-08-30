@@ -1,0 +1,12 @@
+<map id="BlockSparseMatrixEZ&lt; Number &gt;" name="BlockSparseMatrixEZ&lt; Number &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="385,469,553,825"/>
+<area shape="rect" id="node18" href="$classBlockIndices.html" title="{BlockIndices\n||+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ reinit()\l+ reinit()\l+ push_back()\l+ operator=()\l+ operator=()\l+ operator==()\l+ swap()\l+ memory_consumption()\l+ size()\l+ total_size()\l+ block_size()\l+ to_string()\l+ global_to_local()\l+ local_to_global()\l+ block_start()\l* size()\l* total_size()\l* block_size()\l* to_string()\l* global_to_local()\l* local_to_global()\l* block_start()\l}" alt="" coords="723,903,894,1361"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="5,160,44,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="81,160,161,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="57,5,184,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="221,160,343,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="520,160,636,237"/>
+<area shape="rect" id="node16" href="$classTable.html" title="{Table\&lt; 2, SparseMatrixEZ\l\&lt; Number \&gt; \&gt;\n||}" alt="" coords="524,1086,699,1178"/>
+<area shape="rect" id="node17" href="$classTable.html" title="{Table\&lt; N, T \&gt;\n||}" alt="" coords="577,609,681,686"/>
+<area shape="rect" id="node20" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="807,160,899,237"/>
+</map>

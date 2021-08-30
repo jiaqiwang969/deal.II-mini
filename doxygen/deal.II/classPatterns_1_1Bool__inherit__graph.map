@@ -1,0 +1,4 @@
+<map id="Patterns::Bool" name="Patterns::Bool">
+<area shape="rect" id="node2" href="$classPatterns_1_1Selection.html" title="{Patterns::Selection\n|&#45; sequence\l&#45; description_init\l|+ Selection()\l+ match()\l+ description()\l+ clone()\l+ memory_consumption()\l+ create()\l}" alt="" coords="5,189,176,355"/>
+<area shape="rect" id="node3" href="$classPatterns_1_1PatternBase.html" title="{Patterns::PatternBase\n||+ ~PatternBase()\l+ match()\l+ description()\l+ clone()\l+ memory_consumption()\l}" alt="" coords="5,5,176,141"/>
+</map>

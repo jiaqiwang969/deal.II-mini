@@ -1,0 +1,10 @@
+<map id="Timer" name="Timer">
+<area shape="rect" id="node2" href="$structUtilities_1_1MPI_1_1MinMaxAvg.html" title="{Utilities::MPI::MinMaxAvg\n||}" alt="" coords="21,388,196,465"/>
+<area shape="rect" id="node3" href="$classdouble.html" title="{double\n||}" alt="" coords="5,175,65,252"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="89,175,128,252"/>
+<area shape="rect" id="node5" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; CPUClock \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="699,373,881,480"/>
+<area shape="rect" id="node8" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; clock_type_ \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="723,160,905,267"/>
+<area shape="rect" id="node9" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; wall_clock_type \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="492,373,675,480"/>
+<area shape="rect" id="node10" href="$classbool.html" title="{bool\n||}" alt="" coords="905,388,952,465"/>
+<area shape="rect" id="node11" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="992,388,1084,465"/>
+</map>

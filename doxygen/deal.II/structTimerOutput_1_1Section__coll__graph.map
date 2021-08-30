@@ -1,0 +1,11 @@
+<map id="TimerOutput::Section" name="TimerOutput::Section">
+<area shape="rect" id="node2" href="$classdouble.html" title="{double\n||}" alt="" coords="5,175,65,252"/>
+<area shape="rect" id="node5" href="$structUtilities_1_1MPI_1_1MinMaxAvg.html" title="{Utilities::MPI::MinMaxAvg\n||}" alt="" coords="56,388,231,465"/>
+<area shape="rect" id="node4" href="$classTimer.html" title="{Timer\n||+ Timer()\l+ Timer()\l+ get_last_lap_wall_time_data()\l+ get_accumulated_wall\l_time_data()\l+ print_last_lap_wall\l_time_data()\l+ print_accumulated_wall\l_time_data()\l+ start()\l+ stop()\l+ reset()\l+ restart()\l+ wall_time()\l+ last_wall_time()\l+ cpu_time()\l+ last_cpu_time()\l}" alt="" coords="376,572,583,884"/>
+<area shape="rect" id="node6" href="$classint.html" title="{int\n||}" alt="" coords="107,175,145,252"/>
+<area shape="rect" id="node7" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; CPUClock \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="285,373,468,480"/>
+<area shape="rect" id="node10" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; clock_type_ \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="524,160,707,267"/>
+<area shape="rect" id="node11" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; wall_clock_type \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="492,373,675,480"/>
+<area shape="rect" id="node12" href="$classbool.html" title="{bool\n||}" alt="" coords="699,388,745,465"/>
+<area shape="rect" id="node13" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="785,388,877,465"/>
+</map>

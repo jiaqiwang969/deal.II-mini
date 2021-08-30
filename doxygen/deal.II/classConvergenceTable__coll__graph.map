@@ -1,0 +1,10 @@
+<map id="ConvergenceTable" name="ConvergenceTable">
+<area shape="rect" id="node2" href="$classTableHandler.html" title="{TableHandler\n||+ TableHandler()\l+ declare_column()\l+ add_value()\l+ start_new_row()\l+ set_auto_fill_mode()\l+ add_column_to_supercolumn()\l+ set_column_order()\l+ set_precision()\l+ set_scientific()\l+ set_tex_caption()\land 9 more...\l+ ExcColumnNotExistent()\l+ ExcSuperColumnNotExistent()\l+ ExcColumnOrSuperColumnNot\lExistent()\l+ ExcWrongNumberOfDataEntries()\l+ ExcUndefinedTexFormat()\l# get_selected_columns()\l# n_rows()\l}" alt="" coords="742,999,974,1340"/>
+<area shape="rect" id="node4" href="$structTableHandler_1_1Column.html" title="{TableHandler::Column\n||+ Column()\l+ Column()\l+ pad_column_below()\l+ save()\l+ load()\l+ serialize()\l+ invalidate_cache()\l}" alt="" coords="249,616,403,781"/>
+<area shape="rect" id="node6" href="$structinternal_1_1TableEntry.html" title="{internal::TableEntry\n||+ TableEntry()\l+ TableEntry()\l+ get()\l+ get_numeric_value()\l+ cache_string()\l+ get_cached_string()\l+ get_default_constructed_copy()\l+ save()\l+ load()\l+ serialize()\l}" alt="" coords="142,145,358,355"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="833,5,913,83"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="383,211,499,289"/>
+<area shape="rect" id="node12" title="STL class. " alt="" coords="581,439,703,517"/>
+<area shape="rect" id="node10" href="$classint.html" title="{int\n||}" alt="" coords="324,439,363,517"/>
+<area shape="rect" id="node11" href="$classbool.html" title="{bool\n||}" alt="" coords="500,439,547,517"/>
+</map>

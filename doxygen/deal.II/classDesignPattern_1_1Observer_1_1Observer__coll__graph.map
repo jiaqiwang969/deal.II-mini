@@ -1,0 +1,9 @@
+<map id="DesignPattern::Observer::Observer" name="DesignPattern::Observer::Observer">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Observer_1_1IObserver.html" title="{DesignPattern::Observer\l::IObserver\n||+ ~IObserver()\l+ Update()\l}" alt="" coords="5,145,172,252"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Observer_1_1Subject.html" title="{DesignPattern::Observer\l::Subject\n||+ ~Subject()\l+ Attach()\l+ Detach()\l+ Notify()\l+ CreateMessage()\l+ HowManyObserver()\l+ SomeBusinessLogic()\l}" alt="" coords="316,528,483,708"/>
+<area shape="rect" id="node4" href="$classDesignPattern_1_1Observer_1_1ISubject.html" title="{DesignPattern::Observer\l::ISubject\n||+ ~ISubject()\l+ Attach()\l+ Detach()\l+ Notify()\l}" alt="" coords="316,329,483,465"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="507,359,587,436"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="484,153,611,245"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="196,160,293,237"/>
+<area shape="rect" id="node10" href="$classint.html" title="{int\n||}" alt="" coords="708,579,747,657"/>
+</map>

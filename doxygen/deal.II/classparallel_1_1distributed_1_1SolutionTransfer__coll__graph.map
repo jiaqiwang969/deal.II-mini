@@ -1,0 +1,8 @@
+<map id="parallel::distributed::SolutionTransfer&lt; dim, VectorType, spacedim &gt;" name="parallel::distributed::SolutionTransfer&lt; dim, VectorType, spacedim &gt;">
+<area shape="rect" id="node3" href="$classVectorType.html" title="{VectorType\n||}" alt="" coords="5,375,95,452"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="157,375,273,452"/>
+<area shape="rect" id="node11" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="317,301,463,525"/>
+<area shape="rect" id="node6" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l DoFHandler\&lt; dim, spacedim\l \&gt;, parallel::distributed\l::SolutionTransfer\&lt; dim, VectorType,\l spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="413,632,650,915"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="431,147,511,224"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="408,5,535,97"/>
+</map>

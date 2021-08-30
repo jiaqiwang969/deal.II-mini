@@ -1,0 +1,305 @@
+# This file contains project-specific configurations for the
+# deal.II documentation.
+
+PROJECT_NAME           = "The deal.II Library"
+PROJECT_NUMBER         = "Reference documentation for deal.II version 10.0.0-pre"
+PROJECT_LOGO           = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/images/logo200.png
+OUTPUT_DIRECTORY       = .
+
+# The doxygen documentation says this about the following flag:
+#   If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
+#   4096 sub-directories (in 2 levels) under the output directory of each output
+#   format and will distribute the generated files over these directories.
+#   Enabling this option can be useful when feeding doxygen a huge amount of
+#   source files, where putting all generated files in the same directory would
+#   otherwise cause performance problems for the file system.
+# We set the flag to NO since we occasionally need to reference individual
+# doxygen-generated files from other parts of the documentation and need
+# to have predictable file paths.
+#
+# The same is true for SHORT_NAMES, which compresses file names, and
+# CASE_SENSE_NAMES which allows file names to contain upper case letters.
+CREATE_SUBDIRS         = NO
+SHORT_NAMES            = NO
+CASE_SENSE_NAMES       = YES
+
+
+INLINE_INHERITED_MEMB  = YES
+STRIP_FROM_PATH        = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii
+STRIP_FROM_INC_PATH    = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/include /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/include
+
+FULL_PATH_NAMES        = YES
+JAVADOC_AUTOBRIEF      = NO
+INHERIT_DOCS           = YES
+TAB_SIZE               = 8
+
+BUILTIN_STL_SUPPORT    = YES
+
+
+#---------------------------------------------------------------------------
+# Build related configuration options
+#---------------------------------------------------------------------------
+
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_PACKAGE        = NO
+
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+SORT_MEMBER_DOCS       = NO
+SORT_BRIEF_DOCS        = NO
+SORT_BY_SCOPE_NAME     = NO
+GENERATE_TODOLIST      = YES
+GENERATE_DEPRECATEDLIST= YES
+SHOW_USED_FILES        = YES
+
+#---------------------------------------------------------------------------
+# configuration options related to warning and progress messages
+#---------------------------------------------------------------------------
+
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+
+#---------------------------------------------------------------------------
+# configuration options related to the input files
+#---------------------------------------------------------------------------
+
+INPUT                  =
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = *.templates.h
+EXAMPLE_PATH           = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial \
+                         /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/examples/doxygen
+EXAMPLE_RECURSIVE      = NO
+IMAGE_PATH             =
+INPUT_FILTER           = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/scripts/filter
+FILTER_SOURCE_FILES    = YES
+
+# Have some user defined commands that we can use in the documentation
+# and that expands to specific text. For some more transformations, see
+# the scripts/filter perl script that is run over the header files before
+# doxygen sees it and that can expand more complex expressions.
+ALIASES += dealiiRequiresUpdateFlags{1}="@note For this function to work properly, the underlying FEValues, FEFaceValues, or FESubfaceValues object on which you call it must have computed the information you are requesting. To do so, the <code>\1</code> flag must be an element of the list of UpdateFlags that you passed to the constructor of this object. See @ref UpdateFlags for more information."
+
+ALIASES += dealiiOperationIsMultithreaded="@note If deal.II is configured with threads, this operation will run multi-threaded by splitting the work into smaller chunks (assuming there is enough work to make this worthwhile)."
+
+ALIASES += dealiiExceptionMessage{1}="@note The message that will be printed by this exception reads: <div class='doxygen-generated-exception-message'> \1 </div> "
+
+ALIASES += dealiiWriggersA{2}="@note For a discussion of the background of this function, see P. Wriggers: \"Nonlinear finite element methods\" (2008), and in particular formula (\2) on p. \1 (or thereabouts). "
+
+ALIASES += dealiiHolzapfelA{2}="@note For a discussion of the background of this function, see G. A. Holzapfel: \"Nonlinear solid mechanics. A Continuum Approach for Engineering\" (2007), and in particular formula (\2) on p. \1 (or thereabouts). "
+
+#---------------------------------------------------------------------------
+# configuration options related to source browsing
+#---------------------------------------------------------------------------
+
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+STRIP_CODE_COMMENTS    = YES
+USE_HTAGS              = NO
+VERBATIM_HEADERS       = NO
+
+#---------------------------------------------------------------------------
+# configuration options related to the alphabetical class index
+#---------------------------------------------------------------------------
+
+ALPHABETICAL_INDEX     = YES
+
+#---------------------------------------------------------------------------
+# configuration options related to the HTML output
+#---------------------------------------------------------------------------
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = deal.II
+HTML_FILE_EXTENSION    = .html
+HTML_HEADER            = header.html
+HTML_FOOTER            = footer.html
+USE_MATHJAX            = YES
+MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/
+MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
+HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_SAT    = 200
+HTML_EXTRA_STYLESHEET  = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/stylesheet.css
+LAYOUT_FILE            = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/DoxygenLayout.xml
+
+
+#---------------------------------------------------------------------------
+# configuration options related to the LaTeX output
+#---------------------------------------------------------------------------
+
+# don't generate latex output -- it's simply too big!
+GENERATE_LATEX         = NO
+
+# but set a few flags for when processing formulas embedded
+# in the documentation.
+PAPER_TYPE             = a4
+EXTRA_PACKAGES         = amsmath amsfonts mathtools /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/extra
+LATEX_BATCHMODE        = YES
+
+#---------------------------------------------------------------------------
+# Other output formats
+#---------------------------------------------------------------------------
+
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+GENERATE_AUTOGEN_DEF   = NO
+GENERATE_PERLMOD       = NO
+
+#---------------------------------------------------------------------------
+# Configuration options related to the preprocessor
+#---------------------------------------------------------------------------
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+SEARCH_INCLUDES        = YES
+INCLUDE_PATH           = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/include /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/include  /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/algorithms/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/arborx/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/base/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/distributed/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/dofs/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/fe/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/gmsh/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/grid/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/hp/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/lac/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/matrix_free/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/meshworker/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/multigrid/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/non_matching/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/numerics/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/opencascade/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/particles/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/physics/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/sundials/
+INCLUDE_FILE_PATTERNS  =
+
+# Set a few variables that help us generate documentation for things
+# like the PETSc and Trilinos wrappers, even if they were not
+# configured. We want to do that because we want the documentation to
+# reflect the most complete picture of the library, even if the system
+# on which the documentation was built doesn't actually have all
+# possible dependencies installed.
+#
+# In the case of DEAL_II_NAMESPACE_OPEN/CLOSE, just expand them
+# to nothing so that they don't show up in the documentation
+# at all.
+PREDEFINED             = DOXYGEN=1 \
+                         DEBUG=1 \
+                         DEAL_II_WARNING(x)= \
+                         DEAL_II_USE_MT_POSIX=1 \
+                         DEAL_II_CONSTEXPR=constexpr \
+                         DEAL_II_NAMESPACE_OPEN= \
+                         DEAL_II_NAMESPACE_CLOSE= \
+                         DEAL_II_ENABLE_EXTRA_DIAGNOSTICS= \
+                         DEAL_II_DISABLE_EXTRA_DIAGNOSTICS= \
+                         DEAL_II_DEPRECATED= \
+                         DEAL_II_CUDA_HOST_DEV= \
+                         DEAL_II_ALWAYS_INLINE= \
+                         __device__= \
+                         DEAL_II_WITH_ADOLC=1 \
+                         DEAL_II_ADOLC_WITH_ADVANCED_BRANCHING=1 \
+                         DEAL_II_ADOLC_WITH_ATRIG_ERF=1 \
+                         DEAL_II_ADOLC_WITH_TAPELESS_REFCOUNTING=1 \
+                         DEAL_II_DEPRECATED_EARLY= \
+                         DEAL_II_WITH_ARBORX=1 \
+                         DEAL_II_WITH_ARPACK=1 \
+                         DEAL_II_ARPACK_WITH_PARPACK=1 \
+                         DEAL_II_WITH_ASSIMP=1 \
+                         DEAL_II_WITH_BOOST=1 \
+                         DEAL_II_WITH_TASKFLOW=1 \
+                         DEAL_II_WITH_COMPLEX_VALUES=1 \
+                         DEAL_II_WITH_CUDA=1 \
+                         DEAL_II_COMPILER_CUDA_AWARE=1 \
+                         DEAL_II_WITH_GINKGO=1 \
+                         DEAL_II_WITH_GMSH=1 \
+                         DEAL_II_GMSH_WITH_API=1 \
+                         DEAL_II_WITH_GSL=1 \
+                         DEAL_II_WITH_HDF5=1 \
+                         DEAL_II_WITH_LAPACK=1 \
+                         DEAL_II_LAPACK_WITH_MKL=1 \
+                         DEAL_II_WITH_METIS=1 \
+                         DEAL_II_WITH_MPI=1 \
+                         DEAL_II_MPI_WITH_CUDA_SUPPORT=1 \
+                         DEAL_II_MPI_VERSION_MAJOR=3 \
+                         DEAL_II_MPI_VERSION_MINOR=0 \
+                         DEAL_II_WITH_MUPARSER=1 \
+                         DEAL_II_WITH_OPENCASCADE=1 \
+                         DEAL_II_WITH_P4EST=1 \
+                         DEAL_II_P4EST_VERSION_MAJOR=2 \
+                         DEAL_II_P4EST_VERSION_MINOR=0 \
+                         DEAL_II_P4EST_VERSION_SUBMINOR=0 \
+                         DEAL_II_P4EST_VERSION_PATCH=0 \
+                         DEAL_II_P4EST_VERSION_GTE=1 \
+                         DEAL_II_WITH_PETSC=1 \
+                         DEAL_II_PETSC_WITH_COMPLEX=1 \
+                         DEAL_II_PETSC_WITH_HYPRE=1 \
+                         DEAL_II_PETSC_WITH_MUMPS=1 \
+                         DEAL_II_WITH_SCALAPACK=1 \
+                         DEAL_II_WITH_SLEPC=1 \
+                         DEAL_II_WITH_SUNDIALS=1 \
+                         DEAL_II_SUNDIALS_WITH_IDAS=1 \
+                         DEAL_II_SUNDIALS_VERSION_GTE=1 \
+                         DEAL_II_SUNDIALS_VERSION_LT=0 \
+                         DEAL_II_WITH_SYMENGINE=1 \
+                         DEAL_II_SYMENGINE_WITH_LLVM=1 \
+                         DEAL_II_WITH_TBB=1 \
+                         DEAL_II_WITH_TRILINOS=1 \
+                         DEAL_II_TRILINOS_WITH_EPETRAEXT=1 \
+                         DEAL_II_TRILINOS_WITH_MUELU=1 \
+                         DEAL_II_TRILINOS_WITH_ROL=1 \
+                         DEAL_II_TRILINOS_WITH_SACADO=1 \
+                         DEAL_II_TRILINOS_WITH_TPETRA=1 \
+                         DEAL_II_TRILINOS_WITH_ZOLTAN=1 \
+                         DEAL_II_TRILINOS_VERSION_GTE=1 \
+                         DEAL_II_WITH_UMFPACK=1 \
+                         DEAL_II_WITH_ZLIB=1
+
+# do not expand exception declarations
+EXPAND_AS_DEFINED      = DeclExceptionMsg \
+                         DeclException0 \
+                         DeclException1 \
+                         DeclException2 \
+                         DeclException3 \
+                         DeclException4 \
+                         DeclException5
+SKIP_FUNCTION_MACROS   = YES
+
+#---------------------------------------------------------------------------
+# Configuration::additions related to external references
+#---------------------------------------------------------------------------
+
+GENERATE_TAGFILE       = deal.tag
+ALLEXTERNALS           = NO
+EXTERNAL_GROUPS        = YES
+
+#---------------------------------------------------------------------------
+# Configuration options related to the dot tool
+#---------------------------------------------------------------------------
+
+CLASS_DIAGRAMS         = YES
+HIDE_UNDOC_RELATIONS   = NO
+HAVE_DOT               = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+TEMPLATE_RELATIONS     = YES  #
+GROUP_GRAPHS           = YES
+UML_LOOK               = YES
+DOT_UML_DETAILS        = YES
+TEMPLATE_RELATIONS     = YES
+INCLUDE_GRAPH          = NO
+INCLUDED_BY_GRAPH      = NO
+CALL_GRAPH             = NO #
+CALLER_GRAPH           = NO #
+GRAPHICAL_HIERARCHY    = NO
+DIRECTORY_GRAPH        = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+MAX_DOT_GRAPH_DEPTH    = 5
+DOT_TRANSPARENT        = NO
+GENERATE_LEGEND        = YES
+
+DOT_CLEANUP            = YES
+
+#---------------------------------------------------------------------------
+# Configuration::additions related to the search engine
+#---------------------------------------------------------------------------
+
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+
+#---------------------------------------------------------------------------
+# Configuration options related to bibtex citations
+#---------------------------------------------------------------------------
+
+CITE_BIB_FILES         = /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/references.bib
+
+  INPUT=/home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/headers/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/include/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/source/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/include/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/1.0.0-vs-2.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/2.0.0-vs-3.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.0.0-vs-3.0.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.0.0-vs-3.1.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.1.0-vs-3.1.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.1.0-vs-3.2.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.1.1-vs-3.1.2.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.2.0-vs-3.2.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.2.0-vs-3.3.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.3.0-vs-3.3.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.3.0-vs-3.4.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/3.4.0-vs-4.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/4.0.0-vs-5.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/5.0.0-vs-5.1.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/5.1.0-vs-5.2.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/5.2.0-vs-6.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/6.0.0-vs-6.1.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/6.1.0-vs-6.2.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/6.2.0-vs-6.2.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/6.2.0-vs-6.3.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/6.3.0-vs-6.3.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/6.3.0-vs-7.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/7.0.0-vs-7.1.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/7.1.0-vs-7.2.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/7.2.0-vs-7.3.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/7.3.0-vs-8.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.0.0-vs-8.1.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.1.0-vs-8.2.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.2.0-vs-8.2.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.2.1-vs-8.3.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.3.0-vs-8.4.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.4.0-vs-8.4.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.4.1-vs-8.4.2.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.4.2-vs-8.5.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/8.5.0-vs-9.0.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/9.0.0-vs-9.0.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/9.0.1-vs-9.1.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/9.1.0-vs-9.1.1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/9.1.1-vs-9.2.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/9.2.0-vs-9.3.0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/news/ /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/tutorial.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-0.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-0a.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-1.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-10.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-11.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-12.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-12b.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-13.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-14.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-15.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-16.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-16b.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-17.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-18.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-19.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-2.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-20.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-21.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-22.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-23.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-24.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-25.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-26.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-27.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-28.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-29.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-3.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-30.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-31.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-32.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-33.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-34.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-35.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-36.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-37.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-38.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-39.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-4.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-40.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-41.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-42.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-43.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-44.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-45.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-46.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-47.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-48.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-49.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-5.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-50.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-51.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-52.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-53.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-54.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-55.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-56.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-57.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-58.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-59.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-6.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-60.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-61.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-62.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-63.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-64.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-65.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-66.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-67.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-68.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-69.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-7.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-70.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-71.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-72.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-74.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-75.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-76.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-77.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-78.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-79.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-8.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/tutorial/step-9.h /home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/code-gallery/code-gallery.h
+  IMAGE_PATH=/home/wjq/actions-runner/_work/deal.II-mini/deal.II-mini/dealii/doc/doxygen/images
+  

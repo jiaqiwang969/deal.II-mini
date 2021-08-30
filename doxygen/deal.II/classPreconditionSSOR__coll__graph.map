@@ -1,0 +1,12 @@
+<map id="PreconditionSSOR&lt; MatrixType &gt;" name="PreconditionSSOR&lt; MatrixType &gt;">
+<area shape="rect" id="node2" href="$classPreconditionRelaxation.html" title="{PreconditionRelaxation\l\&lt; MatrixType \&gt;\n||+ initialize()\l+ clear()\l+ m()\l+ n()\l}" alt="" coords="600,1049,756,1185"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="275,631,443,987"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="769,160,808,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="950,160,1030,237"/>
+<area shape="rect" id="node18" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l MatrixType, PreconditionRelaxation\l\&lt; MatrixType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="915,682,1148,935"/>
+<area shape="rect" id="node21" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="791,315,938,539"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="927,5,1053,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="569,160,691,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="428,160,544,237"/>
+<area shape="rect" id="node17" href="$classdouble.html" title="{double\n||}" alt="" coords="648,770,708,847"/>
+</map>

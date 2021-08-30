@@ -1,0 +1,10 @@
+<map id="BlockInfo" name="BlockInfo">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="435,469,603,825"/>
+<area shape="rect" id="node17" href="$classBlockIndices.html" title="{BlockIndices\n||+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ reinit()\l+ reinit()\l+ push_back()\l+ operator=()\l+ operator=()\l+ operator==()\l+ swap()\l+ memory_consumption()\l+ size()\l+ total_size()\l+ block_size()\l+ to_string()\l+ global_to_local()\l+ local_to_global()\l+ block_start()\l* size()\l* total_size()\l* block_size()\l* to_string()\l* global_to_local()\l* local_to_global()\l* block_start()\l}" alt="" coords="791,888,961,1347"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="11,160,50,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="87,160,167,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="63,5,190,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="233,160,356,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="626,160,742,237"/>
+<area shape="rect" id="node19" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="930,322,1022,399"/>
+</map>

@@ -1,0 +1,3 @@
+<map id="ConvergenceTable" name="ConvergenceTable">
+<area shape="rect" id="node2" href="$classTableHandler.html" title="{TableHandler\n|# column_order\l# columns\l# supercolumns\l# tex_supercaptions\l# tex_table_caption\l# tex_table_label\l# auto_fill_mode\l|+ TableHandler()\l+ declare_column()\l+ add_value()\l+ start_new_row()\l+ set_auto_fill_mode()\l+ add_column_to_supercolumn()\l+ set_column_order()\l+ set_precision()\l+ set_scientific()\l+ set_tex_caption()\land 9 more...\l+ ExcColumnNotExistent()\l+ ExcSuperColumnNotExistent()\l+ ExcColumnOrSuperColumnNot\lExistent()\l+ ExcWrongNumberOfDataEntries()\l+ ExcUndefinedTexFormat()\l# get_selected_columns()\l# n_rows()\l}" alt="" coords="5,5,237,435"/>
+</map>

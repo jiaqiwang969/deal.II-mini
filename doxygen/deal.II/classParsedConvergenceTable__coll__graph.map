@@ -1,0 +1,14 @@
+<map id="ParsedConvergenceTable" name="ParsedConvergenceTable">
+<area shape="rect" id="node3" href="$classComponentMask.html" title="{ComponentMask\n||+ ComponentMask()\l+ ComponentMask()\l+ ComponentMask()\l+ set()\l+ size()\l+ operator[]()\l+ represents_n_components()\l+ n_selected_components()\l+ first_selected_component()\l+ represents_the_all\l_selected_mask()\land 6 more...\l}" alt="" coords="1652,741,1847,980"/>
+<area shape="rect" id="node5" href="$classbool.html" title="{bool\n||}" alt="" coords="1819,307,1866,385"/>
+<area shape="rect" id="node19" href="$classTableHandler.html" title="{TableHandler\n||+ TableHandler()\l+ declare_column()\l+ add_value()\l+ start_new_row()\l+ set_auto_fill_mode()\l+ add_column_to_supercolumn()\l+ set_column_order()\l+ set_precision()\l+ set_scientific()\l+ set_tex_caption()\land 9 more...\l+ ExcColumnNotExistent()\l+ ExcSuperColumnNotExistent()\l+ ExcColumnOrSuperColumnNot\lExistent()\l+ ExcWrongNumberOfDataEntries()\l+ ExcUndefinedTexFormat()\l# get_selected_columns()\l# n_rows()\l}" alt="" coords="1016,1072,1248,1413"/>
+<area shape="rect" id="node21" href="$structTableHandler_1_1Column.html" title="{TableHandler::Column\n||+ Column()\l+ Column()\l+ pad_column_below()\l+ save()\l+ load()\l+ serialize()\l+ invalidate_cache()\l}" alt="" coords="1533,484,1686,649"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1738,153,1854,230"/>
+<area shape="rect" id="node13" title="STL class. " alt="" coords="873,528,996,605"/>
+<area shape="rect" id="node8" href="$classdouble.html" title="{double\n||}" alt="" coords="1047,1557,1107,1634"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="732,307,812,385"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="709,145,835,237"/>
+<area shape="rect" id="node16" title="STL class. " alt="" coords="1409,528,1508,605"/>
+<area shape="rect" id="node18" href="$classConvergenceTable.html" title="{ConvergenceTable\n||+ ConvergenceTable()\l+ evaluate_convergence\l_rates()\l+ evaluate_convergence\l_rates()\l+ omit_column_from_convergence\l_rate_evaluation()\l+ evaluate_all_convergence\l_rates()\l+ evaluate_all_convergence\l_rates()\l+ ExcRateColumnAlreadyExists()\l}" alt="" coords="1131,1476,1354,1715"/>
+<area shape="rect" id="node23" href="$classint.html" title="{int\n||}" alt="" coords="1754,307,1793,385"/>
+</map>

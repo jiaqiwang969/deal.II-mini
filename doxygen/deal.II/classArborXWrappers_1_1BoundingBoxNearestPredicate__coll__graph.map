@@ -1,0 +1,7 @@
+<map id="ArborXWrappers::BoundingBoxNearestPredicate" name="ArborXWrappers::BoundingBoxNearestPredicate">
+<area shape="rect" id="node2" href="$classArborXWrappers_1_1BoundingBoxPredicate.html" title="{ArborXWrappers::Bounding\lBoxPredicate\n||# BoundingBoxPredicate()\l# size()\l# get()\l}" alt="" coords="262,917,442,1039"/>
+<area shape="rect" id="node4" href="$classBoundingBox.html" title="{BoundingBox\&lt; 3, float \&gt;\n||+ BoundingBox()\l+ BoundingBox()\l+ BoundingBox()\l+ get_boundary_points()\l+ get_boundary_points()\l+ operator==()\l+ operator!=()\l+ get_neighbor_type()\l+ merge_with()\l+ point_inside()\land 13 more...\l}" alt="" coords="189,476,352,700"/>
+<area shape="rect" id="node6" href="$classBoundingBox.html" title="{BoundingBox\&lt; spacedim,\l Number \&gt;\n||+ BoundingBox()\l+ BoundingBox()\l+ BoundingBox()\l+ get_boundary_points()\l+ get_boundary_points()\l+ operator==()\l+ operator!=()\l+ get_neighbor_type()\l+ merge_with()\l+ point_inside()\land 13 more...\l}" alt="" coords="203,175,373,413"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="377,549,493,627"/>
+<area shape="rect" id="node10" href="$classint.html" title="{int\n||}" alt="" coords="466,939,505,1017"/>
+</map>

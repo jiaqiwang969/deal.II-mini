@@ -1,0 +1,12 @@
+<map id="SolverQMRS&lt; VectorType &gt;" name="SolverQMRS&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classSolverBase.html" title="{SolverBase\&lt; VectorType \&gt;\n||+ SolverBase()\l+ SolverBase()\l+ connect()\l}" alt="" coords="892,903,1072,1009"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="478,469,646,825"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="5,160,44,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="69,160,149,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="44,5,171,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="173,160,295,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="323,160,439,237"/>
+<area shape="rect" id="node20" href="$structSolverQMRS_1_1AdditionalData.html" title="{SolverQMRS\&lt; VectorType\l \&gt;::AdditionalData\n||+ AdditionalData()\l}" alt="" coords="1258,910,1437,1002"/>
+<area shape="rect" id="node21" href="$classdouble.html" title="{double\n||}" alt="" coords="1317,609,1377,686"/>
+<area shape="rect" id="node22" href="$classbool.html" title="{bool\n||}" alt="" coords="1491,609,1537,686"/>
+</map>

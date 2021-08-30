@@ -1,0 +1,11 @@
+<map id="SparsityPatternBase" name="SparsityPatternBase">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="560,469,728,825"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="268,160,307,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="669,160,749,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="646,5,772,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="332,160,454,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="490,160,606,237"/>
+<area shape="rect" id="node17" title="STL class. " alt="" coords="64,322,204,399"/>
+<area shape="rect" id="node20" href="$classbool.html" title="{bool\n||}" alt="" coords="752,609,799,686"/>
+<area shape="rect" id="node21" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="823,609,915,686"/>
+</map>

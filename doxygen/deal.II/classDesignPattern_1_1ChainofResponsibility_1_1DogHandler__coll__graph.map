@@ -1,0 +1,4 @@
+<map id="DesignPattern::ChainofResponsibility::DogHandler" name="DesignPattern::ChainofResponsibility::DogHandler">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1ChainofResponsibility_1_1AbstractHandler.html" title="{DesignPattern::ChainofResponsibility\l::AbstractHandler\n||+ AbstractHandler()\l+ SetNext()\l+ Handle()\l}" alt="" coords="5,175,245,296"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1ChainofResponsibility_1_1Handler.html" title="{DesignPattern::ChainofResponsibility\l::Handler\n||+ SetNext()\l+ Handle()\l}" alt="" coords="5,5,245,112"/>
+</map>

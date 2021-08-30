@@ -1,0 +1,10 @@
+<map id="PreconditionSelector&lt; MatrixType, VectorType &gt;" name="PreconditionSelector&lt; MatrixType, VectorType &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="844,631,1012,987"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="879,160,918,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="555,160,635,237"/>
+<area shape="rect" id="node16" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l MatrixType, PreconditionSelector\l\&lt; MatrixType, VectorType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="359,682,577,935"/>
+<area shape="rect" id="node19" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="5,315,152,539"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="531,5,658,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="679,160,801,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="1085,160,1201,237"/>
+</map>

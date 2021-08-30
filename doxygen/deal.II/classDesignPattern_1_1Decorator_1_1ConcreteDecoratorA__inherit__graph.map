@@ -1,0 +1,4 @@
+<map id="DesignPattern::Decorator::ConcreteDecoratorA" name="DesignPattern::Decorator::ConcreteDecoratorA">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Decorator_1_1Decorator.html" title="{DesignPattern::Decorator\l::Decorator\n|# component_\l|+ Decorator()\l+ Operation()\l}" alt="" coords="5,160,176,267"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Decorator_1_1Component.html" title="{DesignPattern::Decorator\l::Component\n||+ ~Component()\l+ Operation()\l}" alt="" coords="5,5,176,112"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="DynamicSparsityPatternIterators::Iterator" name="DynamicSparsityPatternIterators::Iterator">
+<area shape="rect" id="node2" href="$classDynamicSparsityPatternIterators_1_1Accessor.html" title="{DynamicSparsityPatternIterators\l::Accessor\n||+ Accessor()\l+ Accessor()\l+ Accessor()\l+ row()\l+ index()\l+ column()\l+ operator==()\l+ operator\&lt;()\l# DeclExceptionMsg()\l# advance()\l}" alt="" coords="1109,1703,1321,1927"/>
+<area shape="rect" id="node3" href="$classDynamicSparsityPattern.html" title="{DynamicSparsityPattern\n||+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ operator=()\l+ reinit()\l+ compress()\l+ empty()\l+ max_entries_per_row()\land 21 more...\l+ begin()\l+ end()\l+ begin()\l+ end()\l+ stores_only_added_elements()\l* begin()\l* end()\l* begin()\l* end()\l}" alt="" coords="1109,1284,1320,1640"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="284,403,452,759"/>
+<area shape="rect" id="node6" href="$classint.html" title="{int\n||}" alt="" coords="467,5,506,83"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="156,5,236,83"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="260,5,383,83"/>
+<area shape="rect" id="node13" title="STL class. " alt="" coords="911,5,1027,83"/>
+<area shape="rect" id="node15" href="$classbool.html" title="{bool\n||}" alt="" coords="1277,542,1323,619"/>
+<area shape="rect" id="node17" href="$classIndexSet.html" title="{IndexSet\n||+ IndexSet()\l+ IndexSet()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ clear()\l+ set_size()\l+ size()\land 35 more...\l+ begin()\l+ at()\l+ end()\l+ begin_intervals()\l+ end_intervals()\l+ ExcIndexNotPresent()\l&#45; do_compress()\l* begin()\l* at()\l* end()\l* begin_intervals()\l* end_intervals()\l}" alt="" coords="1383,821,1545,1221"/>
+<area shape="rect" id="node16" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="1379,5,1471,83"/>
+<area shape="rect" id="node21" href="$structIndexSet_1_1Range.html" title="{IndexSet::Range\n||+ Range()\l+ Range()\l+ serialize()\l+ end_compare()\l+ nth_index_compare()\l+ memory_consumption()\l}" alt="" coords="1340,175,1511,325"/>
+<area shape="rect" id="node18" href="$classThreads_1_1Mutex.html" title="{Threads::Mutex\n||+ Mutex()\l+ Mutex()\l+ operator=()\l}" alt="" coords="1519,527,1633,634"/>
+<area shape="rect" id="node23" href="$structDynamicSparsityPattern_1_1Line.html" title="{DynamicSparsityPattern\l::Line\n||+ add()\l+ add_entries()\l+ memory_consumption()\l}" alt="" coords="869,520,1040,641"/>
+</map>

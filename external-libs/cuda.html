@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>The deal.II Readme on interfacing to CUDA</title>
+    <link href="../screen.css" rel="StyleSheet">
+    <meta name="copyright" content="Copyright (C) 2017 - 2020 by the deal.II authors">
+    <meta name="keywords" content="deal.II">
+  </head>
+
+  <body>
+
+    <h1>Installing deal.II with CUDA</h1>
+
+    <p>
+      To compile and run CUDA code, you need a CUDA-enabled GPU, appropriate
+      drivers, the CUDA toolkit, and the nvcc compiler. Unlike other libraries,
+      you need special hardware and compiler to enable CUDA. Because the
+      hardware is always evolving, older GPUs do not support all the
+      capabilities of newer ones. In order to use CUDA with deal.II, you will
+      need your GPU to have compute capability 3.5 or higher. Independently
+      from the GPU itself, you also need a version of CUDA recent enough.
+      deal.II supports CUDA 10.2 and higher. Finally to be able to configure
+      deal.II, you will need CMake 3.9 or higher.
+    </p>
+
+    <p>
+      To configure deal.II with CUDA use the following option:
+      <pre>
+
+        -DDEAL_II_WITH_CUDA=ON
+      </pre>
+      Depending on you system, this may be enough to get CUDA to work. If
+      you are using CUDA 10.2, you will have to make sure that
+      C++17 is disabled.
+      By default, we try to detect the compute capability of your device
+      but you can easily set your own CUDA flags:
+      <pre>
+
+        -DDEAL_II_CUDA_FLAGS="-arch=sm_60"
+      </pre>
+      <code>-DDEAL_II_CUDA_FLAGS_DEBUG</code> and
+      <code>-DDEAL_II_CUDA_FLAGS_RELEASE</code> are also available if you want
+      a finer control on the CUDA flags. The CUDA compiler and the
+      CUDA toolkit root directory can be set using
+      <code>-DDEAL_II_CUDA_COMPILER</code> and
+      <code>-DDEAL_II_CUDA_TOOLKIT_ROOT_DIR</code>.
+      Finally, the CUDA host compiler is the same as the C++ compiler
+      by default, but can be changed using CUDA flags as well.
+    </p>
+
+    <p>
+      Several MPI implementations are able to perform MPI operations with data
+      located in device memory directly without the need to copy to CPU memory
+      explicitly first. This feature is commonly known as "CUDA-aware MPI".
+      In case deal.II is compiled with MPI support and the MPI implementation
+      supports this feature, you can tell deal.II to use it by configuring with
+      <pre>
+
+        -DDEAL_II_WITH_CUDA=ON
+        -DDEAL_II_WITH_MPI=ON
+        -DDEAL_II_MPI_WITH_CUDA_SUPPORT=ON
+      </pre>
+      Note, that there is no check that detects if the MPI implementation
+      really is CUDA-aware. Activating this flag for incompatible MPI libraries
+      will lead to segmentation faults in MPI calls.
+    </p>
+
+    <p>
+      Using CUDA in combination with architecture-specific C++ compiler flags
+      like <code>-march=native</code> is known to be fragile and there might be
+      compatibility issues with other libraries, e.g. using CUDA 10.1 with
+      <code>-DDEAL_II_WITH_TBB=ON</code> and
+      <code>-DDEAL_II_CXX_FLAGS=-march=native</code> results in compile time
+      errors like:
+      <pre>
+
+        /usr/lib/gcc/x86_64-linux-gnu/7/include/avx512fintrin.h(11265): error: identifier "__builtin_ia32_scalefsd_round" is undefined
+        /usr/lib/gcc/x86_64-linux-gnu/7/include/avx512fintrin.h(11274): error: identifier "__builtin_ia32_scalefss_round" is undefined
+      </pre>
+      Since vectorization in VectorizedArray is disabled when compiling with
+      CUDA support anyway, it is recommended to drop the compile flag in that
+      case.
+    </p>
+
+  </body>
+</html>

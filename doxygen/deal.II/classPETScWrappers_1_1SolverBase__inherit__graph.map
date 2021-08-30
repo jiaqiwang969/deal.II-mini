@@ -1,0 +1,15 @@
+<map id="PETScWrappers::SolverBase" name="PETScWrappers::SolverBase">
+<area shape="rect" id="node2" href="$classPETScWrappers_1_1SolverBiCG.html" title="{PETScWrappers::SolverBiCG\n|# additional_data\l|+ SolverBiCG()\l# set_solver_type()\l}" alt="" coords="5,336,203,428"/>
+<area shape="rect" id="node3" href="$classPETScWrappers_1_1SolverBicgstab.html" title="{PETScWrappers::SolverBicgstab\n|# additional_data\l|+ SolverBicgstab()\l# set_solver_type()\l}" alt="" coords="227,336,443,428"/>
+<area shape="rect" id="node4" href="$classPETScWrappers_1_1SolverCG.html" title="{PETScWrappers::SolverCG\n|# additional_data\l|+ SolverCG()\l# set_solver_type()\l}" alt="" coords="467,336,653,428"/>
+<area shape="rect" id="node5" href="$classPETScWrappers_1_1SolverCGS.html" title="{PETScWrappers::SolverCGS\n|# additional_data\l|+ SolverCGS()\l# set_solver_type()\l}" alt="" coords="677,336,872,428"/>
+<area shape="rect" id="node6" href="$classPETScWrappers_1_1SolverChebychev.html" title="{PETScWrappers::SolverChebychev\n|# additional_data\l|+ SolverChebychev()\l# set_solver_type()\l}" alt="" coords="897,336,1127,428"/>
+<area shape="rect" id="node7" href="$classPETScWrappers_1_1SolverCR.html" title="{PETScWrappers::SolverCR\n|# additional_data\l|+ SolverCR()\l# set_solver_type()\l}" alt="" coords="1151,336,1337,428"/>
+<area shape="rect" id="node8" href="$classPETScWrappers_1_1SolverGMRES.html" title="{PETScWrappers::SolverGMRES\n|# additional_data\l|+ SolverGMRES()\l# set_solver_type()\l}" alt="" coords="1361,336,1575,428"/>
+<area shape="rect" id="node9" href="$classPETScWrappers_1_1SolverLSQR.html" title="{PETScWrappers::SolverLSQR\n|# additional_data\l|+ SolverLSQR()\l# set_solver_type()\l}" alt="" coords="1599,336,1801,428"/>
+<area shape="rect" id="node10" href="$classPETScWrappers_1_1SolverPreOnly.html" title="{PETScWrappers::SolverPreOnly\n|# additional_data\l|+ SolverPreOnly()\l# set_solver_type()\l}" alt="" coords="1825,336,2037,428"/>
+<area shape="rect" id="node11" href="$classPETScWrappers_1_1SolverRichardson.html" title="{PETScWrappers::SolverRichardson\n|# additional_data\l|+ SolverRichardson()\l# set_solver_type()\l}" alt="" coords="2061,336,2291,428"/>
+<area shape="rect" id="node12" href="$classPETScWrappers_1_1SolverTCQMR.html" title="{PETScWrappers::SolverTCQMR\n|# additional_data\l|+ SolverTCQMR()\l# set_solver_type()\l}" alt="" coords="2315,336,2530,428"/>
+<area shape="rect" id="node13" href="$classPETScWrappers_1_1SolverTFQMR.html" title="{PETScWrappers::SolverTFQMR\n|# additional_data\l|+ SolverTFQMR()\l# set_solver_type()\l}" alt="" coords="2554,336,2766,428"/>
+<area shape="rect" id="node14" href="$classPETScWrappers_1_1SparseDirectMUMPS.html" title="{PETScWrappers::SparseDirect\lMUMPS\n|# additional_data\l&#45; solver_data\l&#45; symmetric_mode\l|+ SparseDirectMUMPS()\l+ solve()\l+ set_symmetric_mode()\l# set_solver_type()\l&#45; convergence_test()\l}" alt="" coords="2790,292,2994,472"/>
+</map>

@@ -1,0 +1,2 @@
+<map id="internal::SD::GeneralProductTypeImpl&lt; T, Differentiation::SD::Expression, typename std::enable_if&lt; boost::is_complex&lt; T &gt;::value &amp;&amp;std::is_arithmetic&lt; typename T::value_type &gt;::value &gt;::type &gt;" name="internal::SD::GeneralProductTypeImpl&lt; T, Differentiation::SD::Expression, typename std::enable_if&lt; boost::is_complex&lt; T &gt;::value &amp;&amp;std::is_arithmetic&lt; typename T::value_type &gt;::value &gt;::type &gt;">
+</map>

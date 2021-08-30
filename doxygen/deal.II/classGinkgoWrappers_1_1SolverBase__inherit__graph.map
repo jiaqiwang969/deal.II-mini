@@ -1,0 +1,8 @@
+<map id="GinkgoWrappers::SolverBase&lt; ValueType, IndexType &gt;" name="GinkgoWrappers::SolverBase&lt; ValueType, IndexType &gt;">
+<area shape="rect" id="node2" href="$classGinkgoWrappers_1_1SolverBicgstab.html" title="{GinkgoWrappers::SolverBicgstab\l\&lt; ValueType, IndexType \&gt;\n|# additional_data\l|+ SolverBicgstab()\l+ SolverBicgstab()\l}" alt="" coords="5,145,220,252"/>
+<area shape="rect" id="node3" href="$classGinkgoWrappers_1_1SolverCG.html" title="{GinkgoWrappers::SolverCG\l\&lt; ValueType, IndexType \&gt;\n|# additional_data\l|+ SolverCG()\l+ SolverCG()\l}" alt="" coords="245,145,429,252"/>
+<area shape="rect" id="node4" href="$classGinkgoWrappers_1_1SolverCGS.html" title="{GinkgoWrappers::SolverCGS\l\&lt; ValueType, IndexType \&gt;\n|# additional_data\l|+ SolverCGS()\l+ SolverCGS()\l}" alt="" coords="453,145,647,252"/>
+<area shape="rect" id="node5" href="$classGinkgoWrappers_1_1SolverFCG.html" title="{GinkgoWrappers::SolverFCG\l\&lt; ValueType, IndexType \&gt;\n|# additional_data\l|+ SolverFCG()\l+ SolverFCG()\l}" alt="" coords="671,145,863,252"/>
+<area shape="rect" id="node6" href="$classGinkgoWrappers_1_1SolverGMRES.html" title="{GinkgoWrappers::SolverGMRES\l\&lt; ValueType, IndexType \&gt;\n|# additional_data\l|+ SolverGMRES()\l+ SolverGMRES()\l}" alt="" coords="887,145,1101,252"/>
+<area shape="rect" id="node7" href="$classGinkgoWrappers_1_1SolverIR.html" title="{GinkgoWrappers::SolverIR\l\&lt; ValueType, IndexType \&gt;\n|# additional_data\l|+ SolverIR()\l+ SolverIR()\l}" alt="" coords="1125,145,1303,252"/>
+</map>

@@ -1,0 +1,3 @@
+<map id="internal::TriangulationImplementation::PolicyWrapper&lt; dim, spacedim, T &gt;" name="internal::TriangulationImplementation::PolicyWrapper&lt; dim, spacedim, T &gt;">
+<area shape="rect" id="node2" href="$classinternal_1_1TriangulationImplementation_1_1Policy.html" title="{internal::TriangulationImplementation\l::Policy\&lt; dim, spacedim \&gt;\n||+ ~Policy()\l+ update_neighbors()\l+ delete_children()\l+ execute_refinement()\l+ prevent_distorted_boundary\l_cells()\l+ prepare_refinement\l_dim_dependent()\l+ coarsening_allowed()\l+ clone()\l}" alt="" coords="8,5,243,229"/>
+</map>

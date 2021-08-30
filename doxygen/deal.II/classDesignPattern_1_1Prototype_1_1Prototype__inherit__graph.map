@@ -1,0 +1,4 @@
+<map id="DesignPattern::Prototype::Prototype" name="DesignPattern::Prototype::Prototype">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Prototype_1_1ConcretePrototype1.html" title="{DesignPattern::Prototype\l::ConcretePrototype1\n|&#45; concrete_prototype\l_field1_\l|+ ConcretePrototype1()\l+ Clone()\l}" alt="" coords="5,219,175,340"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Prototype_1_1ConcretePrototype2.html" title="{DesignPattern::Prototype\l::ConcretePrototype2\n|&#45; concrete_prototype\l_field2_\l|+ ConcretePrototype2()\l+ Clone()\l}" alt="" coords="199,219,368,340"/>
+</map>

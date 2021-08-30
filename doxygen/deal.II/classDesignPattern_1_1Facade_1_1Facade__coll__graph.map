@@ -1,0 +1,4 @@
+<map id="DesignPattern::Facade::Facade" name="DesignPattern::Facade::Facade">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Facade_1_1Subsystem1.html" title="{DesignPattern::Facade\l::Subsystem1\n||+ Operation1()\l+ OperationN()\l}" alt="" coords="5,5,161,112"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Facade_1_1Subsystem2.html" title="{DesignPattern::Facade\l::Subsystem2\n||+ Operation1()\l+ OperationZ()\l}" alt="" coords="185,5,341,112"/>
+</map>

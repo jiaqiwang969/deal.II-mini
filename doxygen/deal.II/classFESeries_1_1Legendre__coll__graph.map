@@ -1,0 +1,12 @@
+<map id="FESeries::Legendre&lt; dim, spacedim &gt;" name="FESeries::Legendre&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="370,616,538,972"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="92,160,131,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="742,160,822,237"/>
+<area shape="rect" id="node17" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l hp::FECollection\&lt; dim,\l spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="863,667,1023,921"/>
+<area shape="rect" id="node20" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="831,315,978,539"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="715,5,841,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="373,160,495,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="1348,160,1464,237"/>
+<area shape="rect" id="node23" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="1667,160,1759,237"/>
+<area shape="rect" id="node25" href="$classdouble.html" title="{double\n||}" alt="" coords="1183,160,1243,237"/>
+</map>

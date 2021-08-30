@@ -1,0 +1,6 @@
+<map id="WorkStream::internal::tbb_colored::WorkerAndCopier&lt; Iterator, ScratchData, CopyData &gt;" name="WorkStream::internal::tbb_colored::WorkerAndCopier&lt; Iterator, ScratchData, CopyData &gt;">
+<area shape="rect" id="node4" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; ScratchAndCopyDataList \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator ScratchAndCopyData\lList &amp;()\l+ clear()\l}" alt="" coords="329,771,541,1053"/>
+<area shape="rect" id="node13" href="$classThreads_1_1ThreadLocalStorage.html" title="A class that provides a separate storage location on each thread ，访问该对象。 这个类提供的方式是，�¯..." alt="" coords="223,455,449,708"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="639,145,737,223"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="397,145,520,223"/>
+</map>

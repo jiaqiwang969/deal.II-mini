@@ -1,0 +1,12 @@
+<map id="SLEPcWrappers::SolverBase" name="SLEPcWrappers::SolverBase">
+<area shape="rect" id="node4" href="$classSolverControl.html" title="{SolverControl\n||+ SolverControl()\l+ ~SolverControl()\l+ parse_parameters()\l+ check()\l+ last_check()\l+ initial_value()\l+ last_value()\l+ last_step()\l+ max_steps()\l+ set_max_steps()\land 15 more...\l+ declare_parameters()\l}" alt="" coords="750,932,906,1171"/>
+<area shape="rect" id="node5" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="339,469,507,825"/>
+<area shape="rect" id="node7" href="$classint.html" title="{int\n||}" alt="" coords="11,160,50,237"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="87,160,167,237"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="63,5,190,97"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="213,160,336,237"/>
+<area shape="rect" id="node17" title="STL class. " alt="" coords="542,160,658,237"/>
+<area shape="rect" id="node19" href="$classdouble.html" title="{double\n||}" alt="" coords="870,322,930,399"/>
+<area shape="rect" id="node20" href="$classbool.html" title="{bool\n||}" alt="" coords="805,609,851,686"/>
+<area shape="rect" id="node24" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="930,1013,1022,1090"/>
+</map>

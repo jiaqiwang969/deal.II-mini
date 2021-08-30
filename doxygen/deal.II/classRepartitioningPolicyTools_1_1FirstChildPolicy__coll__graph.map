@@ -1,0 +1,9 @@
+<map id="RepartitioningPolicyTools::FirstChildPolicy&lt; dim, spacedim &gt;" name="RepartitioningPolicyTools::FirstChildPolicy&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classRepartitioningPolicyTools_1_1Base.html" title="{RepartitioningPolicyTools\l::Base\&lt; dim, spacedim \&gt;\n||+ partition()\l}" alt="" coords="5,726,176,818"/>
+<area shape="rect" id="node3" href="$classIndexSet.html" title="{IndexSet\n||+ IndexSet()\l+ IndexSet()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ clear()\l+ set_size()\l+ size()\land 35 more...\l+ begin()\l+ at()\l+ end()\l+ begin_intervals()\l+ end_intervals()\l+ ExcIndexNotPresent()\l&#45; do_compress()\l* begin()\l* at()\l* end()\l* begin_intervals()\l* end_intervals()\l}" alt="" coords="200,572,363,972"/>
+<area shape="rect" id="node4" href="$classbool.html" title="{bool\n||}" alt="" coords="66,417,113,495"/>
+<area shape="rect" id="node5" href="$classThreads_1_1Mutex.html" title="{Threads::Mutex\n||+ Mutex()\l+ Mutex()\l+ operator=()\l}" alt="" coords="161,403,274,509"/>
+<area shape="rect" id="node7" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="331,5,423,83"/>
+<area shape="rect" id="node9" href="$structIndexSet_1_1Range.html" title="{IndexSet::Range\n||+ Range()\l+ Range()\l+ serialize()\l+ end_compare()\l+ nth_index_compare()\l+ memory_consumption()\l}" alt="" coords="384,175,555,325"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="579,211,695,289"/>
+</map>

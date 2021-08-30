@@ -1,0 +1,4 @@
+<map id="DesignPattern::AbstractFactory::AbstractProductB" name="DesignPattern::AbstractFactory::AbstractProductB">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1AbstractFactory_1_1ConcreteProductB1.html" title="{DesignPattern::AbstractFactory\l::ConcreteProductB1\n||+ UsefulFunctionB()\l+ AnotherUsefulFunctionB()\l}" alt="" coords="5,175,212,281"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1AbstractFactory_1_1ConcreteProductB2.html" title="{DesignPattern::AbstractFactory\l::ConcreteProductB2\n||+ UsefulFunctionB()\l+ AnotherUsefulFunctionB()\l}" alt="" coords="236,175,443,281"/>
+</map>

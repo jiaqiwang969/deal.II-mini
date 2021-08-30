@@ -1,0 +1,4 @@
+<map id="mystl::iterator_traits_impl&lt; Iterator, bool &gt;" name="mystl::iterator_traits_impl&lt; Iterator, bool &gt;">
+<area shape="rect" id="node2" href="$structmystl_1_1iterator__traits__impl.html" title="{mystl::iterator_traits\l_impl\&lt; Iterator, std::\lis_convertible\&lt; Iterator\l::iterator_category, input\l_iterator_tag \&gt;::value\|\|std\l::is_convertible\&lt; Iterator::\literator_category, output_iterator\l_tag \&gt;::value \&gt;\n||}" alt="" coords="5,248,216,428"/>
+<area shape="rect" id="node3" href="$structmystl_1_1iterator__traits__helper_3_01Iterator_00_01true_01_4.html" title="{mystl::iterator_traits\l_helper\&lt; Iterator, true \&gt;\n||}" alt="" coords="31,477,190,569"/>
+</map>

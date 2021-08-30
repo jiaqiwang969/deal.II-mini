@@ -1,0 +1,4 @@
+<map id="DesignPattern::FactoryMethod::Product" name="DesignPattern::FactoryMethod::Product">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1FactoryMethod_1_1ConcreteProduct1.html" title="{DesignPattern::FactoryMethod\l::ConcreteProduct1\n||+ Operation()\l}" alt="" coords="5,160,205,252"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1FactoryMethod_1_1ConcreteProduct2.html" title="{DesignPattern::FactoryMethod\l::ConcreteProduct2\n||+ Operation()\l}" alt="" coords="229,160,429,252"/>
+</map>

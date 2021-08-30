@@ -1,0 +1,10 @@
+<map id="ParameterHandler" name="ParameterHandler">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1215,528,1383,884"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="1505,189,1543,267"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="1400,189,1480,267"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1377,5,1503,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1631,189,1753,267"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="781,189,897,267"/>
+<area shape="rect" id="node19" title="STL class. " alt="" coords="183,189,323,267"/>
+<area shape="rect" id="node18" href="$classPatterns_1_1PatternBase.html" title="{Patterns::PatternBase\n||+ ~PatternBase()\l+ match()\l+ description()\l+ clone()\l+ memory_consumption()\l}" alt="" coords="349,160,520,296"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="RepartitioningPolicyTools::Base&lt; dim, spacedim &gt;" name="RepartitioningPolicyTools::Base&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classRepartitioningPolicyTools_1_1DefaultPolicy.html" title="{RepartitioningPolicyTools\l::DefaultPolicy\&lt; dim, spacedim \&gt;\n||+ partition()\l}" alt="" coords="5,175,223,267"/>
+<area shape="rect" id="node3" href="$classRepartitioningPolicyTools_1_1FirstChildPolicy.html" title="{RepartitioningPolicyTools\l::FirstChildPolicy\&lt; dim,\l spacedim \&gt;\n|&#45; n_coarse_cells\l&#45; n_global_levels\l&#45; is_level_partitions\l|+ FirstChildPolicy()\l+ partition()\l}" alt="" coords="247,145,418,296"/>
+<area shape="rect" id="node4" href="$classRepartitioningPolicyTools_1_1MinimalGranularityPolicy.html" title="{RepartitioningPolicyTools\l::MinimalGranularityPolicy\l\&lt; dim, spacedim \&gt;\n|&#45; n_min_cells\l|+ MinimalGranularityPolicy()\l+ partition()\l}" alt="" coords="442,160,629,281"/>
+</map>

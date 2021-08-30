@@ -1,0 +1,11 @@
+<map id="hp::FECollection&lt; dim, spacedim &gt;" name="hp::FECollection&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classhp_1_1Collection.html" title="{hp::Collection\&lt; FiniteElement\l\&lt; dim, spacedim \&gt; \&gt;\n||+ Collection()\l+ push_back()\l+ operator[]()\l+ size()\l+ memory_consumption()\l}" alt="" coords="588,1145,783,1296"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="364,513,532,869"/>
+<area shape="rect" id="node19" href="$classhp_1_1Collection.html" title="{hp::Collection\&lt; T \&gt;\n||+ Collection()\l+ push_back()\l+ operator[]()\l+ size()\l+ memory_consumption()\l}" alt="" coords="600,932,771,1068"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="46,167,85,245"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="116,167,196,245"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="93,5,219,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="220,167,343,245"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="743,167,859,245"/>
+<area shape="rect" id="node18" href="$classstd_1_1shared__ptr_3_01const_01FiniteElement_3_01dim_00_01spacedim_01_4_01_4.html" title="{shared_ptr\&lt; const Finite\lElement\&lt; dim, spacedim \&gt; \&gt;\n||}" alt="" coords="1047,160,1238,252"/>
+</map>

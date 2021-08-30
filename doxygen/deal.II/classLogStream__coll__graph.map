@@ -1,0 +1,17 @@
+<map id="LogStream" name="LogStream">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="304,499,472,855"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="447,160,486,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="629,160,709,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="606,5,733,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1091,160,1213,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="281,160,397,237"/>
+<area shape="rect" id="node20" title="STL class. " alt="" coords="840,160,952,237"/>
+<area shape="rect" id="node17" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; std::stack\&lt; std::string \&gt; \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator std::stack\l\&lt; std::string \&gt; &amp;()\l+ clear()\l}" alt="" coords="1330,939,1523,1222"/>
+<area shape="rect" id="node23" href="$classThreads_1_1ThreadLocalStorage.html" title="A class that provides a separate storage location on each thread ，访问该对象。 这个类提供的方式是，�¯..." alt="" coords="1314,550,1539,803"/>
+<area shape="rect" id="node26" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; std::shared_ptr\&lt; std::\lostringstream \&gt; \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator std::shared\l_ptr\&lt; std::ostringstream \&gt; &amp;()\l+ clear()\l}" alt="" coords="1895,932,2089,1229"/>
+<area shape="rect" id="node30" href="$classbool.html" title="{bool\n||}" alt="" coords="2261,1042,2307,1119"/>
+<area shape="rect" id="node32" title="STL class. " alt="" coords="2449,1042,2543,1119"/>
+<area shape="rect" id="node33" title="STL class. " alt="" coords="2429,631,2563,723"/>
+<area shape="rect" id="node34" title="STL class. " alt="" coords="2419,344,2573,421"/>
+<area shape="rect" id="node35" title="STL class. " alt="" coords="2446,160,2546,237"/>
+</map>

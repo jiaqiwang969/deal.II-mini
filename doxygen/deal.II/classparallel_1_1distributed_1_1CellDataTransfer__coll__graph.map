@@ -1,0 +1,9 @@
+<map id="parallel::distributed::CellDataTransfer&lt; dim, spacedim, VectorType &gt;" name="parallel::distributed::CellDataTransfer&lt; dim, spacedim, VectorType &gt;">
+<area shape="rect" id="node3" href="$classVectorType.html" title="{VectorType\n||}" alt="" coords="21,375,110,452"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="134,375,250,452"/>
+<area shape="rect" id="node13" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="613,301,760,525"/>
+<area shape="rect" id="node7" href="$classbool.html" title="{bool\n||}" alt="" coords="383,742,430,819"/>
+<area shape="rect" id="node8" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l parallel::distributed\l::Triangulation\&lt; dim,\l spacedim \&gt;, parallel::\ldistributed::CellDataTransfer\l\&lt; dim, spacedim, VectorType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="455,632,673,929"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="749,147,829,224"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="726,5,853,97"/>
+</map>

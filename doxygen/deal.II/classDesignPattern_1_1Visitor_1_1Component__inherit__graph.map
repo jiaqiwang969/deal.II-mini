@@ -1,0 +1,4 @@
+<map id="DesignPattern::Visitor::Component" name="DesignPattern::Visitor::Component">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Visitor_1_1ConcreteComponentA.html" title="{DesignPattern::Visitor\l::ConcreteComponentA\n||+ Accept()\l+ ExclusiveMethodOfConcrete\lComponentA()\l}" alt="" coords="5,160,207,281"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Visitor_1_1ConcreteComponentB.html" title="{DesignPattern::Visitor\l::ConcreteComponentB\n||+ Accept()\l+ SpecialMethodOfConcreteComponentB()\l}" alt="" coords="231,167,501,274"/>
+</map>

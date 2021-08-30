@@ -1,0 +1,4 @@
+<map id="BoundingBox&lt; spacedim, Number &gt;" name="BoundingBox&lt; spacedim, Number &gt;">
+<area shape="rect" id="node2" href="$classBoundingBox.html" title="{BoundingBox\&lt; boost\l::geometry::dimension\l\&lt; Box \&gt;::value \&gt;\n|&#45; boundary_points\l|+ BoundingBox()\l+ BoundingBox()\l+ BoundingBox()\l+ get_boundary_points()\l+ get_boundary_points()\l+ operator==()\l+ operator!=()\l+ get_neighbor_type()\l+ merge_with()\l+ point_inside()\land 13 more...\l}" alt="" coords="5,321,168,575"/>
+<area shape="rect" id="node3" href="$classBoundingBox.html" title="{BoundingBox\&lt; 3, float \&gt;\n|&#45; boundary_points\l|+ BoundingBox()\l+ BoundingBox()\l+ BoundingBox()\l+ get_boundary_points()\l+ get_boundary_points()\l+ operator==()\l+ operator!=()\l+ get_neighbor_type()\l+ merge_with()\l+ point_inside()\land 13 more...\l}" alt="" coords="193,336,356,560"/>
+</map>

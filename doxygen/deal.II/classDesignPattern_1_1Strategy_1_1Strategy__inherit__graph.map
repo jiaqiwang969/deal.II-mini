@@ -1,0 +1,4 @@
+<map id="DesignPattern::Strategy::Strategy" name="DesignPattern::Strategy::Strategy">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Strategy_1_1ConcreteStrategyA.html" title="{DesignPattern::Strategy\l::ConcreteStrategyA\n||+ DoAlgorithm()\l}" alt="" coords="5,160,168,252"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Strategy_1_1ConcreteStrategyB.html" title="{DesignPattern::Strategy\l::ConcreteStrategyB\n||&#45; DoAlgorithm()\l}" alt="" coords="192,160,355,252"/>
+</map>

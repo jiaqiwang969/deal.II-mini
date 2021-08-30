@@ -1,0 +1,15 @@
+<map id="DynamicSparsityPatternIterators::Accessor" name="DynamicSparsityPatternIterators::Accessor">
+<area shape="rect" id="node2" href="$classDynamicSparsityPattern.html" title="{DynamicSparsityPattern\n||+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ DynamicSparsityPattern()\l+ operator=()\l+ reinit()\l+ compress()\l+ empty()\l+ max_entries_per_row()\land 21 more...\l+ begin()\l+ end()\l+ begin()\l+ end()\l+ stores_only_added_elements()\l* begin()\l* end()\l* begin()\l* end()\l}" alt="" coords="679,1439,889,1795"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1185,557,1353,913"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="1571,160,1610,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1467,160,1547,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1443,5,1570,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="1223,160,1345,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="826,160,942,237"/>
+<area shape="rect" id="node17" href="$classbool.html" title="{bool\n||}" alt="" coords="467,697,514,774"/>
+<area shape="rect" id="node19" href="$classIndexSet.html" title="{IndexSet\n||+ IndexSet()\l+ IndexSet()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ clear()\l+ set_size()\l+ size()\land 35 more...\l+ begin()\l+ at()\l+ end()\l+ begin_intervals()\l+ end_intervals()\l+ ExcIndexNotPresent()\l&#45; do_compress()\l* begin()\l* at()\l* end()\l* begin_intervals()\l* end_intervals()\l}" alt="" coords="213,976,376,1376"/>
+<area shape="rect" id="node18" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="267,160,359,237"/>
+<area shape="rect" id="node23" href="$structIndexSet_1_1Range.html" title="{IndexSet::Range\n||+ Range()\l+ Range()\l+ serialize()\l+ end_compare()\l+ nth_index_compare()\l+ memory_consumption()\l}" alt="" coords="277,329,448,480"/>
+<area shape="rect" id="node20" href="$classThreads_1_1Mutex.html" title="{Threads::Mutex\n||+ Mutex()\l+ Mutex()\l+ operator=()\l}" alt="" coords="59,682,173,789"/>
+<area shape="rect" id="node25" href="$structDynamicSparsityPattern_1_1Line.html" title="{DynamicSparsityPattern\l::Line\n||+ add()\l+ add_entries()\l+ memory_consumption()\l}" alt="" coords="659,675,829,796"/>
+</map>

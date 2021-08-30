@@ -1,0 +1,7 @@
+<map id="internal::DoFHandlerImplementation::Policy::Sequential&lt; dim, spacedim &gt;" name="internal::DoFHandlerImplementation::Policy::Sequential&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classinternal_1_1DoFHandlerImplementation_1_1Policy_1_1PolicyBase.html" title="{internal::DoFHandlerImplementation\l::Policy::PolicyBase\&lt; dim, spacedim \&gt;\n||+ ~PolicyBase()\l+ distribute_dofs()\l+ distribute_mg_dofs()\l+ renumber_dofs()\l+ renumber_mg_dofs()\l}" alt="" coords="5,647,255,797"/>
+<area shape="rect" id="node3" href="$classSmartPointer.html" title="{SmartPointer\&lt; DoFHandler\l\&lt; dim, spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="279,603,459,841"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="382,147,462,224"/>
+<area shape="rect" id="node8" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="246,301,393,525"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="359,5,485,97"/>
+</map>

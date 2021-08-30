@@ -1,0 +1,4 @@
+<map id="DesignPattern::State::ConcreteStateB" name="DesignPattern::State::ConcreteStateB">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1State_1_1State.html" title="{DesignPattern::State\l::State\n||+ ~State()\l+ set_context()\l+ Handle1()\l+ Handle2()\l}" alt="" coords="97,5,241,141"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1State_1_1Context.html" title="{DesignPattern::State\l::Context\n||+ Context()\l+ ~Context()\l+ TransitionTo()\l+ Request1()\l+ Request2()\l}" alt="" coords="173,204,317,355"/>
+</map>

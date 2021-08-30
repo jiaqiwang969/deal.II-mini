@@ -1,0 +1,4 @@
+<map id="TriaAccessor&lt; structdim, dim, spacedim &gt;" name="TriaAccessor&lt; structdim, dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classTriaAccessorBase.html" title="{TriaAccessorBase\&lt; structdim,\l dim, spacedim \&gt;\n||+ operator=()\l+ level()\l+ index()\l+ state()\l+ get_triangulation()\l# TriaAccessorBase()\l# TriaAccessorBase()\l# copy_from()\l# operator=()\l# operator\&lt;()\l# operator==()\l# operator!=()\l# objects()\l# operator++()\l# operator&#45;&#45;()\l* level()\l* index()\l* state()\l* get_triangulation()\l* operator++()\l* operator&#45;&#45;()\l}" alt="" coords="111,189,309,575"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="129,13,168,90"/>
+</map>

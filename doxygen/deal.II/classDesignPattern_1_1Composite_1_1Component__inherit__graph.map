@@ -1,0 +1,4 @@
+<map id="DesignPattern::Composite::Component" name="DesignPattern::Composite::Component">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Composite_1_1Composite.html" title="{DesignPattern::Composite\l::Composite\n|# children_\l|+ Add()\l+ Remove()\l+ IsComposite()\l+ Operation()\l}" alt="" coords="5,233,181,369"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Composite_1_1Leaf.html" title="{DesignPattern::Composite\l::Leaf\n||+ Operation()\l}" alt="" coords="205,255,381,347"/>
+</map>

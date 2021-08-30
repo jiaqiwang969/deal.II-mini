@@ -1,0 +1,6 @@
+<map id="mystl::is_input_iterator&lt; Iter &gt;" name="mystl::is_input_iterator&lt; Iter &gt;">
+<area shape="rect" id="node2" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; Iter, input\l_iterator_tag \&gt;\n||}" alt="" coords="55,620,187,727"/>
+<area shape="rect" id="node3" href="$structmystl_1_1m__integral__constant.html" title="{m_bool_constant\&lt; std\l::is_convertible\&lt; iterator\l_traits\&lt; Iter &#160;\&gt;::iterator\l_category, input_iterator_tag\l &#160;\&gt;::value \&gt;\n||}" alt="" coords="5,291,192,427"/>
+<area shape="rect" id="node6" href="$structmystl_1_1m__integral__constant.html" title="{m_bool_constant\&lt; std\l::is_convertible\&lt; iterator\l_traits\&lt; T \&gt;::iterator_category,\l U \&gt;::value \&gt;\n||}" alt="" coords="125,145,323,267"/>
+<area shape="rect" id="node5" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; T, U, bool \&gt;\n||}" alt="" coords="140,451,287,543"/>
+</map>

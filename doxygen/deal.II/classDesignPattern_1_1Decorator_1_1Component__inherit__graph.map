@@ -1,0 +1,6 @@
+<map id="DesignPattern::Decorator::Component" name="DesignPattern::Decorator::Component">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Decorator_1_1ConcreteComponent.html" title="{DesignPattern::Decorator\l::ConcreteComponent\n||+ Operation()\l}" alt="" coords="5,167,176,259"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Decorator_1_1Decorator.html" title="{DesignPattern::Decorator\l::Decorator\n|# component_\l|+ Decorator()\l+ Operation()\l}" alt="" coords="200,160,371,267"/>
+<area shape="rect" id="node4" href="$classDesignPattern_1_1Decorator_1_1ConcreteDecoratorA.html" title="{DesignPattern::Decorator\l::ConcreteDecoratorA\n||+ ConcreteDecoratorA()\l+ Operation()\l}" alt="" coords="103,315,273,421"/>
+<area shape="rect" id="node5" href="$classDesignPattern_1_1Decorator_1_1ConcreteDecoratorB.html" title="{DesignPattern::Decorator\l::ConcreteDecoratorB\n||+ ConcreteDecoratorB()\l+ Operation()\l}" alt="" coords="297,315,468,421"/>
+</map>

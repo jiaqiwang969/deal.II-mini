@@ -1,0 +1,20 @@
+<map id="TimerOutput::Scope" name="TimerOutput::Scope">
+<area shape="rect" id="node2" href="$classTimerOutput.html" title="{TimerOutput\n||+ TimerOutput()\l+ TimerOutput()\l+ TimerOutput()\l+ TimerOutput()\l+ ~TimerOutput()\l+ enter_subsection()\l+ leave_subsection()\l+ get_summary_data()\l+ print_summary()\l+ print_wall_time_statistics()\l+ disable_output()\l+ enable_output()\l+ reset()\l}" alt="" coords="444,1131,633,1384"/>
+<area shape="rect" id="node3" href="$classConditionalOStream.html" title="{ConditionalOStream\n||+ ConditionalOStream()\l+ set_condition()\l+ is_active()\l+ get_stream()\l+ operator\&lt;\&lt;()\l+ operator\&lt;\&lt;()\l}" alt="" coords="459,917,618,1068"/>
+<area shape="rect" id="node4" href="$classbool.html" title="{bool\n||}" alt="" coords="199,204,246,281"/>
+<area shape="rect" id="node17" href="$classTimer.html" title="{Timer\n||+ Timer()\l+ Timer()\l+ get_last_lap_wall_time_data()\l+ get_accumulated_wall\l_time_data()\l+ print_last_lap_wall\l_time_data()\l+ print_accumulated_wall\l_time_data()\l+ start()\l+ stop()\l+ reset()\l+ restart()\l+ wall_time()\l+ last_wall_time()\l+ cpu_time()\l+ last_cpu_time()\l}" alt="" coords="825,388,1031,700"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="547,763,642,840"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="479,498,612,590"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="417,204,572,281"/>
+<area shape="rect" id="node9" href="$classThreads_1_1Mutex.html" title="{Threads::Mutex\n||+ Mutex()\l+ Mutex()\l+ operator=()\l}" alt="" coords="43,939,157,1046"/>
+<area shape="rect" id="node11" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="301,204,393,281"/>
+<area shape="rect" id="node14" href="$structTimerOutput_1_1Section.html" title="{TimerOutput::Section\n||}" alt="" coords="667,763,813,840"/>
+<area shape="rect" id="node15" href="$classdouble.html" title="{double\n||}" alt="" coords="749,5,809,83"/>
+<area shape="rect" id="node18" href="$structUtilities_1_1MPI_1_1MinMaxAvg.html" title="{Utilities::MPI::MinMaxAvg\n||}" alt="" coords="795,204,970,281"/>
+<area shape="rect" id="node19" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; CPUClock \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="994,189,1177,296"/>
+<area shape="rect" id="node20" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; wall_clock_type \&gt;\n||+ ClockMeasurements()\l+ reset()\l}" alt="" coords="1201,189,1383,296"/>
+<area shape="rect" id="node21" title="STL class. " alt="" coords="1237,763,1317,840"/>
+<area shape="rect" id="node22" title="STL class. " alt="" coords="1214,498,1341,590"/>
+<area shape="rect" id="node23" title="STL class. " alt="" coords="837,763,960,840"/>
+<area shape="rect" id="node27" title="STL class. " alt="" coords="1063,763,1161,840"/>
+</map>

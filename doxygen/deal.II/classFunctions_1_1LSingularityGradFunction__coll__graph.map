@@ -1,0 +1,16 @@
+<map id="Functions::LSingularityGradFunction" name="Functions::LSingularityGradFunction">
+<area shape="rect" id="node2" href="$classFunction.html" title="{Function\&lt; 2 \&gt;\n||+ Function()\l+ Function()\l+ ~Function()\l+ operator=()\l+ value()\l+ vector_value()\l+ value_list()\l+ vector_value_list()\l+ vector_values()\l+ gradient()\land 13 more...\l}" alt="" coords="551,1429,691,1653"/>
+<area shape="rect" id="node3" href="$classFunctionTime.html" title="{FunctionTime\&lt; numbers\l::NumberTraits\&lt; double\l \&gt;::real_type \&gt;\n||+ FunctionTime()\l+ ~FunctionTime()\l+ get_time()\l+ set_time()\l+ advance_time()\l}" alt="" coords="5,533,168,699"/>
+<area shape="rect" id="node24" href="$classFunctionTime.html" title="{FunctionTime\&lt; Number \&gt;\n||+ FunctionTime()\l+ ~FunctionTime()\l+ get_time()\l+ set_time()\l+ advance_time()\l}" alt="" coords="119,373,289,509"/>
+<area shape="rect" id="node5" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="919,723,1087,1079"/>
+<area shape="rect" id="node19" href="$classFunction.html" title="{Function\&lt; dim, RangeNumber\lType \&gt;\n||+ Function()\l+ Function()\l+ ~Function()\l+ operator=()\l+ value()\l+ vector_value()\l+ value_list()\l+ vector_value_list()\l+ vector_values()\l+ gradient()\land 13 more...\l}" alt="" coords="591,1128,788,1367"/>
+<area shape="rect" id="node7" href="$classint.html" title="{int\n||}" alt="" coords="665,189,703,267"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="751,189,831,267"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="727,5,854,97"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="855,189,977,267"/>
+<area shape="rect" id="node17" title="STL class. " alt="" coords="1145,189,1261,267"/>
+<area shape="rect" id="node20" href="$classFunctionTime.html" title="{FunctionTime\&lt; numbers\l::NumberTraits\&lt; RangeNumber\lType \&gt;::real_type \&gt;\n||+ FunctionTime()\l+ ~FunctionTime()\l+ get_time()\l+ set_time()\l+ advance_time()\l}" alt="" coords="299,818,504,983"/>
+<area shape="rect" id="node21" href="$structnumbers_1_1NumberTraits.html" title="{numbers::NumberTraits\l\&lt; RangeNumberType \&gt;\n||+ conjugate()\l+ abs_square()\l+ abs_square()\l+ abs()\l}" alt="" coords="314,373,473,509"/>
+<area shape="rect" id="node22" href="$classstatic_01constexpr_01bool.html" title="{static constexpr bool\n||}" alt="" coords="146,189,289,267"/>
+<area shape="rect" id="node23" href="$structnumbers_1_1NumberTraits.html" title="{numbers::NumberTraits\l\&lt; number \&gt;\n||+ conjugate()\l+ abs_square()\l+ abs_square()\l+ abs()\l}" alt="" coords="313,160,471,296"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="SolverSelector&lt; VectorType &gt;" name="SolverSelector&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="421,601,589,957"/>
+<area shape="rect" id="node18" href="$classSolverControl.html" title="{SolverControl\n||+ SolverControl()\l+ ~SolverControl()\l+ parse_parameters()\l+ check()\l+ last_check()\l+ initial_value()\l+ last_value()\l+ last_step()\l+ max_steps()\l+ set_max_steps()\land 15 more...\l+ declare_parameters()\l}" alt="" coords="807,1064,963,1303"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="18,160,57,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="1515,160,1595,237"/>
+<area shape="rect" id="node17" href="$classSmartPointer.html" title="{SmartPointer\&lt; SolverControl,\l SolverSelector\&lt; VectorType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1051,1365,1266,1604"/>
+<area shape="rect" id="node25" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1309,315,1456,539"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1491,5,1618,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="87,160,209,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="589,160,705,237"/>
+<area shape="rect" id="node19" href="$classdouble.html" title="{double\n||}" alt="" coords="851,388,911,465"/>
+<area shape="rect" id="node20" href="$classbool.html" title="{bool\n||}" alt="" coords="1005,741,1051,818"/>
+</map>

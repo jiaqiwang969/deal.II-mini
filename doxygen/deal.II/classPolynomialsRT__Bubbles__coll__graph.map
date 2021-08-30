@@ -1,0 +1,12 @@
+<map id="PolynomialsRT_Bubbles&lt; dim &gt;" name="PolynomialsRT_Bubbles&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classTensorPolynomialsBase.html" title="{TensorPolynomialsBase\l\&lt; dim \&gt;\n||+ TensorPolynomialsBase()\l+ TensorPolynomialsBase()\l+ TensorPolynomialsBase()\l+ ~TensorPolynomialsBase()\l+ evaluate()\l+ n()\l+ degree()\l+ clone()\l+ name()\l}" alt="" coords="5,1527,196,1736"/>
+<area shape="rect" id="node5" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; double \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="609,1152,824,1449"/>
+<area shape="rect" id="node6" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1273,315,1441,671"/>
+<area shape="rect" id="node20" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; number \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="967,763,1181,1060"/>
+<area shape="rect" id="node8" href="$classint.html" title="{int\n||}" alt="" coords="1084,5,1123,83"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="1337,5,1417,83"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="877,5,999,83"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="660,5,776,83"/>
+<area shape="rect" id="node17" href="$classdouble.html" title="{double\n||}" alt="" coords="471,454,531,531"/>
+<area shape="rect" id="node18" href="$classbool.html" title="{bool\n||}" alt="" coords="779,454,825,531"/>
+</map>

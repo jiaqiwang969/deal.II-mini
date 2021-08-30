@@ -1,0 +1,11 @@
+<map id="MGTransferBlockMatrixFree&lt; dim, Number &gt;" name="MGTransferBlockMatrixFree&lt; dim, Number &gt;">
+<area shape="rect" id="node2" href="$classMGTransferBase.html" title="{MGTransferBase\&lt; LinearAlgebra\l::distributed::BlockVector\l\&lt; Number \&gt; \&gt;\n||+ ~MGTransferBase()\l+ prolongate()\l+ prolongate_and_add()\l+ restrict_and_add()\l}" alt="" coords="447,1088,659,1239"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="327,484,495,840"/>
+<area shape="rect" id="node17" href="$classMGTransferBase.html" title="{MGTransferBase\&lt; VectorType \&gt;\n||+ ~MGTransferBase()\l+ prolongate()\l+ prolongate_and_add()\l+ restrict_and_add()\l}" alt="" coords="448,889,660,1011"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="5,167,44,245"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="81,167,161,245"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="57,5,184,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="221,167,343,245"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="520,167,636,245"/>
+<area shape="rect" id="node18" href="$classbool.html" title="{bool\n||}" alt="" coords="683,1125,729,1202"/>
+</map>

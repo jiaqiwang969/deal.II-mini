@@ -1,0 +1,17 @@
+<map id="LogStream::Prefix" name="LogStream::Prefix">
+<area shape="rect" id="node2" href="$classSmartPointer.html" title="{SmartPointer\&lt; LogStream,\l LogStream::Prefix \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="245,1740,422,1979"/>
+<area shape="rect" id="node3" href="$classLogStream.html" title="{LogStream\n||+ LogStream()\l+ ~LogStream()\l+ attach()\l+ detach()\l+ get_console()\l+ get_file_stream()\l+ has_file()\l+ get_prefix()\l+ push()\l+ pop()\land 8 more...\l&#45; get_prefixes()\l&#45; print_line_head()\l&#45; get_stream()\l}" alt="" coords="1324,1409,1455,1677"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="780,601,948,957"/>
+<area shape="rect" id="node6" href="$classint.html" title="{int\n||}" alt="" coords="605,145,643,223"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="387,145,467,223"/>
+<area shape="rect" id="node35" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="5,315,152,539"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="1497,145,1620,223"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="1178,145,1294,223"/>
+<area shape="rect" id="node17" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; std::stack\&lt; std::string \&gt; \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator std::stack\l\&lt; std::string \&gt; &amp;()\l+ clear()\l}" alt="" coords="1639,1042,1833,1325"/>
+<area shape="rect" id="node22" href="$classThreads_1_1ThreadLocalStorage.html" title="A class that provides a separate storage location on each thread ，访问该对象。 这个类提供的方式是，�¯..." alt="" coords="1853,653,2078,906"/>
+<area shape="rect" id="node25" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; std::shared_ptr\&lt; std::\lostringstream \&gt; \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator std::shared\l_ptr\&lt; std::ostringstream \&gt; &amp;()\l+ clear()\l}" alt="" coords="2177,1035,2372,1332"/>
+<area shape="rect" id="node29" href="$classbool.html" title="{bool\n||}" alt="" coords="1195,1145,1242,1222"/>
+<area shape="rect" id="node31" title="STL class. " alt="" coords="1398,1145,1493,1222"/>
+<area shape="rect" id="node32" title="STL class. " alt="" coords="1255,733,1388,825"/>
+<area shape="rect" id="node33" title="STL class. " alt="" coords="1169,388,1324,465"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="SparsityPatternIterators::Iterator" name="SparsityPatternIterators::Iterator">
+<area shape="rect" id="node2" href="$classLinearIndexIterator.html" title="{LinearIndexIterator\l\&lt; Iterator, Accessor \&gt;\n|# accessor\l|+ operator=()\l+ operator++()\l+ operator++()\l+ operator&#45;&#45;()\l+ operator&#45;&#45;()\l+ operator+()\l+ operator&#45;()\l+ operator&#45;()\l+ operator+=()\l+ operator&#45;=()\land 6 more...\l# LinearIndexIterator()\l# LinearIndexIterator()\l}" alt="" coords="21,351,172,619"/>
+<area shape="rect" id="node3" href="$classLinearIndexIterator.html" title="{LinearIndexIterator\l\&lt; DerivedIterator, Accessor\lType \&gt;\n|# accessor\l|+ operator=()\l+ operator++()\l+ operator++()\l+ operator&#45;&#45;()\l+ operator&#45;&#45;()\l+ operator+()\l+ operator&#45;()\l+ operator+=()\l+ operator&#45;=()\l+ operator&#45;()\land 6 more...\l# LinearIndexIterator()\l# LinearIndexIterator()\l}" alt="" coords="5,5,188,288"/>
+</map>

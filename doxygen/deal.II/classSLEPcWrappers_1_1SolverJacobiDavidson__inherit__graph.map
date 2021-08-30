@@ -1,0 +1,3 @@
+<map id="SLEPcWrappers::SolverJacobiDavidson" name="SLEPcWrappers::SolverJacobiDavidson">
+<area shape="rect" id="node2" href="$classSLEPcWrappers_1_1SolverBase.html" title="{SLEPcWrappers::SolverBase\n|# solver_control\l# mpi_communicator\l# eps\l&#45; reason\l|+ SolverBase()\l+ ~SolverBase()\l+ solve()\l+ solve()\l+ solve()\l+ set_initial_space()\l+ set_transformation()\l+ set_target_eigenvalue()\l+ set_which_eigenpairs()\l+ set_problem_type()\l+ get_solver_state()\l+ DeclException0()\l+ DeclException1()\l+ DeclException2()\l+ control()\l# solve()\l# get_eigenpair()\l# get_eigenpair()\l# set_matrices()\l# set_matrices()\l&#45; convergence_test()\l}" alt="" coords="9,5,204,420"/>
+</map>

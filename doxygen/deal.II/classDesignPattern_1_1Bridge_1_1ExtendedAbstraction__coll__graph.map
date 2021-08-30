@@ -1,0 +1,4 @@
+<map id="DesignPattern::Bridge::ExtendedAbstraction" name="DesignPattern::Bridge::ExtendedAbstraction">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Bridge_1_1Abstraction.html" title="{DesignPattern::Bridge\l::Abstraction\n||+ Abstraction()\l+ ~Abstraction()\l+ Operation()\l}" alt="" coords="23,175,174,296"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Bridge_1_1Implementation.html" title="{DesignPattern::Bridge\l::Implementation\n||+ ~Implementation()\l+ OperationImplementation()\l}" alt="" coords="5,5,192,112"/>
+</map>

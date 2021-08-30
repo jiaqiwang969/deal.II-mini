@@ -1,0 +1,13 @@
+<map id="PolynomialSpace&lt; dim &gt;" name="PolynomialSpace&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classScalarPolynomialsBase_3_01dim_01_4.html" title="{ScalarPolynomialsBase\l\&lt; dim \&gt;\n||}" alt="" coords="1360,1512,1520,1604"/>
+<area shape="rect" id="node4" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; double \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="1083,1152,1298,1449"/>
+<area shape="rect" id="node5" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="628,315,796,671"/>
+<area shape="rect" id="node19" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; number \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="789,763,1003,1060"/>
+<area shape="rect" id="node7" href="$classint.html" title="{int\n||}" alt="" coords="213,5,251,83"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="288,5,368,83"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="5,5,128,83"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="1205,5,1321,83"/>
+<area shape="rect" id="node16" href="$classdouble.html" title="{double\n||}" alt="" coords="1358,454,1418,531"/>
+<area shape="rect" id="node17" href="$classbool.html" title="{bool\n||}" alt="" coords="1175,454,1222,531"/>
+<area shape="rect" id="node23" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="1722,5,1814,83"/>
+</map>

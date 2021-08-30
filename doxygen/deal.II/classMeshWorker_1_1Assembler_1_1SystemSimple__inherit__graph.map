@@ -1,0 +1,4 @@
+<map id="MeshWorker::Assembler::SystemSimple&lt; MatrixType, VectorType &gt;" name="MeshWorker::Assembler::SystemSimple&lt; MatrixType, VectorType &gt;">
+<area shape="rect" id="node2" href="$classMeshWorker_1_1Assembler_1_1MatrixSimple.html" title="{MeshWorker::Assembler\l::MatrixSimple\&lt; MatrixType \&gt;\n|# matrix\l# threshold\l&#45; constraints\l|+ MatrixSimple()\l+ initialize()\l+ initialize()\l+ initialize()\l+ initialize_info()\l+ assemble()\l+ assemble()\l&#45; assemble()\l}" alt="" coords="5,5,200,229"/>
+<area shape="rect" id="node3" href="$classMeshWorker_1_1Assembler_1_1ResidualSimple.html" title="{MeshWorker::Assembler\l::ResidualSimple\&lt; VectorType \&gt;\n|# residuals\l# constraints\l|+ initialize()\l+ initialize()\l+ initialize_info()\l+ assemble()\l+ assemble()\l}" alt="" coords="225,35,437,200"/>
+</map>

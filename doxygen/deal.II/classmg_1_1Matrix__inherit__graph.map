@@ -1,0 +1,4 @@
+<map id="mg::Matrix&lt; VectorType &gt;" name="mg::Matrix&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classMGMatrixBase.html" title="{MGMatrixBase\&lt; VectorType \&gt;\n||+ ~MGMatrixBase()\l+ vmult()\l+ vmult_add()\l+ Tvmult()\l+ Tvmult_add()\l+ get_minlevel()\l+ get_maxlevel()\l}" alt="" coords="5,468,205,633"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n|&#45; counter\l&#45; counter_map\l&#45; validity_pointers\l&#45; object_info\l&#45; mutex\l|+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="21,5,189,420"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="internal::MatrixFreeFunctions::color::PartitionWork" name="internal::MatrixFreeFunctions::color::PartitionWork">
+<area shape="rect" id="node3" href="$structinternal_1_1MatrixFreeFunctions_1_1TaskInfo.html" title="{internal::MatrixFreeFunctions\l::TaskInfo\n|+ block_size\l+ boundary_partition\l_data_hp\l+ ghost_face_partition_data\l+ refinement_edge_face\l_partition_data\l+ partition_odds\l+ partition_n_blocked\l_workers\l+ partition_n_workers\l|+ TaskInfo()\l+ clear()\l+ loop()\l+ make_boundary_cells\l_divisible()\l+ create_blocks_serial()\l+ initial_setup_blocks\l_tasks()\l+ guess_block_size()\l+ make_thread_graph_partition\l_color()\l+ make_thread_graph_partition\l_partition()\l+ make_thread_graph()\land 8 more...\l}" alt="" coords="440,704,641,1133"/>
+<area shape="rect" id="node5" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="5,293,97,370"/>
+<area shape="rect" id="node7" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="75,145,167,223"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="240,145,356,223"/>
+<area shape="rect" id="node14" href="$classbool.html" title="{bool\n||}" alt="" coords="973,880,1020,957"/>
+<area shape="rect" id="node15" href="$structinternal_1_1MFWorkerInterface.html" title="{internal::MFWorkerInterface\n||+ ~MFWorkerInterface()\l+ vector_update_ghosts\l_start()\l+ vector_update_ghosts\l_finish()\l+ vector_compress_start()\l+ vector_compress_finish()\l+ zero_dst_vector_range()\l+ cell_loop_pre_range()\l+ cell_loop_post_range()\l+ cell()\l+ cell()\l+ face()\l+ boundary()\l}" alt="" coords="1045,785,1229,1053"/>
+</map>

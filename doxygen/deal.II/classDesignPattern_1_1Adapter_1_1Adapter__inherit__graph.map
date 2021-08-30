@@ -1,0 +1,4 @@
+<map id="DesignPattern::Adapter::Adapter" name="DesignPattern::Adapter::Adapter">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Adapter_1_1Target.html" title="{DesignPattern::Adapter\l::Target\n||+ ~Target()\l+ Request()\l+ ~Target()\l+ Request()\l}" alt="" coords="5,5,164,141"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Adapter_1_1Adaptee.html" title="{DesignPattern::Adapter\l::Adaptee\n||+ SpecificRequest()\l+ SpecificRequest()\l}" alt="" coords="188,20,347,127"/>
+</map>

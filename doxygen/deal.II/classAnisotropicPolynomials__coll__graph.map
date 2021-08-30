@@ -1,0 +1,9 @@
+<map id="AnisotropicPolynomials&lt; dim &gt;" name="AnisotropicPolynomials&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classScalarPolynomialsBase_3_01dim_01_4.html" title="{ScalarPolynomialsBase\l\&lt; dim \&gt;\n||}" alt="" coords="5,1659,165,1751"/>
+<area shape="rect" id="node5" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; double \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="695,1137,910,1435"/>
+<area shape="rect" id="node6" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1357,300,1525,656"/>
+<area shape="rect" id="node16" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; number \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="1066,748,1281,1045"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="539,5,655,83"/>
+<area shape="rect" id="node13" href="$classdouble.html" title="{double\n||}" alt="" coords="666,439,726,517"/>
+<area shape="rect" id="node14" href="$classbool.html" title="{bool\n||}" alt="" coords="865,439,911,517"/>
+</map>

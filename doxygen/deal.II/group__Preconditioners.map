@@ -1,0 +1,7 @@
+<map id="Preconditioners and Relaxation Operators" name="Preconditioners and Relaxation Operators">
+<area shape="rect" id="node1" href="$group__LAC.html" title="Linear algebra classes" alt="" coords="5,39,157,65"/>
+<area shape="rect" id="node3" href="$group__CUDAWrappers.html" title="CUDA Wrappers" alt="" coords="633,13,755,40"/>
+<area shape="rect" id="node5" href="$group__Solvers.html" title="Linear solver classes" alt="" coords="621,64,767,91"/>
+<area shape="rect" id="node6" href="$group__TrilinosWrappers.html" title="TrilinosWrappers" alt="" coords="634,315,754,341"/>
+<area shape="rect" id="node4" href="$group__Matrices.html" title="Matrix classes" alt="" coords="28,89,135,116"/>
+</map>

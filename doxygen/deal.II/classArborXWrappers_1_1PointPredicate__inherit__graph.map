@@ -1,0 +1,4 @@
+<map id="ArborXWrappers::PointPredicate" name="ArborXWrappers::PointPredicate">
+<area shape="rect" id="node2" href="$classArborXWrappers_1_1PointIntersectPredicate.html" title="{ArborXWrappers::PointIntersect\lPredicate\n||+ PointIntersectPredicate()\l}" alt="" coords="5,167,212,259"/>
+<area shape="rect" id="node3" href="$classArborXWrappers_1_1PointNearestPredicate.html" title="{ArborXWrappers::PointNearest\lPredicate\n|&#45; n_nearest_neighbors\l|+ PointNearestPredicate()\l+ get_n_nearest_neighbors()\l}" alt="" coords="237,160,439,267"/>
+</map>

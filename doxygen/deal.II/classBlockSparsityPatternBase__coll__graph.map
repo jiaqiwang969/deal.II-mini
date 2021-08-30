@@ -1,0 +1,12 @@
+<map id="BlockSparsityPatternBase&lt; SparsityPatternType &gt;" name="BlockSparsityPatternBase&lt; SparsityPatternType &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="687,484,855,840"/>
+<area shape="rect" id="node21" href="$classBlockIndices.html" title="{BlockIndices\n||+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ reinit()\l+ reinit()\l+ push_back()\l+ operator=()\l+ operator=()\l+ operator==()\l+ swap()\l+ memory_consumption()\l+ size()\l+ total_size()\l+ block_size()\l+ to_string()\l+ global_to_local()\l+ local_to_global()\l+ block_start()\l* size()\l* total_size()\l* block_size()\l* to_string()\l* global_to_local()\l* local_to_global()\l* block_start()\l}" alt="" coords="499,947,670,1405"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="732,160,771,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="795,160,875,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="733,5,860,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="899,160,1022,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="252,160,368,237"/>
+<area shape="rect" id="node16" href="$classTable.html" title="{Table\&lt; 2, SmartPointer\l\&lt; SparsityPatternType,\l BlockSparsityPatternBase\l\&lt; SparsityPatternType \&gt; \&gt; \&gt;\n||}" alt="" coords="817,1115,1006,1237"/>
+<area shape="rect" id="node17" href="$classTable.html" title="{Table\&lt; N, T \&gt;\n||}" alt="" coords="879,623,983,701"/>
+<area shape="rect" id="node20" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="364,322,456,399"/>
+</map>

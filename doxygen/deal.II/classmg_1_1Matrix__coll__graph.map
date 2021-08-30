@@ -1,0 +1,11 @@
+<map id="mg::Matrix&lt; VectorType &gt;" name="mg::Matrix&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classMGMatrixBase.html" title="{MGMatrixBase\&lt; VectorType \&gt;\n||+ ~MGMatrixBase()\l+ vmult()\l+ vmult_add()\l+ Tvmult()\l+ Tvmult_add()\l+ get_minlevel()\l+ get_maxlevel()\l}" alt="" coords="467,1151,667,1316"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="573,484,741,840"/>
+<area shape="rect" id="node17" href="$classMGLevelObject.html" title="{MGLevelObject\&lt; LinearOperator\l\&lt; VectorType \&gt; \&gt;\n||+ MGLevelObject()\l+ MGLevelObject()\l+ operator[]()\l+ operator[]()\l+ resize()\l+ operator=()\l+ clear_elements()\l+ min_level()\l+ max_level()\l+ apply()\l+ memory_consumption()\l}" alt="" coords="605,1340,815,1579"/>
+<area shape="rect" id="node20" href="$classMGLevelObject.html" title="{MGLevelObject\&lt; Object \&gt;\n||+ MGLevelObject()\l+ MGLevelObject()\l+ operator[]()\l+ operator[]()\l+ resize()\l+ operator=()\l+ clear_elements()\l+ min_level()\l+ max_level()\l+ apply()\l+ memory_consumption()\l}" alt="" coords="725,903,900,1127"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="372,167,411,245"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="29,167,109,245"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="5,5,132,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="178,167,301,245"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="1109,167,1225,245"/>
+</map>

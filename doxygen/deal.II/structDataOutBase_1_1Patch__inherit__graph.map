@@ -1,0 +1,4 @@
+<map id="DataOutBase::Patch&lt; dim, spacedim &gt;" name="DataOutBase::Patch&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$structDataOutBase_1_1Patch.html" title="{DataOutBase::Patch\l\&lt; patch_dim, patch_spacedim \&gt;\n|+ vertices\l+ neighbors\l+ patch_index\l+ n_subdivisions\l+ data\l+ points_are_available\l+ reference_cell\l+ space_dim\l+ no_neighbor\l|+ Patch()\l+ operator==()\l+ memory_consumption()\l+ swap()\l+ ExcInvalidCombinationOfDimensions()\l}" alt="" coords="5,351,264,619"/>
+<area shape="rect" id="node3" href="$structDataOutBase_1_1Patch.html" title="{DataOutBase::Patch\l\&lt; dim, dim \&gt;\n|+ vertices\l+ neighbors\l+ patch_index\l+ n_subdivisions\l+ data\l+ points_are_available\l+ reference_cell\l+ space_dim\l+ no_neighbor\l|+ Patch()\l+ operator==()\l+ memory_consumption()\l+ swap()\l+ ExcInvalidCombinationOfDimensions()\l}" alt="" coords="288,351,547,619"/>
+</map>

@@ -1,0 +1,3 @@
+<map id="BlockIndices" name="BlockIndices">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n|&#45; counter\l&#45; counter_map\l&#45; validity_pointers\l&#45; object_info\l&#45; mutex\l|+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="7,5,175,420"/>
+</map>

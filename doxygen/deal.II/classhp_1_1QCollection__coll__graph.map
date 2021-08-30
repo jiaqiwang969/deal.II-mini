@@ -1,0 +1,11 @@
+<map id="hp::QCollection&lt; dim &gt;" name="hp::QCollection&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classhp_1_1Collection.html" title="{hp::Collection\&lt; Quadrature\l\&lt; dim \&gt; \&gt;\n||+ Collection()\l+ push_back()\l+ operator[]()\l+ size()\l+ memory_consumption()\l}" alt="" coords="569,1101,748,1252"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="376,484,544,840"/>
+<area shape="rect" id="node19" href="$classhp_1_1Collection.html" title="{hp::Collection\&lt; T \&gt;\n||+ Collection()\l+ push_back()\l+ operator[]()\l+ size()\l+ memory_consumption()\l}" alt="" coords="524,903,695,1039"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="11,160,50,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="87,160,167,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="63,5,190,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="229,160,352,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="673,160,789,237"/>
+<area shape="rect" id="node18" href="$classstd_1_1shared__ptr_3_01const_01Quadrature_3_01dim_01_4_01_4.html" title="{shared_ptr\&lt; const Quadrature\l\&lt; dim \&gt; \&gt;\n||}" alt="" coords="748,616,943,708"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="MGTransferGlobalCoarsening&lt; dim, VectorType &gt;" name="MGTransferGlobalCoarsening&lt; dim, VectorType &gt;">
+<area shape="rect" id="node2" href="$classMGTransferBase.html" title="{MGTransferBase\&lt; VectorType \&gt;\n||+ ~MGTransferBase()\l+ prolongate()\l+ prolongate_and_add()\l+ restrict_and_add()\l}" alt="" coords="1083,1180,1295,1301"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="991,513,1159,869"/>
+<area shape="rect" id="node18" href="$classMGLevelObject.html" title="{MGLevelObject\&lt; MGTwoLevel\lTransfer\&lt; dim, VectorType \&gt; \&gt;\n||+ MGLevelObject()\l+ MGLevelObject()\l+ operator[]()\l+ operator[]()\l+ resize()\l+ operator=()\l+ clear_elements()\l+ min_level()\l+ max_level()\l+ apply()\l+ memory_consumption()\l}" alt="" coords="719,1325,922,1564"/>
+<area shape="rect" id="node22" href="$classMGLevelObject.html" title="{MGLevelObject\&lt; Object \&gt;\n||+ MGLevelObject()\l+ MGLevelObject()\l+ operator[]()\l+ operator[]()\l+ resize()\l+ operator=()\l+ clear_elements()\l+ min_level()\l+ max_level()\l+ apply()\l+ memory_consumption()\l}" alt="" coords="731,932,905,1156"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="892,167,931,245"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1154,167,1234,245"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1131,5,1257,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="959,167,1082,245"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="527,167,643,245"/>
+</map>

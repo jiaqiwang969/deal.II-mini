@@ -1,0 +1,10 @@
+<map id="SolverControl" name="SolverControl">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="339,469,507,825"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="11,160,50,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="87,160,167,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="63,5,190,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="213,160,336,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="542,160,658,237"/>
+<area shape="rect" id="node16" href="$classdouble.html" title="{double\n||}" alt="" coords="870,322,930,399"/>
+<area shape="rect" id="node17" href="$classbool.html" title="{bool\n||}" alt="" coords="805,609,851,686"/>
+</map>

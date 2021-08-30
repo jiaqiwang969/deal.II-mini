@@ -1,0 +1,16 @@
+<map id="PETScWrappers::SolverPreOnly" name="PETScWrappers::SolverPreOnly">
+<area shape="rect" id="node2" href="$classPETScWrappers_1_1SolverBase.html" title="{PETScWrappers::SolverBase\n||+ SolverBase()\l+ ~SolverBase()\l+ solve()\l+ reset()\l+ set_prefix()\l+ control()\l+ initialize()\l# set_solver_type()\l&#45; convergence_test()\l}" alt="" coords="447,1248,641,1443"/>
+<area shape="rect" id="node4" href="$structPETScWrappers_1_1SolverBase_1_1SolverData.html" title="{PETScWrappers::SolverBase\l::SolverData\n||+ ~SolverData()\l}" alt="" coords="5,160,200,252"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="225,167,365,245"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="557,167,680,245"/>
+<area shape="rect" id="node19" title="STL class. " alt="" coords="961,167,1077,245"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="389,167,469,245"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="366,5,493,97"/>
+<area shape="rect" id="node10" href="$classSolverControl.html" title="{SolverControl\n||+ SolverControl()\l+ ~SolverControl()\l+ parse_parameters()\l+ check()\l+ last_check()\l+ initial_value()\l+ last_value()\l+ last_step()\l+ max_steps()\l+ set_max_steps()\land 15 more...\l+ declare_parameters()\l}" alt="" coords="865,947,1021,1185"/>
+<area shape="rect" id="node11" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="705,484,873,840"/>
+<area shape="rect" id="node13" href="$classint.html" title="{int\n||}" alt="" coords="494,167,533,245"/>
+<area shape="rect" id="node21" href="$classdouble.html" title="{double\n||}" alt="" coords="1191,337,1251,414"/>
+<area shape="rect" id="node22" href="$classbool.html" title="{bool\n||}" alt="" coords="1041,623,1087,701"/>
+<area shape="rect" id="node26" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="1045,1027,1137,1105"/>
+<area shape="rect" id="node27" href="$structPETScWrappers_1_1SolverPreOnly_1_1AdditionalData.html" title="{PETScWrappers::SolverPre\lOnly::AdditionalData\n||}" alt="" coords="666,1299,851,1391"/>
+</map>

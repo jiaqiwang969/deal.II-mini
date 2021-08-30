@@ -1,0 +1,11 @@
+<map id="internal::parallel::shared::TemporarilyRestoreSubdomainIds&lt; dim, spacedim &gt;" name="internal::parallel::shared::TemporarilyRestoreSubdomainIds&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1012,616,1180,972"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="719,160,758,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="359,160,439,237"/>
+<area shape="rect" id="node16" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l parallel::shared::Triangulation\l\&lt; dim, spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="255,667,451,921"/>
+<area shape="rect" id="node19" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="396,315,543,539"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="335,5,462,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1065,160,1188,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="795,160,911,237"/>
+<area shape="rect" id="node21" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="525,160,617,237"/>
+</map>

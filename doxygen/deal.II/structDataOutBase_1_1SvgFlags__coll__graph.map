@@ -1,0 +1,6 @@
+<map id="DataOutBase::SvgFlags" name="DataOutBase::SvgFlags">
+<area shape="rect" id="node2" href="$structDataOutBase_1_1OutputFlagsBase.html" title="{DataOutBase::OutputFlags\lBase\&lt; SvgFlags \&gt;\n||+ parse_parameters()\l+ memory_consumption()\l+ declare_parameters()\l}" alt="" coords="5,189,185,311"/>
+<area shape="rect" id="node3" href="$structDataOutBase_1_1OutputFlagsBase.html" title="{DataOutBase::OutputFlags\lBase\&lt; FlagsType \&gt;\n||+ parse_parameters()\l+ memory_consumption()\l+ declare_parameters()\l}" alt="" coords="5,5,185,127"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="209,211,248,289"/>
+<area shape="rect" id="node5" href="$classbool.html" title="{bool\n||}" alt="" coords="329,211,376,289"/>
+</map>

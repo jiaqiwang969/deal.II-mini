@@ -1,0 +1,11 @@
+<map id="parallel::distributed::TemporarilyMatchRefineFlags&lt; dim, spacedim &gt;" name="parallel::distributed::TemporarilyMatchRefineFlags&lt; dim, spacedim &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1084,631,1252,987"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="578,160,617,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="191,160,271,237"/>
+<area shape="rect" id="node16" href="$classSmartPointer.html" title="{SmartPointer\&lt; parallel\l::distributed::Triangulation\l\&lt; dim, spacedim \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="255,682,427,935"/>
+<area shape="rect" id="node19" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="268,315,415,539"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="167,5,294,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="641,160,764,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="911,160,1027,237"/>
+<area shape="rect" id="node21" href="$classbool.html" title="{bool\n||}" alt="" coords="841,160,887,237"/>
+</map>

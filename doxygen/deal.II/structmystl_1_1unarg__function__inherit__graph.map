@@ -1,0 +1,11 @@
+<map id="mystl::unarg_function&lt; Arg, Result &gt;" name="mystl::unarg_function&lt; Arg, Result &gt;">
+<area shape="rect" id="node2" href="$structmystl_1_1unarg__function.html" title="{mystl::unarg_function\l\&lt; Pair, Pair::first_type \&gt;\n||}" alt="" coords="5,182,168,274"/>
+<area shape="rect" id="node4" href="$structmystl_1_1unarg__function.html" title="{mystl::unarg_function\l\&lt; Pair, Pair::second\l_type \&gt;\n||}" alt="" coords="192,175,339,281"/>
+<area shape="rect" id="node6" href="$structmystl_1_1unarg__function.html" title="{mystl::unarg_function\l\&lt; T, T \&gt;\n||}" alt="" coords="363,182,509,274"/>
+<area shape="rect" id="node8" href="$structmystl_1_1unarg__function.html" title="{mystl::unarg_function\l\&lt; T, bool \&gt;\n||}" alt="" coords="533,182,680,274"/>
+<area shape="rect" id="node3" href="$structmystl_1_1selectfirst.html" title="{mystl::selectfirst\l\&lt; Pair \&gt;\n||+ operator()()\l}" alt="" coords="27,331,146,423"/>
+<area shape="rect" id="node5" href="$structmystl_1_1selectsecond.html" title="{mystl::selectsecond\l\&lt; Pair \&gt;\n||+ operator()()\l}" alt="" coords="196,331,335,423"/>
+<area shape="rect" id="node7" href="$structmystl_1_1negate.html" title="{mystl::negate\&lt; T \&gt;\n||+ operator()()\l}" alt="" coords="369,338,503,415"/>
+<area shape="rect" id="node9" href="$structmystl_1_1identity.html" title="{mystl::identity\&lt; T \&gt;\n||+ operator()()\l}" alt="" coords="532,338,668,415"/>
+<area shape="rect" id="node10" href="$structmystl_1_1logical__not.html" title="{mystl::logical_not\&lt; T \&gt;\n||+ operator()()\l}" alt="" coords="693,338,849,415"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="ExtractLevelVisitor&lt; Value, Options, Translator, Box, Allocators &gt;" name="ExtractLevelVisitor&lt; Value, Options, Translator, Box, Allocators &gt;">
+<area shape="rect" id="node5" href="$classBoundingBox.html" title="{BoundingBox\&lt; boost\l::geometry::dimension\l\&lt; Box \&gt;::value \&gt;\n||+ BoundingBox()\l+ BoundingBox()\l+ BoundingBox()\l+ get_boundary_points()\l+ get_boundary_points()\l+ operator==()\l+ operator!=()\l+ get_neighbor_type()\l+ merge_with()\l+ point_inside()\land 13 more...\l}" alt="" coords="241,491,403,744"/>
+<area shape="rect" id="node7" href="$classBoundingBox.html" title="{BoundingBox\&lt; spacedim,\l Number \&gt;\n||+ BoundingBox()\l+ BoundingBox()\l+ BoundingBox()\l+ get_boundary_points()\l+ get_boundary_points()\l+ operator==()\l+ operator!=()\l+ get_neighbor_type()\l+ merge_with()\l+ point_inside()\land 13 more...\l}" alt="" coords="266,175,437,413"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="440,579,556,656"/>
+</map>

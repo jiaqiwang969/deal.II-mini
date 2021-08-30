@@ -1,0 +1,6 @@
+<map id="DesignPattern::ChainofResponsibility::AbstractHandler" name="DesignPattern::ChainofResponsibility::AbstractHandler">
+<area shape="rect" id="node3" href="$classDesignPattern_1_1ChainofResponsibility_1_1DogHandler.html" title="{DesignPattern::ChainofResponsibility\l::DogHandler\n||+ Handle()\l}" alt="" coords="5,329,245,421"/>
+<area shape="rect" id="node4" href="$classDesignPattern_1_1ChainofResponsibility_1_1MonkeyHandler.html" title="{DesignPattern::ChainofResponsibility\l::MonkeyHandler\n||+ Handle()\l}" alt="" coords="269,329,509,421"/>
+<area shape="rect" id="node5" href="$classDesignPattern_1_1ChainofResponsibility_1_1SquirrelHandler.html" title="{DesignPattern::ChainofResponsibility\l::SquirrelHandler\n||+ Handle()\l}" alt="" coords="533,329,773,421"/>
+<area shape="rect" id="node2" href="$classDesignPattern_1_1ChainofResponsibility_1_1Handler.html" title="{DesignPattern::ChainofResponsibility\l::Handler\n||+ SetNext()\l+ Handle()\l}" alt="" coords="269,5,509,112"/>
+</map>

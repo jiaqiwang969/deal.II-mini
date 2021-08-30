@@ -1,0 +1,9 @@
+<map id="CellDataTransfer&lt; dim, spacedim, VectorType &gt;" name="CellDataTransfer&lt; dim, spacedim, VectorType &gt;">
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="51,160,90,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="265,160,364,237"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="428,388,551,465"/>
+<area shape="rect" id="node18" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="969,315,1116,539"/>
+<area shape="rect" id="node13" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l Triangulation\&lt; dim,\l spacedim \&gt;, CellDataTransfer\l\&lt; dim, spacedim, VectorType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="969,645,1188,913"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="1248,160,1328,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="1225,5,1351,97"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="Grids and Triangulations" name="Grids and Triangulations">
+<area shape="rect" id="node1" href="$group__manifold.html" title="Manifold description\l for triangulations" alt="" coords="331,5,470,47"/>
+<area shape="rect" id="node2" href="$group__reordering.html" title="A module describing how deal.II consistently orients Triangulation 对象。 " alt="" coords="335,71,467,112"/>
+<area shape="rect" id="node3" href="$group__output.html" title="Graphical output" alt="" coords="342,137,459,163"/>
+<area shape="rect" id="node4" href="$group__Accessors.html" title="Accessor classes of\l the mesh iterators" alt="" coords="330,188,471,229"/>
+<area shape="rect" id="node5" href="$group__geomprimitives.html" title="Geometric and other\l primitives" alt="" coords="331,263,471,304"/>
+<area shape="rect" id="node6" href="$group__Iterators.html" title="Iterators on mesh&#45;like\l containers" alt="" coords="327,349,475,391"/>
+<area shape="rect" id="node8" href="$group__input.html" title="Input" alt="" coords="375,438,426,465"/>
+</map>

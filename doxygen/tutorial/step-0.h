@@ -1,0 +1,834 @@
+/**
+@page step_0 The step-0 tutorial program
+@htmlonly
+<table class="tutorial" width="50%">
+<tr><th colspan="2"><b><small>Table of contents</small></b></th></tr>
+<tr><td width="50%" valign="top">
+<ol>
+  <li> <a href="#Intro" class=bold>Introduction</a>
+    <ul>
+        <li><a href="#"> 分配器 </a>
+        <li><a href="#"> 容器 </a>
+        <li><a href="#"> 迭代器 </a>
+      <ul>
+        <li><a href="#forloop"> 迭代器用于for-loop </a>
+        <li><a href="#set"> 迭代器用于set </a>
+        <li><a href="#hash"> 迭代器用于hash表 </a>
+      </ul>
+        <li><a href="#"> 算法 </a>
+      <ul>
+        <li><a href="#"> 算法的复杂度测试 </a>
+      </ul>
+        <li><a href="#"> 配接器 </a>
+      <ul>
+        <li><a href="#containeradapters"> container adapters </a>
+        <li><a href="#iteratoradapters"> iterator adapters </a>
+        <li><a href="#functionadapters"> function adapters </a>
+      </ul>
+        <li><a href="#"> 函数对象  </a>
+      <ul>
+        <li><a href="#"> 总结函数对象的优点 </a>
+      </ul>
+        <li><a href="#">  异常处理 </a>
+        <li><a href="#">  智能指针 </a>
+    </ul>
+  <li> <a href="#CommProg" class=bold>The commented program</a>
+    <ul>
+        <li><a href="#Includefiles">Include files</a>
+      </ul>
+</ol></td><td width="50%" valign="top"><ol>
+  <li value="3"> <a href="#Results" class=bold>Results</a>
+    <ul>
+    </ul>
+  <li> <a href="#PlainProg" class=bold>The plain program</a>
+</ol> </td> </tr> </table>
+@endhtmlonly
+<a name="Intro"></a>
+
+
+<a name="Aboutthetutorial"></a><h1> About the tutorial </h1>
+
+deal.II 文档包含丰富的学习文档，但对于刚刚接触C++的初学者来说，要想深入理解和改写底层框架着实难度巨大。其一个重要的原因是，deal.II 的底层是基于范型编程的思想。deal.II目前所提供的所有教程并未对数据结构的细节进行解读，这块工作显得神秘且不可触及。
+
+boost中除包含STL，还有其他丰富的算法。deal.II包含STL和boost库，集成FEM的类库。可以说，STL是标准库的进一步凝练。
+
+该教程取名step-0。仅仅是个人学习STL、boost和deal.II的读书笔记，目的是尽快加强自身编程能力，也希望能够帮助到更多热爱deal.II的小伙伴。
+
+如有任何好的想法和建议，欢迎随时联系交流。
+
+
+
+基本构想包含几大块，随着学习的深入，在今后将逐步完善:
+- STL源码剖析
+- Boost程序库探秘
+- Deal.II程序库探秘
+- 对应的测试库及案例库，在tests/mystl中可以找到，均包括cc和output两个文件。
+- member function或者algorithm的解析，将以代码注解的形式出现，最终被doxygen转化到对应的Classes中。
+
+
+在某种程度上，范型编程的概念与面向对象编程的原始想法相矛盾。范型编程分离了数据和算法，而不是将它们结合起来。然而，这样做的原因是非常重要的。原则上，你可以将每一种容器与每一种算法结合起来，所以结果是一个非常灵活但仍然相当小的框架。
+范型编程的一个基本方面是，所有的组件都能与任意类型一起工作。正如 "标准模板库 "这个名字所表明的，所有组件都是任何类型的模板，只要该类型能够执行所需的操作。因此，STL是范型编程概念的一个好例子。容器和算法分别对任意类型和类是通用的。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/h3mftGdwXF4wlt3p8uFJlO9wD_5M2akhGkJI9ARei9M.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+
+主要参考(逐步完善)：
+- gnu 官网 https://gcc.gnu.org/onlinedocs/gcc-4.6.3/libstdc++/api/modules.html
+- gcc 不同版本的下载地址 https://mirror-hk.koddos.net/gnu/gcc/
+- https://en.cppreference.com/w/cpp/language/operators
+- 侯捷的STL源码解析
+- Alinshans/MyTinySTL
+- vadimcn/vscode-lldb
+- https://www.jgrasp.org/index.html
+- C++Primer Plus 第6版
+- Nicolai M. Josuttis的The C++ Standard Library
+- Björn Karlsson的An Introduction to Boost。(这本书似乎写的不太好，继续寻找合适的教材)
+- deal.II documentation。
+
+相比这些参考的参考书，这里的教程更加关注STL、boost和deal.II之间的联系。一方面，任何类型都可以被整合进STL的框架。例如，任何表现得像容器的东西都是容器，任何表现得像迭代器的东西都是迭代器。因此，只要你有一个类似容器的类，你就可以通过提供相应的接口（begin(), end(), 一些类型定义等）将其整合到STL的框架中。另一方面，继承STL派生并添加行为来扩展其行为(但这不大被推荐，因为所有STL类都没有虚函数)。
+
+我们通过剥离算法，探究并挖掘三者数据结构之间的共性。当然，数据结构和算法的组合也并非随意的，具有非常紧密的匹配关系。无论怎么样，deal.II的很多代码的书写逻辑，借鉴了很多STL、boost的编程思想，当然也包括很多对STL和boost库的调用。
+
+我一直在思考如何更高效地学习deal.II的底层代码。通过对比STL、boost和deal.II不同但结构相近的代码块，似乎是一种有效的手段。
+
+
+
+
+<a name="Introduction"></a><h1>Introduction</h1>
+
+
+<a name="STL"></a><h2> STL源码剖析 </h2>
+
+从程序员的角度来看，STL提供了一堆满足各种需求的集合类，同时还有一些对它们进行操作的算法。STL的所有组件都是模板，所以它们可以被用于任意的元素类型。但是STL做的更多。它提供了一个框架，用于提供其他集合类或现有集合类和算法的工作。总而言之，STL给了C++一个新的抽象层次。忘掉动态数组、链表、二叉树或哈希表的编程；忘掉不同搜索算法的编程。要使用适当的集合种类，你只需定义适当的容器并调用相应的成员函数和算法来处理数据。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Gxq-T236sC7KWf2iFP_ISYj-f4URRwusZX8eSsOTUE4.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+
+
+
+<a name=""></a><h3> 分配器 </h3>
+
+C++标准库使用特殊的对象来处理内存的分配和取消分配。包括了 allocator 和 constructor，分别定义在 allocator.h 和 construct.h 中。allocator 负责空间的配置与回收，定义了一个类 mystl::alloc 用于管理内存，定义在 alloc.h 。
+constructor 负责对象的构造与析构，对应两个全局函数： construct 和 destroy。它们代表一种特殊的内存模型，并被用作一种抽象，将使用内存的需求转化为对内存的原始调用。同时使用不同的分配器对象允许你在程序中使用不同的内存模型。
+
+
+
+<a name=""></a><h3> 容器 </h3>
+
+容器是用来管理某类对象的集合的。每种容器都有自己的优点和缺点，所以拥有不同的容器类型反映了程序中对集合的不同要求。容器可以被实现为数组或链接列表，也可以为每个元素设置一个特殊的键。
+
+容器分为序列容器、关联容器和无序容器三大类。
+
+序列容器是有序的集合，其中每个元素都有一定的位置。这个位置取决于插入的时间和地点，但它与元素的价值无关。例如，如果你把六个元素放到一个有序的集合中，把每个元素附在集合的末尾，那么这些元素就处于你所放的确切顺序中。STL包含五个预定义的序列容器类：数组、向量、deque、列表和forward_list。
+
+关联容器是排序的集合，其中一个元素的位置由于某种排序标准的存在取决于它的值（或键，如果它是一个键的话）。如果你把六个元素放入一个集合，它们的值决定了它们的顺序。插入的顺序并不重要。STL包含四个预定义的关联容器类：set、multiset、map和multimap。
+
+ 无序（关联）容器是无序的集合，其中一个元素的位置并不重要。唯一重要的问题是一个特定的元素是否在这样一个集合中。插入的顺序和插入元素的值都不会对元素的位置产生影响，而且位置可能会在容器的生命周期内发生变化。因此，如果你把六个元素放到一个集合中，它们的顺序是未定义的，并且可能随着时间的推移而改变。STL包含四个预定义的无序容器类：unordered_set, unordered_multiset, unordered_map, 和unordered_multimap。
+
+序列式容器通常被实现为数组或链表。关联的容器通常被实现为二进制树。无序的容器通常被实现为哈希表。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/VWnS4G3Buu7-aBCwOZaxoTbCSQzMkpxnY6fOhoNyo28.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+- vector（向量）
+- list（双向链表）
+- deque（双端队列）
+- map/multimap（映射）
+- set/multiset（集合）
+- unordered_map/unordered_multimap（无序映射）
+- unordered_set/unordered_multiset（无序集合）
+- basic_string （字符序列）
+
+无序的容器通常被实现为一个哈希表。因此，在内部，该容器是一个链接列表的数组。使用一个哈希函数，一个元素在数组中的位置被处理。目的是让每个元素都有自己的位置，这样你就可以快速访问每个元素，只要哈希函数是快速的。但是由于这样快速的完美哈希函数并不总是可能的，或者可能需要数组消耗大量的内存，所以多个元素可能有相同的位置。出于这个原因，数组中的元素是链接列表，这样就可以在每个数组位置存储多个元素。
+
+无序容器的主要优点是，找到一个具有特定值的元素比关联容器更快。事实上，只要你有一个好的哈希函数，使用无序容器就可以提供摊销的恒定复杂度。然而，提供一个好的哈希函数并不容易，而且你可能需要大量的内存来存放桶。
+
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Mg4Tedy7kScS4Njtv1WSnjKT9jX5FJMJrX0Fd7HLqUg.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+
+
+
+
+
+<a name=""></a><h3> 迭代器 </h3>
+
+迭代器被用来遍历对象集合中的元素。这些集合可以是容器或容器的子集。迭代器的主要优点是，它们为任何任意的容器类型提供了一个小而通用的接口。例如，这个接口的一个操作让迭代器步入到集合中的下一个元素。这与集合的内部结构无关。不管这个集合是一个数组、一棵树还是一个哈希表，它都可以工作。这是因为每个容器类都提供了自己的迭代器类型，它只是 "做正确的事情"，因为它知道其容器的内部结构。
+
+迭代器的接口与普通指针的接口几乎相同。要增加一个迭代器，你可以调用操作符++。要访问一个迭代器的值，你要使用操作符*。因此，你可以认为迭代器是一种智能指针，它将 "转到下一个元素 "的调用转化为任何适当的内容。
+
+iterator，连接着容器与算法，定义在 iterator.h 中。每个容器都附带专属的迭代器，是一种重载了 operator*，operator->，operator++，operator-- 等操作的模板类。
+
+<a name="forloop"></a><h4> 迭代器用于for-loop </h4>
+
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Y9HfA8GCq7DoSNmAm5Zt_AGWW97aswKhdgOWuXvi3tk.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+
+迭代器是一种范化的指针，类似指针做for循环的操作。
+@code
+      Contatiner<T> c;
+      ...
+      Container<T>::interator ite = c.begin();
+      for (; ite != c.end(); ++ite)
+        ...
+@endcode
+
+对应，这是老版本的deal.II 8.3.0, 所用到的迭代器的for-loop。
+@code
+  for (unsigned int step=0; step<5; ++step)
+    {
+      Triangulation<2>::active_cell_iterator
+      cell = triangulation.begin_active(),
+      endc = triangulation.end();
+      for (; cell!=endc; ++cell)
+        {
+          for (unsigned int v=0;
+               v < GeometryInfo<2>::vertices_per_cell;
+               ++v)
+            {
+              const double distance_from_center
+                = center.distance (cell->vertex(v));
+              if (std::fabs(distance_from_center - inner_radius) < 1e-10)
+                {
+                  cell->set_refine_flag ();
+                  break;
+                }
+            }
+        }
+      triangulation.execute_coarsening_and_refinement ();
+    }
+
+@endcode
+
+
+C++-11后，增加了一种叫range-base statement的写法，引入了  `auto`。
+@code
+      Contatiner<T> c;
+      ...
+      Container<T>::interator ite = c.begin();
+      for (auto element : c)
+        ...
+@endcode
+对应，新版本的deal.II里面的操作：
+@code
+  for (unsigned int step=0; step<5; ++step)
+    {
+      for (auto cell: triangulation.active_cell_iterators())
+        {
+          for (unsigned int v=0;
+               v < GeometryInfo<2>::vertices_per_cell;
+               ++v)
+            {
+              const double distance_from_center
+                = center.distance (cell->vertex(v));
+              if (std::fabs(distance_from_center - inner_radius) < 1e-10)
+                {
+                  cell->set_refine_flag ();
+                  break;
+                }
+            }
+        }
+      triangulation.execute_coarsening_and_refinement ();
+    }
+@endcode
+
+
+<a name="set"></a><h4> 迭代器用于set </h4>
+
+@code
+IntSet::const_iterator pos; 
+for (pos = coll.begin(); pos != coll.end(); ++pos) 
+{ 
+  cout << *pos << ' ' ; 
+}
+@endcode
+
+迭代器会按照一定的机制，即“算法”运行，依次输出1 2 3 4 5 6.
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/ivQuR--wYKd08FQRCnEGK5csx7ElLqNw42hDLd1bevY.original.fullsize.png"
+           alt = ""
+           width="300">
+    </div>
+</p>
+
+multiset允许重复。
+
+<a name="hash"></a><h4> 迭代器用于hash表 </h4>
+
+可以看到，hash表也是有规律可循的，它遵从一定的算法。我之前有一个搞计算机系搞基因编码的老师，他经常提起hash表。当时，我是一脸蒙蔽的。现在想想，基因序列可能也是按照一定的规则进行存储。
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/Ds-SMZmZpqs_Z0G5UOUd6k6FoiLLhiiMDPUqYUpCAvk.original.fullsize.png"
+           alt = ""
+           width="300">
+    </div>
+</p>
+
+
+
+<a name=""></a><h3> 算法 </h3>
+
+算法是用来处理集合的元素的。例如，算法可以搜索、排序、修改，或简单地将元素用于各种目的。算法使用迭代器。因此，由于迭代器的迭代器接口对所有的容器类型都是通用的，一个算法只需要写一次就可以与任意的容器一起工作。
+
+算法不是容器类的成员函数，而是用迭代器操作的全局函数。这有一个重要的好处：每个算法不是为每个容器类型实现的，而是对任何容器类型都只实现一次。该算法甚至可以对不同容器类型的元素进行操作。你也可以为用户定义的容器类型使用这些算法。总而言之，这个概念减少了代码量，增加了库的力量和灵活性。
+
+为了赋予算法更多的灵活性，你可以提供某些由算法调用的辅助函数。因此，你可以使用一个一般的算法来满足你的需要，即使这种需要非常特殊或复杂。例如，你可以提供你自己的搜索标准或一个特殊的操作来组合元素。特别是自C++11以来，随着lambdas的引入，你可以很容易地指定几乎任何种类的功能，同时在一个容器的元素上运行。
+
+所有 algorithms，其内部最终涉及元素本身的操作，无非就是比大小。
+
+- 基本算法（14个） 定义在 algobase.h
+- 数值算法（5个） 定义在 numeric.h
+- set 算法（4个） 定义在 set_algo.h
+- heap 算法（4个） 定义在 heap_algo.h
+- 其它算法（54个） 定义在 algo.h
+
+<a name=""></a><h4> 算法的复杂度测试 </h4>
+
+
+目前常见的 Big-oh 有下列几种情形：
+1. $\mathrm{O}(1)$ 或 $\mathrm{O}(\mathrm{c}):$ 称为常数时间(constant time)
+2. $\mathrm{O}(\mathrm{n}):$ 称为线性时间(linear time)
+3. $\mathrm{O}\left(\log _{2} \mathrm{n}\right):$ 称为次线性时间(sub-linear time)
+4. $\mathrm{O}\left(\mathrm{n}^{2}\right):$ 称为平方时间(quadratic time)
+5. $\mathrm{O}\left(\mathrm{n}^{3}\right):$ 称为立方时间(cubic time)
+6. $\mathrm{O}\left(2^{\mathrm{n}}\right):$ 称为指数时间( exponential time)
+7. $\mathrm{O}\left(\mathrm{n} \log _{2} \mathrm{n}\right):$ 介于线性及二次方成长的中间之行为模式
+
+<a name=""></a><h3> 配接器 </h3>
+
+<a name="containeradapters"></a><h4> container adapters </h4>
+
+ - stack (栈) ： 后进先出（LIFO）
+ - queue (队列) ： 后进先出（LIFO）
+ - priority_queue (优先队列) ： 优先级是基于程序员可能提供的排序标准（默认情况下，使用运算符<）。
+
+<a name="iteratoradapters"></a><h4> iterator adapters </h4>
+
+
+ 迭代器是纯粹的抽象概念。任何表现得像迭代器的东西都是迭代器。由于这个原因，你可以编写具有迭代器接口的类，但做一些完全不同的事情。C++标准库提供了几个预定义的特殊迭代器：迭代器适配器。
+ - insert iterators: 插入迭代器，或称插入器，是用来让算法在插入模式而不是覆盖模式下运行的。特别是，插入器解决了向没有足够空间的目标写入的算法的问题。他们让目的地相应地增长。主要包括Back inserters、Front inserters 和 General inserters。
+ - stream iterators: 流迭代器从流中读取或写入。因此，它们提供了一个抽象，让来自键盘的输入表现为一个集合，你可以从中读取。同样地，你可以将一个算法的输出直接重定向到一个文件或屏幕上。
+ - reverse_iterators: reverse_iterator 是一种反向迭代器，重载了 operator*，operator->，operator++，operator--，operator+，operator-，operator+=，operatpr-=，operator[] 等操作，变前进为后退，后退为前进。
+ - move iterators: 移动迭代器从C++11开始提供，它们将对底层元素的任何访问转换成移动操作。
+
+<a name="functionadapters"></a><h4> function adapters </h4>
+
+- binders
+
+
+<a name=""></a><h3> 函数对象  </h3>
+
+函数对象是泛型编程的力量和纯抽象概念的另一个例子。你可以说，任何表现得像一个函数的东西都是一个函数。所以，如果你定义了一个行为像函数的对象，它就可以像函数一样被使用。 算法的功能参数不一定是函数。正如在lambdas中看到的那样，功能参数可以是行为类似于函数的对象。这样的对象被称为函数对象，或者说是functor，定义在 functional.h 中。。
+
+函数对象是以函数方式与（）结合使用的任意对象。其包含函数名、指向函数的指针和重载了（）运算符的类对象，即定义类函数operator()()的类。
+
+
+- Predicates: 谓词是一种特殊的辅助函数。谓词返回一个布尔值，通常用于指定一个排序或搜索标准。根据其目的，谓词是单数或二数。
+- Lambdas函数: 从C++11引入的Lambdas定义了一种在表达式或语句中指定功能行为的方法。因此，你可以定义代表功能行为的对象，并将这些对象作为内联参数传递给算法，作为谓词或用于其他目的。
+
+举一个例子：
+@code
+// transform all elements to the power of 3 
+std::transform (coll.begin(), coll.end(),  // source
+                coll.begin(),              // destination
+                [](double d){              // lambda as function object
+                  return d*d*d
+                });
+@endcode
+另外一个条件搜索的例子：
+@code 
+// find element > x and < y
+vector (pos = coll.begin() ; pos != coll.end(); ++pos){
+  if (*pos > x && *pos < y)
+    break; // the loop
+}
+@endcode
+利用predicate的写法:
+@code 
+bool pred (int i)
+{
+  return i > x && i < y;
+}
+...
+pos = find_if (coll.begin(), coll.end(),  //range
+               pred);                     // search criterion
+@endcode
+利用lambda函数后的写法：
+@code
+auto pos = find_if (coll.cbegin(), coll.cend(),
+                    [=](int i){            // [=]表示传递值到lambda主体
+                      return i > x && i < y;
+                    });
+@endcode
+
+
+
+由于函数对象的概念比较重要，我们再举一个The C++ Standard Library书上的例子：
+
+原始输出int函数的写法:
+@code
+#include <vector>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+// function that prints the passed argument
+void print (int elem)
+{
+    cout << elem << ' ';
+}
+
+int main()
+{
+    vector<int> coll;
+
+    // insert elements from 1 to 9
+    for (int i=1; i<=9; ++i) {
+        coll.push_back(i);
+    }
+
+    // print all elements
+    for_each (coll.cbegin(), coll.cend(),  // range
+              print);                      // operation
+    cout << endl;
+}
+@endcode
+
+
+如果你想让对象有这样的行为，你就必须通过使用括号和传递参数来使 "调用 "它们成为可能。
+具体代码形式有：
+@code
+class X {
+  public:
+    // define "function call" operator:
+    return-value operator() (arguments) const; // 括号被重载
+    ...
+}
+@endcode
+定义完函数对象以后，就可以通过类来调用它：
+@code
+X fo；
+...
+fo(arg1, arg2);                     // call operator () for function object fo
+fo.opeartor()(arg1, arg2);          // which is equivalent to the above
+@endcode
+
+因此，利用函数对象后的写法:
+@code
+#include <vector>
+#include <algorithm>
+#include <iostream>
+using namespace std;
+
+// PrintInt类定义了可以用int参数调用运算符（）的对象
+class PrintInt {
+  public:
+    void operator() (int elem) const {
+        cout << elem << ' ';
+    }
+};
+
+int main()
+{
+    vector<int> coll;
+
+    // insert elements from 1 to 9
+    for (int i=1; i<=9; ++i) {
+        coll.push_back(i);
+    }
+
+    // print all elements
+    for_each (coll.cbegin(), coll.cend(),  // range
+              PrintInt());                 // operation
+    cout << endl;
+}
+@endcode
+
+这里的for_each 算法出自:
+@code
+namespace std{
+  template <typename Iterator, typename Operation>
+  Operation for_each (Iterator act, Iterator end, Operation op)
+  {
+    while (act != end){  // as long as not reached the end
+      op(*act);          // - call op() for actual element
+      ++act;             // - move iterator to the next element
+    }
+    return op;
+  }
+
+}
+@endcode
+
+
+这个例子后，可以发现，其实前面所谓的Predicates，lambda函数背后都表示一个函数对象。
+
+TODO: 这块知识点，今后需要进一步扩展到boost和deal.II案例。参考书为：The C++ Standard Library的第六章节。这个案例最好放在cc文件中重点解析。
+
+<a name=""></a><h4> 总结函数对象的优点 </h4>
+
+- 函数对象是 "有状态的函数"。行为像指针的对象是智能指针。对于行为像函数的对象来说，这也是同样的道理。它们可以是 "智能函数"，因为它们可能具有超越运算符（）的能力。函数对象可以有其他成员函数和属性。这意味着，函数对象有一个状态。事实上，由同一类型的两个不同的函数对象所代表的同一个函数特性，可能在同一时间有不同的状态。这对普通函数来说是不可能的。函数对象的另一个优点是，你可以在运行时初始化它们，然后再使用。
+
+- 每个函数对象都有自己的类型。普通函数只有在其签名不同时才有不同的类型。然而，函数对象可以有不同的类型，即使它们的签名是相同的。事实上，每个由函数对象定义的功能行为都有自己的类型。这对于使用模板的通用编程来说是一个重大的改进，因为你可以将功能行为作为模板参数来传递。这样做使不同类型的容器能够使用同一种函数对象作为排序标准，确保你不会对具有不同排序标准的集合进行as-sign、组合或比较。你甚至可以设计函数对象的层次结构，这样你就可以，例如，对一个一般标准有不同的、特殊的种类。
+
+- 函数对象通常比普通函数更快。模板的概念通常允许更好的优化，因为更多的细节在编译时被定义。因此，传递函数对象而不是普通函数往往能带来更好的性能。同时，也往智能化迈进了一步。
+
+
+
+
+
+
+
+
+
+
+<a name="dealiiSTL"></a><h1>  deal.ii 中的STL思想 </h1>
+
+为何学习deal.II会扯上学习STL和boost? 首先，让我们来看看他们之间的联系：
+
+此段摘录from 1999-Concepts for Object-Oriented Finite Element Software – the deal.II Library。
+
+<a name=""></a><h2>   迭代器和访问器 </h2>
+
+标准模板库（STL）从1993年开始为C++引入了迭代器的概念。这个模型，抽象了指针和一般的容器元素，从那时起在C++世界中获得了广泛的支持。对于一个大量使用标准容器类的库来说，以类似方式提供其数据结构是很自然的。在目前的情况下，triangulation类可以被认为是一个容纳点、线、四边形等的容器,像列表中的元素一样可以被访问。
+
+https://www.dealii.org/reports/class-hierarchies/index.html#intro
+
+使用自适应有限元时，数据结构通常极其复杂，需要多次间接访问以及存储数据的不同位置之间的复杂关系。处理这个问题的传统方法是以某种方式将所有属于一起的数据放入一个结构或对象中；然而，有时这不能有效地完成，导致更高的内存消耗（当您必须存储许多小数据并且因为您必须存储大量指向其他对象的指针时）或更高的编码要求（当您想要遵循所有那些指向你想要的对象的指针）。
+
+因此，我们接管了一个已经在 C++ 标准模板库中使用的概念，即迭代器和访问器。访问器是一个对象，它看起来好像存储了所有信息，但实际上只将访问权限委托给正确的位置；事实上，在这个库中，访问器几乎不存储任何信息，但知道从三角剖分对象提供的复杂和嵌套数据结构中获取所有信息。它们有一个简单的界面，允许从三角测量中提取任何所需的信息，因此通过三种方式使访问更加容易和安全：首先，它在调试模式下执行范围和参数检查；其次，它封装了用户对真实数据的访问，隐藏真正的数据结构，从而在不更改用户程序以及库中仅通过访问器起作用的部分的情况下允许它们；第三，由于降低了复杂性，因此减少了编码错误，因为间接访问链被简单的命令取代。
+
+迭代器是一个相关的概念：虽然访问器的行为就像是包含数据的结构，但迭代器的行为就像是指向访问器的指针。您可以像使用任何其他指针一样使用 -> 和 * 运算符取消引用它们，但它们具有更多功能。本质上，它们重载了 ++ 和 -- 运算符，它们允许指向的下一个或上一个对象几乎位于内存中的任何位置。一个很好的介绍性示例是 STLlist<T>类的迭代器 ，它作用于链表，就好像它是一个连续数组一样。这个库中的迭代器更进一步：它们不指向不同的对象，而是告诉关联的访问器对象接下来要查看哪些数据。
+
+此外，有不同版本的迭代器在递增或递减时表现不同：而 原始迭代器让关联的访问器指向它所针对的任何对象， 正常情况下 迭代器总是指向正在使用的对象。通常，您不会希望看到存在但未被三角剖分使用的单元格或线（这些单元格有点像三角剖分阵列中的孔；在取消细化单元时会发生这种情况，然后将释放的内存保留一段时间同时因为效率更高），所以你几乎永远不想使用原始迭代器；它们主要用于图书馆内部使用。普通迭代器几乎与原始迭代器类似，但是每当您调用 ++ 或 -- 运算符时，都会查看它们所指向的内容，并通过根据需要尽可能频繁地增加或减少指针来跳过所有未使用的元素，以到达下一个使用的对象。
+
+最后，还有 最重要的活动迭代器。它们就像普通的迭代器，但只指向活动的单元格或行。活跃是指他们没有孩子；在使用这个库的上下文中，这相当于我们对这些单元格、线或其他任何东西进行计算。活动迭代器是正常的迭代器，在递增或递减时会跳过所有非活动单元格、行等。
+
+
+事实上，这种对triangulation元素的寻址模式是一种主要的抽象，因为构成上述对象之一的数据元素分布在许多不同的数组和其他容器中。通过提供称为迭代器的类，程序可以写得像数据集合是数据的数组一样；特别是，这些类提供了操作符++和--，分别将指针式变量移动到下一个或上一个元素，就像指针的行为一样，也像标准库的迭代器类一样。
+
+原先意义上的指针指向在内存中以线性方式组织的实际数据，而迭代器不需要这样做。例如，迭代器可以指向一个链接列表的元素，除了连接不同元素的指针之外，这些元素在物理内存中不需要有任何特殊的顺序。
+
+在deal.II库中，迭代器实际上根本就没有指向任何数据。解除引用后，它们会返回一个叫做accessor的对象，除了一些识别它所代表的直线或四边形的数字外，它本身没有任何数据元素；它是一个函数集合，知道如何获取和操作与该对象相关的数据。一个典型的函数，可能被应用程序使用的三角形中的四边形设置一个位，然后看起来像下面的摘录：
+
+@code
+void QuadAccessor::set_user_flag() const
+{
+  tria->levels[level]->quads.user_flags[index] = true;
+}
+@endcode
+
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/W46LmokLgkkv8Bg5AdH0lhr6Y8uk6zVBHbNL0ZSUW3Q.original.fullsize.png"
+           alt = ""
+           width="500">
+    </div>
+</p>
+
+此图参考论文：deal.II---A general-purpose object-oriented finite element library
+
+一个三角结构可以被认为是 一个树的集合，其中最粗的网格的单元形成根，子单元从其父单元上分支。目前的deal.II版本支持单元的规则（二分）细化，在一维、二维和三维中每个单元分别有2、4或8个子节点。因此，三角结构的单元分别形成二叉树、四叉树或八叉树，其中终端节点对应于活动单元，即没有子代的单元形成通常意义上的网格。为了这个目的，Triangulation类提供了类似STL的迭代器，可以 "指向 "描述单元、面、边和网格的其他对象。level和index表示这个访问器对象在分层三角结构中所代表的四边形的地址,上图level.index寻址。
+@code
+double average mesh size = 0;
+for (Triangulation<dim>::active_cell_iterator
+    cell = triangulation.begin active();
+    cell != triangulation.end(); ++cell)
+    average_mesh_size += cell->diameter();
+average_mesh_size /= triangulation.n_active_cells();
+@endcode
+
+
+
+
+利用这种在访问器类中集中提供数据的概念，同时仍将其分散存储在许多复杂的数据结构中，就有可能使用更灵活的数据结构的优点，同时仍有在这些结构之上进行编程的简单性；此外，用户不需要知道任何关于数据的实际表示，因此只要访问器类被相应改变，就可以在任何时候改变。对数据结构的实际了解仅限于库中很小的部分（几百条语句），库的其他部分和所有用户程序都使用迭代器和访问器来处理这些数据。
+
+<a name=""></a><h2>  对象的逻辑寻址 </h2>  
+
+
+在有限元程序中最常用的操作是在一个二维领域的三角形中的所有四边形上进行循环，并对每个四边形进行一些操作；一个例子是计算每个四边形对全局系统矩阵的贡献。从这个角度来看，一个三角形是由顶点、线、四边形等组成。
+
+另外，它也可以被看作是单元格、面等的集合；我们称之为双重拓扑学。这种观点取决于维度（一个单元在一个空间维度上是一条线，在二维上是一个四边形，在三维上是一个六面体），对于数值软件的编程来说更为自然，因为矩阵的组合、误差估计器的计算等等都是在单元和它们的面上完成的。
+
+一个典型的循环，在这种情况下为未来的一些操作标记所有的单元，因此看起来像这样。
+
+@code
+Triangulation <dim> triangulation;
+...
+Triangulation <dim>::cell_iterator cell;
+for (cell = triangulation.begin();
+     cell != triangulation.end();
+     ++cell)
+{
+  cell->set_user_flag();
+}
+@endcode
+
+请记住，如果单元格被取消引用，我们会获得一个访问器，该访问器有上面所示的成员函数来执行想要的操作。
+
+deal.II库提供了两种处理三角形元素的方式。当第一种以对象的尺寸为中心的方式最常用于库的内部时，第二种方式，以对象的尺寸相对于单元构成的尺寸为中心，对数值算法最有帮助，事实上允许以独立于尺寸的方式编写程序和算法。操作是逐个单元进行的，根据单元的尺寸来选择有限元形状函数、正交规则等。目前用deal.II实现的所有应用程序都完全使用对偶拓扑结构，而不是原始拓扑结构。
+
+
+
+
+
+
+<a name=""></a><h2> 如何设计一个迭代器 </h2> 
+
+
+我们开启更细的话题，这个话题是面向软件工程的设计者的。站在这个角度，能让我们更好地理解FEM库的整体架构。
+
+迭代器模式是一种行为设计模式， 让你能在不暴露集合底层表现形式 （列表、 栈和树等） 的情况下遍历集合中所有的元素。
+迭代器模式的主要思想是将集合的遍历行为抽取为单独的迭代器对象。
+
+
+
+参考：
+- https://github.com/KratosMultiphysics/Kratos
+- Thesis-2008-A Framework for Developing Finite Element Codes for MultiDisciplinary Applications
+- https://refactoringguru.cn/design-patterns/iterator
+
+
+
+
+
+
+
+
+
+
+<a name=""></a><h3>  异常处理 </h3>
+
+
+几乎所有的异常类都可以由C++标准库抛出。特别是bad_alloc异常，只要分配存储空间就可以抛出。
+此外，由于库的功能可能会使用应用程序员提供的代码，函数可能会间接地抛出任何异常。
+任何标准库的实现都可能提供额外的异常类，无论是作为兄弟姐妹还是作为派生类。然而，使用这些非标准类使得代码不可移植，因为你不能在不破坏你的代码的情况下使用标准库的另一种实现。所以，你应该始终只使用标准的异常类。
+
+<p align="center">
+   <div class="img" align="center">
+      <img src="https://cdn.mathpix.com/snip/images/1BHDXMx8RBep5mEKfo2JiexYoqDF3DFJgmzHjviCqOY.original.fullsize.png"
+           alt = "标准异常处理的层次结构"
+           width="500">
+    </div>
+</p>
+
+
+<a name=""></a><h3>  智能指针 </h3>
+
+从C语言开始，我们知道指针很重要，但也是麻烦的来源。使用指针的一个原因是为了在通常的范围边界之外拥有引用语义。然而，要确保它们的寿命和它们所引用的对象的寿命相匹配是非常棘手的，特别是当多个指针引用同一个对象的时候。例如，要在多个集合中拥有同一个对象（见第7章），你必须在每个集合中传递一个指针，而且理想情况下，当其中一个指针被销毁时（没有 "悬空指针 "或被引用对象的多次删除），以及最后一个对象的引用被销毁时（没有 "资源泄漏"），应该没有问题。
+
+避免这类问题的通常方法是使用 "智能指针"。它们的 "聪明 "之处在于，它们支持程序员避免出现刚才描述的那些问题。例如，一个智能指针可以非常聪明，以至于它 "知道 "自己是否是一个对象的最后一个指针，并且只有在它作为一个对象的 "最后所有者 "被销毁时，才使用这种知识来删除一个相关的对象。
+
+从C++11开始由C++标准库提供的unique_ptr类型是一种智能指针，它有助于在抛出异常时避免资源泄漏。一般来说，这种智能指针实现了排他性所有权的概念，这意味着它确保一个对象和它的相关资源在同一时间只被一个指针 "拥有"。当这个所有者被销毁或变成空的或开始拥有另一个对象时，之前拥有的对象也会被销毁，任何相关的资源也会被释放。
+
+
+
+
+DEALII中， 貌似做了相应的简化。
+当所指向的对象被销毁或被移出时，Smartpointer就会被废止。
+
+
+http://deal-ii.com/dealii-translator/doxygen/deal.II/classSmartPointer.html
+
+TODO：解析智能指针的代码
+http://deal-ii.com/dealii-translator/doxygen/deal.II/smartpointer_8h_source.html  *
+ *
+ * <a name="CommProg"></a>
+ * <h1> The commented program</h1>
+ * 
+ * 
+ * <a name="Includefiles"></a> 
+ * <h3>Include files</h3>
+ * 这是一个非常直观的涵盖6大组建的代码实例。
+ * 
+
+ * 
+ * 这是stl的vector容器的头文件。
+ * 
+ * @code
+ * #include <vector>
+ * @endcode
+ * 
+ * 这是stl的algorithm头文件。
+ * 
+ * @code
+ * #include <algorithm>
+ * @endcode
+ * 
+ * 这是stl的afunctional头文件。
+ * 
+ * @code
+ * #include <functional>
+ * @endcode
+ * 
+ * 这是输入输出的头文件。
+ * 
+ * @code
+ * #include <iostream>
+ * 
+ * @endcode
+ * 
+ * count_if 核心算法，摘抄自STL标准模版库。这里用test
+ * namespace包裹，可以有效的防止相同名称的函数产生误调用的行为。
+ * 
+ * @code
+ * namespace test
+ * {
+ * @endcode
+ * 
+ * 模版
+ * 
+ * @code
+ *   template <typename _InputIterator, typename _Predicate>
+ *   typename std::iterator_traits<_InputIterator>::difference_type
+ *   __count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
+ *   {
+ *     typename std::iterator_traits<_InputIterator>::difference_type __n = 0;
+ *     for (; __first != __last; ++__first)
+ *       if (__pred(__first)) // 返回真假
+ *         ++__n;
+ *     return __n;
+ *   }
+ * 
+ *   /**
+ *    *  @brief Count the elements of a sequence for which a predicate is true.
+ *    *  @ingroup non_mutating_algorithms
+ *    *  @param  __first  An input iterator.
+ *    *  @param  __last   An input iterator.
+ *    *  @param  __pred   A predicate.
+ *    *  @return   The number of iterators @c i in the range @p [__first,__last)
+ *    *  for which @p __pred(*i) is true.
+ *    */
+ *   template <typename _InputIterator, typename _Predicate>
+ *   inline typename std::iterator_traits<_InputIterator>::difference_type
+ *   count_if(_InputIterator __first, _InputIterator __last, _Predicate __pred)
+ *   {
+ * @endcode
+ * 
+ * concept requirements
+ * 
+ * @code
+ *     __glibcxx_function_requires(_InputIteratorConcept<_InputIterator>)
+ *       __glibcxx_function_requires(
+ *         _UnaryPredicateConcept<
+ *           _Predicate,
+ *           typename std::iterator_traits<_InputIterator>::value_type>)
+ *         __glibcxx_requires_valid_range(__first, __last);
+ * 
+ *     return test::__count_if(__first,
+ *                             __last,
+ *                             __gnu_cxx::__ops::__pred_iter(__pred));
+ *   }
+ * 
+ * 
+ * 
+ * } // namespace test
+ * 
+ * @endcode
+ * 
+ * 该函数的目的是实现计算出vector中大于40元素的个数。
+ * 
+ * @code
+ * int main()
+ * {
+ * @endcode
+ * 
+ * `ia` 定义为基本的数组。
+ * 
+ * @code
+ *   int ia[6] = {27, 210, 12, 47, 109, 83};
+ * @endcode
+ * 
+ * std::vector是一个容器。众所周知,
+ * 常用的数据结构不外乎array（数组）、list（链表）、 tree (树）、hash(表)
+ * $\cdots$等等。根捨“数据在容器中的排列”特性,这些数据结构分为序列式(sequence)和关联式(associative)两种。
+ * 
+
+ * 
+ * 所谓序列式容器, 其中的元素都可序(ordered)，但未必有序(sorted)。
+ * 
+
+ * 
+ * 所谓关联式容器，观念上类似关联式数据库（实际上则简单许多）：每笔数据(每个元素）都有一个键值（key）和一个实值（value)。当元素被插人到关联式容器中时,容器内部结构（可能是
+ * RB-tree, 也可能是 hash-tab $1 \mathrm{e}$)
+ * 便依照其键值大小,以某种特定规则将这个元素放置于适当位置。关联式容器没有所谓头尾(只有最大元素和最小元素），所以不会有所谓push_back(),
+ * push_front()，pop_back()、pop_front(), begin(), end() 这样的操作行为。
+ * 
+
+ * 
+ * 这里，我们在vector容器里面放入 `int`
+ * 元素类型。第二个vector的参数是分配器，用来分配内存，每一次分配 `int`
+ * 大小的内存。通常情况下，自动匹配设置为默认值，因此可以省略。
+ * 
+
+ * 
+ * 
+ * @code
+ *   std::vector<int, std::allocator<int>> vi(ia, ia + 6);
+ * @endcode
+ * 
+ * 接下来，对vector进行一定的算法操作。
+ * cout_if
+ * 算法用来计算一定数据范围下，例如vector的头和尾，符合给定某一个算法条件的个数。
+ * 接下来，设置初值，其中一种办法是找到 `ia`
+ * vi.begin()和vi.end()输出的类型为迭代器，一种范化的指针。
+ * 迭代器是一种行为类似指针的对象,
+ * 而指针的各种行为中最常见也最重要的便是内容提领（dereference)
+ * 和成员访问（member access ) , 因此, 迭代器最重要的编程工作就是对 operator*
+ * 和 operator-> 进行重载（overloading ) 工作。
+ * 可以说，迭代器是一种智能指针。
+ * not1 和 bind2nd 为 adapter 适配器。 bind2nd 表示绑定第二参数为40。
+ * 整个cout_if算法的第三个参数
+ * 代表一个条件或动作，Predicate，它会传回真或者假。
+ * less 为仿函数，或者叫函数对象。
+ * 
+ * @code
+ *   std::cout << test::count_if(vi.begin(),
+ *                               vi.end(),
+ *                               std::not1(std::bind2nd(std::less<int>(), 40)))
+ *             << std::endl;
+ *   return 0;
+ * }
+ * @endcode
+ * 
+ * 整个程序包含了配置器allocator、迭代器interator、仿函数functor、容器container、算法algorithm、配接器adpater六大组成成分。
+<a name="Results"></a><h1>Results</h1>
+
+用于测试代码的结果。 *
+ *
+<a name="PlainProg"></a>
+<h1> The plain program</h1>
+@include "step-0.cc"
+*/

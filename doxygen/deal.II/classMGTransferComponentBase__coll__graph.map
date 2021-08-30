@@ -1,0 +1,8 @@
+<map id="MGTransferComponentBase" name="MGTransferComponentBase">
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="5,153,44,230"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="69,153,167,230"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="923,153,1039,230"/>
+<area shape="rect" id="node11" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="629,153,721,230"/>
+<area shape="rect" id="node12" href="$classComponentMask.html" title="{ComponentMask\n||+ ComponentMask()\l+ ComponentMask()\l+ ComponentMask()\l+ set()\l+ size()\l+ operator[]()\l+ represents_n_components()\l+ n_selected_components()\l+ first_selected_component()\l+ represents_the_all\l_selected_mask()\land 6 more...\l}" alt="" coords="1178,499,1373,737"/>
+<area shape="rect" id="node14" href="$classbool.html" title="{bool\n||}" alt="" coords="1299,153,1345,230"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="Utilities::MPI::ConsensusAlgorithmsProcessTargets" name="Utilities::MPI::ConsensusAlgorithmsProcessTargets">
+<area shape="rect" id="node2" href="$classUtilities_1_1MPI_1_1ConsensusAlgorithms_1_1Process.html" title="{Utilities::MPI::Consensus\lAlgorithms::Process\&lt; unsigned\l int, unsigned int \&gt;\n||+ ~Process()\l+ compute_targets()\l+ create_request()\l+ prepare_buffer_for\l_answer()\l+ answer_request()\l+ read_answer()\l}" alt="" coords="9,263,213,457"/>
+<area shape="rect" id="node3" href="$classUtilities_1_1MPI_1_1ConsensusAlgorithms_1_1Process.html" title="{Utilities::MPI::Consensus\lAlgorithms::Process\&lt; T1, T2 \&gt;\n||+ ~Process()\l+ compute_targets()\l+ create_request()\l+ prepare_buffer_for\l_answer()\l+ answer_request()\l+ read_answer()\l}" alt="" coords="9,5,212,185"/>
+</map>

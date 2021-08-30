@@ -1,0 +1,4 @@
+<map id="DesignPattern::Bridge::Implementation" name="DesignPattern::Bridge::Implementation">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Bridge_1_1ConcreteImplementationA.html" title="{DesignPattern::Bridge\l::ConcreteImplementationA\n||+ OperationImplementation()\l}" alt="" coords="5,160,192,252"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Bridge_1_1ConcreteImplementationB.html" title="{DesignPattern::Bridge\l::ConcreteImplementationB\n||+ OperationImplementation()\l}" alt="" coords="216,160,403,252"/>
+</map>

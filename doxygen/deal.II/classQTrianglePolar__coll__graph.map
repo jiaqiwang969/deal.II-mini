@@ -1,0 +1,14 @@
+<map id="QTrianglePolar" name="QTrianglePolar">
+<area shape="rect" id="node2" href="$classQSimplex.html" title="{QSimplex\&lt; 2 \&gt;\n||+ QSimplex()\l+ compute_affine_transformation()\l}" alt="" coords="39,1557,260,1649"/>
+<area shape="rect" id="node3" href="$classQuadrature.html" title="{Quadrature\&lt; dim \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\l+ operator=()\land 13 more...\l}" alt="" coords="184,984,315,1208"/>
+<area shape="rect" id="node18" href="$classQuadrature.html" title="{Quadrature\&lt; 1 \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\land 13 more...\l}" alt="" coords="581,1271,699,1495"/>
+<area shape="rect" id="node24" href="$classQSimplex.html" title="{QSimplex\&lt; dim \&gt;\n||+ QSimplex()\l+ compute_affine_transformation()\l}" alt="" coords="139,1337,360,1429"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="300,565,468,921"/>
+<area shape="rect" id="node6" href="$classint.html" title="{int\n||}" alt="" coords="11,145,50,223"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="87,145,167,223"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="277,145,400,223"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="730,145,846,223"/>
+<area shape="rect" id="node22" title="STL class. " alt="" coords="961,464,1071,541"/>
+<area shape="rect" id="node23" title="STL class. " alt="" coords="1098,247,1238,324"/>
+<area shape="rect" id="node20" href="$classbool.html" title="{bool\n||}" alt="" coords="673,705,719,782"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="internal::TriangulationImplementation::TriaObjects" name="internal::TriangulationImplementation::TriaObjects">
+<area shape="rect" id="node3" href="$structinternal_1_1TriangulationImplementation_1_1TriaObjects_1_1BoundaryOrMaterialId.html" title="{internal::TriangulationImplementation\l::TriaObjects::BoundaryOrMaterialId\n||+ BoundaryOrMaterialId()\l+ serialize()\l+ memory_consumption()\l}" alt="" coords="5,160,240,281"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="297,5,335,83"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="590,182,706,259"/>
+<area shape="rect" id="node9" href="$structinternal_1_1TriangulationImplementation_1_1TriaObjects_1_1UserData.html" title="{internal::TriangulationImplementation\l::TriaObjects::UserData\n||+ UserData()\l+ serialize()\l}" alt="" coords="791,167,1025,274"/>
+<area shape="rect" id="node13" href="$classbool.html" title="{bool\n||}" alt="" coords="1303,182,1350,259"/>
+<area shape="rect" id="node18" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="435,182,527,259"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="mg::SmootherRelaxation&lt; RelaxationType, VectorType &gt;" name="mg::SmootherRelaxation&lt; RelaxationType, VectorType &gt;">
+<area shape="rect" id="node2" href="$classMGLevelObject.html" title="{MGLevelObject\&lt; Relaxation\lType \&gt;\n||+ MGLevelObject()\l+ MGLevelObject()\l+ operator[]()\l+ operator[]()\l+ resize()\l+ operator=()\l+ clear_elements()\l+ min_level()\l+ max_level()\l+ apply()\l+ memory_consumption()\l}" alt="" coords="591,1204,777,1443"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="600,469,768,825"/>
+<area shape="rect" id="node19" href="$classMGLevelObject.html" title="{MGLevelObject\&lt; Object \&gt;\n||+ MGLevelObject()\l+ MGLevelObject()\l+ operator[]()\l+ operator[]()\l+ resize()\l+ operator=()\l+ clear_elements()\l+ min_level()\l+ max_level()\l+ apply()\l+ memory_consumption()\l}" alt="" coords="286,888,461,1112"/>
+<area shape="rect" id="node23" href="$classMGSmootherBase.html" title="{MGSmootherBase\&lt; VectorType \&gt;\n||+ ~MGSmootherBase()\l+ clear()\l+ smooth()\l+ apply()\l}" alt="" coords="730,939,950,1061"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="13,160,51,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="465,160,545,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="442,5,569,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="299,160,421,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="625,160,741,237"/>
+<area shape="rect" id="node18" href="$classstd_1_1shared__ptr_3_01RelaxationType_01_4.html" title="{shared_ptr\&lt; RelaxationType \&gt;\n||}" alt="" coords="1131,160,1330,237"/>
+<area shape="rect" id="node22" href="$classMGSmoother.html" title="{MGSmoother\&lt; VectorType \&gt;\n||+ MGSmoother()\l+ set_steps()\l+ set_variable()\l+ set_symmetric()\l+ set_transpose()\l+ set_debug()\l}" alt="" coords="971,1248,1162,1399"/>
+<area shape="rect" id="node24" href="$classbool.html" title="{bool\n||}" alt="" coords="1043,961,1090,1039"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="internal::MatrixFreeFunctions::MPICommunication" name="internal::MatrixFreeFunctions::MPICommunication">
+<area shape="rect" id="node3" href="$classbool.html" title="{bool\n||}" alt="" coords="103,101,149,178"/>
+<area shape="rect" id="node4" href="$structinternal_1_1MFWorkerInterface.html" title="{internal::MFWorkerInterface\n||+ ~MFWorkerInterface()\l+ vector_update_ghosts\l_start()\l+ vector_update_ghosts\l_finish()\l+ vector_compress_start()\l+ vector_compress_finish()\l+ zero_dst_vector_range()\l+ cell_loop_pre_range()\l+ cell_loop_post_range()\l+ cell()\l+ cell()\l+ face()\l+ boundary()\l}" alt="" coords="174,5,358,273"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="DesignPattern::Mediator::ConcreteMediator" name="DesignPattern::Mediator::ConcreteMediator">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Mediator_1_1Mediator.html" title="{DesignPattern::Mediator\l::Mediator\n||+ Notify()\l}" alt="" coords="5,5,168,97"/>
+<area shape="rect" id="node4" href="$classDesignPattern_1_1Mediator_1_1BaseComponent.html" title="{DesignPattern::Mediator\l::BaseComponent\n||+ BaseComponent()\l+ set_mediator()\l}" alt="" coords="103,160,265,267"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Mediator_1_1Component1.html" title="{DesignPattern::Mediator\l::Component1\n||+ DoA()\l+ DoB()\l}" alt="" coords="103,316,265,423"/>
+<area shape="rect" id="node5" href="$classDesignPattern_1_1Mediator_1_1Component2.html" title="{DesignPattern::Mediator\l::Component2\n||+ DoC()\l+ DoD()\l}" alt="" coords="289,316,452,423"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="SolverBicgstab&lt; VectorType &gt;" name="SolverBicgstab&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classSolverBase.html" title="{SolverBase\&lt; VectorType \&gt;\n||+ SolverBase()\l+ SolverBase()\l+ connect()\l}" alt="" coords="835,961,1015,1068"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="421,469,589,825"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="182,160,221,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="257,160,337,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="234,5,361,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="5,160,128,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="390,160,506,237"/>
+<area shape="rect" id="node20" href="$classinternal_1_1SolverBicgstabData.html" title="{internal::SolverBicgstabData\n||# SolverBicgstabData()\l}" alt="" coords="1514,976,1702,1053"/>
+<area shape="rect" id="node21" href="$classdouble.html" title="{double\n||}" alt="" coords="1441,609,1501,686"/>
+<area shape="rect" id="node24" href="$structSolverBicgstab_1_1AdditionalData.html" title="{SolverBicgstab\&lt; VectorType\l \&gt;::AdditionalData\n||+ AdditionalData()\l}" alt="" coords="1187,969,1376,1061"/>
+<area shape="rect" id="node23" href="$classVectorType.html" title="{VectorType\n||}" alt="" coords="1401,976,1490,1053"/>
+<area shape="rect" id="node25" href="$classbool.html" title="{bool\n||}" alt="" coords="1261,609,1307,686"/>
+</map>

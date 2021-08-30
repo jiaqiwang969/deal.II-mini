@@ -1,0 +1,3 @@
+<map id="ImplicitQR&lt; VectorType &gt;" name="ImplicitQR&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classBaseQR.html" title="{BaseQR\&lt; VectorType \&gt;\n|# columns\l# R\l# current_size\l# givens_signal\l|+ ~BaseQR()\l+ append_column()\l+ remove_column()\l+ size()\l+ get_R()\l+ solve()\l+ multiply_with_Q()\l+ multiply_with_QT()\l+ multiply_with_A()\l+ multiply_with_AT()\l+ connect_givens_slot()\l# BaseQR()\l# multiply_with_cols()\l# multiply_with_colsT()\l}" alt="" coords="31,5,194,317"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="Vector classes" name="Vector classes">
+<area shape="rect" id="node2" href="$group__VMemory.html" title="Vector memory management" alt="" coords="545,16,736,43"/>
+<area shape="rect" id="node4" href="$group__PETScWrappers.html" title="PETScWrappers" alt="" coords="581,128,701,155"/>
+<area shape="rect" id="node5" href="$group__feaccess.html" title="Finite element access\l/FEValues classes" alt="" coords="565,201,716,242"/>
+<area shape="rect" id="node6" href="$group__Solvers.html" title="Linear solver classes" alt="" coords="568,267,713,293"/>
+<area shape="rect" id="node7" href="$group__TrilinosWrappers.html" title="TrilinosWrappers" alt="" coords="581,411,701,437"/>
+<area shape="rect" id="node3" href="$group__LAC.html" title="Linear algebra classes" alt="" coords="5,188,157,215"/>
+</map>

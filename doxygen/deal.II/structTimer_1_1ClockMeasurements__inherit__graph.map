@@ -1,0 +1,4 @@
+<map id="Timer::ClockMeasurements&lt; clock_type_ &gt;" name="Timer::ClockMeasurements&lt; clock_type_ &gt;">
+<area shape="rect" id="node2" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; wall_clock_type \&gt;\n|+ current_lap_start_time\l+ accumulated_time\l+ last_lap_time\l|+ ClockMeasurements()\l+ reset()\l}" alt="" coords="5,204,188,340"/>
+<area shape="rect" id="node3" href="$structTimer_1_1ClockMeasurements.html" title="{Timer::ClockMeasurements\l\&lt; CPUClock \&gt;\n|+ current_lap_start_time\l+ accumulated_time\l+ last_lap_time\l|+ ClockMeasurements()\l+ reset()\l}" alt="" coords="212,204,395,340"/>
+</map>

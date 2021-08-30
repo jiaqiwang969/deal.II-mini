@@ -1,0 +1,11 @@
+<map id="Vector&lt; Number &gt;" name="Vector&lt; Number &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="406,499,574,855"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="133,160,172,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="29,160,109,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="5,5,132,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="202,160,325,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="609,160,725,237"/>
+<area shape="rect" id="node20" title="STL class. " alt="" coords="997,160,1137,237"/>
+<area shape="rect" id="node22" href="$classAlignedVector.html" title="{AlignedVector\&lt; T \&gt;\n||+ AlignedVector()\l+ AlignedVector()\l+ ~AlignedVector()\l+ AlignedVector()\l+ AlignedVector()\l+ operator=()\l+ operator=()\l+ resize_fast()\l+ resize()\l+ resize()\land 25 more...\l}" alt="" coords="819,565,953,789"/>
+<area shape="rect" id="node17" href="$classAlignedVector.html" title="{AlignedVector\&lt; Number \&gt;\n||+ AlignedVector()\l+ AlignedVector()\l+ AlignedVector()\l+ AlignedVector()\l+ ~AlignedVector()\l+ operator=()\l+ operator=()\l+ resize_fast()\l+ resize()\l+ resize()\land 25 more...\l}" alt="" coords="893,947,1066,1171"/>
+</map>

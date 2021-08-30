@@ -1,0 +1,18 @@
+<map id="internal::MatrixFreeFunctions::MappingInfoStorage&lt; structdim, spacedim, Number, VectorizedArrayType &gt;::QuadratureDescriptor" name="internal::MatrixFreeFunctions::MappingInfoStorage&lt; structdim, spacedim, Number, VectorizedArrayType &gt;::QuadratureDescriptor">
+<area shape="rect" id="node2" href="$classTable.html" title="{Table\&lt; 2, unsigned\l int \&gt;\n||}" alt="" coords="5,1925,139,2017"/>
+<area shape="rect" id="node3" href="$classTable.html" title="{Table\&lt; N, T \&gt;\n||}" alt="" coords="19,1645,123,1723"/>
+<area shape="rect" id="node4" href="$classQuadrature.html" title="{Quadrature\&lt; structdim \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\land 13 more...\l}" alt="" coords="961,1859,1125,2083"/>
+<area shape="rect" id="node5" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="553,499,721,855"/>
+<area shape="rect" id="node21" href="$classQuadrature.html" title="{Quadrature\&lt; 1 \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\land 13 more...\l}" alt="" coords="931,947,1048,1171"/>
+<area shape="rect" id="node25" href="$classQuadrature.html" title="{Quadrature\&lt; dim \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\l+ operator=()\land 13 more...\l}" alt="" coords="757,1572,888,1796"/>
+<area shape="rect" id="node7" href="$classint.html" title="{int\n||}" alt="" coords="209,160,247,237"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="479,160,559,237"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="455,5,582,97"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="312,160,435,237"/>
+<area shape="rect" id="node17" title="STL class. " alt="" coords="1109,160,1225,237"/>
+<area shape="rect" id="node26" title="STL class. " alt="" coords="1420,1020,1529,1097"/>
+<area shape="rect" id="node27" title="STL class. " alt="" coords="1605,160,1745,237"/>
+<area shape="rect" id="node32" href="$classAlignedVector.html" title="{AlignedVector\&lt; T \&gt;\n||+ AlignedVector()\l+ AlignedVector()\l+ ~AlignedVector()\l+ AlignedVector()\l+ AlignedVector()\l+ operator=()\l+ operator=()\l+ resize_fast()\l+ resize()\l+ resize()\land 25 more...\l}" alt="" coords="1878,565,2013,789"/>
+<area shape="rect" id="node23" href="$classbool.html" title="{bool\n||}" alt="" coords="355,638,402,715"/>
+<area shape="rect" id="node28" href="$classAlignedVector.html" title="{AlignedVector\&lt; Number \&gt;\n||+ AlignedVector()\l+ AlignedVector()\l+ AlignedVector()\l+ AlignedVector()\l+ ~AlignedVector()\l+ operator=()\l+ operator=()\l+ resize_fast()\l+ resize()\l+ resize()\land 25 more...\l}" alt="" coords="1680,947,1853,1171"/>
+</map>

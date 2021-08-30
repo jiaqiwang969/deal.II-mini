@@ -1,0 +1,13 @@
+<map id="TrilinosWrappers::SolverDirect" name="TrilinosWrappers::SolverDirect">
+<area shape="rect" id="node4" title="STL class. " alt="" coords="247,609,387,686"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="1141,160,1264,237"/>
+<area shape="rect" id="node20" title="STL class. " alt="" coords="589,160,705,237"/>
+<area shape="rect" id="node6" href="$structTrilinosWrappers_1_1SolverDirect_1_1AdditionalData.html" title="{TrilinosWrappers::Solver\lDirect::AdditionalData\n||+ AdditionalData()\l}" alt="" coords="548,1005,713,1097"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="973,160,1053,237"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="950,5,1077,97"/>
+<area shape="rect" id="node9" href="$classbool.html" title="{bool\n||}" alt="" coords="650,609,697,686"/>
+<area shape="rect" id="node10" href="$classSolverControl.html" title="{SolverControl\n||+ SolverControl()\l+ ~SolverControl()\l+ parse_parameters()\l+ check()\l+ last_check()\l+ initial_value()\l+ last_value()\l+ last_step()\l+ max_steps()\l+ set_max_steps()\land 15 more...\l+ declare_parameters()\l}" alt="" coords="1010,932,1166,1171"/>
+<area shape="rect" id="node11" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1111,469,1279,825"/>
+<area shape="rect" id="node13" href="$classint.html" title="{int\n||}" alt="" coords="1078,160,1117,237"/>
+<area shape="rect" id="node22" href="$classdouble.html" title="{double\n||}" alt="" coords="766,322,826,399"/>
+</map>

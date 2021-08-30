@@ -1,0 +1,220 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+  <head>
+    <title>The deal.II Readme on interfacing to Trilinos</title>
+    <link href="../screen.css" rel="StyleSheet">
+    <meta name="copyright" content="Copyright (C) 2008 - 2020 by the deal.II authors">
+    <meta name="keywords" content="deal.II">
+  </head>
+
+  <body>
+
+    <h1>Interfacing <acronym>deal.II</acronym> to Trilinos</h1>
+
+    <p>
+      <a href="https://trilinos.org/" target="_top">Trilinos</a> is a
+      software package that provides lots of functionality for linear
+      algebra, among other things. For example, it includes implementations of
+      a variety of linear solvers, as well as various different sparse and dense
+      matrix and vector formats. Trilinos also has many subpackages that deal
+      with problems that go far beyond linear algebra, for example nonlinear
+      solvers, automatic differentiation packages, uncertainty propagation
+      engines, etc. Of particular interest to deal.II is their ability to
+      provide this functionality both on sequential and parallel (using MPI)
+      computers.
+      Compared to <a href="http://www.mcs.anl.gov/petsc/" target="_top">PETSc</a>,
+      which is written in C, Trilinos is written in C++ and can be considered to
+      be a more modern version of PETSc though both packages are under
+      continuing development at their respective national laboratories.
+    </p>
+
+    <p>
+      <acronym>deal.II</acronym> has wrapper classes to the linear algebra
+      parts of Trilinos that provide almost the
+      same interfaces as the built-in <acronym>deal.II</acronym> linear
+      algebra classes. We use these interfaces for parallel computations based
+      on MPI since the native deal.II linear algebra classes lack this
+      ability. They are used, among other programs, in step-31 and step-32.
+    </p>
+
+    <p>
+      While building deal.II with Trilinos is covered in
+      the <a href="../readme.html">ReadMe file</a>, we here give an
+      introduction to building Trilinos in such a way that it contains
+      everything that we need from the <acronym>deal.II</acronym> side.
+    </p>
+
+
+    <h5>Installing Trilinos</h5>
+
+    <p style="color: red">
+      Note: The current version of deal.II requires at least Trilinos 12.4.
+      Deal.II is known to work with Trilinos up to 12.18. Other versions of
+      Trilinos should work too but have not been tested prior to the
+      release.
+    </p>
+
+    <p>
+      deal.II uses the following libraries from Trilinos:
+      <ul>
+        <li> Amesos,
+        <li> AztecOO,
+        <li> Epetra,
+        <li> EpetraExt (optional),
+        <li> Ifpack,
+        <li> ML,
+        <li> MueLu (optional, required for TrilinosWrappers::PreconditionAMGMueLu),
+        <li> ROL (optional),
+        <li> Sacado (optional),
+        <li> SEACAS (optional, required for GridIn::read_exodusii()),
+        <li> Teuchos,
+        <li> Tpetra (optional),
+        <li> Zoltan (optional).
+      </ul>
+
+      Trilinos uses <a href="http://cmake.org/">cmake</a> to configure and
+      build. The following slightly longish set of commands will set up a
+      reasonable configuration (<code>trilinos-x.y.z</code> is the
+      version-specific path into which the
+      Trilinos <code>.tar.gz</code> will unpack):
+      <pre>
+
+    cd trilinos-x.y.z
+    mkdir build
+    cd build
+
+    cmake                                            \
+    -DTrilinos_ENABLE_Amesos=ON                      \
+    -DTrilinos_ENABLE_Epetra=ON                      \
+    -DTrilinos_ENABLE_EpetraExt=ON                   \
+    -DTrilinos_ENABLE_Ifpack=ON                      \
+    -DTrilinos_ENABLE_AztecOO=ON                     \
+    -DTrilinos_ENABLE_Sacado=ON                      \
+    -DTrilinos_ENABLE_SEACAS=ON                      \
+    -DTrilinos_ENABLE_Teuchos=ON                     \
+    -DTrilinos_ENABLE_MueLu=ON                       \
+    -DTrilinos_ENABLE_ML=ON                          \
+    -DTrilinos_ENABLE_ROL=ON                         \
+    -DTrilinos_ENABLE_Tpetra=ON                      \
+    -DTrilinos_ENABLE_COMPLEX_DOUBLE=ON              \
+    -DTrilinos_ENABLE_COMPLEX_FLOAT=ON               \
+    -DTrilinos_ENABLE_Zoltan=ON                      \
+    -DTrilinos_VERBOSE_CONFIGURE=OFF                 \
+    -DTPL_ENABLE_MPI=ON                              \
+    -DBUILD_SHARED_LIBS=ON                           \
+    -DCMAKE_VERBOSE_MAKEFILE=OFF                     \
+    -DCMAKE_BUILD_TYPE=RELEASE                       \
+    -DCMAKE_INSTALL_PREFIX:PATH=$HOME/share/trilinos \
+    ../
+
+    make install
+      </pre>
+      You will need to adjust the path into which you want to install Trilinos
+      in the CMAKE_INSTALL_PREFIX line. If you do not have MPI installed you
+      should use <code>-DTPL_ENABLE_MPI=OFF</code> instead. Additionally, if
+      your computer has enough memory available, it may also be useful to pass
+      the flag <code>-DTrilinos_ENABLE_EXPLICIT_INSTANTIATION=ON</code>, which
+      will improve compilation times of deal.II programs that use Trilinos.
+    </p>
+
+
+    <h5>Parallel builds</h5>
+
+    <p>
+      If your computer has more than one processor core, use
+      <code>make -jN</code> instead of <code>make</code> in the last line
+      above, where <code>N</code> is the number of processors you have.
+    </p>
+
+
+    <h5>BLAS and LAPACK</h5>
+
+    <p style="color: red">
+      Note: At the time of writing (November 2016) Trilinos (at least up to
+      v12.8.1) cannot link against LAPACK 3.6.0 or later, due to two symbols
+      that were deprecated (and removed by default) in LAPACK 3.6.0 (see the
+      <a href="http://www.netlib.org/lapack/lapack-3.6.0.html">
+      release notes</a>). To fix this, edit the Trilinos file
+      <code>packages/epetra/src/Epetra_LAPACK_wrappers.h</code> and change the
+      lines
+      <pre>
+
+    #define DGGSVD_F77  F77_BLAS_MANGLE(dggsvd,DGGSVD)
+    #define SGGSVD_F77  F77_BLAS_MANGLE(sggsvd,SGGSVD)
+      </pre>
+      to
+      <pre>
+
+    #define DGGSVD_F77  F77_BLAS_MANGLE(dggsvd3,DGGSVD3)
+    #define SGGSVD_F77  F77_BLAS_MANGLE(sggsvd3,SGGSVD3)
+      </pre>
+      before installing Trilinos. (Credit for this fix goes to
+      <a href="https://github.com/gahansen/Albany/wiki/ALCF-Vesta">this page</a>.)
+    </p>
+
+    <p>
+      Trilinos sometimes searches for other libraries but can't find
+      them if they are not in the usual directories or have other
+      names. A common example are BLAS or LAPACK. In a case like
+      this, you may have to specifically pass the directories and/or
+      library names under which they can be found
+      to <code>cmake</code>. For example, this may mean to add the
+      following flags to the call above:
+      <pre>
+
+	-DBLAS_LIBRARY_NAMES:STRING=goto \
+	-DBLAS_LIBRARY_DIRS:STRING=/apps/GotoBLAS/lib64 \
+	-DLAPACK_LIBRARY_NAMES:STRING=lapack \
+	-DLAPACK_LIBRARY_DIRS:STRING=/apps/lapack-3.2.1/lib64
+      </pre>
+    </p>
+
+
+    <h5>Using external direct solvers</h5>
+
+    <p>
+      Trilinos (via its Amesos package) can interface with a number of direct
+      solvers (see, for example,
+      <a href="http://trilinos.org/docs/r11.8/packages/amesos/doc/html/index.html"
+	 target="_top">this page for Trilinos 11.8</a>). Most of them are external
+      packages to Trilinos and you will need to tell Trilinos configuration
+      scripts that you want to use them, for example via the
+      <code>TrilinosWrappers::SolverDirect</code> class.  This can be tricky,
+      but adding defines similar to the following to the cmake command line
+      will achieve the goal to enable the UMFPACK and SuperLU/SuperLUDist
+      solvers:
+      <pre>
+
+        -DTPL_ENABLE_UMFPACK:BOOL=ON \
+        -DTPL_ENABLE_SuperLU:BOOL=ON \
+        -DTPL_ENABLE_SuperLUDist:BOOL=ON \
+        -DTPL_UMFPACK_INCLUDE_DIRS="/usr/include" \
+        -DSuperLUDist_INCLUDE_DIRS:FILEPATH="/path/to/SuperLU_DIST_3.2/SRC" \
+        -DTPL_SuperLUDist_LIBRARIES:FILEPATH="/path/to/SuperLU_DIST_3.2/lib/libsuperlu_dist.a" \
+        -DSuperLU_INCLUDE_DIRS:FILEPATH="/path/to/SuperLU_4.3/SRC" \
+        -DTPL_SuperLU_LIBRARIES:FILEPATH="/path/to/SuperLU_4.3/lib/libsuperlu_4.3.a"
+      </pre>
+      Similarly, to enable MUMPS, commands should include
+      <pre>
+
+        -DTPL_ENABLE_MUMPS:BOOL=ON \
+        -DTPL_ENABLE_SCALAPACK:BOOL=ON
+      </pre>
+      and possibly followed by
+      <pre>
+
+        -DTPL_MUMPS_INCLUDE_DIRS:PATH=/usr/include/openmpi-x86_64 \
+        -DSCALAPACK_LIBRARY_DIRS:PATH=/lib64/openmpi/lib \
+      </pre>
+      where you need to adjust the exact paths, of course.
+    </p>
+    <hr />
+    <div class="right">
+      <a href="http://validator.w3.org/check?uri=referer" target="_top">
+        <img style="border:0" src="http://www.w3.org/Icons/valid-html401" alt="Valid HTML 4.01!"></a>
+      <a href="http://jigsaw.w3.org/css-validator/check/referer" target="_top">
+        <img style="border:0;width:88px;height:31px" src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!"></a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+<map id="SparseMatrixEZ&lt; number &gt;" name="SparseMatrixEZ&lt; number &gt;">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="292,528,460,884"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="211,160,250,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="287,160,367,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="263,5,390,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="5,160,128,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="661,160,777,237"/>
+<area shape="rect" id="node17" href="$structSparseMatrixEZ_1_1Entry.html" title="{SparseMatrixEZ\&lt; number\l \&gt;::Entry\n||+ Entry()\l+ Entry()\l}" alt="" coords="1192,329,1363,436"/>
+<area shape="rect" id="node19" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="1426,160,1518,237"/>
+<area shape="rect" id="node22" href="$structSparseMatrixEZ_1_1RowInfo.html" title="{SparseMatrixEZ\&lt; number\l \&gt;::RowInfo\n||+ RowInfo()\l}" alt="" coords="1387,337,1557,429"/>
+</map>

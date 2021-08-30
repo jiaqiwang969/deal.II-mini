@@ -1,0 +1,3 @@
+<map id="DesignPattern::Observer::ISubject" name="DesignPattern::Observer::ISubject">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Observer_1_1Subject.html" title="{DesignPattern::Observer\l::Subject\n|&#45; list_observer_\l&#45; message_\l|+ ~Subject()\l+ Attach()\l+ Detach()\l+ Notify()\l+ CreateMessage()\l+ HowManyObserver()\l+ SomeBusinessLogic()\l}" alt="" coords="5,189,172,384"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="Polynomials::HermiteInterpolation" name="Polynomials::HermiteInterpolation">
+<area shape="rect" id="node2" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; double \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="250,1307,464,1604"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="756,469,924,825"/>
+<area shape="rect" id="node20" href="$classPolynomials_1_1Polynomial.html" title="{Polynomials::Polynomial\l\&lt; number \&gt;\n||+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ Polynomial()\l+ value()\l+ value()\l+ value()\l+ degree()\l+ scale()\l+ shift()\land 10 more...\l# transform_into_standard_form()\l# scale()\l# shift()\l# multiply()\l}" alt="" coords="543,917,758,1215"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="856,160,895,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="920,160,1000,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="858,5,984,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="1024,160,1146,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="483,160,599,237"/>
+<area shape="rect" id="node17" href="$classdouble.html" title="{double\n||}" alt="" coords="66,609,126,686"/>
+<area shape="rect" id="node18" href="$classbool.html" title="{bool\n||}" alt="" coords="510,609,556,686"/>
+</map>

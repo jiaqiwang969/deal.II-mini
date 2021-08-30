@@ -1,0 +1,13 @@
+<map id="CUDAWrappers::SolverDirect&lt; Number &gt;" name="CUDAWrappers::SolverDirect&lt; Number &gt;">
+<area shape="rect" id="node2" href="$structUtilities_1_1CUDA_1_1Handle.html" title="{Utilities::CUDA::Handle\n||+ Handle()\l+ Handle()\l+ ~Handle()\l}" alt="" coords="226,1075,389,1182"/>
+<area shape="rect" id="node6" href="$classSolverControl.html" title="{SolverControl\n||+ SolverControl()\l+ ~SolverControl()\l+ parse_parameters()\l+ check()\l+ last_check()\l+ initial_value()\l+ last_value()\l+ last_step()\l+ max_steps()\l+ set_max_steps()\land 15 more...\l+ declare_parameters()\l}" alt="" coords="801,1009,957,1248"/>
+<area shape="rect" id="node7" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1173,547,1341,903"/>
+<area shape="rect" id="node9" href="$classint.html" title="{int\n||}" alt="" coords="1011,160,1049,237"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="671,160,751,237"/>
+<area shape="rect" id="node26" href="$structCUDAWrappers_1_1SolverDirect_1_1AdditionalData.html" title="{CUDAWrappers::SolverDirect\l\&lt; Number \&gt;::AdditionalData\n||+ AdditionalData()\l}" alt="" coords="481,431,678,523"/>
+<area shape="rect" id="node11" title="STL class. " alt="" coords="648,5,775,97"/>
+<area shape="rect" id="node12" title="STL class. " alt="" coords="834,160,957,237"/>
+<area shape="rect" id="node19" title="STL class. " alt="" coords="1073,160,1189,237"/>
+<area shape="rect" id="node21" href="$classdouble.html" title="{double\n||}" alt="" coords="844,322,904,399"/>
+<area shape="rect" id="node22" href="$classbool.html" title="{bool\n||}" alt="" coords="1365,686,1412,763"/>
+</map>

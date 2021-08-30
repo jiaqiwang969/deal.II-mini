@@ -1,0 +1,15 @@
+<map id="BlockDynamicSparsityPattern" name="BlockDynamicSparsityPattern">
+<area shape="rect" id="node2" href="$classBlockSparsityPatternBase.html" title="{BlockSparsityPatternBase\l\&lt; DynamicSparsityPattern \&gt;\n||+ BlockSparsityPatternBase()\l+ BlockSparsityPatternBase()\l+ BlockSparsityPatternBase()\l+ ~BlockSparsityPatternBase()\l+ reinit()\l+ operator=()\l+ collect_sizes()\l+ block()\l+ block()\l+ get_row_indices()\land 18 more...\l}" alt="" coords="519,1876,721,2115"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1032,484,1200,840"/>
+<area shape="rect" id="node22" href="$classBlockIndices.html" title="{BlockIndices\n||+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ BlockIndices()\l+ reinit()\l+ reinit()\l+ push_back()\l+ operator=()\l+ operator=()\l+ operator==()\l+ swap()\l+ memory_consumption()\l+ size()\l+ total_size()\l+ block_size()\l+ to_string()\l+ global_to_local()\l+ local_to_global()\l+ block_start()\l* size()\l* total_size()\l* block_size()\l* to_string()\l* global_to_local()\l* local_to_global()\l* block_start()\l}" alt="" coords="792,947,963,1405"/>
+<area shape="rect" id="node24" href="$classBlockSparsityPatternBase.html" title="{BlockSparsityPatternBase\l\&lt; SparsityPatternType \&gt;\n||+ BlockSparsityPatternBase()\l+ BlockSparsityPatternBase()\l+ BlockSparsityPatternBase()\l+ ~BlockSparsityPatternBase()\l+ reinit()\l+ operator=()\l+ collect_sizes()\l+ block()\l+ block()\l+ get_row_indices()\land 18 more...\l}" alt="" coords="519,1575,721,1813"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="1014,160,1053,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1089,160,1169,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1066,5,1193,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="800,160,923,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="449,160,565,237"/>
+<area shape="rect" id="node17" href="$classTable.html" title="{Table\&lt; 2, SmartPointer\l\&lt; DynamicSparsityPattern,\l BlockSparsityPatternBase\l\&lt; DynamicSparsityPattern \&gt; \&gt; \&gt;\n||}" alt="" coords="941,1429,1153,1551"/>
+<area shape="rect" id="node18" href="$classTable.html" title="{Table\&lt; N, T \&gt;\n||}" alt="" coords="629,623,733,701"/>
+<area shape="rect" id="node25" href="$classTable.html" title="{Table\&lt; 2, SmartPointer\l\&lt; SparsityPatternType,\l BlockSparsityPatternBase\l\&lt; SparsityPatternType \&gt; \&gt; \&gt;\n||}" alt="" coords="579,1115,768,1237"/>
+<area shape="rect" id="node21" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="239,322,331,399"/>
+</map>

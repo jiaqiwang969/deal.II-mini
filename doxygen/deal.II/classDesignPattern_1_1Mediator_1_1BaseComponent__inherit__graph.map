@@ -1,0 +1,4 @@
+<map id="DesignPattern::Mediator::BaseComponent" name="DesignPattern::Mediator::BaseComponent">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Mediator_1_1Component1.html" title="{DesignPattern::Mediator\l::Component1\n||+ DoA()\l+ DoB()\l}" alt="" coords="5,160,168,267"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Mediator_1_1Component2.html" title="{DesignPattern::Mediator\l::Component2\n||+ DoC()\l+ DoD()\l}" alt="" coords="192,160,355,267"/>
+</map>

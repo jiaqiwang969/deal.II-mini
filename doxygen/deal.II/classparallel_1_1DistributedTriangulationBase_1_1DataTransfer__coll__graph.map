@@ -1,0 +1,7 @@
+<map id="parallel::DistributedTriangulationBase&lt; dim, spacedim &gt;::DataTransfer" name="parallel::DistributedTriangulationBase&lt; dim, spacedim &gt;::DataTransfer">
+<area shape="rect" id="node4" title="STL class. " alt="" coords="339,145,455,223"/>
+<area shape="rect" id="node6" href="$classbool.html" title="{bool\n||}" alt="" coords="179,293,226,370"/>
+<area shape="rect" id="node8" href="$classint.html" title="{int\n||}" alt="" coords="655,145,694,223"/>
+<area shape="rect" id="node9" href="$classMPI__Comm.html" title="{MPI_Comm\n||}" alt="" coords="489,293,581,370"/>
+<area shape="rect" id="node11" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="171,145,263,223"/>
+</map>

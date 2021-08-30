@@ -1,0 +1,22 @@
+<map id="Functions::CoordinateRestriction&lt; dim &gt;" name="Functions::CoordinateRestriction&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classFunction.html" title="{Function\&lt; dim \&gt;\n||+ Function()\l+ Function()\l+ ~Function()\l+ operator=()\l+ value()\l+ vector_value()\l+ value_list()\l+ vector_value_list()\l+ vector_values()\l+ gradient()\land 13 more...\l}" alt="" coords="611,1439,751,1663"/>
+<area shape="rect" id="node3" href="$classFunctionTime.html" title="{FunctionTime\&lt; numbers\l::NumberTraits\&lt; double\l \&gt;::real_type \&gt;\n||+ FunctionTime()\l+ ~FunctionTime()\l+ get_time()\l+ set_time()\l+ advance_time()\l}" alt="" coords="457,1159,619,1325"/>
+<area shape="rect" id="node29" href="$classFunction.html" title="{Function\&lt; dim+1 \&gt;\n||+ Function()\l+ Function()\l+ ~Function()\l+ operator=()\l+ value()\l+ vector_value()\l+ value_list()\l+ vector_value_list()\l+ vector_values()\l+ gradient()\land 13 more...\l}" alt="" coords="971,1439,1111,1663"/>
+<area shape="rect" id="node26" href="$classFunctionTime.html" title="{FunctionTime\&lt; Number \&gt;\n||+ FunctionTime()\l+ ~FunctionTime()\l+ get_time()\l+ set_time()\l+ advance_time()\l}" alt="" coords="73,417,243,553"/>
+<area shape="rect" id="node5" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="794,689,962,1045"/>
+<area shape="rect" id="node21" href="$classFunction.html" title="{Function\&lt; dim, RangeNumber\lType \&gt;\n||+ Function()\l+ Function()\l+ ~Function()\l+ operator=()\l+ value()\l+ vector_value()\l+ value_list()\l+ vector_value_list()\l+ vector_values()\l+ gradient()\land 13 more...\l}" alt="" coords="643,1123,841,1361"/>
+<area shape="rect" id="node7" href="$classint.html" title="{int\n||}" alt="" coords="525,189,564,267"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="1305,189,1385,267"/>
+<area shape="rect" id="node28" href="$classSmartPointer.html" title="{SmartPointer\&lt; const\l Function\&lt; dim+1 \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1381,1725,1529,1964"/>
+<area shape="rect" id="node32" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1271,373,1418,597"/>
+<area shape="rect" id="node9" title="STL class. " alt="" coords="1281,5,1408,97"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="653,189,775,267"/>
+<area shape="rect" id="node17" title="STL class. " alt="" coords="981,189,1097,267"/>
+<area shape="rect" id="node19" href="$classstatic_01const_01unsigned_01int.html" title="{static const unsigned int\n||}" alt="" coords="116,1203,280,1281"/>
+<area shape="rect" id="node20" href="$classconst_01unsigned_01int.html" title="{const unsigned int\n||}" alt="" coords="305,1203,433,1281"/>
+<area shape="rect" id="node22" href="$classFunctionTime.html" title="{FunctionTime\&lt; numbers\l::NumberTraits\&lt; RangeNumber\lType \&gt;::real_type \&gt;\n||+ FunctionTime()\l+ ~FunctionTime()\l+ get_time()\l+ set_time()\l+ advance_time()\l}" alt="" coords="253,785,458,950"/>
+<area shape="rect" id="node23" href="$structnumbers_1_1NumberTraits.html" title="{numbers::NumberTraits\l\&lt; RangeNumberType \&gt;\n||+ conjugate()\l+ abs_square()\l+ abs_square()\l+ abs()\l}" alt="" coords="268,417,427,553"/>
+<area shape="rect" id="node24" href="$classstatic_01constexpr_01bool.html" title="{static constexpr bool\n||}" alt="" coords="99,189,241,267"/>
+<area shape="rect" id="node25" href="$structnumbers_1_1NumberTraits.html" title="{numbers::NumberTraits\l\&lt; number \&gt;\n||+ conjugate()\l+ abs_square()\l+ abs_square()\l+ abs()\l}" alt="" coords="265,160,424,296"/>
+<area shape="rect" id="node27" href="$classdouble.html" title="{double\n||}" alt="" coords="1607,1806,1667,1883"/>
+</map>

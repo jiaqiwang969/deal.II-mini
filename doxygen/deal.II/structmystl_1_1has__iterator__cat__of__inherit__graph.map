@@ -1,0 +1,13 @@
+<map id="mystl::has_iterator_cat_of&lt; T, U, bool &gt;" name="mystl::has_iterator_cat_of&lt; T, U, bool &gt;">
+<area shape="rect" id="node3" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; Iter, random\l_access_iterator_tag \&gt;\n||}" alt="" coords="23,345,177,452"/>
+<area shape="rect" id="node5" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; Iter, forward\l_iterator_tag \&gt;\n||}" alt="" coords="211,345,357,452"/>
+<area shape="rect" id="node7" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; Iter, bidirectional\l_iterator_tag \&gt;\n||}" alt="" coords="381,345,555,452"/>
+<area shape="rect" id="node9" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; Iter, output\l_iterator_tag \&gt;\n||}" alt="" coords="579,345,719,452"/>
+<area shape="rect" id="node11" href="$structmystl_1_1has__iterator__cat__of.html" title="{mystl::has_iterator\l_cat_of\&lt; Iter, input\l_iterator_tag \&gt;\n||}" alt="" coords="754,345,886,452"/>
+<area shape="rect" id="node2" href="$structmystl_1_1m__integral__constant.html" title="{m_bool_constant\&lt; std\l::is_convertible\&lt; iterator\l_traits\&lt; T \&gt;::iterator_category,\l U \&gt;::value \&gt;\n|+ value\l|}" alt="" coords="369,5,567,127"/>
+<area shape="rect" id="node4" href="$structmystl_1_1is__random__access__iterator.html" title="{mystl::is_random_access\l_iterator\&lt; Iter \&gt;\n||}" alt="" coords="5,501,176,593"/>
+<area shape="rect" id="node6" href="$structmystl_1_1is__forward__iterator.html" title="{mystl::is_forward_iterator\l\&lt; Iter \&gt;\n||}" alt="" coords="201,501,370,593"/>
+<area shape="rect" id="node8" href="$structmystl_1_1is__bidirectional__iterator.html" title="{mystl::is_bidirectional\l_iterator\&lt; Iter \&gt;\n||}" alt="" coords="394,501,542,593"/>
+<area shape="rect" id="node10" href="$structmystl_1_1is__output__iterator.html" title="{mystl::is_output_iterator\l\&lt; Iter \&gt;\n||}" alt="" coords="567,501,729,593"/>
+<area shape="rect" id="node12" href="$structmystl_1_1is__input__iterator.html" title="{mystl::is_input_iterator\l\&lt; Iter \&gt;\n||}" alt="" coords="753,501,908,593"/>
+</map>

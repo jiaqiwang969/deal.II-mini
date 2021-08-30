@@ -1,0 +1,4 @@
+<map id="DesignPattern::State::State" name="DesignPattern::State::State">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1State_1_1ConcreteStateA.html" title="{DesignPattern::State\l::ConcreteStateA\n||+ Handle1()\l+ Handle2()\l}" alt="" coords="5,189,149,296"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1State_1_1ConcreteStateB.html" title="{DesignPattern::State\l::ConcreteStateB\n||+ Handle1()\l+ Handle2()\l}" alt="" coords="173,189,317,296"/>
+</map>

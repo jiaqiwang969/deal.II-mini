@@ -1,0 +1,7 @@
+<map id="DesignPattern::Flyweight::FlyweightFactory" name="DesignPattern::Flyweight::FlyweightFactory">
+<area shape="rect" id="node3" title="STL class. " alt="" coords="29,147,109,224"/>
+<area shape="rect" id="node6" href="$structDesignPattern_1_1Flyweight_1_1SharedState.html" title="{DesignPattern::Flyweight\l::SharedState\n||+ SharedState()\l}" alt="" coords="85,316,255,408"/>
+<area shape="rect" id="node4" title="STL class. " alt="" coords="5,5,132,97"/>
+<area shape="rect" id="node5" href="$classDesignPattern_1_1Flyweight_1_1Flyweight.html" title="{DesignPattern::Flyweight\l::Flyweight\n||+ Flyweight()\l+ Flyweight()\l+ ~Flyweight()\l+ shared_state()\l+ Operation()\l}" alt="" coords="85,471,255,621"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="279,500,416,592"/>
+</map>

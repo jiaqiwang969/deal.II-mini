@@ -1,0 +1,6 @@
+<map id="Patterns::Bool" name="Patterns::Bool">
+<area shape="rect" id="node2" href="$classPatterns_1_1Selection.html" title="{Patterns::Selection\n||+ Selection()\l+ match()\l+ description()\l+ clone()\l+ memory_consumption()\l+ create()\l}" alt="" coords="141,345,312,496"/>
+<area shape="rect" id="node3" href="$classPatterns_1_1PatternBase.html" title="{Patterns::PatternBase\n||+ ~PatternBase()\l+ match()\l+ description()\l+ clone()\l+ memory_consumption()\l}" alt="" coords="5,147,176,283"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="200,176,280,253"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="177,5,303,97"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="MGTransferBlockBase" name="MGTransferBlockBase">
+<area shape="rect" id="node2" href="$classMGTransferBlock.html" title="{MGTransferBlock\&lt; number \&gt;\n|&#45; factors\l&#45; memory\l|+ MGTransferBlock()\l+ ~MGTransferBlock()\l+ initialize()\l+ build()\l+ prolongate()\l+ restrict_and_add()\l+ copy_to_mg()\l+ copy_from_mg()\l+ copy_from_mg_add()\l}" alt="" coords="5,380,196,589"/>
+<area shape="rect" id="node3" href="$classMGTransferBlockSelect.html" title="{MGTransferBlockSelect\l\&lt; number \&gt;\n|&#45; selected_block\l|+ MGTransferBlockSelect()\l+ MGTransferBlockSelect()\l+ ~MGTransferBlockSelect()\l+ build()\l+ select()\l+ prolongate()\l+ restrict_and_add()\l+ copy_to_mg()\l+ copy_from_mg()\l+ copy_from_mg_add()\l+ copy_to_mg()\l+ copy_from_mg()\l+ copy_from_mg_add()\l+ memory_consumption()\l&#45; do_copy_from_mg()\l&#45; do_copy_from_mg_add()\l&#45; do_copy_to_mg()\l}" alt="" coords="221,321,410,648"/>
+</map>

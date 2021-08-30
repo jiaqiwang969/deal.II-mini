@@ -1,0 +1,12 @@
+<map id="MultipleParameterLoop" name="MultipleParameterLoop">
+<area shape="rect" id="node2" href="$classParameterHandler.html" title="{ParameterHandler\n||+ ParameterHandler()\l+ ~ParameterHandler()\l+ ParameterHandler()\l+ operator=()\l+ parse_input()\l+ parse_input()\l+ parse_input_from_string()\l+ parse_input_from_xml()\l+ parse_input_from_json()\l+ clear()\land 31 more...\l+ ExcEntryAlreadyExists()\l+ ExcValueDoesNotMatchPattern()\l+ ExcAlreadyAtTopLevel()\l+ ExcEntryUndeclared()\l+ ExcUnbalancedSubsections()\l+ ExcNoSubsection()\l+ ExcCannotParseLine()\l+ ExcInvalidEntryForPattern()\l+ ExcInvalidXMLParameterFile()\l+ ExcCannotOpenIncludeStatementFile()\l&#45; get_current_path()\l&#45; get_current_full_path()\l&#45; get_current_full_path()\l&#45; scan_line()\l&#45; recursively_print_parameters()\l}" alt="" coords="904,961,1165,1405"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="1114,543,1282,899"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="1388,189,1427,267"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="374,189,454,267"/>
+<area shape="rect" id="node31" href="$classMultipleParameterLoop_1_1Entry.html" title="{MultipleParameterLoop\l::Entry\n||+ Entry()\l+ Entry()\l+ split_different_values()\l+ memory_consumption()\l}" alt="" coords="201,653,372,789"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="351,5,478,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="1094,189,1217,267"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="702,189,818,267"/>
+<area shape="rect" id="node20" title="STL class. " alt="" coords="2059,189,2199,267"/>
+<area shape="rect" id="node19" href="$classPatterns_1_1PatternBase.html" title="{Patterns::PatternBase\n||+ ~PatternBase()\l+ match()\l+ description()\l+ clone()\l+ memory_consumption()\l}" alt="" coords="1864,160,2034,296"/>
+</map>

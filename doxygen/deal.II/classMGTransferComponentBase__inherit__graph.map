@@ -1,0 +1,3 @@
+<map id="MGTransferComponentBase" name="MGTransferComponentBase">
+<area shape="rect" id="node2" href="$classMGTransferSelect.html" title="{MGTransferSelect\&lt; number \&gt;\n|+ constraints\l&#45; selected_component\l&#45; mg_selected_component\l&#45; interface_dofs\l|+ MGTransferSelect()\l+ MGTransferSelect()\l+ ~MGTransferSelect()\l+ build()\l+ select()\l+ prolongate()\l+ restrict_and_add()\l+ copy_to_mg()\l+ copy_from_mg()\l+ copy_from_mg_add()\l+ copy_to_mg()\l+ copy_from_mg()\l+ copy_from_mg_add()\l+ memory_consumption()\l&#45; do_copy_from_mg()\l&#45; do_copy_from_mg_add()\l&#45; do_copy_to_mg()\l}" alt="" coords="5,307,200,663"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="SparsityPatternIterators::Accessor" name="SparsityPatternIterators::Accessor">
+<area shape="rect" id="node2" href="$classSparsityPatternBase.html" title="{SparsityPatternBase\n||+ DeclExceptionMsg()\l+ DeclException2()\l+ DeclExceptionMsg()\l+ SparsityPatternBase()\l+ ~SparsityPatternBase()\l+ reinit()\l+ reinit()\l+ reinit()\l+ symmetrize()\l+ add()\l+ begin()\l+ end()\l+ begin()\l+ end()\l+ operator==()\l+ empty()\l+ exists()\l+ max_entries_per_row()\l+ bandwidth()\l+ n_nonzero_elements()\l+ is_compressed()\l+ n_rows()\l+ n_cols()\l+ row_length()\l+ memory_consumption()\l+ column_number()\l+ row_position()\l+ matrix_position()\l+ print()\l+ print_gnuplot()\l+ print_svg()\l+ save()\l+ load()\l+ serialize()\l* SparsityPatternBase()\l* ~SparsityPatternBase()\l* reinit()\l* reinit()\l* reinit()\l* symmetrize()\l* add()\l* begin()\l* end()\l* begin()\l* end()\l* operator==()\l* empty()\l* exists()\l* max_entries_per_row()\l* bandwidth()\l* n_nonzero_elements()\l* is_compressed()\l* n_rows()\l* n_cols()\l* row_length()\l* memory_consumption()\l* column_number()\l* row_position()\l* matrix_position()\l* print()\l* print_gnuplot()\l* print_svg()\l* save()\l* load()\l* serialize()\l}" alt="" coords="410,932,581,1948"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="833,469,1001,825"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="490,160,528,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="701,160,781,237"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="678,5,804,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="324,160,446,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="558,160,674,237"/>
+<area shape="rect" id="node18" title="STL class. " alt="" coords="202,322,342,399"/>
+<area shape="rect" id="node21" href="$classbool.html" title="{bool\n||}" alt="" coords="547,609,594,686"/>
+<area shape="rect" id="node22" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="618,609,710,686"/>
+</map>

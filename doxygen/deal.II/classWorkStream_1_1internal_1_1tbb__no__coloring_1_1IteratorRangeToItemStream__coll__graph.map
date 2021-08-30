@@ -1,0 +1,11 @@
+<map id="WorkStream::internal::tbb_no_coloring::IteratorRangeToItemStream&lt; Iterator, ScratchData, CopyData &gt;" name="WorkStream::internal::tbb_no_coloring::IteratorRangeToItemStream&lt; Iterator, ScratchData, CopyData &gt;">
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="345,1410,383,1487"/>
+<area shape="rect" id="node6" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; typename ItemType::ScratchData\lList \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator typename ItemType\l::ScratchDataList &amp;()\l+ clear()\l}" alt="" coords="187,815,418,1112"/>
+<area shape="rect" id="node15" href="$classThreads_1_1ThreadLocalStorage.html" title="A class that provides a separate storage location on each thread ，访问该对象。 这个类提供的方式是，�¯..." alt="" coords="315,484,541,737"/>
+<area shape="rect" id="node27" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; ScratchDataList \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator ScratchDataList &amp;()\l+ clear()\l}" alt="" coords="796,829,996,1097"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="585,145,682,223"/>
+<area shape="rect" id="node13" title="STL class. " alt="" coords="348,145,471,223"/>
+<area shape="rect" id="node23" title="STL class. " alt="" coords="1186,572,1302,649"/>
+<area shape="rect" id="node19" href="$structWorkStream_1_1internal_1_1tbb__no__coloring_1_1IteratorRangeToItemStream_1_1ItemType.html" title="{WorkStream::internal\l::tbb_no_coloring::Iterator\lRangeToItemStream\&lt; Iterator,\l ScratchData, CopyData \&gt;::ItemType\n||+ ItemType()\l}" alt="" coords="1335,1204,1577,1325"/>
+<area shape="rect" id="node26" href="$classbool.html" title="{bool\n||}" alt="" coords="1839,925,1886,1002"/>
+</map>

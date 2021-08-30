@@ -1,0 +1,4 @@
+<map id="DesignPattern::Proxy::Subject" name="DesignPattern::Proxy::Subject">
+<area shape="rect" id="node2" href="$classDesignPattern_1_1Proxy_1_1Proxy.html" title="{DesignPattern::Proxy\l::Proxy\n|&#45; real_subject_\l|+ Proxy()\l+ ~Proxy()\l+ Request()\l&#45; CheckAccess()\l&#45; LogAccess()\l}" alt="" coords="5,145,152,296"/>
+<area shape="rect" id="node3" href="$classDesignPattern_1_1Proxy_1_1RealSubject.html" title="{DesignPattern::Proxy\l::RealSubject\n||+ Request()\l}" alt="" coords="176,175,323,267"/>
+</map>

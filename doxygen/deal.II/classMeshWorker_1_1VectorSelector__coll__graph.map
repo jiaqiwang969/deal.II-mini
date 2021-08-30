@@ -1,0 +1,10 @@
+<map id="MeshWorker::VectorSelector" name="MeshWorker::VectorSelector">
+<area shape="rect" id="node2" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="795,469,963,825"/>
+<area shape="rect" id="node4" href="$classint.html" title="{int\n||}" alt="" coords="981,160,1020,237"/>
+<area shape="rect" id="node5" title="STL class. " alt="" coords="654,160,734,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="583,5,709,97"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="774,160,897,237"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="277,160,393,237"/>
+<area shape="rect" id="node16" href="$classNamedSelection.html" title="{NamedSelection\n||+ add()\l+ initialize()\l+ size()\l+ operator()()\l}" alt="" coords="297,587,416,708"/>
+<area shape="rect" id="node18" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="5,160,97,237"/>
+</map>

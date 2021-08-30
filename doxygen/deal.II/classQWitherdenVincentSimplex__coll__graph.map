@@ -1,0 +1,13 @@
+<map id="QWitherdenVincentSimplex&lt; dim &gt;" name="QWitherdenVincentSimplex&lt; dim &gt;">
+<area shape="rect" id="node2" href="$classQSimplex.html" title="{QSimplex\&lt; dim \&gt;\n||+ QSimplex()\l+ compute_affine_transformation()\l}" alt="" coords="381,1337,603,1429"/>
+<area shape="rect" id="node3" href="$classQuadrature.html" title="{Quadrature\&lt; dim \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\l+ operator=()\land 13 more...\l}" alt="" coords="565,984,696,1208"/>
+<area shape="rect" id="node18" href="$classQuadrature.html" title="{Quadrature\&lt; 1 \&gt;\n||+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ Quadrature()\l+ ~Quadrature()\land 13 more...\l}" alt="" coords="685,1271,803,1495"/>
+<area shape="rect" id="node4" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="292,565,460,921"/>
+<area shape="rect" id="node6" href="$classint.html" title="{int\n||}" alt="" coords="11,145,50,223"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="87,145,167,223"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="285,145,408,223"/>
+<area shape="rect" id="node14" title="STL class. " alt="" coords="853,145,969,223"/>
+<area shape="rect" id="node22" title="STL class. " alt="" coords="977,464,1087,541"/>
+<area shape="rect" id="node23" title="STL class. " alt="" coords="1113,247,1253,324"/>
+<area shape="rect" id="node20" href="$classbool.html" title="{bool\n||}" alt="" coords="695,705,742,782"/>
+</map>

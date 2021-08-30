@@ -1,0 +1,9 @@
+<map id="internal::DoFHandlerImplementation::NumberCache" name="internal::DoFHandlerImplementation::NumberCache">
+<area shape="rect" id="node3" href="$classIndexSet.html" title="{IndexSet\n||+ IndexSet()\l+ IndexSet()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ operator=()\l+ IndexSet()\l+ clear()\l+ set_size()\l+ size()\land 35 more...\l+ begin()\l+ at()\l+ end()\l+ begin_intervals()\l+ end_intervals()\l+ ExcIndexNotPresent()\l&#45; do_compress()\l* begin()\l* at()\l* end()\l* begin_intervals()\l* end_intervals()\l}" alt="" coords="59,572,222,972"/>
+<area shape="rect" id="node4" href="$classbool.html" title="{bool\n||}" alt="" coords="25,417,72,495"/>
+<area shape="rect" id="node5" href="$classThreads_1_1Mutex.html" title="{Threads::Mutex\n||+ Mutex()\l+ Mutex()\l+ operator=()\l}" alt="" coords="100,403,213,509"/>
+<area shape="rect" id="node7" href="$classunsigned_01int.html" title="{unsigned int\n||}" alt="" coords="251,5,343,83"/>
+<area shape="rect" id="node9" href="$structIndexSet_1_1Range.html" title="{IndexSet::Range\n||+ Range()\l+ Range()\l+ serialize()\l+ end_compare()\l+ nth_index_compare()\l+ memory_consumption()\l}" alt="" coords="211,175,382,325"/>
+<area shape="rect" id="node10" title="STL class. " alt="" coords="415,211,531,289"/>
+<area shape="rect" id="node12" href="$classint.html" title="{int\n||}" alt="" coords="465,1049,504,1127"/>
+</map>

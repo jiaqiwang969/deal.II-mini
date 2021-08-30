@@ -1,0 +1,8 @@
+<map id="WorkStream::internal::tbb_no_coloring::IteratorRangeToItemStream&lt; Iterator, ScratchData, CopyData &gt;::ItemType" name="WorkStream::internal::tbb_no_coloring::IteratorRangeToItemStream&lt; Iterator, ScratchData, CopyData &gt;::ItemType">
+<area shape="rect" id="node5" title="STL class. " alt="" coords="220,543,336,620"/>
+<area shape="rect" id="node13" title="STL class. " alt="" coords="476,145,573,223"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="649,145,771,223"/>
+<area shape="rect" id="node9" href="$classbool.html" title="{bool\n||}" alt="" coords="507,866,553,943"/>
+<area shape="rect" id="node10" href="$classThreads_1_1ThreadLocalStorage.html" title="{Threads::ThreadLocalStorage\l\&lt; ScratchDataList \&gt;\n||+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ ThreadLocalStorage()\l+ operator=()\l+ operator=()\l+ operator=()\l+ operator=()\l+ get()\l+ get()\l+ operator ScratchDataList &amp;()\l+ clear()\l}" alt="" coords="582,771,782,1039"/>
+<area shape="rect" id="node18" href="$classThreads_1_1ThreadLocalStorage.html" title="A class that provides a separate storage location on each thread ，访问该对象。 这个类提供的方式是，�¯..." alt="" coords="897,455,1123,708"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="Algorithms::ThetaTimestepping&lt; VectorType &gt;" name="Algorithms::ThetaTimestepping&lt; VectorType &gt;">
+<area shape="rect" id="node2" href="$classAlgorithms_1_1OperatorBase.html" title="{Algorithms::OperatorBase\n||+ ~OperatorBase()\l+ operator()()\l+ notify()\l+ clear_events()\l}" alt="" coords="933,1079,1105,1200"/>
+<area shape="rect" id="node23" href="$classSmartPointer.html" title="{SmartPointer\&lt; Algorithms\l::OperatorBase, Algorithms\l::ThetaTimestepping\&lt; VectorType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1229,1431,1473,1685"/>
+<area shape="rect" id="node3" href="$classSubscriptor.html" title="{Subscriptor\n||+ Subscriptor()\l+ Subscriptor()\l+ Subscriptor()\l+ ~Subscriptor()\l+ operator=()\l+ operator=()\l+ serialize()\l+ subscribe()\l+ unsubscribe()\l+ n_subscriptions()\l+ list_subscribers()\l+ list_subscribers()\l+ ExcInUse()\l+ ExcNoSubscriber()\l&#45; check_no_subscribers()\l* subscribe()\l* unsubscribe()\l* n_subscriptions()\l* list_subscribers()\l* list_subscribers()\l}" alt="" coords="463,631,631,987"/>
+<area shape="rect" id="node28" href="$classAlgorithms_1_1TimestepControl.html" title="{Algorithms::TimestepControl\n|&#45; tolerance_val\l|+ TimestepControl()\l+ parse_parameters()\l+ start()\l+ final()\l+ tolerance()\l+ step()\l+ now()\l+ advance()\l+ start()\l+ final()\l+ tolerance()\l+ start_step()\l+ max_step()\l+ restart()\l+ print()\l+ declare_parameters()\l}" alt="" coords="595,1409,783,1707"/>
+<area shape="rect" id="node5" href="$classint.html" title="{int\n||}" alt="" coords="308,160,347,237"/>
+<area shape="rect" id="node6" title="STL class. " alt="" coords="1261,160,1341,237"/>
+<area shape="rect" id="node25" href="$classSmartPointer.html" title="{SmartPointer\&lt; T, P \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1333,315,1479,539"/>
+<area shape="rect" id="node26" href="$classSmartPointer.html" title="{SmartPointer\&lt; Algorithms\l::OutputOperator\&lt; VectorType\l \&gt;, Algorithms::ThetaTimestepping\l\&lt; VectorType \&gt; \&gt;\n||+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ SmartPointer()\l+ ~SmartPointer()\l+ operator=()\l+ operator=()\l+ operator=()\l+ clear()\land 6 more...\l}" alt="" coords="1749,675,1972,943"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="1359,5,1485,97"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="417,160,539,237"/>
+<area shape="rect" id="node15" title="STL class. " alt="" coords="741,160,857,237"/>
+<area shape="rect" id="node17" href="$classAlgorithms_1_1Event.html" title="{Algorithms::Event\n||+ Event()\l+ clear()\l+ all()\l+ operator+=()\l+ operator&#45;=()\l+ test()\l+ any()\l+ print()\l+ assign()\l+ print_assigned()\l}" alt="" coords="920,704,1047,913"/>
+<area shape="rect" id="node18" href="$classbool.html" title="{bool\n||}" alt="" coords="881,160,928,237"/>
+<area shape="rect" id="node21" href="$structAlgorithms_1_1TimestepData.html" title="{Algorithms::TimestepData\n||}" alt="" coords="901,1519,1076,1597"/>
+<area shape="rect" id="node22" href="$classdouble.html" title="{double\n||}" alt="" coords="801,1101,861,1178"/>
+</map>

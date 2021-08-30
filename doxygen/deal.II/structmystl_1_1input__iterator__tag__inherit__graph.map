@@ -1,0 +1,5 @@
+<map id="mystl::input_iterator_tag" name="mystl::input_iterator_tag">
+<area shape="rect" id="node2" href="$structmystl_1_1forward__iterator__tag.html" title="{mystl::forward_iterator_tag\n||}" alt="" coords="5,131,183,208"/>
+<area shape="rect" id="node3" href="$structmystl_1_1bidirectional__iterator__tag.html" title="{mystl::bidirectional\l_iterator_tag\n||}" alt="" coords="29,256,159,348"/>
+<area shape="rect" id="node4" href="$structmystl_1_1random__access__iterator__tag.html" title="{mystl::random_access\l_iterator_tag\n||}" alt="" coords="17,396,171,488"/>
+</map>
