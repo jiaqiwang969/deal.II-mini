@@ -1,0 +1,568 @@
+\title{
+用于并行和适应性科学计算的通用网格接口。第一部分：抽象框架
+}
+
+\作者：{
+P.Bastian-2008
+}
+
+
+
+\begin{abstract}
+我们对解决偏微分方程的算法给出了一个数学上严格的网格定义。与以前的方法不同（Benger$2005, \mathrm{PhD}$论文；Berti 2000，博士论文），我们的网格具有分层结构。这使得它们适合于几何多网格算法和层次化的局部网格细化。该描述也足够普遍，可以包括几何上不符合要求的网格。本文的定义是在DUNE框架中作为C++类实现抽象网格接口的基础（Bastian等人，2008，本期）。
+\end{abstract}
+
+
+
+\section{Introduction}
+
+绝大多数用于解决偏微分方程（PDEs）的方法都是基于某种形式的网格。这导致了大量数值分析代码的发展，每一个代码都包含一个代表这种计算网格的数据结构。然而，这种数据结构的要求在不同的应用中差异很大。典型的权衡是效率与灵活性。因此，每个代码在某些领域的应用中更适合，而在其他领域则不太适合。
+
+为了克服现有的基于网格的PDE求解器的局限性，我们提出了 "分布式统一数值环境" DUNE（该软件的当前版本见[^5] ）。DUNE有一个基于组件的软件结构，每个组件都有一个抽象的接口，并有几个具有不同功能的实现。这个概念是使用C++中的通用编程技术非常有效地实现的，它基本上在编译时消除了接口的开销。此外，现有的软件可以用来实现这些组件。
+
+有几位作者试图用数学的方式来正式确定网格的概念[^2] [^3] [^4]，这项任务被证明是出乎意料的困难。到目前为止，还缺少一个概念，就是`分层网格`的概念。然而，它在今天是非常重要的，因为它构成了几何多网格方法和许多局部自适应算法的基础。
+
+在这篇文章中，我们介绍了`分层网格`的数学描述，它是DUNE网格界面设计的基础和动力。基于这个数学描述，一篇配套的论文[^1]以C++类的形式描述了DUNE的网格组件的界面，并通过一些例子说明了其功能和效率。在设计网格界面的类时，我们认为需要对组成网格的`实体`及其复杂的关系进行严格的数学描述。我们试图用以下特点来正式描述`网格`:
+
+- 各种形状和尺寸的`Elements`。
+
+- 嵌入高维空间的`Grids`（例如，流形上的网格）。
+
+- 层次化的局部网格细化。
+
+- 细化水平中和细化水平之间的`Non-conformity`。
+
+- 网格和数据的分离。
+
+- 用于并行处理的`重叠`和`非重叠`分解。
+
+网格接口的实现可能只涵盖这些功能的一个子集。
+
+Berti [3] 给出了第一个用于数值计算的网格的正式定义。他指出，通过使用可重复使用的组件，可以极大地提高从事数值分析的人员的生产力。特别是这意味着通过指定一套算法应该完全依赖的网格`kernel concepts`，将算法与网格的实现分开。Berti[3]广泛使用通用编程来减少接口开销，并处理数据并行网格计算的问题。
+
+考虑到在数值相对论中的应用，Benger[^2]概括了网格的定义，以便能够处理四维弯曲时空的网格。受微分几何学的启发，他引入了`fiber bundle data model` 。他的网格包括局部坐标图集，允许描述没有周围欧几里得空间的弯曲空间。这里也广泛地使用了通用编程。
+
+Botta等人[^4]将抽象化带入一个不同的方向。他们引入了 `relation-based computations` 的概念。这个非常普遍的概念包括许多不同的网格操作，但也包括线性代数的算法，如矩阵-向量乘法。他们提出了一个薄的底层软件层，目的是在这个非常普遍的概念上构造面向算法的并行计算。
+
+这三种方法都与DUNE不同，它们不包含网格层次的概念，而网格层次对于许多高效的算法，如自适应局部网格细化或几何多网格求解器是必不可少的。另外，这两种实现方式在设计时都没有考虑到应该可以重用遗留的代码并在网格实现方式之间快速切换。然而，这些都是DUNE的核心思想。
+
+在我们看来，层次网格由三个关键概念组成。一个`entity complex`描述了一个非层次网格（层次网格）的拓扑信息（连接性）。这样的复合体通过一个`geometric realization`被嵌入到一个欧氏空间中。几个水平网格通过一个`father relation`连接成一个层次结构。
+
+在第2节中，我们正式确定这些定义。然后第3节将说明层次结构中的叶子集合如何可以被看作是其本身的非层次网格。第4节介绍了`intersections`作为元素之间的另一种关系。第5节介绍了在一般网格上进行并行计算的必要概念。最后，在第6节中，我们展示了数据（例如，有限元背景下的自由度）如何以一种普遍而有效的方式与网格的实体相关联。
+
+\section{Hierarchical grids}
+
+本节为网格层次的概念赋予了准确的含义。我们将网格的拓扑结构与几何方面分开，并定义了 `father relation` 。
+
+我们首先给出一些初步的概念。更深入的处理可以在[^3]中找到，例如。
+
+\textbf{Definition 1} （凸多边形）一个子集$\theta \subset \mathbb{R}^{w}, w \geq 0$ ，如果是一个非空的有限点集$X=\left\{x_{0}, \ldots, x_{n}\right\}$的凸壳，就是一个凸多边形。凸多边形的维数$\operatorname{dim} \theta$是集合中线性独立向量的最大数量，如果$n \geq 1$，则集合为$\left\{x_{1}-x_{0}, \ldots, x_{n}-x_{0}\right\}$，否则为0。显然，$0 \leq \operatorname{dim} \theta \leq w$ 给定一个非空的有限点集$X$ ，我们用$\theta(X)$ 表示由$X$ 生成的凸多边形。
+
+\textbf{Definition 2} （多角形的面）如果对于固定的$c \in \mathbb{R}^{w}, \gamma \in \mathbb{R}$，不等式$c^{T} x \leq \gamma$对所有$x \in \theta$都有效，那么$f=\theta \cap\left\{x \in \mathbb{R}^{w} \mid c^{T} x=\gamma\right\}$就是$\theta$的一个面。根据这个定义，$\emptyset$是一个（不恰当的）面，我们还增加了$\theta$作为一个额外的不恰当面。所有其他的面都被称为`proper` 。一个面的尺寸是其凸壳的尺寸；按照惯例，$\emptyset$的尺寸被设定为$-1$ 。如果$f$是$\theta$的一个面，我们写成$f \preceq \theta$ 。
+
+设$\theta$是一个凸多面体，$F$是其面的集合。在$F$上的is-face-of关系$\preceq$是反对称和传递的。因此，$(F, \preceq)$具有部分有序集（poset）的结构。
+
+\textbf{Definition 3} （组合同构）让$X$和$Y$分别为具有二元关系$S$和$R$的集合。一个（组合的）同构是一个双射的映射$\varphi: X \rightarrow Y$，使得
+
+$$
+\varphi(u) R \varphi(v) \text { if and only if } u S v
+$$
+
+如果两个集合$X$和$Y$之间存在这样的映射，那么这些集合被称为（组合）同构的。
+
+直观地说，如果两个集合表现出相同的组合结构，它们就是同构的。我们用它来定义所有凸多面体集合上的等价关系$\simeq$，即两个凸多面体$\theta$和$\theta^{\prime}$是同构的，$\theta \simeq \theta^{\prime}$，如果存在一个从$\theta$的面的集合到$\theta^{\prime}$的面的集合的映射$\varphi$，那么当且仅当$u$是$v$的面时，$\varphi(u)$是$\varphi(v)$的一个面。
+
+用等价关系$\simeq$划分所有凸多边形的集合，我们得到一个 "原型 "多边形的集合，数字分析家称之为`reference elements`。
+
+\textbf{Definition 4} ( `Reference element` ) $d$ -维参考元素是$d$ -维欧氏空间中$d$ -维凸多面体的一个等价类，关于组合同构$\simeq .$ 我们从每个等价类中挑选一个代表性。对于任何$m \in \mathbb{N}_{0}$，$m$-维`reference elements`的代表集合被称为$\mathcal{R}_{m}$，我们也定义$\mathcal{R}=\bigcup_{m} \mathcal{R}_{m} .$ 在滥用符号的情况下，我们再次谈到`reference elements`。
+
+\textbf{Remark 1} `Reference elements`在数值算法中使用的是，例如，单位平方、单位三角形和单位六面体。
+
+基于这些定义，我们可以定义一个凸多面体相对于另一个凸多面体的 `codimension`。
+
+\textbf{Definition 5} （Codimension）让$\theta, \sigma \subset \mathbb{R}^{w}$是两个凸多面体，$\sigma$是$\theta$的面。那么$\operatorname{codim}(\sigma, \theta)=\operatorname{dim} \theta-\operatorname{dim} \sigma$被称为$\sigma$相对于$\theta$的`codimension`。很明显，我们有$0 \leq \operatorname{codim}(\sigma, \theta) \leq \operatorname{dim} \theta+1$ 。
+
+接下来的定义介绍了分层网格的一个中心部分。一个`entity complex`包含了一个特定细化层次上的网格的所有拓扑信息。这个概念是组合几何学中已知的简单复合体的概括，主要区别在于它允许非复合体元素。
+
+\textbf{Definition 6} （一般`entity complex` ）一般$d$ -维`entity complex` $E$ 是一个嵌套子集的系统
+
+$$
+E=\left\{E^{d}, E^{d-1}, \ldots, E^{0}\right\}
+$$
+
+这样，$E^{d}$是一个有限集（称为`set of vertices`），对于$0 \leq c<d$
+
+$$
+E^{c} \subseteq \mathcal{P}\left(E^{c+1}\right)
+$$
+
+其中$\mathcal{P}\left(E^{c+1}\right)$表示$E^{c+1} $的幂集。$E^{c}$的每个元素都被称为具有`codimension` $c$和`dimension` $d-c$ 的实体。我们要求
+
+$$
+\bigcup_{e \in E^{c}} e=E^{c+1}
+$$
+
+这意味着每个 `codimension` $c+1$实体至少包含在一个 `codimension` $c$实体中。一个复合体中所有实体的联盟被称为
+
+$$
+\bar{E}=\bigcup_{0 \leq c \leq d} E^{c}
+$$
+
+因此，一个 `codimension` $c$实体是一个 `codimension` $c+1$实体的集合。 `codimension` 为0的实体有时将被称为`elements` 。
+
+为了激发这个抽象的定义，请考虑图1中的例子。在左边有一个 `two-dimensional` 的 `entity complex`，包含七个顶点
+
+$$
+E^{2}=\left\{v_{0}, v_{1}, \ldots, v_{6}\right\}
+$$
+
+用小黑球表示。灰色的椭圆表示`codimension为1的实体或 "边"，它们是
+
+$$
+\begin{aligned}
+E^{1}=&\left\{E_{0}^{1}, E_{1}^{1}, \ldots, E_{9}^{1}\right\} \\
+=&\left\{\left\{v_{0}, v_{1}\right\},\left\{v_{1}, v_{2}\right\},\left\{v_{0}, v_{2}\right\},\left\{v_{1}, v_{3}\right\},\left\{v_{2}, v_{3}\right\}\right.\\
+&\left.\quad\left\{v_{1}, v_{4}\right\},\left\{v_{3}, v_{5}\right\},\left\{v_{2}, v_{6}\right\},\left\{v_{4}, v_{5}\right\},\left\{v_{5}, v_{6}\right\}\right\}
+\end{aligned}
+$$
+
+![](https://cdn.mathpix.com/cropped/065e672cc020a75e2e3f43cbc9cd4d46-05.jpg?height=346&width=707&top_left_y=865&top_left_x=103)
+
+图1 一个 `codimension` 的`entity complex`（左），`reference elements`（中），以及$\mathbb{R}^{3}$中的一个几何实现（右）。
+
+最后，黑色包围的边缘集是三个元素，或者说是`codimension`为0的实体。
+
+$$
+\begin{aligned}
+E^{0}=&\left\{E_{0}^{0}, E_{1}^{0}, E_{2}^{0}\right\} \\
+=&\left\{\left\{\left\{v_{0}, v_{1}\right\},\left\{v_{1}, v_{2}\right\},\left\{v_{0}, v_{2}\right\}\right\},\right.\\
+&\left\{\left\{v_{1}, v_{3}\right\},\left\{v_{3}, v_{5}\right\},\left\{v_{4}, v_{5}\right\},\left\{v_{1}, v_{4}\right\}\right\} \\
+&\left.\quad\left\{\left\{v_{2}, v_{3}\right\},\left\{v_{2}, v_{6}\right\},\left\{v_{5}, v_{6}\right\},\left\{v_{3}, v_{5}\right\}\right\}\right\}
+\end{aligned}
+$$
+
+一个$d$-维的一般`entity complex`可以包含没有自然几何实现的实体，作为凸多边形。例如，可以在 "四边形"$E_{2}^{0} $中加入 "对角线边"$\left\{v_{3}, v_{6}\right\}$，因此我们又增加了一个限制。在我们说明之前，我们必须介绍`subentity relation`关系。它是`entity complex` 的`is-face-of`关系的自然等同物。
+
+\textbf{Definition 7} （子实体关系） 让$E$ 是一个$d$ -维的一般`entity complex` 。通过$\mathcal{S} \subset \bar{E} \times \bar{E}$，我们表示实体的包容关系的反射和传递性闭合，即，当且仅当$e=e^{\prime}$或存在一个实体序列$\left\{e_{0}, e_{1}, \ldots, e_{k}\right\}$时，我们有$e \mathcal{S} e^{\prime}$。
+
+$$
+e=e_{0}, \quad e_{k}=e^{\prime}, \quad e_{i} \in e_{i+1} \quad \forall 0 \leq i<k
+$$
+
+通过$s(e)=\left\{e^{\prime} \in \bar{E} \mid e^{\prime} \mathcal{S} e\right\}$我们表示一个给定实体的所有子实体的集合$e \in \bar{E}$ 。
+
+现在，对`entity complex`的最后一个要求是，对于每个实体，必须有一个相应的参考元素。换句话说，我们只允许那些存在相同组合结构的凸多边形的实体。
+
+\textbf{Definition 8} （实体复合体） 让$E$是一个一般的`entity complex` 。  如果存在一个映射$R: \bar{E} \rightarrow \mathcal{R}$，使每个$e \in \bar{E}$的实体$e$与$R(e)$组合同构，那么$E$被称为`entity complex`的意义上，存在一个从$e$的子实体集$s(e)$到$R(e)$的面集$f$的双投影映射$\varphi$，这样对于所有$s_{1}, s_{2} \in s(e)$我们有
+
+$$
+s_{1} \mathcal{S} s_{2} \text { if and only if } \varphi\left(s_{1}\right) \preceq \varphi\left(s_{2}\right)
+$$
+
+从$e$到$R(e)$的同构体集合中，我们选取一个，称之为$\varphi_{e}$ 。
+
+请注意，这个定义是一致的，即
+
+$$
+R(s) \simeq \varphi_{e}(s)
+$$
+
+对一个实体$e$的所有子实体$s$成立。
+
+`entity complex`是一个严格的拓扑学对象。我们现在通过把它嵌入一个欧几里得空间$\mathbb{R}^{w}, w \geq d .$来给它一个几何学上的东西，我们称这个空间为`world space`，$w$为`world dimension` 。之前，我们需要`relative interior`的概念。
+
+
+
+
+\textbf{Definition 9} ( `Relative interior` ) 设$d, w \in \mathbb{N}, d \leq w$ ，并设$S \subset \mathbb{R}^{w}$是这样的，有一个同构$f: \bar{S} \rightarrow \bar{B}_{1}$，其中$\bar{S}$表示$S$的封闭，$B_{1}$是$\mathbb{R}^{d}$中开放的单位球。那么我们称
+
+$$
+\text { int } S=f^{-1}\left(B_{1}\right)
+$$
+
+$S$的`relative interior`。据此，我们定义相对边界
+
+$$
+\partial S=\bar{S} \backslash \text { int } S
+$$
+
+为了了解这与$\mathbb{R}^{w}$中的`interior`的通常概念有什么不同，请考虑$\mathbb{R}^{2}$中的线段$l$。`interior` $l$是所有点$x \in l$的集合，使得存在一个以$x$为中心的半径为正的$\epsilon$的 `codimension` 球，并且完全包含在$l$中。因此，$i$是空的。另一方面，`relative interior`内$l$包含了$l$的全部，除了两个端点。特别是要注意，对于任何$x \in \mathbb{R}^{w}$，我们都有int $\{x\}=\{x\}$ 。
+
+\textbf{Definition 10} （几何实现）让$w \in \mathbb{N}, w \geq d$ .一个`entity complex`$E$的几何实现是一个同构族$m$，使得每个$e \in \bar{E}$都有一个$m_{e} \in m$与$m_{e}: R(e) \rightarrow \mathbb{R}^{w}$，使得以下条件成立。用$\theta_{e}=m_{e}(R(e)) \subset \mathbb{R}^{w}$表示与$e$相关的几何对象
+
+1.对于$e, e^{\prime} \in E^{0}, e \neq e^{\prime}$我们有
+
+$$
+\text { int } \theta_{e} \cap \operatorname{int} \theta_{e^{\prime}}=\emptyset
+$$
+
+2.对于所有$e \in \bar{E}$，所有$\theta_{s}$与$s \in e$的集合涵盖了$\theta_{e}$的边界。
+
+$$
+\bigcup_{s \in e} \theta_{s}=\partial \theta_{e}
+$$
+
+几何实现提供了一个具有几何形状的`entity complex`。图1说明了`entity complex`、几何实现和`reference elements`之间的相互作用。请注意，三角形作为一个点集，除了两个共同的顶点外，不必与两个四边形相连。
+
+接下来，我们将两级网格合并为一个层次结构。为此，我们首先为上一级的每个元素分配一个父元素，然后在可能的情况下，将这种映射扩展到较低维度的实体。
+
+\textbf{Definition 11} (元素之父映射) 让$E$和$E^{\prime}$分别是两个具有相应几何实现$m$和$m^{\prime}$的等维`entity complex`es。元素之父映射是一个映射$F^{0}: E^{\prime, 0} \rightarrow E^{0}$，使得
+
+1.$e$的子代$c(e)=\left\{e^{\prime} \in E^{\prime, 0} \mid e=F^{0}\left(e^{\prime}\right)\right\}$构成了$e$的逻辑细化，即存在平滑的注入式映射$\phi_{e^{\prime}}: R\left(e^{\prime}\right) \rightarrow R\left(F^{0}\left(e^{\prime}\right)\right)$，使$\phi_{e^{\prime}}$的图像分割为$R\left(F^{0}\left(e^{\prime}\right)\right)$。
+
+2.如果$e_{0}, e_{1} \in E^{\prime, 0}$这样的$F^{0}\left(e_{0}\right) \neq F^{0}\left(e_{1}\right)$和$\theta_{e_{0}} \cap \theta_{e_{1}}$有正的$d-1$-维度量，那么$\theta_{F^{0}\left(e_{0}\right)} \cap \theta_{F^{0}\left(e_{1}\right)}$有正的$d-1$-维度量，这意味着相邻元素有相邻的父亲。
+
+![](https://cdn.mathpix.com/cropped/065e672cc020a75e2e3f43cbc9cd4d46-08.jpg?height=374&width=716&top_left_y=64&top_left_x=97)
+
+图2 两级网格之间的父亲关系
+
+元素之父映射被扩展为所有维度的实体之间的关系。扩展后的结构是一种关系，而不是一种映射，因为并不是每个正 `codimension` 的实体都有一个父亲（图2）。
+
+\textbf{Definition 12}（父亲关系）将$F \subseteq \bar{E} \times \bar{E}^{\prime}$与$f F e$集合在一起，当且仅当$\operatorname{dim} e=$$\operatorname{dim} f$和以下条件之一成立。
+
+1.  $f=F^{0}(e)$
+
+2.让$f^{\prime} \in E^{0}, e^{\prime} \in E^{0 \prime}$这样的$f^{\prime}=F^{0}\left(e^{\prime}\right)$和$f \mathcal{S} f^{\prime}$以及$e \mathcal{S} e^{\prime}$ 。那么
+
+$$
+\phi_{e^{\prime}}\left(\varphi_{e^{\prime}}(e)\right) \subseteq \varphi_{f^{\prime}}(f)
+$$
+
+(见图3），其中$\varphi$和$\phi$来自定义8和定义11。
+
+我们现在有了介绍分层网格的所有材料，这是本节的中心内容。
+
+![](https://cdn.mathpix.com/cropped/065e672cc020a75e2e3f43cbc9cd4d46-08.jpg?height=291&width=710&top_left_y=915&top_left_x=100)
+
+图3 正 `codimension` 的父关系。  $f$是$e$的父亲，因为$\phi_{e^{\prime}}\left(\varphi_{e^{\prime}}(e)\right)$是$\varphi_{f^{\prime}}(f)$的子集 定义13（层次网格） 在一个$w$-维的世界中，$d$-维的网格是一个由$d$-维的有限集合`entity complex`组成的三联体。
+
+$$
+\mathcal{E}=\left\{E_{0}, \ldots, E_{k}\right\}
+$$
+
+一组几何学上的实现
+
+$$
+\mathcal{M}=\left\{m_{0}, \ldots, m_{k}\right\}
+$$
+
+其中每个$m_{i}$是$E_{i}$进入$\mathbb{R}^{w}$的几何实现，并且有一组父亲关系
+
+$$
+\mathcal{F}=\left\{F_{0}, \ldots, F_{k-1}\right\}
+$$
+
+这样，$F_{i}$将$E_{i}$与$E_{i+1}$连接起来，对于所有的$0 \leq i<k$都是如此。
+
+我们将用$\mathcal{E}^{c}=\bigcup_{i=0}^{k} E_{i}^{c}$来表示分层网格中所有维度为$c$的实体的联合。在滥用符号的情况下，我们有时也会用$\mathcal{E}=\bigcup_{c} \mathcal{E}^{c}$来表示所有实体的联合。最后我们写道
+
+$$
+\mathcal{F}=\bigcup_{i} F_{i} \subset \mathcal{E} \times \mathcal{E}
+$$
+
+为分层网格中所有父亲关系的集合。
+
+我们把每一对$\left(E_{i}, m_{i}\right)$称为`level grid` 。为层次网格中的每个实体分配一个层次号是很自然的。
+
+\textbf{Definition 14} （一个实体的水平）让$\mathcal{E}=\left\{E_{0}, \ldots, E_{k}\right\}$成为一个网格的`entity complex`es。该函数
+
+$$
+\begin{gathered}
+l: \bigcup_{i} \bar{E}_{i} \rightarrow \mathbb{N}_{0} \\
+l(e)=i \quad \text { if and only if } e \in E_{i}
+\end{gathered}
+$$
+
+被称为`entity level function` 。
+
+\section{Leaf grids}
+
+本节介绍了叶子网格的概念。虽然每一对$\left(E_{i}, m_{i}\right)$都构成了适合于例如有限元计算的非层次网格，但所有叶子元素的集合连同它引起的一个`entity complex`结构及其相应的几何实现也是如此。事实上，对于局部自适应网格上的非层次化数值方法来说，它是自然的网格选择。我们首先引入一个新的关系，这次是关于分层网格的所有实体。
+
+\textbf{Definition 15} （副本）如果一个实体正好有一个孩子，我们称这个孩子为其父亲的副本。我们通过以下方式定义反射性和对称性的二元关系$C \subseteq \mathcal{E} \times \mathcal{E}$： 1.
+
+$$
+e C e^{\prime} \quad \Leftrightarrow \quad e=e^{\prime} \text { or } c(e)=\left\{e^{\prime}\right\} \text { or } c\left(e^{\prime}\right)=\{e\}
+$$
+
+$\sim$的反式封闭$C$是一种等价关系。
+
+请注意，最低层的元素集合与父映射一起构成了一个森林。接下来我们定义叶子实体，也就是没有子实体的元素和它们的子实体。
+
+\textbf{Definition 16}（叶子实体） `codimension` $c$叶子实体$L^{c} \subset E^{c}$的集合对$0 \leq c \leq d$的定义如下
+
+1.  $e \in L^{0}$ 当且仅当$e \in E^{0}$和$c(e)=\emptyset$ 。
+
+2.  $e \in L^{c}$当且仅当存在$e^{\prime} \in L^{0}$和$e \mathcal{S} e^{\prime}$ .
+
+此外，我们设定$L=\bigcup_{0 \leq c \leq d} L^{c}$为所有叶子实体的集合。
+
+集合$L^{c}$包含副本。将这些因素剔除，我们得到叶子`entity complex` 。
+
+\textbf{Definition 17} （叶`entity complex` ）通过$[e]=\left\{e^{\prime} \in L \mid e^{\prime} \sim e\right\}$我们表示$e$在$L$中的等价类，$\tilde{L}=L / \sim=\{[e] \mid e \in L\}$表示商集。当且仅当存在类代表$e \in[e]$和$e^{\prime} \in\left[e^{\prime}\right]$与$e \mathcal{S} e^{\prime}$时，子实体关系$\mathcal{S}$可以在商集上自然定义为$\tilde{\mathcal{S}} \subseteq \tilde{L} \times \tilde{L}$与$[e] \tilde{\mathcal{S}}\left[e^{\prime}\right]$
+
+对于一个完整的叶子网格，我们需要一个与叶子`entity complex`相对应的几何实现。这种几何实现可以从水平网格的实现中继承下来。
+
+\textbf{Definition 18} （叶子的几何实现）假设$E_{i}$的几何实现是这样的：$\theta_{e}=\theta_{e^{\prime}}$只要$e \sim e^{\prime}$ 。那么$E_{i}$的几何实现通过对所有$[e] \in \tilde{L}$设置$\tilde{m}_{[e]}=m_{e}$诱导出叶子$\tilde{m}$的几何实现。
+
+在下文中，我们将假设这个定义中的假设成立。图4以一个例子说明了叶栅的构造。
+
+![](https://cdn.mathpix.com/cropped/065e672cc020a75e2e3f43cbc9cd4d46-10.jpg?height=200&width=403&top_left_y=1008&top_left_x=103)
+
+图4 两个`entity complex`es$E_{0}$和$E_{1}$之间的复制关系（左），以及相应的叶`entity complex`（右）。注意，$E_{0}$中的边$e$包含在$\tilde{L}$中。
+
+
+\section{Intersections}
+
+许多数值方法需要关于相邻元素的交叉点的信息。例如，有限体积方法需要评估这些交叉点的积分。由于网格可能是不符合要求的，一个交点不一定对应于一个子实体。
+
+\textbf{Definition 19}（水平交点） 让$(E, m)$是一个具有几何实现的`entity complex`，用$\Theta=\bigcup_{e \in E^{0}} \theta_{e}$表示它所覆盖的域。对于任何$e \in E^{0}$，我们将其交集$\mathcal{I}_{e}$定义为$\mathbb{R}^{w}$的子集。
+
+$$
+\mathcal{I}_{e}=\left\{I_{e}^{0}, \ldots, I_{e}^{k}\right\}
+$$
+
+每个集合$I_{e}^{i}$必须有正的$d-1$-维度量，而且必须存在一个$e^{\prime} \in E^{0}$，以便$e^{\prime} \neq e$和
+
+$$
+I_{e}^{i}=\theta_{e} \cap \theta_{e^{\prime}}
+$$
+
+(与另一个元素相交），或者有一个$d-1$-维的子实体$s \in e$，使得
+
+$$
+I_{e}^{i}=\theta_{s} \cap \partial \Theta
+$$
+
+(与网格边界相交）。)
+
+让$(\tilde{L}, \tilde{m})$是具有诱导几何实现$\tilde{m}$的分层网格的叶子`entity complex` 。与定义19完全类似，我们还为每个$[e] \in \tilde{L}^{0} .$定义了`leaf intersections`$\tilde{\mathcal{I}}_{[e]}$的集合
+
+\textbf{Remark 2} 许多数值算法需要对元素的交叉点进行积分。这可能是困难的，因为在不符合要求的网格中，交叉点的形状可能是正交规则所不具备的。因此，DUNE系统允许网格实现返回三角形或单个交叉点的类似分区。
+
+\section{Parallelization}
+
+本节介绍了并行计算所需的网格特征。我们假设分层网格上的并行计算遵循基于网格实体适当分解的 "单程序多数据"（SPMD）编程范式。
+
+分解是通过两步进行的。首先，元素被分配给过程（主分解）。在第二步中，其余实体的分解是由这个主分解决定的。我们假设有$n \geq 1$个进程可用于并行计算，每个进程由一个编号$p \in P=\{0, \ldots, n-1\}$标识。
+
+主体分解的定义如下。
+
+\textbf{Definition 20} （主分解）实体到过程的映射由主分解关系描述。
+
+$$
+\mathcal{D}^{0} \subseteq \mathcal{E}^{0} \times P
+$$
+
+如果$e \mathcal{D}^{0} p$，那么实体$e$就被称为处理$p$。
+
+一个过程的元素被分配到不同的类别。
+
+\textbf{Definition 21} （分区类型）该地图
+
+$$
+t^{0}: \mathcal{D}^{0} \rightarrow\{\dot{i}, \circ, g\}
+$$
+
+为进程$p .$中的实体$e$分配一个分区类型$t^{0}(e, p)$。 三个分区类型分别称为`interior (i)`、`overlap (o)`和`ghost (g)`。
+
+\textbf{Remark 3}每个实体恰好在一个过程中具有分区类型`interior`，从而提供实体集的非重叠分解。相反，重叠元素存在于几个进程中，因为数值算法明确地要求它（例如，重叠的施瓦兹方法）。额外的重影元素可能是必要的，以确保数据的一致性（见下文（1））。
+
+利用这些定义，我们引入以下符号。
+
+$$
+\left.\mathcal{E}^{0}\right|_{p}=\left\{e \in \mathcal{E}^{0} \mid e \mathcal{D}^{0} p\right\},\left.\quad \mathcal{E}^{0}\right|_{p} ^{\pi}=\left\{\left.e \in \mathcal{E}^{0}\right|_{p} \mid t^{0}(e, p)=\pi, \pi \in\{i, \circ, g\}\right\}
+$$
+
+并要求`interior`元素$\left.\mathcal{E}^{0}\right|_{p} ^{i}$构成实体集的一个分区。
+
+$$
+\left.\bigcup_{p \in P} \mathcal{E}^{0}\right|_{p} ^{i}=\mathcal{E}^{0},\left.\left.\quad \mathcal{E}^{0}\right|_{p} ^{i} \cap \mathcal{E}^{0}\right|_{q} ^{i}=\emptyset \quad \text { for all } p \neq q
+$$
+
+类似地，我们定义了逐级的元素分区
+
+$$
+\left.E_{j}^{0}\right|_{p}=\left\{e \in E_{j}^{0} \mid e \mathcal{D}^{0} p\right\},\left.\quad E_{j}^{0}\right|_{p} ^{\pi}=\left\{\left.e \in E_{j}^{0}\right|_{p} \mid t^{0}(e, p)=\pi, \pi \in\{i, \circ, g\}\right\}
+$$
+
+对于每个网格级别 $j$ .
+
+设$\left.\mathcal{F}^{0}\right|_{p}=\mathcal{F} \cap\left(\left.\mathcal{E}^{0}\right|_{p} \times\left.\mathcal{E}^{0}\right|_{p}\right) .$我们要求父亲关系$\mathcal{F}$能以分布式方式表示。这意味着$\left.\bigcup_{p \in P} \mathcal{F}^{0}\right|_{p}=\mathcal{F}^{0} .$为了确保这一点，我们要求如果父亲和孩子在不同的进程中，父亲必须被引入孩子的进程中作为一个幽灵实体。在公式中
+
+$$
+e \mathcal{D}^{0} p \wedge t^{0}(e, p) \in\{\dot{i}, \circ\} \wedge f \mathcal{F}^{0} e \Rightarrow f \mathcal{D}^{0} p
+$$
+
+为了在至少一个进程中代表每个交叉点，也需要一个类似的要求。因此，我们要求对于每个在进程$p$上为`interior`的元素$e^{\prime}$，如果在$\mathcal{I}_{e}$或$\tilde{\mathcal{I}}_{[e] .}$中有一个集合$I_{e}=\theta_{e} \cap \theta_{e^{\prime}}$，则任何其他元素$e^{\prime}$也为进程$p$所知 这意味着，`interior`实体被至少一层实体包围，这些实体要么重叠要么重影。
+
+分区类型的目的是为每个过程$p$和细化水平$j$定义子域，通过
+
+$$
+I_{j, p}=\bigcup_{\left.e \in E_{j}^{0}\right|_{p} ^{1}} \theta_{e}, \quad O_{j, p}=\bigcup_{\left.e \in E_{j}^{0}\right|_{p} ^{\circ}} \theta_{e}, \quad G_{j, p}=\bigcup_{\left.e \in E_{j}^{0}\right|_{p} ^{g}} \theta_{e}
+$$
+
+我们还定义了
+
+$$
+\Theta_{j}=\bigcup_{e \in E_{j}^{0}} \theta_{e}
+$$
+
+这些子域如图所示 $5 .$ 和 $I_{j, p}$ 根据定义是不重叠的。那么$O_{j, p}$是为了 "包围"$I_{j, p}$，而$G_{j, p}$反过来 "包围"$O_{j, p}$。这里要注意，重叠的实体可能根本不存在。在这种情况下，相应的子域是空的。
+
+到目前为止，只处理了元素的分解。接下来的定义将分解关系扩展到正 `codimension` 。我们首先介绍边界和前沿边界。我们把边际边界定义为`interior`元素$\partial I_{j, p}$的域的边界的一部分
+
+$$
+B_{j, p}=\overline{\partial I_{j, p} \backslash \partial \Theta_{j}}
+$$
+
+![](https://cdn.mathpix.com/cropped/065e672cc020a75e2e3f43cbc9cd4d46-13.jpg?height=464&width=710&top_left_y=768&top_left_x=100)
+
+图$\mathbf{5}$ 基于领域分解思想的数据分解
+
+
+这里$-$表示一个点集的封闭。前面的边界被定义为重叠和幽灵元素之间的边界。
+
+$$
+F_{j, p}=\left(\overline{\partial O_{j, p} \backslash \partial \Theta_{j}}\right) \backslash B_{j, p}
+$$
+
+这些边界在图$5 .$中也有说明。请注意，由于这种结构，点 "E "和 "O "是边界$B_{j, p}$的一部分，点" $\square$"是正面$F_{j, p}$的一部分。还要注意的是，这些定义在缺少重叠实体（那么前面的边界是空的）或缺少鬼魂实体时也是有效的。
+
+\textbf{Definition 22} （扩展分解）扩展分解关系$\mathcal{D} \subseteq$ $\mathcal{E} \times P$是用子实体关系定义的。对于所有$e \in \mathcal{E}^{0}, s \in \mathcal{E}$ ，如$s \mathcal{S} e$的等价关系
+
+$$
+s \mathcal{D} p \Leftrightarrow e \mathcal{D}^{0} p
+$$
+
+必须对所有的$p \in P$成立，也就是说，一个实体和它的所有子实体总是在一个过程中一起存在。
+
+由于$\mathcal{S}$的反身性，我们有$\mathcal{D}^{0} \subseteq \mathcal{D} .$$(2)$的另一个结果是，子实体关系可以用分布式模型表示，即。
+
+$$
+\left.\mathcal{S}\right|_{p}:=\mathcal{S} \cap\left(\left.\mathcal{E}\right|_{p} \times\left.\mathcal{E}\right|_{p}\right),\left.\quad \bigcup_{p \in P} \mathcal{S}\right|_{p}=\mathcal{S}
+$$
+
+分区类型被概括为更高的 `codimension` ，其映射为
+
+$$
+t: \mathcal{D} \rightarrow\{i, \mathrm{~b}, \mathrm{o}, \mathrm{f}, \mathrm{g}\}
+$$
+
+再引入两个分区类型，边界（b）和正面（$f$），它们分别对应于子域的边界$B_{j, p}$和$F_{j, p}$。对于模数为0的实体，我们有$t(e, p)=t^{0}(e, p) .$ 对于任何$(e, p) \in \mathcal{D}, \operatorname{dim} e<d$的分区类型是用上面定义的子域和边界来几何定义的。
+
+$$
+t(e, p)=\left\{\begin{array}{l}
+i \text { if int } \theta_{e} \subseteq I_{L(e), p} \backslash B_{L(e), p} \\
+b \text { if } \theta_{e} \subseteq B_{L(e), p} \\
+\circ \text { if int } \theta_{e} \subseteq O_{L(e), p \backslash\left(B_{L(e), p} \cup F_{L(e), p}\right)} \\
+f \text { if } \theta_{e} \subseteq F_{L(e), p} \\
+g \text { if int } \theta_{e} \subseteq G_{L(e), p \backslash\left(B_{L(e), p} \cup F_{L(e), p}\right)}
+\end{array}\right.
+$$
+
+注意，如果$\theta_{e}$是一个单点$\theta_{e}=\{x\}$，我们使用定义int $\{x\}=\{x\}$ 。
+
+\textbf{Remark 4} （数据交换）除了分解，数据交换是任何并行算法的重要部分。在我们的概念中，这意味着不同进程中与同一实体相关的数据要被交换，任何并行网格的实现都必须支持这一点。从形式上看，这可以描述如下。在每个进程中$p \in P$选择一组源实体
+
+$$
+\left.\Sigma_{p} \subseteq \mathcal{E}\right|_{p}
+$$
+
+和一组目的地实体
+
+$$
+\left.\Delta_{p} \subseteq \mathcal{E}\right|_{p}
+$$
+
+然后，一个一般的通信操作将每个$e \in \Sigma_{p} \cap \Delta_{q}$的数据从进程$p$移动到进程$q \neq p$，反之亦然。在实现中，预定义的子集$\Sigma_{p}, \Delta_{p}$是可用的，见$[1]$ 。
+
+\section{Index maps}
+
+我们概念的一个重要部分是，网格与任何与之相关的数字数据完全分离。然而，为了访问一个网格的数据，在网格实体和数据之间需要一些联系。这种联系是由本节介绍的索引图提供的。
+
+由于我们喜欢考虑自适应的网格细化，所以计算实际上使用了一系列不同的网格，而不是单一的网格。我们假设一个计算由在固定网格上进行的工作和网格修改（细化、粗化或负载平衡）的交替阶段组成。这体现在以下定义中。
+
+\textbf{Definition 23} （网格序列）一个自适应计算产生一个实体集的序列
+
+$$
+{ }^{0} \mathcal{E},{ }^{1} \mathcal{E}, \ldots,{ }^{k} \mathcal{E}, \ldots
+$$
+
+给定一个网格$^{k} \mathcal{E}$，序列中的下一个网格由以下两个半步骤创建。
+
+- 选择一个集合 $\mathcal{E}^{0,-} \subseteq{ }^{k} \mathcal{E}^{0} .$ 从 ${ }^{k} \mathcal{E}^{0} .$ 中移除 $\mathcal{E}^{0,-}$ 中的所有元素 同时移除 $\mathcal{E}^{0,-}$ 的所有子实体，这些子实体不是 ${ }^{k} \mathcal{E}^{0} \backslash \mathcal{E}^{0,-} .$ 的子实体 称之为结果 $^{k+\frac{1}{2}} \mathcal{E}$ 。集合$\mathcal{E}^{0,-}$包含被明确标记为移除的元素，以及自动移除的元素，如绿色封闭元素。- 将新的元素和它们的子实体一起添加到${ }^{k+\frac{1}{2}} \mathcal{E}$中，只要它们还没有出现。结果是${ }^{k+1} \mathcal{E} .$。我们希望新元素的选择能够使${ }^{k+1} \mathcal{E}$成为我们定义意义上的一个有效网格。
+
+请注意，根据定义，网格的维度对所有$k$都是一样的。对于每个$k \in \mathbb{N}_{0}$，相应的关系${ }^{k} \mathcal{S},{ }^{k} \mathcal{F},{ }^{k} \mathcal{D}$，以及地图${ }^{k} t$都有相应的定义。
+
+实体与任意用户数据的连接是通过为每个实体关联几个索引来实现的。然后，这些索引可以用来在适当的数据结构中定位数据，例如，数组或地图（关联阵列）。我们现在介绍三种不同的索引图。定义24 (级别索引图) 对于一个给定的序列索引$k$， `codimension` 码$c$，级别$j$，参考元素$r$，和进程号$p$，级别索引是一个地图
+
+$$
+\left.{ }^{k} \kappa_{j}^{c, r}\right|_{p}:\left.{ }^{k} E_{j}^{c, r}\right|_{p} \rightarrow \mathbb{N}_{0}
+$$
+
+水平指数图是连续的，这意味着它是注入式的，并且
+
+$$
+0 \leq\left. k_{j}^{c, r}\right|_{p}(e)<\left|{ }^{k} E_{j}^{c, r}\right|_{p} \mid \quad \text { for all }\left.e \in{ }^{k} E_{j}^{c, r}\right|_{p}
+$$
+
+级别索引图被用来将数据存储在数组中，以便有效地处理。从单个地图$\left.{ }^{k} \kappa_{j}^{c, r}\right|_{p}$中，人们可以很容易地为更一般的实体集构建连续的地图。实体是通过参考元素来区分的，因为两个具有相同参考元素的实体通常会携带相同数量的自由度，因此阵列偏移量更容易计算。
+
+\textbf{Definition 25} (叶子索引图) 对于一个给定的序列索引$k$， `codimension` 码$c$，参考元素$r$，和过程号$p$，叶子索引图
+
+$$
+\left.{ }^{k} \lambda^{c, r}\right|_{p}:\left.{ }^{k} L^{c, r}\right|_{p} \rightarrow \mathbb{N}_{0}
+$$
+
+将叶子实体映射为连续的数字，即对所有$k \in \mathbb{N}_{0}$我们要求。
+
+1.(范围限于等价类的数量)
+
+$$
+\left.\forall e \in{ }^{k} L^{c, r}\right|_{p}: 0 \leq\left.{ }^{k} \lambda^{c, r}\right|_{p}(e)<\left.\left.\right|^{k} \tilde{L}^{c, r}\right|_{p} \mid
+$$
+
+2.(仅在实体副本上平等)
+
+$$
+\forall e,\left.e^{\prime} \in{ }^{k} L^{c, r}\right|_{p}:\left.{ }^{k} \lambda^{c, r}\right|_{p}(e)=\left.{ }^{k} \lambda^{c, r}\right|_{p}\left(e^{\prime}\right) \Leftrightarrow e \sim e^{\prime}
+$$
+
+水平指数和叶子指数在其定义域上是连续的。因此，在网格修改的过程中，它们更需要改变。为了在从序列中的一个网格到下一个网格时不丢失数据，我们需要一种不改变的索引形式。这就是持久性索引图所提供的。
+
+\textbf{Definition 26} (持久性指数图) 对于任何序列指数$k$和任何 `codimension` $c$，我们定义持久性指数图
+
+$$
+{ }^{k} \mu^{c}:{ }^{k} \mathcal{E}^{c} \rightarrow \mathbb{I}
+$$
+
+其中$\mathbb{I}$是一组索引。持久性索引图需要满足以下两个条件。
+
+1.(持久性)
+
+$$
+e \in^{k} \mathcal{E}^{c}, e \in{ }^{k+1} \mathcal{E}^{c} \Leftrightarrow{ }^{k} \mu^{c}(e)={ }^{k+1} \mu^{c}(e)
+$$
+
+2.(仅在实体副本上平等)
+
+$$
+\forall e, e^{\prime} \in{ }^{k} \mathcal{E}^{c}:{ }^{k} \mu^{c}(e)={ }^{k} \mu^{c}\left(e^{\prime}\right) \Leftrightarrow e \sim e^{\prime}
+$$
+
+这些属性意味着，如果一个实体包含在两个后续的网格中，那么持久化索引就不会改变。然而，如果$e \in{ }^{k} \mathcal{E}$和$e \in{ }^{k+2} \mathcal{E}$而不是$e \in{ }^{k+1} \mathcal{E}$，那么该实体在${ }^{k} \mathcal{E}$和${ }^{k+2} \mathcal{E}$中可能有不同的持久性索引。
+
+\textbf{Remark 5} （索引图的使用）网格序列上的计算被假定为在固定网格上工作和修改网格以获得序列中下一个网格的交替阶段。当在固定网格上工作时，水平和叶子指数被用来访问数组中的数据，每次访问的时间复杂度不变。在修改阶段，持久性索引被用来将数据从一个网格转移到下一个网格。在这个阶段，数据通常被存储在一个中间数据结构中，每次访问的时间复杂度为对数。
+
+\section{References}
+
+[^1]: Bastian P, Blatt M, Dedner A, Engwer C, Klöfkorn R, Kornhuber R, Ohlberger M, Sander O (2008) A generic grid interface for parallel and adaptive scientific computing.第二部分：在DUNE中的实施和测试。计算》(本期)
+
+[^2]: Benger W (2005) 通过纤维束数据模型对一般相对论张量场进行可视化。博士论文，柏林自由大学
+
+[^3]: Berti G (2000) 科学计算的通用软件组件。博士论文，BTU Cottbus
+
+[^4]: Botta N, Ionescu C, Linstead C, Klein R (2006) 用SCDRC构建基于关系的分布式计算。技术报告，PIK报告No.103，波茨坦气候影响研究所。
+
+[^5]: DUNE - 分布式和统一数值环境。http://dune-project.org/

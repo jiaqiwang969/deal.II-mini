@@ -1,0 +1,944 @@
+\title{
+An Introduction to the Finite Element Method
+}
+
+
+\author{
+Peter Bastian
+}
+
+
+\section{Motivation}
+
+- Start with an introduction to the finite element method (FEM) for solving Poisson's equation with piecewise linear " $\mathrm{P}_{1} "$ finite elements
+
+- In particular the weak formulation of PDEs is the key abstraction
+
+- "Hello World!" for any numerical partial differential equation (PDE) solver framework!
+
+- Gives necessary background for dune-grid and dune-pdelab module - We will implement the $P_{1}$ FEM in PDELab on Wednesday ... 
+
+
+
+\section{Challenges for PDE Software}
+
+Many different PDE applications
+
+- Multi-physics
+
+- Multi-scale
+
+- Inverse modeling: parameter estimation, optimal control
+
+- Uncertainty quantification, data assimilation, ...
+
+Many different numerical solution methods
+
+- No single method to solve all PDEs!
+
+- Different mesh types, mesh generation, mesh refinement
+
+- Higher-order approximations (polynomial degree)
+
+- Error control and adaptive mesh/degree refinement
+
+- Iterative solution of (non-)linear algebraic equations
+
+High-performance Computing
+
+- Single core performance: bandwidth vs. compute-bound
+
+- Parallelization through domain decomposition
+
+- Robustness w.r.t. to mesh size, model parameters, processors
+
+- Dynamic load balancing
+
+$\longrightarrow$ One flexible software to do it all! 
+
+\section{Flexibility Requires Abstraction!}
+
+- DUNE/PDELab is based on formulating numerical schemes as `residual forms `
+
+- In order to implement a scheme it requires to put it to that form!
+
+- Although you might be familiar with the FEM, you might not be familiar to the notation used here
+
+- When you have mastered the abstraction you can solve complex problems with reasonable effort
+
+- Still, there will be some learning curve ...
+
+- Important feature: Orthogonality of concepts:
+
+    - Dimension $d=1,2,3, \ldots$
+
+    - Linear and nonlinear
+
+    - Stationary and Instationary
+
+    - Scalar PDE and systems of PDEs
+
+    - Uniform and adaptive mesh refinement of different types
+
+    - Sequential and parallel
+
+$\longrightarrow$ Introduce one feature at a time! 
+
+
+
+\section{Strong Formulation of the PDE Problem}
+
+We solve Poisson's equation with inhomogeneous Dirichlet boundary conditions:
+
+
+$$
+\Delta u=f \quad in \quad\Omega
+$$
+
+$$
+u=g : \quad on \quad \partial \Omega
+$$
+
+- $\Omega \subset \mathbb{R}^{d}$ is a polygonal domain in $d$-dimensional space
+
+- Domains are open and connected sets of points
+
+- A function $u \in C^{2}(\Omega) \cap C^{0}(\bar{\Omega})$ solving $(1 \mathrm{a}),(1 \mathrm{~b})$ is called `strong solution`
+
+- Inhomogeneous Dirichlet boundary conditions could be reduced to `homogeneous` ones: we will not do this!
+
+- Proving existence and uniqueness of solutions of strong solutions requires quite restrictive conditions on $f$ and $g$ 
+
+\section{Weak Formulation of the PDE Problem}
+
+Let $u$ be a strong solution, take a `test function` $v \in C^{1}(\Omega) \cap C^{0}(\bar{\Omega}), v=0$ on $\partial \Omega$, then:
+
+$$
+\int_{\Omega}(-\Delta u) v d x=\int_{\Omega}(-\nabla \cdot \nabla u) v d x=\underbrace{\int_{\Omega} \nabla u \cdot \nabla v d x}_{=: a(u, v)}+\underbrace{\int_{\partial \Omega}(-\nabla u) \cdot \nu v d s}_{=0\left(\left.v\right|_{\partial \Omega}=0\right)}=\underbrace{\int_{\Omega} f v d x}_{=: l(v)} .
+$$
+
+`Question`: Is there a vector space of functions $V$ with $V_{g}=\{v \in V: v=g$ on $\partial \Omega\}$ and $V_{0}=\{v \in V: v=0$ on $\partial \Omega\}$ such that the problem
+
+$$
+u \in V_{g}: \quad a(u, v)=I(v) \quad \forall v \in V_{0}
+$$
+
+has a unique solution?
+
+
+`Answer`: Yes, $V=H^{1}(\Omega)$. This $u$ is called `weak solution`.
+
+Advantage: Weak solutions do exist under less restrictive conditions on the data. 
+
+\section{The Finite Element Method}
+
+- The finite element method (FEM) is one class of methods for the numerical solution of PDEs
+
+- Others are the finite volume method (FVM) or the finite difference method (FDM)
+
+- FEMs are based on a weak formulation of the PDE
+
+- In this lecture we will focus on the `conforming` finite element method
+
+- Its basic idea is to replace the space (infinite dimensional) space $V$ by a `finite-dimensional space` $V_{h} \subset V$
+
+- The construction of these finite-dimensional spaces needs some preparations ... 
+
+\section{Finite Element Mesh}
+
+![](https://cdn.mathpix.com/snip/images/LD-KbNmGSZVo20IgMPsZjIaFHGDtm1sHHbh0QDwtFS0.original.fullsize.png)
+
+
+- A mesh consists of ordered sets of vertices and elements:
+
+$$
+\mathcal{X}_{h}=\left\{x_{1}, \ldots, x_{N}\right\} \subset \mathbb{R}^{d}, \quad \mathcal{T}_{h}=\left\{T_{1}, \ldots, T_{M}\right\}
+$$ 
+
+- `Simplicial element`: $T=$ interior $\left(\right.$ convex_hull $\left.\left(x_{T, 0}, \ldots, x_{T, d}\right)\right)$
+
+- `Conforming`: Intersection of boundary is subentity
+
+![](https://cdn.mathpix.com/snip/images/f_rqRAm2cugYGKF_6QjCBCkcDfBJCHgvtx9krEQ13sw.original.fullsize.png) 
+
+- `Local to global map`: $g_{T}:\{0, \ldots, d\} \rightarrow \tau_{h}$
+
+$$
+\forall T \in \mathcal{T}_{h}, 0 \leq i \leq d: g_{T}(i)=j \Leftrightarrow x_{T, i}=x_{j}
+$$
+
+- Interior and boundary vertex index sets: $\mathcal{I}_{h}=\mathcal{I}_{h}^{\text {int }} \cup \mathcal{I}_{h}^{\partial \Omega}$,
+
+$$
+\mathcal{I}_{h}^{\text {int }}=\left\{i \in \mathcal{I}_{h}: x_{i} \in \Omega\right\}, \mathcal{I}_{h}^{\partial \Omega}=\left\{i \in \mathcal{I}_{h}: x_{i} \in \partial \Omega\right\}
+$$
+
+\secrion{Reference Element and Element Transformation}
+
+![](https://cdn.mathpix.com/snip/images/DWGMZ99_9d33kC6HHVztO1q_TD8ZFaA2RMeOlzaBFcU.original.fullsize.png)
+
+- $\hat{T}^{d}$ is the reference simplex in $d$ space dimensions
+
+- The mesh $\mathcal{T}_{h}$ is called `affine` if for every $T \in \mathcal{T}_{h}$ there is an `affine linear map` $\mu_{T}: \hat{T} \rightarrow T$
+
+$$
+\mu_{T}(\hat{x})=B_{T} \hat{x}+b_{T}
+$$
+
+with
+
+$$
+\forall i \in\{0, \ldots, d\}: \mu_{T}\left(\hat{x}_{i}\right)=x_{T, i}
+$$
+
+ 
+\section{Piecewise Linear Finite Element Space}
+
+- The idea of the `conforming` FEM is to solve the weak problem in a finite-dimensional function space $V_{h} \subset V$ used in the weak form:
+
+$$
+u_{h} \in V_{h, g}: \quad a\left(u_{h}, v\right)=I(v) \quad \forall v \in V_{h, 0}
+$$
+
+- A particular choice is the space of `piecewise linear` functions
+
+$$
+V_{h}\left(\mathcal{T}_{h}\right)=\left\{v \in C^{0}(\bar{\Omega}): \forall T \in \mathcal{T}_{h}:\left.v\right|_{T} \in \mathbb{P}_{1}^{d}\right\}
+$$
+
+where $\mathbb{P}_{1}^{d}=\left\{p: \mathbb{R}^{d} \rightarrow \mathbb{R}: p(x)=q^{T} x+r, q \in \mathbb{R}^{d}, r \in \mathbb{R}\right\}$ 
+
+$$
+p^{\top}\left(x_{1}, x_{2}\right)=q_{1}^{\top} x_{1}+q_{2}^{\top} x_{2}+r^{\top}
+$$
+
+- One can show $\operatorname{dim} V_{h}=N=\operatorname{dim} \mathcal{X}_{h}$ and $V_{h} \subset H_{\mathcal{N}}^{1}(\Omega)$
+
+- `Lagrange basis` functions: 
+
+$$
+ \Phi_{h}=\left\{\phi_{1}, \ldots, \phi_{N}\right\}, \quad \forall i, j \in \mathcal{I}_{h}: \phi_{i}\left(x_{j}\right)=\delta_{i, j}
+$$
+
+
+- Test and Ansatz spaces:
+
+    $$
+    V_{h, 0}=\left\{v \in V_{h}: \forall i \in \mathcal{I}_ {h}^{\partial \Omega}: v\left(x_{i}\right)=0\right\}     (vector \quad space)
+    $$
+
+
+
+    $$
+    V_{h, g}=\left\{v \in V_    {h}: \forall i \in \mathcal{I}_{h}^{\partial \Omega}:   v\left(x_{i}\right)=g\left(x_{i}\right)\right\}=v_{h, g}  +V_{h, 0} (affine \quad  shifted \quad  space)
+    $$ 
+
+
+
+
+
+\section{Examples of Finite Element Functions} 
+
+![](https://cdn.mathpix.com/cropped/c5f8a243c07807b7f3ff4857cc3d5ab0-12.jpg?height=412&width=412&top_left_y=89&top_left_x=468)
+
+
+
+\section{Computing the Finite Element Solution}
+
+Inserting a `basis` representation $u_{h}=\sum_{j=1}^{N}(z)_{j} \phi_{j}$ results in
+
+
+
+$$
+a\left(u_{h}, v\right)=I(v) \quad \forall v \in V_{h, 0}  \text { (discrete weak problem), } 
+$$
+
+$$
+\Leftrightarrow  a\left(\sum_{j=1}^{N}(z)_{j} \phi_{j}, \phi_{i}\right)=I\left(\phi_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\text {int }}  \text { (insert basis, linearity) } 
+$$
+
+$$
+ \Leftrightarrow \sum_{j=1}^{N}(z)_{j} a\left(\phi_{j}, \phi_{i}\right)  I\left(\phi_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\text {int }}  \text { (linearity). }
+$$
+
+Together with the condition $u_{h} \in V_{h, g}$ expressed as
+
+$$
+u_{h}\left(x_{i}\right)=z_{i}=g\left(x_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\partial \Omega}
+$$
+
+this forms a system of linear equations
+
+$$
+A z=b, \quad(A)_{i, j}=\left\{\begin{array}{ll}
+a\left(\phi_{j}, \phi_{i}\right) & i \in \mathcal{I}_{h}^{\text {int }} \\
+\delta_{i, j} & i \in \mathcal{I}_{h}^{\partial \Omega}
+\end{array}, \quad(b)_{i}=\left\{\begin{array}{ll}
+l\left(\phi_{i}\right) & i \in \mathcal{I}_{h}^{\text {int }} \\
+g\left(x_{i}\right) & i \in \mathcal{I}_{h}^{\partial \Omega}
+\end{array} .\right.\right.
+$$
+
+\section{Solution of Linear Systems}
+
+- Exact solvers based on Gaussian elimination
+
+- This may become inefficent for sparse linear systems
+
+- Iterative methods (hopefully) produce a convergent sequence
+
+$$
+\lim _{k \rightarrow \infty} z^{k}=z
+$$
+
+- A very simple example is Richardson's iteration:
+
+$$
+z^{k+1}=z^{k}+\stackrel{B}{\omega}(\underbrace{b-A z^{k}}_{\text {degect }}), \quad \mathbb{R} \ni \omega>0, \quad\left\|z-z^{k}\right\|<T O C
+$$
+
+requiring only matrix-vector products
+
+- Krylov methods require also only matrix-vector products
+
+- Larger and/or difficult problems require efficient `preconditioners` 
+
+\section{Three Steps to Solve the FE Problem}
+
+1. Assembling the matrix $A$. This means the computation of the matrix entries $a\left(\phi_{j}, \phi_{i}\right)$ and storing them in an appropriate data structure
+
+2. Assembling the right hand side vector $b$. This means evaluating the right hand side functional $I\left(\phi_{i}\right)$
+
+3. Solve the linear system $A z=b$ using direct or iterative methods
+
+4. Variant: Perform a matrix free operator evaluation $y=A z$ within an iterative solver. This involves evaluations of $a\left(u_{h}, \phi_{i}\right)$ for all test functions $\phi_{i}$ :
+
+$$
+(A x)_{i}=\sum_{j=1}^{N}(A)_{i, j}(x)_{j}=\sum_{j=1}^{N} a\left(\phi_{j}, \phi_{i}\right)(x)_{j}=a\left(\sum_{j=1}^{N}(x)_{j} \phi_{j}, \phi_{i}\right)=a\left(v_{h}, \phi_{i}\right)
+$$
+
+We now discuss how these steps are implemented 
+
+
+\section{Four Important Tools}
+
+
+1. Transformation formula for integrals. For $T \in \mathcal{T}_{h}$ :
+
+$$
+\int_{T} y(x) d x=\int_{\hat{T}} y\left(\mu_{T}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x}, \quad \text { where } x=\mu_{T}(\hat{x})=B_{T} \hat{x}+b_{T}
+$$
+
+2. Midpoint rule on the reference element:
+
+$$
+\begin{aligned}
+&\int_{\hat{T}} q(\hat{x}) d x \approx q\left(\hat{S}_{d}\right) w_{d}\\
+&\left(\hat{S}_{d}: \text { center of } d \text {-simplex }\right)
+\end{aligned}
+$$
+
+3. Basis function via shape function transformation:
+
+$$
+\hat{\phi}_{0}(\hat{x})=1-\sum_{i=1}^{d}(\hat{x})_{i}, \quad \hat{\phi}_{i}(\hat{x})=(\hat{x})_{i}, i>0, \quad \phi_{T, i}\left(\mu_{T}(\hat{x})\right)=\hat{\phi}_{i}(\hat{x})
+$$ 
+
+4. Computation of gradients. For any $w(\overbrace{\mu_{T}(\hat{x})}^{x})=\hat{w}(\hat{x})$ :
+
+$$
+B_{T}^{T} \nabla w\left(\mu_{T}(\hat{x})\right)=\hat{\nabla} \hat{w}(\hat{x}) \quad \Leftrightarrow \quad \nabla w\left(\mu_{T}(\hat{x})\right)=B_{T}^{-T} \hat{\nabla} \hat{w}(\hat{x})
+$$
+
+
+
+\section{Assembly of Right Hand Side I-based on Point}
+
+
+
+In computing $(b)_{i}$ only the following elements are involved:
+
+$$
+C(i)=\left\{(T, m) \in \mathcal{T}_{h} \times\{0, \ldots, d\}: g_{T}(m)=i\right\}
+$$
+
+![](https://cdn.mathpix.com/snip/images/rN7knSZaR9z4wre42k9ayXmbTwR26xDsloM1oERQKg8.original.fullsize.png)
+
+Then
+
+$$
+\begin{aligned}
+(b)_{i} &=I\left(\phi_{i}\right)=\int_{\Omega} f \phi_{i} d x (definition)\\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} f \phi_{i} d x (use mesh)\\
+&=\sum_{(T, m) \in C(i)} \int_{\hat{T}} f\left(\mu_{T}(\hat{x})\right) \hat{\phi}_{m}(\hat{x})\left|\operatorname{det} B_{T}\right| d \hat{x} (localize)\\
+&=\sum_{(T, m) \in C(i)} f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d}+\text { err. } (quadrature)
+\end{aligned}
+$$
+
+
+\section{Assembly of Right Hand Side II-based on element}
+
+- Now we need to perform these computations for all $i \in \mathcal{I}_{h}^{\text {int }}$ !
+
+
+- Collect `element-local` computations:
+
+$$
+\left(b_{T}\right)_{m}=f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d} \quad \forall m=0, \ldots, d
+$$
+
+![](https://cdn.mathpix.com/snip/images/-5QCgz4xr_HgQ-e6zAxgUX75mbOEZGtiObdOHhQOPlM.original.fullsize.png)
+
+- Define restriction matrix $R_{T}: \mathbb{R}^{N} \rightarrow \mathbb{R}^{d+1}$ with
+
+$$
+\left(R_{T} x\right)_{m}=(x)_{i} \quad \forall 0 \leq m \leq d, g_{T}(m)=i
+$$
+
+- Then
+
+$$
+b=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} b_{T}
+$$
+
+
+\section{Assembly of Global Stiffness Matrix I}
+
+In computing $(A)_{i, j}$ only the following elements are involved:
+
+$$
+C(i, j)=\left\{(T, m, n) \in \mathcal{T}_{h} \times\{0, \ldots, d\}: g_{T}(m)=i \wedge g_{T}(n)=j\right\}
+$$
+
+Then
+
+$$
+\begin{aligned}
+(A)_{i, j} &=a\left(\phi_{j}, \phi_{i}\right)=\int_{\Omega} \nabla \phi_{j} \cdot \nabla \phi_{i} d x \quad \text { (definition) } \\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} \nabla \phi_{j} \cdot \nabla \phi_{i} d x \quad \text { (use mesh) } \\
+&=\sum_{(T, m, n) \in C(i, j)} \int_{\hat{T}}\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}(\hat{x})\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x} \quad \text { (localize) } \\
+&=\sum_{(T, m, n) \in C(i, j)}\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}\left(\hat{S}_{d}\right)\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\left(\hat{S}_{d}\right)\right)\left|\operatorname{det} B_{T}\right| w_{d} \quad {\text { (quadrature) }}
+\end{aligned}
+$$
+
+
+
+\section{Assembly of Global Stiffness Matrix II}
+
+- Now we need to perform these computations for all matrix entries! 
+
+- Define the $d \times d+1$ matrix of shape function gradients
+
+$$
+\left.\left.\hat{G}=\left[\hat{\nabla} \hat{\phi}_{0}\left(\hat{S}_{d}\right)\right), \ldots, \hat{\nabla} \hat{\phi}_{d}\left(\hat{S}_{d}\right)\right)\right]
+$$
+
+and the matrix of transformed gradients $\mathfrak{L}^{d x d}$
+
+$$
+G=B_{T}^{-T} \hat{G}
+$$
+
+Define the `local stiffness matrix`
+
+$$
+\mathbb{R}^{d n 1 \times \alpha+1} \Rightarrow A_{T}=G^{T} G\left|\operatorname{det} B_{T}\right| w_{d}
+$$
+
+- Then
+
+$$
+A=\sum_{T \in T_{h}} \underbrace{R_{T}^{T} A_{T} R_{J}}{\vdots \therefore} \text {. vaver formed explicitey! }
+$$
+
+
+
+\section{Matrix-free Operator Evaluation}
+
+- Similar considerations apply for the operation $y=A z$
+- Pick out the coefficients on the element $T$ :
+
+$$
+z_{T}=R_{T} z
+$$
+
+- Perform the `element-local` computation:
+
+$$
+y_{T}=\left|\operatorname{det} B_{T}\right| w_{d} G^{T} G z_{T}
+$$
+
+- Accumulate the results:
+
+$$
+A z=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} y_{T}
+$$
+
+
+
+\section{Implementation Summary}
+
+- All necessary steps in the solution procedure have the following general form:
+
+![](https://cdn.mathpix.com/snip/images/eYasVgYotkSvrH5vY1qzeHFKIE2Zi0pr4GUfs4swxxg.original.fullsize.png)
+
+- PDELab provides a generic `assembler` that performs all these steps, except (3) which needs to be supplied by the implementor of a FEM
+
+- All these concepts carry over to
+
+    - Nonlinear problems
+
+    - Time-dependent problems
+
+    - Systems of PDEs
+
+    - High-order methods
+
+    - Other schemes such as FVM, nonconforming FEM
+
+    - Parallel computations 
+    
+    
+\section{Residul Forms}
+
+- The FEM based on the weak formulation may equivalently be written as
+
+$$
+\text { Find } u_{h} \in U_{h} \text { s.t.: } \quad r_{h}^{\text {Poisson }}\left(u_{h}, v\right)=0 \quad \forall v \in V_{h}
+$$
+
+where $r^{\text {Poisson }}\left(u_{h}, v\right)=a\left(u_{h}, v\right)-I(v)$ is the `residual form`
+
+- This residual form is `affine linear` in $u_{h}$ and linear in $v$
+
+- A `nonlinear` PDE results in a residual form $r(u, v)$ that is `nonlinear` in its first argument
+
+- In that sense a linear problem is only a special case
+
+- Residual forms are always linear in the second argument due to linearity of the integral
+
+- PDELab uses the concept of a residual form as its main abstraction! 
+
+\section{Generalization}
+
+- More complicated discretization schemes:
+
+$$
+\begin{aligned}
+r(u, v)=\sum_{T \in \mathcal{T}_{h}} \alpha_{T}^{V}\left(R_{T} u, R_{T} v\right)+\sum_{T \in \mathcal{T}_{h}} \lambda_{T}^{V}\left(R_{T} v\right) \\
+&+\sum_{F \in \mathcal{F}_{h}^{j}} \alpha_{F}^{S}\left(R_{T_{F}^{-}} u, R_{T_{F}^{+}} u, R_{T_{F}^{-}} v, R_{\left.T_{F}^{+} v\right)}\right.\\
+&+\sum_{F \in \mathcal{F}_{h}^{\partial \Omega}} \alpha_{F}^{B}\left(R_{T_{F}^{-}} u, R_{T_{F}^{-}} v\right)+\sum_{F \in \mathcal{F}_{h}^{\partial \Omega}} \lambda_{F}^{B}\left(R_{T_{F}^{-}} v\right)
+\end{aligned}
+$$
+
+- Instationary problems: Find $u_{h}(t) \in U_{h}$ s.t.:
+
+$$
+d_{t} m_{h}\left(u_{h}(t), v ; t\right)+r_{h}\left(u_{h}(t), v ; t\right)=0 \quad \forall v \in V_{h}
+$$
+
+- Systems of PDEs: Find $u_{h} \in U_{h}=U_{h}^{1} \times \ldots \times U_{h}^{s}$ s.t.:
+
+$$
+r_{h}\left(u_{h}, v\right)=0 \quad \forall v \in V_{h}=V_{h}^{1} \times \ldots \times V_{h}^{s}
+$$
+
+
+
+\section{Literature}
+
+1. Bastian, P., Blatt, M., Dedner, A. et al. A generic grid interface for parallel and adaptive scientific computing. Part I: abstract framework. Computing 82,
+
+103-119 (2008). https://doi.org/10.1007/s00607-008-0003-x
+
+2. Bastian, P., Blatt, M., Dedner, A. et al. A generic grid interface for parallel and adaptive scientific computing. Part II: implementation and tests in DUNE.
+
+Computing 82, 121-138 (2008). https://doi.org/10.1007/s00607-008-0004-9
+
+3. Peter Bastian, Markus Blatt, Andreas Dedner, Nils-Arne Dreier, Christian Engwer, René Fritze, Carsten Gräser, Christoph Grüninger, Dominic Kempf, Robert Klöfkorn, Mario Ohlberger, Oliver Sander, The Dune framework: Basic concepts and recent developments, Computers \& Mathematics with Applications, Volume 81, 2021, Pages 75-112, https://doi.org/10.1016/j.camwa.2020.06.007.
+
+4. Oliver Sander, DUNE - The Distributed and Unified Numerics Environment, Lecture Notes in Computational Science and Engineering, 140, Springer-Verlag, 2020, https://doi.org/10.1007/978-3-030-59702-3 
+
+\section{DUNE PDELab Tutorial 00 (Part 2: Implementation in DUNE/PDELab)}
+
+![](https://cdn.mathpix.com/cropped/c5f8a243c07807b7f3ff4857cc3d5ab0-26.jpg?height=203&width=541&top_left_y=292&top_left_x=34)
+
+Speaker:
+
+Peter Bastian
+
+IWR
+
+Heidelberg University
+
+3 
+
+\section{The PDE Problem Revisited}
+
+We solve Poisson's equation with inhomogeneous Dirichlet boundary conditions:
+
+$$
+\begin{aligned}
+-\Delta u &=f & & \text { in } \Omega \\
+u &=g & & \text { on } \partial \Omega
+\end{aligned}
+$$
+
+The weak formulation is
+
+$$
+u \in V_{g}: \quad a(u, v)=I(v) \quad \forall v \in V_{0}
+$$
+
+with
+
+$$
+a(u, v)=\int_{\Omega} \nabla u \cdot \nabla v d x \quad \text { and } \quad I(v)=\int_{\Omega} f v d x
+$$
+
+and
+
+$$
+\begin{aligned}
+&V_{0}=H_{0}^{1}(\Omega) \\
+&V_{g}=\left\{v \in H^{1}(\Omega): v=u_{g}+w \wedge u_{g} \mid \Gamma_{D}=g \wedge w \in V_{0}\right\} \\
+&\qquad \begin{aligned}
+& H^{\prime}(\Omega)
+\end{aligned}
+\end{aligned}
+$$
+
+Generic Assembly Loop
+
+1: for $T \in \mathcal{T}_{h}$ do
+
+*
+
+$\triangleright$ loop over mesh elements
+
+$z_{T}=R_{T Z}$
+
+2: $\triangleright$ load element data
+
+$q_{T}=\operatorname{compute}\left(T, z_{T}\right)$
+
+3: $\triangleright$ element local computations
+
+4:
+
+antes
+
+Accumulate $\left(q_{T}\right)$ $\triangleright$ store result in global data structure
+
+5: end for
+
+Only the computational kernels compute $\left(T, z_{T}\right)$ need to be implemented by the user to implement the finite element method 
+
+\section{Assembly of Right Hand Side}
+
+- Now we need to perform these computations for all $i \in \mathcal{I}_{h}^{\text {int }}$ ! - Collect element-local computations:
+
+$$
+\left(b_{T}\right)_{m}=f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d} \quad \forall m=0, \ldots, d
+$$
+
+Define destriction matrix $R_{T}: \mathbb{R}^{N} \rightarrow \mathbb{R}^{d+1}$ with
+
+$\mu_{1}(\hat{x})=B_{T} \hat{x}+\hat{b}_{T}$
+
+$$
+\left(R_{T} x\right)_{m}=(x)_{i} \quad \forall 0 \leq m \leq d, g_{T}(m)=i
+$$
+
+- Then
+
+$$
+b=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} b_{T}
+$$
+
+
+
+\section{Assembly of Global Stiffness Matrix}
+
+Define the $d \times d+1$ matrix of shape function gradients
+
+$$
+\left.\left.\hat{G}=\left[\hat{\nabla} \hat{\phi}_{0}\left(\hat{S}_{d}\right)\right), \ldots, \hat{\nabla} \hat{\phi}_{d}\left(\hat{S}_{d}\right)\right)\right]
+$$
+
+and the matrix of transformed gradients
+
+$$
+G=B_{T}^{-T} \hat{G}
+$$
+
+Define the local stiffness matrix
+
+$$
+A_{T}=G^{T} G\left|\operatorname{det} B_{T}\right| w_{d}
+$$
+
+- Then
+
+$$
+A=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} A_{T} R_{T}
+$$
+
+28 
+
+\section{Matrix-free Operator Evaluation}
+
+$\begin{aligned}&\text { Similar considerations apply for the operation } y=A z=\sum_{t \in \mathcal{J}_{h}} R_{T}^{\top} A_{T} R_{T} \\&\text { Pick out the coefficients on the element } T:\end{aligned} \mid z=\sum_{R \in T}{R_{T}}^{\top} A_{T} \widetilde{R_{z}}_{=z}$
+
+$$
+z_{T}=R_{T^{Z}}
+$$
+
+- Perform the element-local computation:
+
+- Accumulate the results:
+
+$$
+y_{T}=\underbrace{\left|\operatorname{det} B_{T}\right| w_{d} G^{T} G}_{A_{T}} z_{T}
+$$
+
+$$
+A z=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} y_{T}
+$$
+
+29 The Duniverse
+
+![](https://cdn.mathpix.com/cropped/c5f8a243c07807b7f3ff4857cc3d5ab0-32.jpg?height=457&width=696&top_left_y=72&top_left_x=126)
+
+24 
+
+\section{Overview DUNE/PDELab Implementation}
+
+pdelab-tutovials/tutorial $00 /$ sto
+
+Files involved are:
+
+1) File tutorial00.cc
+
+- Includes C++, DUNE and PDELab header files
+
+- Includes all the other files
+
+- Contains the main function
+
+- Creates a finite element mesh and calls the driver
+
+2) File tutorial00.ini
+
+- Contains parameters controlling the execution
+
+3) File driver. hh
+
+- Function driver setting up and solving the finite element problem
+
+4) File poissonp1.hh
+
+- Class PoissonP1 realizing the necessary element-local computations
+
+Now lets go to the code ... 
+
+$$
+\text { Meslueds in PoissonP1 }
+$$
+
+$$
+\begin{aligned}
+\mu_{h} \in V_{h, g} &: \quad a\left(\mu_{l,} v\right)=l(v) \quad \forall v \in V_{1,0} \\
+& \Leftrightarrow \underbrace{a\left(\mu_{h} v\right)-l(v)}_{r(\mu a, v)}=0 \quad \forall v \in V_{l}
+\end{aligned}
+$$
+
+$$
+\text { FEM: }
+$$
+
+$$
+\text { ' }
+$$
+
+$$
+\text { Evaluate }-\int f \phi_{i} d x \text { for el terfuction honzeroonT }
+$$
+
+$$
+\sim \text { the } b_{T}
+$$
+
+$$
+\text { jacobian-volume Evaluate } \int_{T} \nabla \phi_{j} \cdot \nabla \phi_{i} d x \text { for all aratz / tens fofs ouT }
+$$
+
+$$
+\text { alpha-volume Evaluate } \int \nabla u_{h}-\nabla \phi_{i} d x \text { for all fef fots nouzenoonT }
+$$
+
+$$
+\text { jacolian-opply-voleme }
+$$
+7
+
+$$
+\sim \rightarrow \text { uatrur free arel } A_{T} z_{1}
+$$
+
+$$
+\text { in two voniant. Cocucide cuith a lpha-volume }
+$$
+
+in lan
+
+zose Grid FunctionSpace
+
+repverats oll iforvation obout a
+
+comish of:
+
+$$
+\text { Sinfe ebuat space, in pant locolto-globe }
+$$
+
+1) Gridview
+
+i.e. a finte elemant - iosh
+
+2) Fuéte Element Map
+
+inforwatiar obrit Cocal lasis
+
+$$
+\text { Sunction for each uesh eburat }
+$$
+
+3) Cousfraints
+
+Provides information where
+
+Cousfraciuts are
+
+4) Vectorbachand
+
+Mow to vepresat coefficiant vectors
+
+CounfrerintsCoutcirier
+
+$\therefore$ fores cowstraiat informatios
+
+is filled by the function corsfreints
+
+Vector
+
+coefficiat vector 'richosen lsackeid
+
+DiscreteGridFunction
+
+a kinute elemat funchion $u_{a}=\sum_{j} x_{j} \phi_{j}$
+
+interpolate
+
+fele coghiciat vector fou a fuldioi Local Operator
+
+elanant-local couputation in
+
+He Runffe eleuat uefliod
+
+Gridoperator
+
+- Geverte ancublar
+
+courish of:
+
+1) fwo grid function spaces arati and tes pace
+
+2) local operator
+
+3) Matrix Badcerd
+
+$\therefore$
+
+Lnows lioe to create/sfore
+
+spone unatrices
+
+4) fwo coustraiat, contaivars
+
+coner to the tuo grel fuctia fpeces
+
+$\therefore$
+
+Civearsorser Badrad
+
+iferotive Cinear rolver
+
+Sfationary Livear Problan Solver assables ard rolver liveer problu.
+
+UTKWrifer
+
+For curíig Povaviea fibs Residual Toruulation
+
+Put gour odeure en the foru
+
+$$
+\text { In care of a limear PDE: }
+$$
+
+$$
+\mu_{h} \in V_{h, g}:
+$$
+
+$$
+3
+$$
+
+Practice: Iusert basis vepresertation: $\mu_{n}(x)=\sum_{j=1}^{N}(z)_{j} \phi_{j}(x)$
+
+$\alpha\left(u_{a,} \phi_{i}\right)=\sum_{T \in \tau_{l}} \frac{\int_{T} \nabla \mu_{h} \cdot \nabla \phi_{i} d x}_{\text {apha_volume }}=\sum_{T \in J_{\mu}} \int_{T} \nabla\left(\sum_{j=1}^{N}(z)_{j} \phi_{j}\right) \cdot \nabla \phi_{i} d x$
+
+$=\sum_{j=1}^{N}\left(z_{j}\right) \sum_{J \in T_{h}} \int_{j \text { acobidu-volune }} \mid$ Generic Assembly Loop
+
+1: for $T \in \mathcal{T}_{h}$ do
+GridOperafor
+$-R_{-7}$
+
+1: for $T \in \mathcal{T}_{h}$ do
+2: $\quad z_{T}=R_{T Z}$ Local Oparalor
+3: $\quad q_{T}=\operatorname{compute}\left(T, z_{T}\right)$
+a. Arcumulatel $\left(\tau_{\tau}\right)$
+
+$\triangleright$ loop over mesh elements
+
+2
+
+\triangleright load element data $\triangleright$ element local computations
+
+0
+
+4:
+
+Accumulate $\left(q_{T}\right)$ $\triangleright$ store result in global data structure
+
+5: end for
+
+Only the computational kernels compute $\left(T, z_{T}\right)$ need to be implemented by the user to implement the finite element method Four Important Tools
+
+$\hat{\omega}(\hat{x})$
+
+1. Transformation formula for integrals. For $T \in \mathcal{T}_{h}$ :
+
+$x=\mu_{r}(\hat{x})$
+
+$$
+\int_{T} y(x) d x=\int_{\hat{T}} y\left(\mu_{T}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x}, \quad \text { where } x=\mu_{T}(\hat{x})=B_{T} \hat{x}+b_{T}
+$$
+
+2. Midpoint rule on the reference element:
+
+4. Computation of gradients. For any $w(\overbrace{\mu_{T}(\hat{x})}^{x})=\hat{w}(\hat{x})$ :
+
+$$
+B_{T}^{T} \nabla w\left(\mu_{T}(\hat{x})\right)=\hat{\nabla} \hat{w}(\hat{x}) \quad \Leftrightarrow \quad \nabla w\left(\mu_{T}(\hat{x})\right)=B_{T}^{-T} \hat{\nabla} \hat{w}(\hat{x})
+$$

@@ -1,0 +1,178 @@
+\section{研究背景与意义}
+
+\textbf{任何事物，小到粒子，大到宇宙，都存在一定的"规律"。}
+
+- 应用“经典牛顿力学”的理论，结合星相的观察“实践”，科学家逐渐验证并揭开天体运行的奥秘。其中，最重要的是引人了“时间”的维度。
+
+- 法国数学家、物理学家傅里叶, 首次提出傅里叶级数，并将其应用于热传导理论与振动理论。可以说，这是稳定性理论的一次巨大尝试。
+
+
+
+\textbf{如何刻画“规律”？ 不同学科有不同的理解。}
+
+![](https://cdn.mathpix.com/snip/images/vBID_VhD32VufORfUomyEm7o_sz7RvfuPU5TU0b6Z04.original.fullsize.png)
+
+
+\textbf{航空发动机内部的不稳定现象-“失速”或者“失稳”：}
+
+![](https://cdn.mathpix.com/snip/images/DuWozQcGihLl8Ga59ElGaVniQduviTRP9mIN9_zj_zk.original.fullsize.png)
+
+
+
+\textbf{简化一维（声学）模型：}
+![](https://cdn.mathpix.com/snip/images/JXDHHJCGFgSuzno_-nOHoCSw3gaj6zaqyBeMeXwkmkw.original.fullsize.png)
+
+\textbf{过渡简化带来的坏处？}
+
+- 未考虑背景流动的影响
+- 未考虑管道结构的影响
+- 未考虑熵的影响
+- ...
+
+\textbf{优化的模型}
+![](https://cdn.mathpix.com/snip/images/I8JocxJD1x3kGi96DlbB60ga70a7EjwSxKnqCcGsEhc.original.fullsize.png)
+
+
+\textbf{目的及依然存在的问题？} 
+
+针对不同的问题，
+- 方程无法统一（线性、非线性）
+- 网格无法统一（结构网格、非结构网格）
+- 求解器无法统一
+- 稳定性的分析方法未统一（特征值、SVD）
+
+目标：
+- 建立一套统一的流体力学稳定性分析系统
+- 并应用于实际的压气机失速的模型搭建
+
+
+\textbf{在失速预警中的应用}
+
+实验：利用动模态分解方法，我们已经有效的得到失速工况下的失速特征。
+
+仿真：
+
+1. 结合我们自己的压气机模型进行建模、流场求解和稳定性分析 （商业软件）---》缺点：黑箱
+
+2. 搭建有限元模型
+
+        一维管道稳定性及敏感性分析
+
+        二维叶栅稳定性及敏感性分析
+
+        三维叶栅近失速稳定性及敏感性分析
+
+
+
+
+\section{基本概念介绍}
+
+\textbf{Lyapunov stability}：
+
+首先要定义一个平衡态，之后，系统会围绕这个状态受到扰动。如果系统返回到平衡状态，则认为稳定的；如果系统偏离平衡状态系统（或者更准确地说，这个特定的平衡状态）被认为是不稳定的。在Lyapunov稳定性的定义中，一个**无限的时间**范围允许返回到平衡。
+
+
+
+$$
+\frac{d}{d t}\left(\begin{array}{l}
+q_{1} \\
+q_{2}
+\end{array}\right)=\underbrace{\left(\begin{array}{cc}
+\frac{1}{100}-\frac{1}{R e} & 0 \\
+\mu & -\frac{2}{R e}
+\end{array}\right)}_{\mathrm{A}}\left(\begin{array}{l}
+q_{1} \\
+q_{2}
+\end{array}\right)
+$$
+
+$$
+\mathbf{q}(t)=\exp (t \mathrm{~L}) \mathbf{q}_{0}
+$$
+
+$$
+G(t)=\max _{\mathbf{q}_{0}} \frac{\|\mathbf{q}(t)\|_{E}^{2}}{\left\|\mathbf{q}_{0}\right\|_{e}^{2}}=\max _{\mathbf{q}_{0}} \frac{\left\|\exp (t \mathrm{~L}) \mathbf{q}_{0}\right\|_{E}^{2}}{\left\|\mathbf{q}_{0}\right\|_{F}^{2}}=\|\exp (t \mathrm{~L})\|_{E}^{2}
+$$
+
+
+
+
+
+\textbf{全局稳定性分析方法}
+
+我们来考虑N-S方程的统一动力学形式：
+$$
+{\partial q\over \partial t} =N(q)
+$$
+N 是 Navier-Stokes operator.
+
+定义base flow
+$$
+N(q_b)=0
+$$
+线性化处理：
+$$
+q'=q-q_b
+$$
+
+$$
+{\partial q'\over \partial t}=L(q_b)q'
+$$
+
+得到线化的N-S方程
+
+$$
+L(q_b)={\partial N \over \partial q}|_{q_b}
+$$
+
+
+用基函数去近似参数，求特征值
+
+
+$$
+q'=\hat{q}e^{\lambda t}
+$$
+
+代入后得到:
+$$
+L(q_b)\hat{q}=\lambda\hat{q}
+$$
+
+
+相应的特征值表征了$q_b$的稳定性：如果一个特征值 $\lambda_i$ 有一个正的实部 $\delta_i = real(\lambda_i)$ （正增长率），那么基流是不稳定的。虚部是指频率为$w_i$的振荡模式。
+
+
+\textbf{敏感性分析}
+
+另一种全局方法，被称为预解分析，包括研究外部作用力对baseflow的影响流动而不是专注于自我维持的振荡。类似在机械振动领域的谐波激励下的稳态响应。这个提法最初Trefethen引入，1993.
+
+Resolvent analysis最早应用是在稳定性和转捩中的nonmetal analysis中运用。例如在寻找线性方程组的矩阵时间指数的范数，对transient growth的研究，e-pseudospectra, 以及定义线性NS在对外部forcing最大反馈的比例。
+
+基本形式可以写成：
+$$
+{\partial q'\over \partial t}=L(q_b)q' + f 
+$$
+
+$$
+f = \hat{f}e^{iwt} 
+$$
+$$
+q = \hat{q}e^{iwt}
+$$
+代入上式可得：
+$$
+\hat{q}= R\hat{f} \\\\
+R=(iwI-L(q_b))^{-1}
+$$
+R 被称为resolvent operator, 或者叫放大因子。
+
+
+优化f得到最大能量增益：
+
+$$
+G(\hat{f})={||R\hat{f}||^2\over ||\hat{f}||^2}
+$$
+
+
+
+

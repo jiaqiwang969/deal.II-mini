@@ -1,0 +1,1097 @@
+\title{The DUNE Grid Interface}。
+
+\author{
+Christian Engwer}
+
+
+\section{Design Principles} 
+
+ \textbf{Flexibility} : 数据结构和算法的分离。
+
+ \textbf{Efficiency} : 通用的编程技术。
+
+ \textbf{Legacy Code} : 重复使用现有的有限元软件。
+
+
+\section{Flexibility} 
+
+分离的数据结构和算法。
+
+- 算法决定了要操作的数据结构。
+
+- 数据结构隐藏在一个公共接口下。
+
+- 算法只在该接口上工作。
+
+- 该接口的不同实现。
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-006.jpg?height=139&width=672&top_left_y=207&top_left_x=135)
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-006.jpg?height=151&width=675&top_left_y=342&top_left_x=134)
+
+\section{Efficiency} 
+
+用通用编程技术实现。
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-007.jpg?height=383&width=277&top_left_y=89&top_left_x=52)
+
+1. 静态多态性
+
+- 鸭子类型化（见STL
+
+- 奇怪的反复出现的模板模式（Barton和Nackman）。
+
+2. 网格实体范围
+
+- 对不同数据结构的通用访问。
+
+3. 视图概念
+
+- 对一个数据集的不同分区的访问。
+
+
+
+\section{The DUNE Framework} 
+
+- 模块   
+
+    - 代码被分割成独立的模块。
+
+    - 应用程序只使用他们需要的模块。
+
+    - 模块根据成熟度进行分类。
+
+    - 每个人都可以提供她/他自己的模块。
+
+- 可移植性
+
+- 开放的开发过程
+
+- 自由软件许可证
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-009.jpg?height=212&width=378&top_left_y=156&top_left_x=509)
+
+[Bastian, Blatt, Dedner, Engwer, Klöfkorn, Kornhuber, Ohlberger, Sander 2008]。
+
+
+\section{A brief history...} 
+ 
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-010.jpg?height=463&width=941&top_left_y=68&top_left_x=3)
+
+
+
+
+
+
+
+\section{DUNE Release 2.7.1} 
+
+- \textbf{dune-common} : 基础课，基础设施
+
+- \textbf{dune-istl} : (迭代求解器模板库) 
+    - 通用稀疏矩阵/矢量类。
+    - 解算器（Krylov方法、AMG等）。
+
+
+- \textbf{dune-geometry} : 几何映射，正交规则可视化
+
+- \textbf{dune-localfunctions} : 本地有限元函数的通用接口。按照Ciarlet的抽象定义。不同的可视化有限元的集合。
+
+- \textbf{dune-grid} : 网格接口，可视化
+
+
+
+\section{DUN(E)iverse} 
+
+- 模块化结构
+
+- 编写你自己的DUNE模块
+
+- 在不同的许可证下可用
+
+
+- 分散化模块
+    - \textbf{dune-pdelab} : 基于dune-localfunctions的裁量模块。
+    - \textbf{dune-fem} : 基于dune-localfunctions的具体化模块。
+    - \textbf{dune-functions} : 一个为函数和函数空间提供统一接口的新举措。
+
+- 其他网格实现
+
+    - 纹理bf{dune-grid-glue：允许计算Dune网格的重叠和非重叠耦合，这是大多数领域分解算法的要求。
+
+    - \textbf{dune-subgrid} : 允许你在给定的DUNE网格的一个子集上工作。
+
+    - \textbf{dune-foamgrid} : 高维世界中$1 \mathrm{~d}$或$2 \mathrm{~d}$实体的非法域网格。
+
+    - \textbf{dune-prismgrid} : 是一个二维单纯网格和一维网格的张量网格。
+
+    - \textbf{dune-cornerpoint} : 一个角点网格，与ECLIPSE油藏模拟软件的网格格式兼容。
+
+
+- 扩展模块 
+
+    - \textbf{dune-python} 用于Centrral DUNE组件的python绑定。
+
+    - \textbf{dune-typetree} 在树中组织类型的类
+
+    - \textbf{dune-dpg} 构建最优的非连续佩特罗夫-加勒金测试空间
+
+    - \textbf{dune-tpmc}使用水平集构建切割单元 
+
+
+目标：允许人们...
+
+- 因其创新而获得荣誉
+
+- 在不破坏核心的情况下进行实验
+
+- 以不同的速度发展 
+
+
+
+\section{A Package System} 
+
+ `dunecontrol` 
+
+- 控制模块间的相互作用
+
+- 建议 （&依赖性
+
+- 与 cmake 融合 （与 git 融合
+
+- 适用于Linux、Mac和Mingw
+
+注意：依赖关系应该形成一个DAG
+
+ `dunecontrol cmake` 
+
+通过 cmake 配置软件包，包括必要的路径信息 
+
+ `dunecontrol make` 
+
+按照正确的顺序构建软件包
+
+...在没有 `make install` 的情况下也能工作。 
+
+![](https://cdn.mathpix.com/snip/images/7ivvWKUeLlSfYlphk0igZU6htEpmOsIwI3bZ3nfMMZQ.original.fullsize.png)
+
+
+
+\section{Why Grids?}
+
+边界值问题的微弱表述。
+
+ $$
+\text { Find } u \in U \text { s.t. } \quad a(u, v)=I(v) \quad \forall v \in V
+$$ 
+
+ $a(u, v)$ 和 $I(v)$ 是（双）线性形式，例如
+
+ $$
+a(u, v)=\int_{\Omega} \nabla u \cdot \nabla v d x
+$$ 
+
+具有空间域 $\Omega \subset \mathbb{R}^{d}$ 。
+
+网格是必要的，至少有三个原因。
+
+1. 对复杂领域进行分片描述 $\Omega$ 。
+
+2. 对函数进行分片逼近（通过多项式）。
+
+3. 积分的分片计算（通过数字正交）。
+
+\section{Numerical Quadrature} 
+
+- 通过采样点上的函数评价的加权和来近似积分。
+
+ $$
+\int_{\hat{\Omega}} f(x) d x \approx \sum_{i=1}^{N} w_{i} f\left(x_{i}\right)
+$$ 
+
+用权重 $w_{i}$ 和采样点 $x_{i}, i=1, \ldots, N$ 。
+
+- $w_{i}$和$x_{i}$的构造方法不同 
+
+    - 通常使用一系列的多项式（Legendre, Lagrange, Lobatto, ...）。
+
+    - 多项式$f$精确到预定的阶数。
+
+- 正交方案取决于$\hat{\Omega} !$。
+
+    - 大多数方案只适用于简单的形状（三角形，正方形，四面体，...）。
+    
+    - 复杂形状的正交是通过规则形状的小体积来接近$\Omega$。
+
+\section{Computational Grid} 
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-026.jpg?height=377&width=201&top_left_y=84&top_left_x=34)
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-026.jpg?height=376&width=187&top_left_y=83&top_left_x=343)
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-026.jpg?height=366&width=185&top_left_y=92&top_left_x=642)
+
+
+
+\section{The DUNE Grid Module} 
+
+- DUNE网格模块是DUNE五个核心模块之一。
+
+- DUNE希望为基于网格的方法提供一个接口。因此，网格的概念是DUNE的核心部分。
+
+- `dune-grid` 提供了接口，遵循 `Grid` 的概念。
+
+- 它的实现遵循DUNE的三个`design principles`。
+
+    - \textbf{Flexibility} : 数据结构和算法的分离。
+    
+    - \textbf{Efficiency} ：通用的编程技术。
+
+    - \textbf{Legacy Code} : 重复使用现有的有限元软件。
+    
+    
+\section{Designed to support a wide range of Grids} 
+
+![](https://cdn.mathpix.com/snip/images/1K2OXeVV29pbwc8PcztMVGTRLxZ_zAPCeUaGgwy_bCo.original.fullsize.png)
+
+
+
+\section{DUNE网格接口[^1]特点}。
+
+- 为网格提供抽象接口，具有。
+
+    - 嵌入世界维度的任意维度。
+
+    - 多种元素类型。
+
+    - 符合或不符合标准。
+
+    - 分层的、局部的细化。
+
+    - 任意细化规则（符合或不符合）。
+
+    - 并行数据分配和通信。
+
+    - 动态负载平衡。
+
+- 重用现有的实现（ALU、UG、Alberta）$+$ 特殊实现（YaspGrid、FoamGrid）。
+
+- 建立在接口之上的元网格（GeometryGrid, SubGrid, MultiDomainGrid）。
+
+
+
+[^1] : Bastian, Blatt, Dedner, Engwer, Klöfkorn, Kornhuber, Ohlberger, Sander: 一个用于并行和自适应科学计算的通用网格接口。
+计算的通用网格接口。第一部分：在DUNE中的实现和测试。计算, 82(2-3): 121-138,2008 。
+
+
+\section{The Grid} 
+
+为了能够准确描述网格接口，需要对网格进行正式的规范。
+
+
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-031.jpg?height=107&width=261&top_left_y=219&top_left_x=44)
+
+在DUNE中，网格总是一个维度为$d$的分层网格，存在于一个$w$维度的空间中。网格的参数是
+
+- 维度$d$ ,
+
+- 世界维度$w$ 。
+
+- 和最大级别的J。
+
+
+在今天的练习中，我们将始终假设$d=w$，我们将忽略我们所处理的网格的层次结构。
+
+\section{The Grid. . . A Container of Entities...} 
+
+在DUNE的意义上，`Grid`是一个实体的容器。
+
+![](https://cdn.mathpix.com/snip/images/YJ1nx_2SVUKUFwyAYnz3LdX3gFGEv2IB4dSDEIqc2Sg.original.fullsize.png)
+
+
+为了进行无维度编程，我们需要对不同的实体进行无维度命名。
+
+
+我们根据实体的代码维度来区分实体。
+
+$\operatorname{codim}=c$的实体包含$\operatorname{codim}=c+1$的子实体。这就给出了一个递归的结构，直至$\operatorname{codim}=d$ 。
+
+ 
+
+
+\section{The DUNE Grid Interface} 
+
+DUNE网格界面是一个类和方法的集合。
+
+
+~~~C++
+#include <dune/grid/yaspgrid.hh>
+...
+using Grid = Dune::UaspGrid<2>;
+Grid grid({4,4},{1.0,1.0},{false,false});
+auto gv = grid.leafGridView();
+for (const auto& cell : elements(gv)){
+    // do something
+}
+~~~
+
+
+我们现在将了解最重要的类，看看它们是如何互动的。
+
+
+\section{Modifying a Grid} 
+
+DUNE网格接口遵循`View-only`的概念。
+
+\section{Modifying a Grid} 
+
+DUNE网格界面遵循 "纯视图 "概念。
+
+ \textbf{View-Only Concept} 
+
+- 视图提供对数据的（只读）访问
+
+    - 对网格实体的只读访问允许相应地使用 `const` 。
+
+    - 对实体的访问只能通过某个视图的迭代器。 $\rightarrow$ 这允许随即实现。
+
+- 数据只能在主容器（网格）中被修改。
+
+\textbf{Modification Methods} :
+
+- 全局细化
+
+- 本地细化和适应性
+
+- 负载平衡 
+
+
+
+\section{Views to the Grid} 
+
+网格提供了两种主要观点。
+
+![](https://cdn.mathpix.com/snip/images/sAWKw-w2dpGzFsSJL8_X41304jC7amaHKTrWk1AoEjw.original.fullsize.png)
+
+按级别。
+
+与同一级别相关的所有实体。
+
+注意：并非所有级别都必须覆盖整个领域。
+
+叶状视图。
+
+所有的叶子实体（未被精炼的实体）。
+
+叶视图可以被看作是层次在平面网格上的投影。它同样覆盖了整个领域。
+
+
+
+
+\section{Views to the Grid - Dune::GridView} 
+
+
+
+- `Dune::GridView`类整合了取决于当前视图的所有信息。
+
+- 每个`Grid`必须提供
+
+    - `Grid::LeafGridView` 和
+
+    - `Grid::LevelGridView` . 
+    
+- `Grid`在你每次要求它创建一个新的视图时，都会创建一个新的视图，所以你需要存储它的副本。
+
+- 访问视图。
+
+    - `Grid::leafGridView()` 和
+
+    - `Grid::levelGridView(int level)` . 
+
+\section{Iterating over grid entities} 
+
+通常情况下，大多数代码使用网格来迭代它的一些实体（如单元格），并对这些实体中的每一个进行一些计算。
+
+- `GridView` 支持对所有一维实体的迭代。
+
+- 迭代使用$\mathrm{C}++11$ 基于范围的for循环。
+
+~~~C++
+for (const auto& cell : elements(gv)){
+    // do some work with cell
+}
+~~~
+
+- 单元前面的类型很重要。
+
+    - 如果你在一个基于范围的for循环中创建一个实体，使用 `const auto&` 。
+
+    - 在所有其他情况下，使用普通的 `auto` !
+
+如果你不遵循这个建议，你的程序可能会以不可预知的方式崩溃。迭代函数
+
+
+\section{Iteration functions} 
+
+~~~C++
+for (const auto& cell : elements(gv)){
+    // do some work with cell
+}
+~~~
+
+你可以为其他实体类型做类似的调用。
+
+~~~C++
+// Iterates over cells (codim = 0)
+for (const auto& c : elements(gv))
+// Iterates over vertices (dim = 0)
+for (const auto& v : vertices (gv))
+// Iterates over facets (codim = 1)
+for (const auto& f : facets(gv))
+// Iterates over edges (dim = 1)
+for (const auto& e : edges(gv))
+
+// Iterates over entities with a given codimension (here: 2)
+for (const auto& e : entities(gv, Dune::Codim<2>{}))
+// Iterates over entities with a given dimension (here: 2)
+for (const auto& e : entities(gv, Dune::Dim<2>{}))
+~~~
+
+
+\section{Entities} 
+
+遍历一个网格视图，我们可以获得对实体的访问。
+
+~~~C++
+for (const auto& cell : elements(gv)){
+    cell.????(); // what can we do here?
+}
+~~~
+
+- 实体不能被修改。
+
+- 实体可以被复制和存储（但复制可能很昂贵！）。
+
+- 一个实体$E$同时提供拓扑学信息
+
+- 实体的类型（三角形、四边形，等等）。
+
+- 与其他实体的关系。
+
+和`geometrical`信息
+
+- 实体在网格中的位置。
+
+![](https://cdn.mathpix.com/snip/images/1sQQX9QKDquyOjaMxsP64Oy1FCa4dtndbChV4OINtbY.original.fullsize.png)
+
+ `GridView::Codim<c>::Entity` 实现了实体的概念。
+
+
+\section{Dimension and Codimension} 
+
+每个实体都有一个 `dimension` 。
+~~~C++
+dim(vertex) == 0
+dim(line) == 1
+dim(triangle) == 2
+~~~
+
+
+当编写独立于维度的代码时，通常更容易使用`codimension` 。
+
+实体`codimension`的$e$总是相对于网格的`dimension`而言的，并通过以下方式给出。
+
+ $$
+\operatorname{codim}(e)=\operatorname{dim}(\text { grid })-\operatorname{dim}(e)
+$$ 
+
+~~~C++
+codim(vertex) == dim(grid)
+codim(face) == 1
+codim(cell) == 0
+~~~
+
+
+\section{Storing Entities} 
+
+~~~C++
+GridView::Codim<c>::Entity
+~~~
+
+- 实体可以像任何普通对象一样被复制和存储。
+
+- 重要的是：一个逻辑网格实体可以有`multiple`个实体对象（因为它们可以被复制）。
+
+- 内存昂贵，但速度快。
+
+~~~C++
+GridView::Codim<c>::EntitySeed
+~~~
+
+- 存储`minimal`信息，以便再次找到一个实体。
+
+- 像这样创建。
+
+    ~~~C++
+    auto entity_seed = entity.seed();
+    ~~~~
+
+- 网格可以从一个`EntitySeed`创建一个新的`Entity`对象。
+
+    ~~~C++
+    auto entity = grid.entity(entity_seed);
+    ~~~
+
+- 节省内存，但重新创建实体的运行时间开销。
+
+\section{Reference Elements} 
+
+ `Dune::GeometryType` 识别实体的参考元素的类型。
+ `Grid::Codim<c>::Entity::type()` 返回一个实体的`GeometryType`。
+
+![](https://cdn.mathpix.com/snip/images/2zPmZk2eMt4ZFeVbTYTmfXyPbaLD-T8C7FCo68M3XmI.original.fullsize.png)
+
+\section{Geometry Types} 
+
+ `GeometryType`是一个参考元素的简单标识符。
+
+- 使用`.type()`从实体或几何对象中获得。
+
+- `GeometryType` 用于命名空间`Dune::GeometryTypes`中的特定参考元素。
+
+    ~~~C++
+    namespace GeometryTypes = Dune::GeometryTypes;
+    Dune::GeometryTypes gt;
+
+    gt = GeometryTypes::vertex;
+    gt = GeometryTypes::line;
+    gt = GeometryTypes::triangle;
+    gt = GeometryTypes::square;
+    gt = GeometryTypes::hexahedron;
+    gt = GeometryTypes::cube(dim);
+    gt = GeometryTypes::simplex(dim);
+    ~~~
+
+- `GeometryTypes`很便宜，总是存储和传递副本（不要使用引用）。
+
+
+\section{ReferenceElement (I)} 
+
+一个参考元素提供了关于子实体嵌入的拓扑和几何信息。
+
+![](https://cdn.mathpix.com/snip/images/2zPmZk2eMt4ZFeVbTYTmfXyPbaLD-T8C7FCo68M3XmI.original.fullsize.png)
+
+
+- 参考元素内的子实体的编号
+
+- 从子实体的参考元素到当前参考元素的几何映射
+
+
+
+\section{ReferenceElement (II)} 
+
+- 参考元素在尺寸和坐标域类型上被模板化 
+
+~~~C++
+Dune::ReferenceElement <double, dim> ref_el = ...;
+~~~
+
+- 函数`Dune::referenceElement()`将从大多数有参考元素的对象中提取参考元素。
+
+~~~C++
+auto ref_el = Dune::referenceElement (entity.geometry());
+~~~
+
+当使用这个函数时，你不需要弄清楚模板参数。
+
+- `ReferenceElements` 很便宜，总是存储和传递副本（不要使用引用）。
+
+更多信息请参见关于引用元素的文档 [^2] 。
+
+ [^2] : https://dune-project.org/doxygen/master
+
+\section{Geometry} 
+
+变换 $T_{E}$ 
+
+- 从一个空间到另一个空间的映射。
+
+- 主要目的是从参考元素映射到全局坐标。
+
+- 提供Jacobian的转置反向 $\left(J^{-T}\left(T_{E}\right)\right)$ 。
+
+![](https://cdn.mathpix.com/snip/images/Z1Yw0gFO_nzm8FEwrpW0ggHYKfO8tMY0YHR2lktG5Qs.original.fullsize.png)
+
+
+\section{Geometry Interface (I)} 
+
+- 从实体获取几何图形
+
+    ~~~C++
+    auto geo = entity.geometry();
+    ~~~
+
+- 将本地坐标转换为全局坐标 
+
+    ~~~C++
+    auto x_global = geo.global(x_local);
+    ~~~
+
+- 将全局坐标转换为局部坐标 
+
+    ~~~C++
+    auto x_local = geo.local(x_global);
+    ~~~
+
+\section{Geometry Interface (II)} 
+
+- 获取全局坐标中的几何中心 
+
+~~~C++
+auto center = geo.center();
+~~~
+
+- 获取几何体的角数（例如，三角形的角数为3）。
+
+~~~C++
+auto num_corners = geo.corners();
+~~~
+
+- 获取全局坐标 $i$ -个几何体的角 $(0 \leq i < \text{geo.corners()})$ 。 
+ 
+~~~C++
+auto corner_global = geo.corner(i); 
+~~~
+
+\section{Geometry Interface (III)} 
+
+- 获取参考元素的类型
+
+~~~C++
+auto geometry_type = geo.type();
+~~~
+
+- 找出几何体是否为仿生（线性图）。
+
+~~~C++
+if (geo.affine()) 
+    // do something optimize
+~~~
+
+- 获取全局坐标系中几何体的体积 
+
+~~~C++
+auto volume = geo.volume();
+~~~
+
+- 获取局部坐标的积分元素（数值积分需要）。
+
+~~~C++
+auto mu= geo.integrationElement(x_local); 
+~~~
+
+
+\section{Gradient Transformation} 
+
+\section{Assume} 
+
+ $$
+f: \Omega \rightarrow \mathbb{R}
+$$ 
+
+在$E$单元上进行评估，即$f\left(T_{E}(\hat{x})\right)$。
+
+那么$f$的梯度由以下公式给出
+
+ $$
+J_{T}^{-T}(\hat{x}) \hat{\nabla} f\left(T_{E}(\hat{x})\right)
+$$ 
+
+
+~~~C++
+auto x_global = geo.global(x_local);
+auto J_inv = geo.jacobianInverseTransposed(x_local);
+auto tmp = gradient(f)(x_global); // gradient(f) supplied by user
+auto gradient = tmp;
+J_inv.mv(tmp, gradient);
+~~~
+
+
+\section{Obtaining Quadrature Rules} 
+
+回顾一下。数值正交规则由以下公式给出
+
+ $$
+\int_{\hat{\Omega}} f(x) d x \approx \sum_{i=1}^{N} w_{i} f\left(x_{i}\right)
+$$ 
+
+- `dune-geometry`为常见的几何体类型提供预定义的正交规则。
+
+~~~C++
+int order = ...;
+Dune::GeometryType gt = ...;
+auto& qr = Dune::QuadratureRules<double, dim>::rule(gt, order);
+~~~
+
+
+- 规则工厂由数字类型（通常使用`Grid::ctype`）和积分域的维度来设置参数。
+
+- 该规则对给定阶数以下的多项式是精确的
+
+- 使用`auto&`作为规则的类型，以避免昂贵的复制。
+
+- 可选的第三个参数用于选择规则的类型（Jacobi, Legendre, Lobatto）。
+
+\section{Using Quadrature Rules} 
+
+- 一个`QuadratureRule`是`QuadraturePoint`的一个范围。
+
+- `QuadraturePoint` 提供权重和位置。
+
+    - `QuadraturePoint::weight()` 
+
+    - `QuadraturePoint::position()` 
+
+例子
+
+~~~C++
+auto f = some_function_to_integrate(...);
+double (const auto& qp : rule)
+{
+    integral += f(qp.position()) * qp.weight();
+}
+~~~
+
+
+ \textbf{Attention} : 当对网格中的单元进行积分时，请记住正交点坐标是参考元素的本地坐标，当对分析函数进行积分时，需要进行转换! 
+
+
+
+\section{Intersections} 
+
+- 网格可能是不符合要求的。
+
+- 实体可以与邻域和边界相交。
+
+- 由`Intersection`对象表示。
+
+- `Intersections` 持有拓扑学和几何学信息。
+
+- `Intersections` 取决于视图。
+
+- \textbf{Note} : `Intersections` 始终是维数为1的!
+
+![](https://cdn.mathpix.com/snip/images/PpuwkFSgjviLA_yExmvEXpRWMOLQV-q5G_tR9QWbLnI.original.fullsize.png)
+
+
+
+\section{Intersection Interface} 
+
+- 这是与域边界的交点吗？
+~~~C++
+bool b = intersection.boundary();
+~~~
+
+- 在交点的外面是否有实体？
+~~~C++
+bool b = intersection.neighbor();
+~~~
+
+- 获取里面的单元格
+~~~C++
+auto inside_cell = intersection.inside();
+~~~
+
+- 获取外侧的单元格
+~~~C++
+// Do this only if intersection.neighbor()==true
+auto outside_cell = intersection.outside(); 
+~~~
+
+
+\section{Intersection: Geometries} 
+
+- 获取从交叉点参考元素到全局坐标的映射
+
+~~~C++
+auto world_geo = intersection.geometry();
+~~~
+
+- 获取从交点参考元素到内部单元格参考元素的映射关系
+
+~~~C++
+auto inside_geo = intersection.geometryInInside();
+~~~
+
+
+- 获取从交点参考元素到外部单元参考元素的映射关系
+
+~~~C++
+auto outside_geo = intersection.geometryInOutside();
+~~~
+
+
+
+\section{Example: Iterating over intersections} 
+
+为了遍历一个给定网格单元相对于某些 `GridView` 的交叉点，使用一个基于范围的for循环，参数为 `intersections (gv, cell)` 。
+
+下面的代码遍历`GridView`中的所有单元，并遍历每个单元的所有交叉点。
+
+~~~C++
+for (const auto& cell : elements(gv))
+    for (const auto& is : intersections(gv,cell)){
+        if (is.boundary()){
+            // handle potential Neumann boudanry
+        }
+        if (is.neighbor()){
+            // code for Discontinuous Galerkin or Finite Volume
+        }
+    }
+~~~
+
+
+\section{Sequential finite volume solver} 
+
+`Elementwise divergence` 的向量场。
+
+ $$
+\int_{E} \nabla \cdot f(x) d x=\int_{\partial E} f \cdot n_{E} d s
+$$ 
+
+
+考虑`first-order linear PDE`。
+
+ $$
+\partial_{t} u+\nabla \cdot(v u)=0
+$$ 
+
+有给定的矢量场 $v(x)$ 和未知解 $u(x, t)$ 。
+
+结构明确的以单元为中心的有限体积方法为
+
+ $$
+\bar{u}_{E}^{k+1}=\bar{u}_{E}^{k}-\frac{\Delta t}{|E|} \sum_{\left(E, E^{\prime}\right) \in I(E)} \Phi\left(v \cdot n_{E}, \bar{u}_{E}^{k}, \bar{u}_{E^{\prime}}^{k}\right)\left|I\left(E, E^{\prime}\right)\right|
+$$ 
+
+数值`flux`函数$\Phi$选择为上风`flux`。
+
+
+ $\longrightarrow$在代码示例3中记住这一点...... 
+
+
+\section{Attaching Data to the Grid} 
+
+对于计算，我们需要将数据与网格实体联系起来：空间上变化的参数。
+
+- 解向量或刚度矩阵中的条目。
+
+- $p$ 多项式的度数 -adaptivity
+
+- 装配时的状态信息
+
+- ...
+
+
+...意味着我们要
+
+- 将数据与实体的子集联系起来。
+
+- 子集可以是 "水平$I$的顶点"，"叶子元素的面"， ...
+
+- 为了提高效率，数据应该被存储在数组中。
+
+- 将索引/ID与每个实体联系起来。
+
+\section{Indices and lds} 
+
+ \textbf{Index Set} : 提供一个地图$m: E \rightarrow \mathbb{N}_{0}$ ，其中$E$是网格视图的实体子集。
+
+我们定义网格视图的子集$E_{g}^{c}$。
+
+ $$
+E_{g}^{c}=\{e \in E \mid e \text { has codimension } c \text { and geometry type } g\}
+$$ 
+
+- 在子集$E_{g}^{c}$中是唯一的。
+
+- 在子集$E_{g}^{c}$中连续的和零开始的。
+
+- 不同的叶子和一个级别索引。
+
+
+
+ \textbf{Id Set} : 提供一个映射 $m: E \rightarrow \mathbb{I}$ ，其中 $\mathbb{I}$ 是一个离散的id集合。
+
+- 在$E$中是唯一的。
+
+- id不需要是连续的也不需要是正的。
+
+- 对网格的修改具有持久性。
+
+
+
+\section{Example: Store the lengths of all edges} 
+
+下面的例子演示了如何
+
+- 查询一个索引集中包含的具有一定维度的实体数量（以便我们可以分配一个正确大小的向量）。
+
+- 从一个索引集中获得一个网格实体的索引，并使用它来存储相关的数据。
+
+
+~~~C++
+auto& index_set = gv.indexSet();
+// Create a vector with one entry for each edge
+auto edge_lenghths = std::vector<double>(index_set.size(1));
+// Loop over all edges and store their length
+for (const aut& edge : edges(gv))
+    lengths[index_set.index(edge)] = edge.geometry().volume();
+~~~
+
+
+
+\section{Example: 2D Multi-Element Grid- Indices} 
+
+
+![](https://cdn.mathpix.com/snip/images/7xiThbjTMUFTr2zis5gdqFxZRlF-pfn7MJCsb0yIi-E.original.fullsize.png) 
+
+
+![](https://cdn.mathpix.com/snip/images/7RbZrUGL2-nzd-jhpoIcZWtesgtZ32ofwKD5RDLnJHg.original.fullsize.png)
+
+
+\section{Mapper} 
+
+映射器扩展了 `Index Sets` 的功能。
+
+- 将数据与网格的实体$E$的任意子集$E^{\prime} \subseteq E$相关联。
+
+- 与$E^{\prime}$相关的数据$D\left(E^{\prime}\right)$被存储在一个数组中。
+
+- 从连续的、零开始的索引$I_{E^{\prime}}=\left\{0, \ldots,\left|E^{\prime}\right|-1\right\}$映射到数据集$D\left(E^{\prime}\right)$。
+
+映射器可以在索引集和标识集上轻松实现。
+
+
+你将会使用
+
+~~~C++
+Dune::MultipleCodimMultipleGeomTypeMapper<GridView> 
+~~~
+
+
+
+\section{Example: Mapper (I)} 
+
+~~~C++
+#include <dune/grid/common/mcmgmapper.hh>
+...
+typedef Dune::SomeGrid::LeafGridView GridView;
+...
+
+/* create a mapper*/
+// Layout description
+Dune::MCMGLayout layout = 
+    [](Dune::GeometryType gt, int griddim){
+        return gt.dim() == griddim;
+    }
+
+// mapper for elements (codim=0) on leaf
+using Mapper = 
+    Dune::MultipleCodimMultipleGeomTypeMapper<GridView>;
+Mapper mapper (gridview, layout);
+
+/* setup sparsity pattern */
+// iterate over the leaf
+for (const auto& entity : elements(gridview))
+{
+    int index = mapper.index(entity);
+    // iterate over all intersections of this cell
+    for (const auto& i : itersections(gridview, entity))
+    {
+        // neighbor intersection
+        if (i.neighbor()){
+            int nindex = mapper.index(i.outside());
+            matrix[index].insert(nindex);
+        }
+    }
+}
+
+~~~
+
+
+
+\section{Further Information} 
+
+我们没有讨论的内容...
+
+
+- 网格创建和I/O
+
+ $\longrightarrow$ 今天的第二堂课。
+
+我们没有讨论的内容...
+
+- 网格创建和I/O
+
+ $\longrightarrow$ 今天的第二堂课。
+
+- 网格适应
+
+- 并行化、负载平衡
+
+- 进一步的专门方法（例如，与网格层次有关的）。
+
+ $\longrightarrow$ 周四和周五的专题讲座
+
+
+\section{Further Reading} 
+
+Doxygen类文档
+
+- 稳定的DUNE代码模块：https://dune-project.org/doxygen/2.7.1
+
+- 不同组件的概述：https://dune-project.org/doxygen/2.7.1/modules.html
+
+- PDELab类文档: https://dune-project.org/doxygen/pdelab/master/
+
+- PDELab菜谱: https://dune-project.org/doxygen/pdelab/master/group__pdelab__recipes.html 
+
+\section{Further Reading} 
+文献
+
+在使用DUNE网格界面时引用...
+
+ [^4] : P. Bastian, M. Blatt, Markus, A. Dedner, N. Dreier, C. Engwer, R. Fritze, C. Gräser, C. Grüninger, D. Kempf, R. Klöfkorn, M. Ohlberger, O. Sander。
+DUNE框架：基本概念和最新发展。Computers \& Mathematics with Applications, 81,2021, pp.$75-112 .$ 。
+
+ [^5] : P. Bastian, M. Blatt, A. Dedner, C. Engwer, R. Klöfkorn, M. Ohlberger, $O .$ Sander. 用于平行和适应性科学计算的通用网格接口。第一部分：抽象框架。计算，$82(2-3), 2008$ ，第$103-119 .$页。
+
+ [^6] : Bastian, M. Blatt, A. Dedner, C. Engwer, R. Klöfkorn, M. Ohlberger, O. Sander。用于并行和适应性科学计算的通用网格接口。第二部分：DUNE.Computing中的实现和测试，$82(2-3), 2008$ ，第$121-138$ 页。 
+
+\section{First steps with the DUNE grid interface} 
+
+涉及的文件有。
+
+1) 第一个例子。 `grid-exercise1.cc` 
+
+- 对网格进行迭代
+
+- 增加对不同几何信息的评估
+
+2) 第二个例子。 `integration.cc` 
+
+- 在域上评估一个积分
+
+- 并在所有元素上循环，进行局部积分
+
+
+3) 第三个例子。使用有限体积判别法模拟一个简单的运输问题
+
+
+- `finitevolume.cc` 
+    - 主代码：运行一个简单的有限体积离散化（不需要修改
+
+- `fv.hh ` 
+    - 元素循环内的面状条款的评估

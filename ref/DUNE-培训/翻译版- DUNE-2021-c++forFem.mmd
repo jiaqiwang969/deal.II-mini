@@ -1,0 +1,856 @@
+\title{
+DUNE PDELab Tutorial C++ Refresher
+}
+
+
+\author{
+Olaf Ippisch
+}
+
+
+
+ \section{Goals of this introduction} 
+
+使用DUNE需要一些高级的C++特性，或使其使用更容易。其中一些是在最近的C++语言标准 C++11, C++14 和 C++17 中引入的。我们将具体研究一下。
+
+- 在基于Linux的系统上编译程序
+
+- 面向对象的编程
+
+- 命名空间
+
+- 自动类型推理
+
+- 模板
+
+- C++标准库的容器
+
+- 基于范围的for循环
+
+- lambda函数 
+
+ \section{Compiling Programs} 
+
+在基于Linux的系统上，（GNU-）C++编译器被称为 g++ 。为了从源文件main.cc中编译一个程序并创建一个名为`myprogram`的可执行文件，你可以像这样运行它。
+
+~~~C++
+g++ -o myprogram main.cc
+~~~
+
+使用 g++ 时，C++14 标准是默认的，因为版本 $6.1$ 。如果你想使用C++17或使用Intel编译器或clang，你可以用选项 `-std=c++14` 或 `-std=c++17` 来设置标准（在Windows系统上，选项可能不同），例如
+
+~~~C++
+g++ -std=c++17 -o myprogram main.cc
+~~~
+
+如果你的程序编译成功（没有错误信息），你可以用以下方式运行它。
+
+~~~C++
+./myprogram
+~~~
+
+并得到例如以下的输出
+
+~~~Shell
+Hello, world! 
+~~~
+
+ \section{Compiling Programs} 
+
+对于更复杂的软件项目，通常会提供所谓的`makefile`。一个`makefile`确保在执行`make`命令时，项目的所有相关源文件都被编译。
+
+~~~C++
+make
+~~~
+
+如果你只改变了一些源文件后构建项目，只有这些文件被重新编译，这可以大大加快进程。
+
+对于DUNE来说，`makefiles`是由一个叫做 `cmake` 的工具生成的。
+
+ \section{Object-Oriented Programming} 
+
+面向对象编程的基本思想是定义具有一定功能的组件。这些组件结合了提供和控制功能所需的`方法`以及相关的`数据`。不同的组件通过`接口`连接。同样的接口被用于提供相同的一般功能的专门组件。
+
+这种方法有几个优点。
+
+- 不同的组件可以被单独开发。
+
+- 如果一个组件的改进版本可用，它们可以在不对程序代码进行重大修改的情况下被使用。
+
+- 同一个组件的几个实现可以很容易地被使用。
+
+这在现实世界中也得到了应用，例如，汽车的轮胎、CPU的插座、计算机的USB接口、打印机、移动电话...... 
+
+
+ \section{Object-oriented Programming in C++} 
+
+在C++中，这个想法是通过`类`和`对象`实现的。`类`描述了一个组件的功能和结构。这个蓝图的实现被称为`对象`。
+
+让我们用一个二维向量作为例子。
+
+- 该向量由两个组件组成。
+
+- 必要的操作是长度（norm），两个向量的和，向量与标量的乘法，....
+
+- 初始化。创建一个具有定义状态的向量。
+
+ $(1,3)$和$(5,0)$是不同的向量，但它们有相同的结构。
+
+ $\Rightarrow \mathrm{C}++$语言概念
+
+ `class`描述了类似`对象`（向量、函数空间、线性求解器...）的语义。
+
+
+
+ \section{Classes} 
+
+~~~C++
+class Point2D
+{
+public:
+    Point2D(double x_, double y_)
+        : x(x_), y(y_)
+    {}
+    
+    double norm() const
+    {
+        return sqrt(x * x + y * y);
+    }
+    void add(const Point2D &p)
+    {
+        x += p.x;
+        y += p.y;
+    }
+
+private:
+    double x, y;
+};
+~~~
+
+ \section{Using C++ Objects} 
+
+类定义了一种新的数据类型。
+
+- `class` 类型的变量被称为对象，可以像其他类型（`int`, `double`, ...）一样使用。
+
+    ~~~C++
+    // calls constructor , initialises data
+    Point2D p = Point2D (3.0 ,4.1);
+    ~~~
+
+- 一个`object`的成员变量和函数是通过变量名后的点和变量/函数的名称来访问的。
+
+    ~~~C++
+    std:: cout << p.norm () << ’\n’;
+    ~~~
+
+- `class`的对象可以像普通变量一样使用。
+
+    ~~~C++
+    Point2D p2 = p; // create a copy of p
+    p.add(p2);
+    ~~~
+
+ \section{Encapsulation} 
+
+- `class`的`数据成员`和`方法`可以是`public`（可从`class`之外访问）或`private`（只能从同一`class`的`方法`访问）。
+
+- 如果你试图从类外访问一个`private`成员，你会得到一个编译器错误。
+
+    ~~~C++
+    std:: cout << p.x << ’\n’; // compiler error!
+    ~~~
+
+- 建议将`class`的数据成员变成私有。这被称为`encapsulation`，便于以后改变数据的存储方式，这通常可以大大改善性能。
+
+ \section{Namespaces} 
+
+- 让我们假设你想使用两个现有的库，头文件为 `linear_solver.h` 和 `nonlinear_solver.h` 。
+
+- 两者都定义了一个函数 `solve_problem()` 。
+
+- 编译器无法区分它们!
+
+- 如何才能在不发生名称冲突的情况下使用这两个库呢？
+
+
+C++使用命名空间，可以很容易地解决这个问题。
+
+~~~C++
+namespace linsolv
+{
+#include <linear_solver.h>
+}
+namespace nonlinsolv
+{
+#include <nonlinear_solver.h>
+}
+
+int main()
+{
+    linsolv::solve_problem();
+    nonlinsolv::solve_problem();
+}
+~~~
+
+每个`class`都自动定义了一个名称空间，其名称为`class`，包含其数据成员和函数。
+
+ \section{Building Namespace `std`} 
+
+- C++还包含一个有用的函数和类库，即所谓的标准库。
+
+- 初学者经常写
+
+    ~~~C++
+    using namespace std;
+    ~~~
+
+在他们程序的顶部，将标准库的所有函数导入全局命名空间。
+
+- 你千万不要这样做，因为这可能导致名称冲突，并降低进一步开发的灵活性 
+
+
+只要在函数和类型前面写上命名空间`std::`即可。
+
+~~~C++
+#include <iostream >
+#include <cmath >
+int main()
+{
+    double v = 2.0;
+    double s = sqrt(v);
+    std::cout << "The square root of " << v
+              << " is " << s << ’\n’;
+}
+~~~
+
+如果你使用现代编辑器的自动补全功能，这并不是什么打字的开销，而且比以后重写代码要省事得多。
+
+ \section{Automatic Type Deduction} 
+
+自C++11以来，如果能从变量的初始化中推断出变量所需的类型，就可以自动检测。这是用关键字`auto`表示的。
+
+~~~C++
+#include <vector >
+int f()
+{
+    return 1;
+}
+int main()
+{
+    auto var1 = 5678; // var1 has type int
+    auto var2 = ’x’;  // var2 has type char
+    auto var3 = f();  // var3 has return type of f() i.e. int
+    auto vector = std::vector<double>(5);
+}
+~~~
+
+
+ \section{`auto`: Advantages} 
+
+
+- 使用`auto`而不是手动写入准确的类型（例如`int` ）有很多好处（以牺牲一点细节控制为代价）。
+
+- 如果你用 `auto` 创建一个变量，它将总是被初始化为一个已定义的值，这就避免了一类非常微妙的错误。
+
+- 如果你写 `auto` ，编译器可以选择正确的类型，减少错误的风险。- 当使用像DUNE这样的高级库时，变量的类型可能会变得非常复杂，这使得阅读写出这些类型的代码变得困难。
+
+- 只有从C++14开始，才有可能在函数定义和声明中使用`auto`。
+
+
+ \section{`auto` and literals} 
+
+对于带有`auto`的类型推导，适用于C++字面的通常规则。
+
+~~~C++
+#include <string >
+int main () {
+    // upper case letters can be used for suffices as well
+    auto var1 = 5.0; // double
+    auto var2 = 5.0f; // float
+    auto var3 = 5.0l; // long double
+    auto var4 = 5; // int
+    auto var5 = 5l; // long
+    auto var6 = 5u; // unsigned int
+    auto var7 = 5ul; // unsigned long int
+    auto var8 = ’a’; // char
+    auto var9 = "a"; // const char *
+    auto varA = std:: string("a"); // string object
+    auto varB = new int; // pointer to int
+}
+~~~
+
+
+
+ \section{References} 
+
+- 如果变量被传递给C++中的一个函数，默认情况下会生成该变量的一个副本。
+
+- 引用是一种选择，它只为相同的数据生成一个新的名字。
+
+
+- 通过在数据类型和变量名称之间添加 `a &` 来生成引用，例如：`int & blub=blob ` or ` int f(int& a)`。
+
+- 你只能生成对现有变量的引用，而不是对字面意义的引用! 
+
+
+ \section{`auto` and References} 
+
+- 如果你想让一个变量成为自动类型演绎的引用，请写 `auto&` 而不是 `auto` 。
+
+    ~~~C++
+    /* Copying */
+    auto i = 4;
+    auto j = i; // i = 4, j = 4, j is a copy
+    i += 1; // i = 5, j = 4
+    j -= 1; // i = 5, j = 3
+    j = i; // i = 5, j = 5
+
+    /* Referencing */
+    auto& k = i; // i = 5, k = 5, k is a reference to i
+    i = 2; // i = 2, j = 5, k = 2
+    i += 1; // i = 3, j = 5, k = 3
+    k = 8; // i = 8, j = 5, k = 8
+    ~~~
+
+
+ \section{Generic Programming} 
+
+- 通常情况下，不同的数据类型需要相同的算法。
+
+- 如果没有泛型编程，就必须为所有的数据类型编写相同的函数，这很乏味，而且容易出错，例如
+
+    ~~~C++
+    int Square(int x) {
+        return(x*x);
+    }
+
+    float Square(float x) {
+        return(x*x);
+    }
+
+    long Square(long x) {
+        return(x*x);
+    }
+
+    double Square(double x) {
+        return(x*x);
+    }
+    ~~~
+
+- 通用编程允许一次性编写算法，并根据数据类型进行参数化。
+
+
+ \section{函数模板} 
+
+- 一个`函数模板`以关键字`template`和一个或多个模板参数的列表开始，这些参数在角括号中，由逗号分隔。
+
+    ~~~C++
+    template <typename T>
+    T Square(T a) {
+        return(a*a);
+    }
+    ~~~
+
+- 如果使用了模板，编译器可以根据函数参数从函数模板中自动生成函数（与重载一样，返回类型不相关）。
+
+- 模板参数也可以被明确指定。
+
+    ~~~C++
+    std::cout << Square<int>(4) << ’\n’;
+    ~~~
+
+- 参数类型必须符合声明的内容
+
+
+\section{Example: Unary Template Function} 
+
+~~~C++
+#include <cmath >
+#include <iostream >
+template <typename T>
+T Square(T a)
+{
+    return (a * a);
+}
+int main()
+{
+    std::cout << Square<int>(4) << ’\n’;
+    std::cout << Square<double>(M_PI) << ’\n’;
+    std::cout << Square(3.14) << ’\n’;
+}
+
+~~~
+
+
+ \section{Example: Binary Template Function} 
+
+~~~C++
+#include <cmath>
+#include <iostream>
+template <class U>
+const U &max(const U &a, const U &b)
+{
+    if (a > b)
+        return (a);
+    else
+        return (b);
+}
+
+int main()
+{
+    std::cout << max(1, 4) << ’\n’;
+    std::cout << max(3.14, 7.) << ’\n’;
+    std::cout << max(6.1, 4) << ’\n’;         // compiler error
+    std::cout << max<double>(6.1, 4) << ’\n’; // correct
+    std::cout << max<int>(6.1, 4) << ’\n’;    // warning
+}
+
+~~~
+
+
+ \section{Useful predefined template functions} 
+
+C++标准库已经提供了一些有用的模板函数。
+
+- `const T& std::min(const T& a, const T& b)` 用于计算a和b的最小值
+
+    ~~~C++
+    auto c = std::min(a,b);
+    ~~~
+
+- `const T& std::max(const T& a, const T& b)` 用于计算a和b的最大值
+
+    ~~~C++
+    auto c = std::max(a,b);
+    ~~~
+
+- `void std::swap(T& a, T& b)` 调换a和b
+
+    ~~~C++
+    std:: swap(a,b);
+    ~~~
+
+\section{类模板, 非类型模板参数, 
+默认参数}。
+
+~~~C++
+template <typename T, int dimension = 3>
+class NumericalSolver {
+    ...
+    protected:
+        T variable;
+};
+~~~
+
+- 模板参数可以在类的声明中使用。
+
+- 不仅是类型，还有整数值都可以作为模板参数使用。在模板实例化中使用的值必须是编译时的常量。
+
+- 如果在类定义中使用了模板，最后的模板参数可以有默认值。
+
+- 一个类的名字是类的名字加上模板参数 
+
+ \section{Inheritance from Class Templates} 
+
+~~~C++
+template <typename T>
+class MyNumericalSolver : public NumericalSolver<T, 3>
+{
+    T myVariable;
+
+public:
+    MyNumericalSolver(T val) : NumericalSolver<T, 3>(),
+                               myVariable(val)
+    {
+        std::cout << NumericalSolver<T, 3>::variable
+                  << ’\n’;
+    };
+};
+~~~
+
+- 如果一个类是从一个模板类派生出来的，模板参数必须作为基类名称的一部分来给出。
+
+- 对于基类构造函数的调用以及基类成员和方法的前缀也是如此。
+
+ \section{Using Members of a Template Base Class} 
+
+~~~C++
+template <typename T>
+class MyNumericalSolver : public NumericalSolver<T, 3>
+{
+    T myVariable;
+
+public:
+    MyNumericalSolver(T val) : NumericalSolver<T, 3>(),
+                               myVariable(val)
+    {
+        this->variable = val;
+    };
+};
+~~~
+
+- 模板基类的成员往往不能自动正确解析
+
+- 为了避免问题，在基类成员（方法和变量）前面总是加上`this->`的前缀（作为经验法则）是有帮助的。 
+
+ \section{Template Compilation} 
+
+- 如果不使用模板，就不进行实例化，模板代码只被编译器检查是否有粗略的语法错误（例如缺少分号）。
+
+- 如果所有的函数调用都是有效的，测试是在模板实例化的时候进行的。像缺失函数这样的错误只有在那时才会被检测出来。错误信息可能是相当奇怪的。
+
+- 由于代码只在模板实例化时创建，编译器此时必须知道整个函数定义，而不仅仅是其声明。
+
+- 因此，通常的头文件和源文件的划分对模板来说是不可能的。
+
+
+- 为了节省计算时间和内存，只有真正被调用的类函数被生成。
+
+- 因此，类模板也可以为不支持所有必要操作的类型实例化，只要需要它们的方法永远不被调用。
+
+- 如果模板类有很长的参数列表，`typedefs`是有帮助的。
+
+    ~~~C++
+    typedef Point2D P;
+    auto coord = P(8 ,1); // Now P  means the same as Point2D
+    ~~~
+
+
+ \section{Template Aliases 别名} 
+
+~~~C++
+template <typename U> // create partially defined templates
+using VectorSpace = Dune::PDELab::Backend::Vector<GFS, U>;
+
+int main()
+{
+    using int32 = int; // rename ordinary types
+    using Vector =
+        typename Dune::PDELab::Backend::Vector<GFS, double>::type;
+    auto v = Vector(gfs);              // Save lots of typing ...
+    using Function = void (*)(double); // function types
+    VectorSpace<float> blub;
+}
+~~~
+
+- 另一种为长类型名称定义缩写的方法被称为 "模板别名"。
+
+- 同时，部分模板别名也是可以固定一些模板参数的。
+
+ \section{Keyword `typename`} 
+
+~~~C++
+template <typename T, int dimension = 3>
+class NumericalSolver : public T::ClassType
+{
+    ...
+        typename T::SubType
+        doSomething(
+            typename T::OtherSubType argument);
+
+private:
+    typename T::SubType variable;
+}
+~~~
+
+- 在C++中，默认情况下，类模板的成员不被认为是一个类型，而是一个（静态）变量。
+
+- `typename` 关键字需要用来表示一个类的成员（作为模板参数给出或依赖于模板参数）是一个类型。
+
+- 它只在模板中需要/允许使用。
+
+- 它不被用于基类规范列表或构造函数定义中的成员初始化器列表中。
+
+ \section{Keyword `.template`} 
+
+~~~C++
+class A
+{
+public:
+    template <class T>
+    T doSomething(){};
+};
+template <class U>
+void doSomethingElse(U variable)
+{
+    char result = variable.template doSomething<char>();
+}
+template <class U, typename V>
+V doSomethingMore(U *variable)
+{
+    return variable->template doSomething<V>();
+}
+~~~
+
+- C++默认认为对象后面的每个'<'字符都是比较的开始。
+
+- 在这种方法名称前面的关键字`template`表示后面有一个显式模板参数。
+
+
+ \section{The C++ Standard Library} 
+
+标准库（有时称为STL，即标准模板库）是 
+
+- 一个有用的模板函数和类的集合 
+
+- 可用于所有现代C++编译器
+
+- 为提高效率而进行了优化
+
+- 比使用普通的C语言库和数据结构要安全得多。
+
+ \section{STL-Containers} 
+
+- 数据表示法对于算法的效率往往是至关重要的 
+
+- STL定义了容器和使用它们的算法
+
+- 容器被用来管理元素的集合
+
+- 迭代器提供了一个通用接口来遍历容器中的元素 
+
+- 有各种各样的容器为不同的目的进行了优化。
+
+![](https://cdn.mathpix.com/cropped/78df4702ce260fe2725d9a5d2d79722e-34.jpg?height=241&width=543&top_left_y=226&top_left_x=221)
+
+图自：N. M. Josuttis: The C++ Standard Library, Addison-Wesley. 
+
+
+ \section{Library Example: dynamic array} 
+
+STL包含一个叫做`std::vector`的动态数组，它比普通的C语言对应物好很多。
+
+- 当你不再需要它时，它会自动释放内存，避免了内存泄漏。
+
+- 它知道自己的大小，所以你不需要记住它。
+
+- 如果你需要一个更大的向量，它可以自动调整自己的大小。
+
+- 它是一个模板。你指定要存储在它里面的对象的类型。
+
+- 它很快速。
+
+ \section{Vector Example} 
+
+下面的例子显示了如何使用 `std::vector` 。
+
+~~~C++
+#include <iostream >
+#include <vector >
+int main()
+{
+    auto b = std::vector<double>(7); // a vector for 7 doubles
+    std::cout << b.size() << ’\n’;   // output the size
+    for (int i = 0; i < b.size(); ++i)
+        b[i] = i * 0.1;            // assign some data
+    auto c = b;                    // create a copy , automatically copying all data
+    c.resize(15);                  // Make c bigger
+    std::cout << b.size() << ’\n’; // still 7
+    b.push_back(3.8);              // make b larger and append the value 3.8
+}
+~~~
+
+
+
+ \section{Iterators} 
+
+- 容器概念的一个重要部分是对存储在容器中的所有元素进行迭代的通用方案，它与使用所谓迭代器的容器类型无关。
+
+- 每个容器都有一个方法 `begin()` ，它返回一个指向容器中第一个成员的迭代器。
+
+- 迭代器的数据类型为`containerclass::iterator`（但如果你使用`auto`就不需要知道这个）。
+
+- 如果你调用迭代器的增量 `operator++`，它将在之后指向下一个元素。
+
+- 你可以通过`比较迭代器`和 `container.end()` 来检查你是否到达了容器的末端。
+
+- 要访问迭代器所指向的元素，你必须解除对它的引用，例如`*it` 。
+
+- 如果容器中的元素是一个类的对象，你也可以使用操作符 `it->` 来访问该类的数据成员或函数。
+
+~~~C++
+#include <iostream >
+#include <vector >
+int main(int argc, char **argv)
+{
+    std::vector<int> vec;
+    for (int i = 0; i < 10; ++i)
+        vec.push_back(i);
+    for (auto it = vec.begin(); it != vec.end(); ++it)
+        std::cout << *it << " ";
+    std::cout << ’\n’;
+}
+
+~~~
+
+
+
+ \section{Range-based for Loops} 
+
+使用基于范围的for循环，同样的操作（对整个容器进行迭代）可以写得更简单。
+
+~~~C++
+for (auto d : vec)
+    std:: cout << d << ’\n’; // prints all entries of vec
+~~~
+
+- 适用于C数组和所有STL容器。
+
+- 对于使用DUNE也很重要!
+
+- 小心：你在基于范围的 `for-loop` 中得到的不是一个迭代器。你不需要解除引用它。你可以直接使用它来访问内容。
+
+
+你可以得到当前访问的元素的副本或引用（如果你写了`auto&`）。
+
+~~~C++
+#include <iostream >
+#include <vector >
+int main()
+{
+    std::vector<double> x(5);
+    int i = 0;
+    for (auto &y : x)
+    {                // with reference
+        y = i * 1.2; // can be changed
+        ++i;
+    }
+    for (auto y : x)
+    {           // with copy
+        y *= y; // original container unchanged
+        std::cout << y << ’\n’;
+    }
+}
+~~~
+
+
+ \section{Decltype} 
+
+- `decltype` 决定一个表达式的结果类型（而不是结果值）。它可以用来制作匹配的变量。
+
+    ~~~C++
+    int a,b;
+    decltype(a+b) c;
+    ~~~
+
+- 与模板别名一起，它可以用来存储类型。
+
+    ~~~C++
+    using type = decltype(expression)
+    ~~~
+
+与`auto`的区别：不创建相同类型的变量，而是存储类型，同时保留引用。
+
+- 如果你想在一个容器中存储函数调用的结果，那就很好。
+
+    ~~~C++
+    template <typename Vector>
+    auto squareroot_values(const Vector &v)
+    {
+        using R = decltype(sqrt(v[0])); // result type of std:: sqrt ()
+        auto result = std::vector<R>();
+        for (auto d : v) // create a vector of square roots
+            result.push_back(std::sqrt(d));
+        return result;
+    }
+    ~~~
+
+
+
+ \section{Lambda functions} 
+
+- C++11引入了一种简化的可能性来创建（主要是临时的）函数，所谓的 `lambda` 表达式或 `lambdas` 。
+
+- 例子。
+
+    ~~~C++
+    auto f = [](auto x) -> double
+    {
+        double y = x;
+        return std::sin(y);
+    };
+    ~~~
+
+- 对于简单的表达式，还有一个更短的版本（返回类型是自动教育的）。
+
+    ~~~C++
+    auto f = [](auto x) { return std::sin(x); };
+    ~~~
+
+- Lambdas可以像变量一样被存储，`lambda` 函数的类型是由实现定义的。因此必须使用`auto` 变量。
+
+\section{Lambda functions: Syntax} 
+
+~~~C++
+[capture-list](parameter-list) -> return-type { code; }
+~~~
+
+- `Lambdas`没有一个函数名。
+
+- 它们以一个捕获列表开始，确定周围范围内的哪些变量在 `lambda` 中可用。
+
+- 接下来是一个普通的参数列表，一个返回类型，最后是函数的代码块。
+
+- 有两种捕获方式：通过值（创建一个副本）或通过引用（指向原始变量）。
+
+- 使用方法。列出变量名称，为引用添加 `&`。
+
+- 快捷方式。`[=] `按`value`捕获所有变量 , ` [&]`通过`引用`捕获所有变量。 
+
+- 从C++17开始，也可以将一个变量作为常量引用来捕获。
+
+    ~~~C++
+    [&v=std::as_const(v)]
+    ~~~
+
+- 注意。当使用通过引用捕获时，请确保在调用`lambda`函数时原始变量仍然存在 
+
+ \section{Lambda functions: Capture Example} 
+
+~~~C++
+auto pi = 3.14;
+auto f = [pi](auto x)  { return pi * x; };
+auto g = [&pi](auto x) { return pi * x; };
+f(1); // returns 3.14;
+g(1); // returns 3.14;
+pi = 3.141;
+f(1); // returns 3.14 - value was copied!
+g(1); // returns 3.141 - value was referenced !
+
+int call_count = 0;
+auto h = [&](auto x)
+{
+    ++call_count;
+    return pi + x;
+} 
+
+h(1);                          // returns 4.141
+std::cout << call_count << ’\n’; // prints 1
+~~~
+
+
+
+ \section{Accumulation using `for_each`: Iambda function} 
+
+Lambda函数对模板算法非常有用，例如，由标准模板库定义的模板算法。`for_each` 算法将一个函数对象应用于容器中的每个元素。
+
+~~~C++
+auto coll = std::vector<double>();
+// fill coll with data ...
+int count = 0;
+double sum = 0;
+std::for_each(coll.begin(), coll.end(),
+              [&](auto x){++count;sum += x;});
+std::cout << sum / count << ’\n’;
+~~~
+
+
+
+ \section{Further Reading} 
+
+- Bjarne Stroustrup. Programming: Principles and Practice Using C++. Addison Wesley, 2014.
+
+- Bjarne Stroustrup. The C++ Programming Language. Addison Wesley, 2013 .
+
+- cppreference社区。社区$C++$参考网站。http://cppreference.com。

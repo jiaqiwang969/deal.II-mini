@@ -1,0 +1,1097 @@
+\title{The DUNE Grid Interface}
+
+\author{
+Christian Engwer}
+
+
+\section{Design Principles}
+
+\textbf{Flexibility}: Seperation of data structures and algorithms.
+
+\textbf{Efficiency}: Generic programming techniques.
+
+\textbf{Legacy Code}: Reuse existing finite element software.
+
+
+\section{Flexibility}
+
+Seperate data structures and algorithms.
+
+- The algorithm determins the data structure to operate on.
+
+- Data structures are hidden under a common interface.
+
+- Algorithms work only on that interface.
+
+- Different implementations of the interface.
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-006.jpg?height=139&width=672&top_left_y=207&top_left_x=135)
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-006.jpg?height=151&width=675&top_left_y=342&top_left_x=134)
+
+\section{Efficiency}
+
+Implementation with generic programming techniques.
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-007.jpg?height=383&width=277&top_left_y=89&top_left_x=52)
+
+1. Static Polymorphism
+
+- Duck Typing (see STL)
+
+- Curiously Recurring Template Pattern (Barton and Nackman)
+
+2. Grid Entity Ranges
+
+- Generic access to different data structures.
+
+3. View Concept
+
+- Access to different partitions of one data set. 
+
+
+
+\section{The DUNE Framework}
+
+- Modules   
+
+    - Code is split into separate modules.
+
+    - Applications use only the modules they need.
+
+    - Modules are sorted according to level of maturaty.
+
+    - Everybody can provide her/his own modules.
+
+- Portability
+
+- Open Development Process
+
+- Free Software Licence
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-009.jpg?height=212&width=378&top_left_y=156&top_left_x=509)
+
+[Bastian, Blatt, Dedner, Engwer, Klöfkorn, Kornhuber, Ohlberger, Sander 2008]
+
+
+\section{A brief history...}
+ 
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-010.jpg?height=463&width=941&top_left_y=68&top_left_x=3)
+
+
+
+
+
+
+
+\section{DUNE Release 2.7.1}
+
+- \textbf{dune-common}: foundation classes, infrastructure
+
+- \textbf{dune-istl}: (Iterative Solver Template Library) 
+    - generic sparse matrix/vector classes,
+    - solvers (Krylov methods, AMG, etc.) 
+
+
+- \textbf{dune-geometry}: geometric mappings, quadrature rules visualization
+
+- \textbf{dune-localfunctions}: generic interface for local finite element functions. Abstract definition following Ciarlet. Collection of different visualization finite elements. 
+
+- \textbf{dune-grid}: grid interface, visualization
+
+
+
+\section{DUN(E)iverse}
+
+- modular structure
+
+- write your own DUNE modules
+
+- available under different licenses
+
+
+- Discretization Modules
+    - \textbf{dune-pdelab}: Discretization module based on dune-localfunctions.
+    - \textbf{dune-fem}: Discretization module based on dune-localfunctions.
+    - \textbf{dune-functions}: A new initiative to provide unified interfaces for functions and function spaces.
+
+- Additional Grid Implementations
+
+    - \textbf{dune-grid-glue: allows to compute overlapping and nonoverlapping couplings of Dune grids, as required for most domain decomposition algorithms.
+
+    - \textbf{dune-subgrid}: allows you to work on a subset of a given DUNE grid.
+
+    - \textbf{dune-foamgrid}: non-manifold grids of $1 \mathrm{~d}$ or $2 \mathrm{~d}$ entities in higher-dimensional world.
+
+    - \textbf{dune-prismgrid}: is a tensorgrid of a 2D simplex grid and a 1D grid.
+
+    - \textbf{dune-cornerpoint}: a cornerpoint mesh, compatible with the grid format of the ECLIPSE reservoir simulation software.
+
+
+- Extension Modules 
+
+    - \textbf{dune-python} python bindings for centrral DUNE components
+
+    - \textbf{dune-typetree} classes to organise types in trees
+
+    - \textbf{dune-dpg} construct optimal Discontinuous-Petrov-Galerkin test spaces
+
+    - \textbf{dune-tpmc} cut-cell construction using level-sets 
+
+
+Goals: allow people to...
+
+- get credit for their innovations
+
+- experiment without breaking the core
+
+- develop at different speeds 
+
+
+
+\section{A Package System}
+
+`dunecontrol`
+
+- control of module-interplay
+
+- suggestions \& dependencies
+
+- intergrates with cmake \& git
+
+- works with Linux, Mac and Mingw
+
+Note: Dependencies should form a DAG
+
+`dunecontrol cmake`
+
+configure packages via cmake, include necessary path information 
+
+`dunecontrol make`
+
+build packages in correct order
+
+... works without `make install` 
+
+![](https://cdn.mathpix.com/snip/images/7ivvWKUeLlSfYlphk0igZU6htEpmOsIwI3bZ3nfMMZQ.original.fullsize.png)
+
+
+
+\section{Why Grids?}
+
+Weak formulation of boundary value problem:
+
+$$
+\text { Find } u \in U \text { s.t. } \quad a(u, v)=I(v) \quad \forall v \in V
+$$
+
+$a(u, v)$ and $I(v)$ are (bi)linear forms, e.g.
+
+$$
+a(u, v)=\int_{\Omega} \nabla u \cdot \nabla v d x
+$$
+
+with spatial domain $\Omega \subset \mathbb{R}^{d}$.
+
+Grids are necessary for at least three reasons:
+
+1. Piecewise description of the complicated domain $\Omega$
+
+2. Piecewise approximation of functions (by polynomials)
+
+3. Piecewise computation of integrals (by numerical quadrature) 
+
+\section{Numerical Quadrature}
+
+- Approximate integral by a weighted sum of function evaluations at sampling points:
+
+$$
+\int_{\hat{\Omega}} f(x) d x \approx \sum_{i=1}^{N} w_{i} f\left(x_{i}\right)
+$$
+
+with weights $w_{i}$ and sampling points $x_{i}, i=1, \ldots, N$.
+
+- Different construction methods for $w_{i}$ and $x_{i}$
+
+    - Typically uses series of polynomials (Legendre, Lagrange, Lobatto, ...).
+
+    - Exact for polynomial $f$ up to a predefined order.
+
+- Quadrature scheme depends on $\hat{\Omega} !$
+
+    - Most schemes only available for simple shapes (triangle, square, tetrahedron, ...). 
+    
+    - Quadrature on complicated shapes done by approximating $\Omega$ by small volumes of regular shape.
+
+\section{Computational Grid}
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-026.jpg?height=377&width=201&top_left_y=84&top_left_x=34)
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-026.jpg?height=376&width=187&top_left_y=83&top_left_x=343)
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-026.jpg?height=366&width=185&top_left_y=92&top_left_x=642)
+
+
+
+\section{The DUNE Grid Module}
+
+- The DUNE Grid Module is one of the five DUNE Core Modules.
+
+- DUNE wants to provide an interfaces for grid-based methods. Therefore the concept of a Grid is the central part of DUNE.
+
+- `dune-grid` provides the interfaces, following the concept of a `Grid`.
+
+- Its implementation follows the three `design principles` of DUNE:
+
+    - \textbf{Flexibility}: Separation of data structures and algorithms. 
+    
+    - \textbf{Efficiency}: Generic programming techniques.
+
+    - \textbf{Legacy Code}: Reuse existing finite element software. 
+    
+    
+\section{Designed to support a wide range of Grids}
+
+![](https://cdn.mathpix.com/snip/images/1K2OXeVV29pbwc8PcztMVGTRLxZ_zAPCeUaGgwy_bCo.original.fullsize.png)
+
+
+
+\section{DUNE Grid Interface [^1] Features}
+
+- Provide abstract interface to grids with:
+
+    - Arbitrary dimension embedded in a world dimension,
+
+    - multiple element types,
+
+    - conforming or nonconforming,
+
+    - hierarchical, local refinement,
+
+    - arbitrary refinement rules (conforming or nonconforming),
+
+    - parallel data distribution and communication,
+
+    - dynamic load balancing.
+
+- Reuse existing implementations (ALU, UG, Alberta) $+$ special implementations (YaspGrid, FoamGrid).
+
+- Meta-Grids built on-top of the interface (GeometryGrid, SubGrid, MultiDomainGrid)
+
+
+
+[^1]: Bastian, Blatt, Dedner, Engwer, Klöfkorn, Kornhuber, Ohlberger, Sander: A generic grid interface for parallel and adaptive scientific
+computing. Part I: Implementation and tests in DUNE. Computing, 82(2-3): 121-138,2008 .
+
+
+\section{The Grid}
+
+A formal specification of grids is required to enable an accurate description of the grid interface.
+
+
+
+![](https://cdn.mathpix.com/cropped/b350d08069e4076cca16a9d22677d4a5-031.jpg?height=107&width=261&top_left_y=219&top_left_x=44)
+
+In DUNE a Grid is always a hierarchic grid of dimension $d$, existing in a $w$ dimensional space. The Grid is parametrised by
+
+- the dimension $d$,
+
+- the world dimension $w$
+
+- and the maximum level J.
+
+
+Within todays excercises we will always assume $d=w$ and we will ignore the hierarchic structure of the grids we deal with.
+
+\section{The Grid. . . A Container of Entities...}
+
+In the DUNE sense a `Grid` is a container of entities:
+
+![](https://cdn.mathpix.com/snip/images/YJ1nx_2SVUKUFwyAYnz3LdX3gFGEv2IB4dSDEIqc2Sg.original.fullsize.png)
+
+
+In order to do dimension independent programming, we need a dimension independent naming for different entities.
+
+
+We distinguish entities according to their codimension.
+
+Entities of $\operatorname{codim}=c$ contain subentities of $\operatorname{codim}=c+1$. This gives a recursive construction down to $\operatorname{codim}=d$.
+
+ 
+
+
+\section{The DUNE Grid Interface}
+
+The DUNE Grid Interface is a collection of classes and methods
+
+
+~~~C++
+#include <dune/grid/yaspgrid.hh>
+...
+using Grid = Dune::UaspGrid<2>;
+Grid grid({4,4},{1.0,1.0},{false,false});
+auto gv = grid.leafGridView();
+for (const auto& cell : elements(gv)){
+    // do something
+}
+~~~
+
+
+We will now get to know the most important classes and see how they interact. 
+
+
+\section{Modifying a Grid}
+
+The DUNE Grid interface follows the `View-only` Concept. 
+
+\section{Modifying a Grid}
+
+The DUNE Grid interface follows the View-only Concept.
+
+\textbf{View-Only Concept}
+
+- Views offer (read-only) access to the data
+
+    - Read-only access to grid entities allow the consequent use of `const`.
+
+    - Access to entities is only through iterators for a certain view. $\rightarrow$ This allows on-the-fly implementations.
+
+- Data can only be modified in the primary container (the Grid) 
+
+\textbf{Modification Methods}:
+
+- Global Refinement
+
+- Local Refinement & Adaption
+
+- Load Balancing 
+
+
+
+\section{Views to the Grid}
+
+A Grid offers two major views:
+
+![](https://cdn.mathpix.com/snip/images/sAWKw-w2dpGzFsSJL8_X41304jC7amaHKTrWk1AoEjw.original.fullsize.png)
+
+levelwise:
+
+all entities associated with the same level.
+
+Note: not all levels must cover the whole domain.
+
+leafwise:
+
+all leaf entities (entities which are not refined).
+
+The leaf view can be seen as the projection of a levels onto a flat grid. It again covers the whole domain.
+
+
+
+
+\section{Views to the Grid - Dune::GridView}
+
+
+
+- The `Dune::GridView` class consolidates all information depending on the current View. 
+
+- Every `Grid` must provide
+
+    - `Grid::LeafGridView` and
+
+    - `Grid::LevelGridView`. 
+    
+- The `Grid` creates a new view every time you ask it for one, so you need to store a copy of it.
+
+- Accessing the Views:
+
+    - `Grid::leafGridView()` and
+
+    - `Grid::levelGridView(int level)`. 
+
+\section{Iterating over grid entities}
+
+Typically, most code uses the grid to iterate over some of its entities (e.g. cells) and perform some calculations with each of those entities.
+
+- `GridView` supports iteration over all entities of one codimension.
+
+- Iteration uses $\mathrm{C}++11$ range-based for loops:
+
+~~~C++
+for (const auto& cell : elements(gv)){
+    // do some work with cell
+}
+~~~
+
+- The type in front of cell is important:
+
+    - If you create an entity in a range-based for loop, use `const auto&`.
+
+    - In all other cases, use plain `auto`!
+
+If you do not follow this advice, your program may crash in unpredictable ways. Iteration functions
+
+
+\section{Iteration functions}
+
+~~~C++
+for (const auto& cell : elements(gv)){
+    // do some work with cell
+}
+~~~
+
+You can do similar calls for other entity types:
+
+~~~C++
+// Iterates over cells (codim = 0)
+for (const auto& c : elements(gv))
+// Iterates over vertices (dim = 0)
+for (const auto& v : vertices (gv))
+// Iterates over facets (codim = 1)
+for (const auto& f : facets(gv))
+// Iterates over edges (dim = 1)
+for (const auto& e : edges(gv))
+
+// Iterates over entities with a given codimension (here: 2)
+for (const auto& e : entities(gv, Dune::Codim<2>{}))
+// Iterates over entities with a given dimension (here: 2)
+for (const auto& e : entities(gv, Dune::Dim<2>{}))
+~~~
+
+
+\section{Entities}
+
+Iterating over a grid view, we get access to the entities.
+
+~~~C++
+for (const auto& cell : elements(gv)){
+    cell.????(); // what can we do here?
+}
+~~~
+
+- Entities cannot be modified.
+
+- Entities can be copied and stored (but copies might be expensive!). 
+
+- An Entity $E$ provides both topological information
+
+- Type of the entity (triangle, quadrilateral, etc.).
+
+- Relations to other entities.
+
+and `geometrical` information
+
+- Position of the entity in the grid.
+
+![](https://cdn.mathpix.com/snip/images/1sQQX9QKDquyOjaMxsP64Oy1FCa4dtndbChV4OINtbY.original.fullsize.png)
+
+`GridView::Codim<c>::Entity` implements the entity concept.
+
+
+\section{Dimension and Codimension}
+
+Each entity has a `dimension`:
+~~~C++
+dim(vertex) == 0
+dim(line) == 1
+dim(triangle) == 2
+~~~
+
+
+When writing dimension-independent code, it is often easier to instead use the `codimension`.
+
+The `codimension` of an entity $e$ is always relative to the `dimension` of the grid and is given by:
+
+$$
+\operatorname{codim}(e)=\operatorname{dim}(\text { grid })-\operatorname{dim}(e)
+$$
+
+~~~C++
+codim(vertex) == dim(grid)
+codim(face) == 1
+codim(cell) == 0
+~~~
+
+
+\section{Storing Entities}
+
+~~~C++
+GridView::Codim<c>::Entity
+~~~
+
+- Entities can be copied and stored like any normal object.
+
+- Important: There can be `multiple` entity objects for a single logical grid entity (because they can be copied)
+
+- Memory expensive, but fast. 
+
+~~~C++
+GridView::Codim<c>::EntitySeed
+~~~
+
+- Store `minimal` information to find an entity again.
+
+- Create like this:
+
+    ~~~C++
+    auto entity_seed = entity.seed();
+    ~~~~
+
+- The grid can create a new `Entity` object from an `EntitySeed`:
+
+    ~~~C++
+    auto entity = grid.entity(entity_seed);
+    ~~~
+
+- Memory efficient, but run-time overhead to recreate entity. 
+
+\section{Reference Elements}
+
+`Dune::GeometryType` identifies the type of the entity's reference element. 
+`Grid::Codim<c>::Entity::type()` rurns the `GeometryType` of an entity.
+
+![](https://cdn.mathpix.com/snip/images/2zPmZk2eMt4ZFeVbTYTmfXyPbaLD-T8C7FCo68M3XmI.original.fullsize.png)
+
+\section{Geometry Types}
+
+`GeometryType` is a simple identifier for a reference element
+
+- Obtain from entity or geometry object using `.type()`
+
+- `GeometryType` for specific reference elements in namespace `Dune::GeometryTypes`
+
+    ~~~C++
+    namespace GeometryTypes = Dune::GeometryTypes;
+    Dune::GeometryTypes gt;
+
+    gt = GeometryTypes::vertex;
+    gt = GeometryTypes::line;
+    gt = GeometryTypes::triangle;
+    gt = GeometryTypes::square;
+    gt = GeometryTypes::hexahedron;
+    gt = GeometryTypes::cube(dim);
+    gt = GeometryTypes::simplex(dim);
+    ~~~
+
+- `GeometryTypes` are cheap, always store and pass around copies (don't use references) 
+
+
+\section{ReferenceElement (I)}
+
+A reference element provides topological and geometrical information about the embedding of subentities:
+
+![](https://cdn.mathpix.com/snip/images/2zPmZk2eMt4ZFeVbTYTmfXyPbaLD-T8C7FCo68M3XmI.original.fullsize.png)
+
+
+- Numbering of subentities within the reference element
+
+- Geometrical mappings from reference elements of subentities to the current reference element
+
+
+
+\section{ReferenceElement (II)}
+
+- Reference elements are templated on the dimension and the coordinate field type 
+
+~~~C++
+Dune::ReferenceElement <double, dim> ref_el = ...;
+~~~
+
+- The function `Dune::referenceElement()` will extract the reference element from most objects that have one:
+
+~~~C++
+auto ref_el = Dune::referenceElement (entity.geometry());
+~~~
+
+When using this function, you don't have to figure out the template parameters. 
+
+- `ReferenceElements` are cheap, always store and pass around copies (don't use references)
+
+For more information see the documentation on reference elements [^2]
+
+[^2]: https://dune-project.org/doxygen/master
+
+\section{Geometry}
+
+Transformation $T_{E}$
+
+- Maps from one space to an other.
+
+- Main purpose is to map from the reference element to global coordinates. 
+
+- Provides transposed inverse of the Jacobian $\left(J^{-T}\left(T_{E}\right)\right)$.
+
+![](https://cdn.mathpix.com/snip/images/Z1Yw0gFO_nzm8FEwrpW0ggHYKfO8tMY0YHR2lktG5Qs.original.fullsize.png)
+
+
+\section{Geometry Interface (I)}
+
+- Obtain Geometry from entity
+
+    ~~~C++
+    auto geo = entity.geometry();
+    ~~~
+
+- Convert local coordinate to global coordinate 
+
+    ~~~C++
+    auto x_global = geo.global(x_local);
+    ~~~
+
+- Convert global coordinate to local coordinate 
+
+    ~~~C++
+    auto x_local = geo.local(x_global);
+    ~~~
+
+\section{Geometry Interface (II)}
+
+- Get center of geometry in global coordinates 
+
+~~~C++
+auto center = geo.center();
+~~~
+
+- Get number of corners of the geometry (e.g. 3 for a triangle) 
+
+~~~C++
+auto num_corners = geo.corners();
+~~~
+
+- Get global coordinates of $i$-th geometry corner $(0 \leq i < \text{geo.corners()})$ 
+ 
+~~~C++
+auto corner_global = geo.corner(i); 
+~~~
+
+\section{Geometry Interface (III)}
+
+- Get type of reference element
+
+~~~C++
+auto geometry_type = geo.type();
+~~~
+
+- Find out whether geometry is affine (linear map)
+
+~~~C++
+if (geo.affine()) 
+    // do something optimize
+~~~
+
+- Get volume of geometry in global coordinate system 
+
+~~~C++
+auto volume = geo.volume();
+~~~
+
+- Get integration element for a local coordinate (required for numerical integration) 
+
+~~~C++
+auto mu= geo.integrationElement(x_local); 
+~~~
+
+
+\section{Gradient Transformation}
+
+\section{Assume}
+
+$$
+f: \Omega \rightarrow \mathbb{R}
+$$
+
+evaluated on a cell $E$, i.e. $f\left(T_{E}(\hat{x})\right)$.
+
+The gradient of $f$ is then given by
+
+$$
+J_{T}^{-T}(\hat{x}) \hat{\nabla} f\left(T_{E}(\hat{x})\right)
+$$
+
+
+~~~C++
+auto x_global = geo.global(x_local);
+auto J_inv = geo.jacobianInverseTransposed(x_local);
+auto tmp = gradient(f)(x_global); // gradient(f) supplied by user
+auto gradient = tmp;
+J_inv.mv(tmp, gradient);
+~~~
+
+
+\section{Obtaining Quadrature Rules}
+
+Recall: Numerical quadrature rules given by
+
+$$
+\int_{\hat{\Omega}} f(x) d x \approx \sum_{i=1}^{N} w_{i} f\left(x_{i}\right)
+$$
+
+- `dune-geometry` provides pre-defined quadrature rules for common geometry types: 
+
+~~~C++
+int order = ...;
+Dune::GeometryType gt = ...;
+auto& qr = Dune::QuadratureRules<double, dim>::rule(gt, order);
+~~~
+
+
+- The rule factory is parameterized by the number type (typically use `Grid::ctype`) and the dimension of the integration domain
+
+- The rule is exact for polynomials up to the given order
+
+- Use `auto&` for the type of the rule to avoid expensive copies
+
+- Optional third parameter to select type of rule (Jacobi, Legendre, Lobatto) 
+
+\section{Using Quadrature Rules}
+
+- A `QuadratureRule` is a range of `QuadraturePoint`.
+
+- `QuadraturePoint` provides weight and position:
+
+    - `QuadraturePoint::weight()`
+
+    - `QuadraturePoint::position()`
+
+Example
+
+~~~C++
+auto f = some_function_to_integrate(...);
+double (const auto& qp : rule)
+{
+    integral += f(qp.position()) * qp.weight();
+}
+~~~
+
+
+\textbf{Attention}: When integrating over cells in a grid, keep in mind that the quadrature point coordinates are local to the reference element and need to be transformed when integrating an analytical function! 
+
+
+
+\section{Intersections}
+
+- Grids may be non conforming.
+
+- Entities can intersect with neighbours and boundary.
+
+- Represented by `Intersection` objects.
+
+- `Intersections` hold topological and geometrical information.
+
+- `Intersections` depend on the view:
+
+- \textbf{Note}: `Intersections` are always of codimension 1 !
+
+![](https://cdn.mathpix.com/snip/images/PpuwkFSgjviLA_yExmvEXpRWMOLQV-q5G_tR9QWbLnI.original.fullsize.png)
+
+
+
+\section{Intersection Interface}
+
+- Is this an intersection with the domain boundary?
+~~~C++
+bool b = intersection.boundary();
+~~~
+
+- Is there an entity on the outside of the intersection?
+~~~C++
+bool b = intersection.neighbor();
+~~~
+
+- Get the cell on the inside
+~~~C++
+auto inside_cell = intersection.inside();
+~~~
+
+- Get the cell on the outside
+~~~C++
+// Do this only if intersection.neighbor()==true
+auto outside_cell = intersection.outside(); 
+~~~
+
+
+\section{Intersection: Geometries}
+
+- Get mapping from intersection reference element to global coordinates
+
+~~~C++
+auto world_geo = intersection.geometry();
+~~~
+
+- Get mapping from intersection reference element to reference element of inside cell
+
+~~~C++
+auto inside_geo = intersection.geometryInInside();
+~~~
+
+
+- Get mapping from intersection reference element to reference element of outside cell
+
+~~~C++
+auto outside_geo = intersection.geometryInOutside();
+~~~
+
+
+
+\section{Example: Iterating over intersections}
+
+In order to iterate over the intersections of a given grid cell with respect to some `GridView`, use a range-based for loop with the argument `intersections (gv, cell)`. 
+
+The following code iterates over all cells in a `GridView` and over all intersections of each cell:
+
+~~~C++
+for (const auto& cell : elements(gv))
+    for (const auto& is : intersections(gv,cell)){
+        if (is.boundary()){
+            // handle potential Neumann boudanry
+        }
+        if (is.neighbor()){
+            // code for Discontinuous Galerkin or Finite Volume
+        }
+    }
+~~~
+
+
+\section{Sequential finite volume solver}
+
+`Elementwise divergence` of a vector field:
+
+$$
+\int_{E} \nabla \cdot f(x) d x=\int_{\partial E} f \cdot n_{E} d s
+$$
+
+
+Consider the `first-order linear PDE`
+
+$$
+\partial_{t} u+\nabla \cdot(v u)=0
+$$
+
+with given vector field $v(x)$ and unknown solution $u(x, t)$.
+
+The structure-explicit cell-centered finite volume method reads
+
+$$
+\bar{u}_{E}^{k+1}=\bar{u}_{E}^{k}-\frac{\Delta t}{|E|} \sum_{\left(E, E^{\prime}\right) \in I(E)} \Phi\left(v \cdot n_{E}, \bar{u}_{E}^{k}, \bar{u}_{E^{\prime}}^{k}\right)\left|I\left(E, E^{\prime}\right)\right|
+$$
+
+with the numerical `flux` function $\Phi$ chosen as upwind `flux` here.
+
+
+$\longrightarrow$ keep this in mind for code example 3... 
+
+
+\section{Attaching Data to the Grid}
+
+For computations we need to associate data with grid entities: spatially varying parameters,
+
+- entries in the solution vector or the stiffness matrix,
+
+- polynomial degree for $p$-adaptivity
+
+- status information during assembling
+
+- ...
+
+
+... meaning we want to
+
+- associate data with subsets of entities.
+
+- Subsets could be "vertices of level $I$ ", "faces of leaf elements", ...
+
+- Data should be stored in arrays for efficiency.
+
+- Associate index/id with each entity. 
+
+\section{Indices and lds}
+
+\textbf{Index Set}: provides a map $m: E \rightarrow \mathbb{N}_{0}$, where $E$ is a subset of the entities of a grid view.
+
+We define the subsets $E_{g}^{c}$ of a grid view
+
+$$
+E_{g}^{c}=\{e \in E \mid e \text { has codimension } c \text { and geometry type } g\}
+$$
+
+- unique within the subsets $E_{g}^{c}$.
+
+- consecutive and zero-starting within the subsets $E_{g}^{c}$.
+
+- distinct leaf and a level index. 
+
+
+
+\textbf{Id Set}: provides a map $m: E \rightarrow \mathbb{I}$, where $\mathbb{I}$ is a discrete set of ids. 
+
+- unique within $E$.
+
+- ids need not to be consecutive nor positive.
+
+- persistent with respect to grid modifications. 
+
+
+
+\section{Example: Store the lengths of all edges}
+
+The following example demonstrates how to
+
+- query an index set for the number of contained entities of a certain codimension (so that we can allocate a vector of correct size).
+
+- obtain the index of a grid entity from an index set and use it to store associated data. 
+
+
+~~~C++
+auto& index_set = gv.indexSet();
+// Create a vector with one entry for each edge
+auto edge_lenghths = std::vector<double>(index_set.size(1));
+// Loop over all edges and store their length
+for (const aut& edge : edges(gv))
+    lengths[index_set.index(edge)] = edge.geometry().volume();
+~~~
+
+
+
+\section{Example: 2D Multi-Element Grid- Indices}
+
+
+![](https://cdn.mathpix.com/snip/images/7xiThbjTMUFTr2zis5gdqFxZRlF-pfn7MJCsb0yIi-E.original.fullsize.png) 
+
+
+![](https://cdn.mathpix.com/snip/images/7RbZrUGL2-nzd-jhpoIcZWtesgtZ32ofwKD5RDLnJHg.original.fullsize.png)
+
+
+\section{Mapper}
+
+Mappers extend the functionality of `Index Sets`.
+
+- associate data with an arbitrary subsets $E^{\prime} \subseteq E$ of the entities $E$ of a grid.
+
+- the data $D\left(E^{\prime}\right)$ associated with $E^{\prime}$ is stored in an array.
+
+- map from the consecutive, zero-starting index $I_{E^{\prime}}=\left\{0, \ldots,\left|E^{\prime}\right|-1\right\}$ to the data set $D\left(E^{\prime}\right)$
+
+Mappers can be easily implemented upon the Index Sets and Id Sets. 
+
+
+You will be using the
+
+~~~C++
+Dune::MultipleCodimMultipleGeomTypeMapper<GridView> 
+~~~
+
+
+
+\section{Example: Mapper (I)}
+
+~~~C++
+#include <dune/grid/common/mcmgmapper.hh>
+...
+typedef Dune::SomeGrid::LeafGridView GridView;
+...
+
+/* create a mapper*/
+// Layout description
+Dune::MCMGLayout layout = 
+    [](Dune::GeometryType gt, int griddim){
+        return gt.dim() == griddim;
+    }
+
+// mapper for elements (codim=0) on leaf
+using Mapper = 
+    Dune::MultipleCodimMultipleGeomTypeMapper<GridView>;
+Mapper mapper (gridview, layout);
+
+/* setup sparsity pattern */
+// iterate over the leaf
+for (const auto& entity : elements(gridview))
+{
+    int index = mapper.index(entity);
+    // iterate over all intersections of this cell
+    for (const auto& i : itersections(gridview, entity))
+    {
+        // neighbor intersection
+        if (i.neighbor()){
+            int nindex = mapper.index(i.outside());
+            matrix[index].insert(nindex);
+        }
+    }
+}
+
+~~~
+
+
+
+\section{Further Information}
+
+What we didn't discuss...
+
+
+- grid creation and I/O
+
+$\longrightarrow$ 2nd lecture today. 
+
+What we didn't discuss...
+
+- grid creation and I/O
+
+$\longrightarrow$ 2nd lecture today.
+
+- grid adaptation
+
+- parallelization, load balancing
+
+- further specialized methods (e.g. related to grid hierarchy) 
+
+$\longrightarrow$ special topics lectures on thursday and friday
+
+
+\section{Further Reading}
+
+Doxygen class documentation
+
+- Stable DUNE Code modules: https://dune-project.org/doxygen/2.7.1
+
+- Overview of different components: https://dune-project.org/doxygen/2.7.1/modules.html
+
+- PDELab class documentation: https://dune-project.org/doxygen/pdelab/master/
+
+- PDELab recipes: https://dune-project.org/doxygen/pdelab/master/group__pdelab__recipes.html 
+
+\section{Further Reading}
+Literature
+
+Cite when using the DUNE grid interface...
+
+[^4]: P. Bastian, M. Blatt, Markus, A. Dedner, N. Dreier, C. Engwer, R. Fritze, C. Gräser, C. Grüninger, D. Kempf, R. Klöfkorn, M. Ohlberger, O. Sander.
+The DUNE framework: basic concepts and recent developments. Computers \& Mathematics with Applications, 81,2021, pp. $75-112 .$
+
+[^5]: P. Bastian, M. Blatt, A. Dedner, C. Engwer, R. Klöfkorn, M. Ohlberger, $O .$ Sander. A Generic Grid Interface for Parallel and Adaptive Scientific Computing. Part I: Abstract Framework. Computing, $82(2-3), 2008$, pp. $103-119 .$
+
+[^6]: Bastian, M. Blatt, A. Dedner, C. Engwer, R. Klöfkorn, M. Ohlberger, O. Sander. A Generic Grid Interface for Parallel and Adaptive Scientific Computing. Part II: Implementation and Tests in DUNE.Computing, $82(2-3), 2008$, pp. $121-138$ 
+
+\section{First steps with the DUNE grid interface}
+
+Files involved are:
+
+1) First example: `grid-exercise1.cc`
+
+- Iterate over the grid
+
+- Add evaluation of different geometry information
+
+2) Second example: `integration.cc`
+
+- Evalate an integral over the domain
+
+- And loop over all elements and local integration
+
+
+3) Third example: Simulate a simple transport problem using a Finite Volume discertization
+
+
+- `finitevolume.cc`
+    - Main code yo run a simple finite volume discretization (no changes required)
+
+- `fv.hh `
+    - And evaluation of face terms inside the element loop
