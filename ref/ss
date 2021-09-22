@@ -1,0 +1,791 @@
+%Performance_COMPRESSOR，王佳琪，2018-1-19修改
+%手动选择mat或者cvs格式数据导入
+%输入您希望画出的case，默认画出全部阶段的数据，也可以输入w0，end画出阶段性数据
+%具体说明：本程序为性能参数研究，以曲线结果给出。共探究了四次实验的结果。对温度和压力参数进行的校正工作（校正基准为0转速结果）。
+%运行后需手动输入研究截至范围（1：end），目的为去除转速回落段，放置影响结果。
+    %case0：转速变化规律示意
+    %case1：进出口温度差随转速变化曲线
+    %case2：流量管静压随转速变化曲线
+    %case3：进口A截面的马赫数（machNumber）随转速的变化曲线
+    %case4： 压比-流量特性曲线（横坐标为流量，纵坐标为压比）    
+    %case5： 压比随转速变化（横坐标为转速，纵坐标为压比）
+    %case6： 效率特性曲线（横坐标为流量，纵坐标为效率）    
+    %case7： 效率随转速变化（横坐标为转速，纵坐标为效率）  
+    %case8： 流量随转速变化（横坐标为转速，纵坐标为流量）        
+    %case9： 验证马赫数和“标态流量”的关系（横坐标为马赫数，纵坐标为三种类型的流量）
+    %case10：  A截面静压随转速变化（横坐标为转速，纵坐标为静压） 
+    %case11：  A截面总压随转速变化（横坐标为转速，纵坐标为总压）   
+    %case12：  D截面静压随转速变化（横坐标为转速，纵坐标为静压）    
+    %case13：D截面总压随转速变化（横坐标为转速，纵坐标为总压）    
+    %case14：A截面总温随转速变化（横坐标为转速，纵坐标为总温）       
+    %case15：D截面总温随转速变化（横坐标为转速，纵坐标为总温）       
+    %case16 : A截面动压（总压-静压）随转速的变化
+    %case17：无量纲化静压升特性曲线；流量系数：theta=V/Umid，fai=▲Ps/0.5rouUmid^2
+%% -------------------------压气机性能实验---------------------%%
+clc
+clear
+close all
+%close all
+w_1=800;%for 12000rotorspeed
+[fname,location]=uigetfile({'*.csv';'*.*'},'r');%选择文件
+Data = importdata(fullfile(location,fname));   %读取文件（读取重要参数信息，读取参数Data，将Data转成cell格式，并存储输出）
+for CASE=[0 4]
+figure
+k=length(Data.data);
+PerformanceFunction(CASE,Data.data,1,1027);
+end
+
+
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%压气机性能曲线%%%%%%%%%%%%%%%%%%%%%%%%%% 
+function fig=PerformanceFunction(CASE,data,w0,w_1)
+len=length(data);
+%导入相对于的传感器数据
+time = data(:,1);%000__基本信息__当前系统时刻
+recordTime=data(:,7);%006__基本信息__运行时间
+rotorSpeed =data(:,96);%095__压气机试验件__输入转速
+
+
+%%
+famen =  data(w0:end,97);
+%rotorSpeed =  data(w0:end,96);%095__压气机试验件__输入转速
+A_staticPressure1 =  data(w0:end,124);%123__气体压力 __A截面静压1（1）-Pbs2
+A_staticPressure2 =  data(w0:end,125);%124__气体压力 __A截面静压2（23）-Pbs3
+A_totalPressure1_1 =  data(w0:end,126);%125__气体压力 __A截面总压1-1（3）-Pt1
+A_totalPressure1_2 =  data(w0:end,127);%126__气体压力 __A截面总压1-2（5）-Pt2
+A_totalPressure1_3 =  data(w0:end,128);%127__气体压力 __A截面总压1-3（7）-Pt3
+A_totalPressure1_4 =  data(w0:end,129);%128__气体压力 __A截面总压1-4（9）-Pt4
+A_totalPressure1_5  =  data(w0:end,130);%129__气体压力 __A截面总压1-5（11）-Pt5
+A_totalPressure2_1 =  data(w0:end,131);%130__气体压力 __A截面总压2-1（13）-Pt6
+A_totalPressure2_2 =  data(w0:end,132);%131__气体压力 __A截面总压2-2（15）-Pt7
+A_totalPressure2_3 =  data(w0:end,133);%132__气体压力 __A截面总压2-3（17）-Pt8
+A_totalPressure2_4=  data(w0:end,134);%133__气体压力 __A截面总压2-4（19）-Pt9
+A_totalPressure2_5 =  data(w0:end,135);%134__气体压力 __A截面总压2-5（21）-Pt10
+D_staticPressure1 =  data(w0:end,136);%135__气体压力 __D截面静压1（20）-Pbs4
+D_staticPressure2 =  data(w0:end,137);%136__气体压力 __D截面静压2（22）-Pbs45
+D_totalPressure1_1  =  data(w0:end,138);%137__气体压力 __D截面总压1-1（2）-Pt11
+D_totalPressure1_2 =  data(w0:end,139);%138__气体压力 __D截面总压1-2（4）-Pt12
+D_totalPressure1_3 =  data(w0:end,140);%139__气体压力 __D截面总压1-3（6）-Pt13
+D_totalPressure2_1  =  data(w0:end,141);%140__气体压力 __D截面总压2-1（8）-Pt14
+D_totalPressure2_2  =  data(w0:end,142);%141__气体压力 __D截面总压2-2（10）-Pt15
+D_totalPressure2_3 =  data(w0:end,143);%142__气体压力 __D截面总压2-3（12）-Pt16
+D_totalPressure3_1 =  data(w0:end,144);%143__气体压力 __D截面总压3-1（14）-Pt17
+D_totalPressure3_2 =  data(w0:end,145);%144__气体压力 __D截面总压3-2（16）-Pt18
+D_totalPressure3_3  =  data(w0:end,146);%145__气体压力 __D截面总压3-3（18）-Pt19
+flow_staticPressure =  data(w0:end,147);%146__气体压力 __流量管静压-Pbs1
+A_temp1_1 =  data(w0:end,148);%147__气体温度__A截面总温1-1-T1
+A_temp1_2 =  data(w0:end,149);%148__气体温度__A截面总温1-2-T2
+A_temp1_3 =  data(w0:end,150);%149__气体温度__A截面总温1-3-T3
+A_temp1_4 =  data(w0:end,151);%150__气体温度__A截面总温1-4-T4
+A_temp1_5 =  data(w0:end,152);%151__气体温度__A截面总温1-5-T5
+D_temp1_1 =  data(w0:end,153);%152__气体温度__D截面总温1-1-T6
+D_temp1_2 =  data(w0:end,154);%153__气体温度__D截面总温1-2-T7
+D_temp1_3 =  data(w0:end,155);%154__气体温度__D截面总温1-3-T8
+D_temp2_1 =  data(w0:end,156);%155__气体温度__D截面总温2-1-T9
+D_temp2_2 =  data(w0:end,157);%156__气体温度__D截面总温2-2-T10
+D_temp2_3 =  data(w0:end,158);%157__气体温度__D截面总温2-3-T11
+D_temp3_1 =  data(w0:end,159);%158__气体温度__D截面总温3-1-T12
+D_temp3_2 =  data(w0:end,160);%159__气体温度__D截面总温3-2-T13
+D_temp3_3 =  data(w0:end,161);%160__气体温度__D截面总温3-3-T14
+
+%pressureRate =  data(w0:end,162);%161__计算通道__试验件压比
+%%可以自己算（Av_pressureRate）
+efficient =  data(w0:end,163);%162__计算通道__试验件效率
+physical_flowRate =  data(w0:end,164);%163__计算通道__试验件流量（物理）
+equation_flowRate=  data(w0:end,165);%164__计算通道__换算流量（公式）
+machNumber=  data(w0:end,166);%165__计算通道__试验件马赫
+blow_flowRate =  data(w0:end,167);%166__计算通道__试验件流量（吹风）
+
+clear data
+
+%% 静压和总压初始校正
+limitLevel = 500;%取500转以下来做平均，假定该正确值为0（标准大气压环境）
+Temp_Num =  find(rotorSpeed<limitLevel ); 
+   k = 0;
+    for i = 1:1:length(Temp_Num)-1
+        if (Temp_Num(i+1) - Temp_Num(i)) ==1
+            k = k+1;
+            the_Pulse(k,1) = Temp_Num(i); %the_Pulse 为小于500的初始值的序号
+        else 
+            break;
+        end
+    end
+    
+
+%% 调用校准函数
+flow_staticPressure=  Xiaozhun(flow_staticPressure,the_Pulse)  ;
+%仿真时发现，实验号11前和11后物理流量计算发现明显偏移（由于用到流量管数据），查找原因发现，由于流量管数据发生偏移造成，应对其进行校准。
+A_staticPressure1 =    Xiaozhun(A_staticPressure1,the_Pulse)  ;%123__气体压力 __A截面静压1（1）-Pbs2（校准）
+A_staticPressure2 =    Xiaozhun(A_staticPressure2,the_Pulse)  ;%124__气体压力 __A截面静压2（23）-Pbs3（校准）
+A_totalPressure1_1 =  Xiaozhun(A_totalPressure1_1,the_Pulse) ;%125__气体压力 __A截面总压1-1（3）-Pt1（校准）
+A_totalPressure1_2 =  Xiaozhun(A_totalPressure1_2,the_Pulse)  ;%126__气体压力 __A截面总压1-2（5）-Pt2（校准）
+A_totalPressure1_3 =  Xiaozhun(A_totalPressure1_3,the_Pulse)  ;%127__气体压力 __A截面总压1-3（7）-Pt3（校准）
+A_totalPressure1_4 =  Xiaozhun(A_totalPressure1_4,the_Pulse)  ;%128__气体压力 __A截面总压1-4（9）-Pt4（校准）
+A_totalPressure1_5  = Xiaozhun(A_totalPressure1_5,the_Pulse)  ;%129__气体压力 __A截面总压1-5（11）-Pt5（校准）
+A_totalPressure2_1 =  Xiaozhun(A_totalPressure2_1,the_Pulse)  ;%130__气体压力 __A截面总压2-1（13）-Pt6（校准）
+A_totalPressure2_2 =  Xiaozhun(A_totalPressure2_2,the_Pulse)  ;%131__气体压力 __A截面总压2-2（15）-Pt7（校准）
+A_totalPressure2_3 =  Xiaozhun(A_totalPressure2_3,the_Pulse)  ;%132__气体压力 __A截面总压2-3（17）-Pt8（校准）
+A_totalPressure2_4=   Xiaozhun(A_totalPressure2_4,the_Pulse)  ;%133__气体压力 __A截面总压2-4（19）-Pt9（校准）
+A_totalPressure2_5 =  Xiaozhun(A_totalPressure2_5,the_Pulse)  ;%134__气体压力 __A截面总压2-5（21）-Pt10（校准）
+D_staticPressure1 =    Xiaozhun(D_staticPressure1,the_Pulse)  ;%135__气体压力 __D截面静压1（20）-Pbs4（校准）
+D_staticPressure2 =    Xiaozhun(D_staticPressure2,the_Pulse)  ;%136__气体压力 __D截面静压2（22）-Pbs45（校准）
+D_totalPressure1_1  = Xiaozhun(D_totalPressure1_1,the_Pulse)  ;%137__气体压力 __D截面总压1-1（2）-Pt11（校准）
+D_totalPressure1_2 =  Xiaozhun(D_totalPressure1_2,the_Pulse)  ;%138__气体压力 __D截面总压1-2（4）-Pt12（校准）
+D_totalPressure1_3 =  Xiaozhun(D_totalPressure1_3,the_Pulse)  ;%139__气体压力 __D截面总压1-3（6）-Pt13（校准）
+D_totalPressure2_1  = Xiaozhun(D_totalPressure2_1,the_Pulse)  ;%140__气体压力 __D截面总压2-1（8）-Pt14（校准）
+D_totalPressure2_2  = Xiaozhun(D_totalPressure2_2,the_Pulse)   ;%141__气体压力 __D截面总压2-2（10）-Pt15（校准）
+D_totalPressure2_3 =  Xiaozhun(D_totalPressure2_3,the_Pulse)  ;%142__气体压力 __D截面总压2-3（12）-Pt16（校准）
+D_totalPressure3_1 =  Xiaozhun(D_totalPressure3_1,the_Pulse)  ;%143__气体压力 __D截面总压3-1（14）-Pt17（校准）
+D_totalPressure3_2 =  Xiaozhun(D_totalPressure3_2,the_Pulse)  ;%144__气体压力 __D截面总压3-2（16）-Pt18（校准）
+D_totalPressure3_3  = Xiaozhun(D_totalPressure3_3,the_Pulse)  ;%145__气体压力 __D截面总压3-3（18）-Pt19（校准）
+
+A_av_Temp=A_temp1_2; %排除贴近壁面的温度计壁面温度对测量的干扰，故只取中间的温度
+A_Initial_temp=mean(A_av_Temp(1:the_Pulse));%校准时的基准温度
+A_temp1_1=Xiaozhun(A_temp1_1,the_Pulse)+A_Initial_temp;
+A_temp1_2=Xiaozhun(A_temp1_2,the_Pulse)+A_Initial_temp;
+A_temp1_3=Xiaozhun(A_temp1_3,the_Pulse)+A_Initial_temp;
+A_temp1_4=Xiaozhun(A_temp1_4,the_Pulse)+A_Initial_temp;
+A_temp1_5=Xiaozhun(A_temp1_5,the_Pulse)+A_Initial_temp;
+D_av_Temp=1/3*(D_temp1_2+D_temp2_2+D_temp3_2); %排除贴近壁面的温度计壁面温度对测量的干扰，故只取中间的温度
+D_Initial_temp=mean(D_av_Temp(1:the_Pulse));%校准时的基准温度
+D_temp1_1=Xiaozhun(D_temp1_1,the_Pulse)+D_Initial_temp;
+D_temp1_2=Xiaozhun(D_temp1_2,the_Pulse)+D_Initial_temp;
+D_temp1_3=Xiaozhun(D_temp1_3,the_Pulse)+D_Initial_temp;
+D_temp2_1=Xiaozhun(D_temp2_1,the_Pulse)+D_Initial_temp;
+D_temp2_2=Xiaozhun(D_temp2_2,the_Pulse)+D_Initial_temp;
+D_temp2_3=Xiaozhun(D_temp2_3,the_Pulse)+D_Initial_temp;
+D_temp3_1=Xiaozhun(D_temp3_1,the_Pulse)+D_Initial_temp;
+D_temp3_2=Xiaozhun(D_temp3_2,the_Pulse)+D_Initial_temp;
+D_temp3_3=Xiaozhun(D_temp3_3,the_Pulse)+D_Initial_temp;
+
+%% 自己计算压比（Av_efficient）
+A_av_totalPressure=1/10*(A_totalPressure1_1+A_totalPressure1_2+A_totalPressure1_3+A_totalPressure1_4+A_totalPressure1_5+...
+    A_totalPressure2_1+A_totalPressure2_2+A_totalPressure2_3+A_totalPressure2_4+A_totalPressure2_5);
+S_A_av_totalPressure=smooth(A_av_totalPressure,0.1,'loess'); %进口A截面梳状总压探针各测点总压算数平均（因波动较大，遂做平滑处理）
+D_av_totalPressure=1/9*(D_totalPressure1_1 +D_totalPressure1_2 +D_totalPressure1_3+...
+                                      D_totalPressure2_1 +D_totalPressure2_2 +D_totalPressure2_3+...
+                                    D_totalPressure3_1 +D_totalPressure3_2 +D_totalPressure3_3);
+Av_pressureRate=(101325+D_av_totalPressure)./(101325+S_A_av_totalPressure);%压比计算
+%Av_efficient=efficient;%导出数据种的效率
+T4=smooth(D_av_Temp+273.15,0.1,'loess'); T1=smooth(A_av_Temp+273.15,0.1,'loess');
+Av_efficient=efficientCompute(T4,T1,Av_pressureRate,rotorSpeed);
+%%效率计算(自己套公式算的不对)
+%% 自己计算马赫数（Av_machNumber）
+%Av_machNumber=machNumber;%导出数据种的物理流量
+A1=0.05426;A4=0.0359;%A截面面积和D截面面积
+Av_machNumber_A=machNumberCompute(A1,A_av_totalPressure,A_staticPressure1,A_staticPressure2,T1) ; %截面A马赫数计算方法（和书上的形式不一样，但化简后时相同的）
+Av_machNumber_D=machNumberCompute(A4,D_av_totalPressure,D_staticPressure1,D_staticPressure2,T4) ; %截面A马赫数计算方法（和书上的形式不一样，但化简后时相同的）
+
+%% 自己计算流量（Av_physical_flowRate）
+%Av_blow_flowRate=blow_flowRate;%导出数据种的物理流量
+%Av_physical_flowRate=physical_flowRate;%导出数据种的物理流量
+%Av_equation_flowRate=equation_flowRate;%导出数据种的物理流量
+Av_blow_flowRate_A=blow_flowRateCompute(A1,Av_machNumber_A,T1); %A截面进口吹风流量
+Av_blow_flowRate_D=blow_flowRateCompute(A4,Av_machNumber_D,T4); %A截面进口吹风流量
+Av_physical_flowRate=physical_flowRateCompute(T1,flow_staticPressure,A_av_totalPressure) ;
+Av_equation_flowRate=equation_flowRateCompute(T1,Av_physical_flowRate,A_av_totalPressure) ;
+flowRate_A_zhehe=Av_blow_flowRate_D/A1/(12000/60*2*pi*((0.185+0.1302)/2)); %A截面进口吹风流量
+pressure_rate_zhehe=static_pressure_zhehe_Compute(0.5*(A_staticPressure1+A_staticPressure1),0.5*(D_staticPressure1+D_staticPressure1),T1);
+
+
+%% 绘图
+
+switch(CASE)
+    %% 转速变化曲线
+    case 0
+fprintf('转速变化曲线'); 
+
+plot(rotorSpeed,'.-');
+grid on
+xlabel('运行时间');
+ylabel('转速(rpm)');
+
+title(['转速变化情况示意'])
+
+
+%% 进出口温度差随转速变化曲线
+    case 1
+fprintf('进出口温度差随转速变化曲线（横坐标为转速，纵坐标为进出口温度差)'); 
+dT=smooth(T4-T1+3.5*ones(length(T1),1));    
+plot(rotorSpeed,dT,'.g');
+hold on
+S_Av_dT= smooth(rotorSpeed,dT,0.1,'loess');
+plot(rotorSpeed,S_Av_dT,'r');
+xlabel('转速(rpm)');
+ylabel('进出口温度差(℃)');
+title(['进出口温度差随转速变化'])
+
+
+%% 流量管和A截面静压随转速变化曲线
+    case 2
+fprintf('流量管和A截面静压随转速变化曲线（横坐标为转速，纵坐标为静压)'); 
+
+plot(rotorSpeed,flow_staticPressure,'.g');
+hold on
+S_flow_staticPressure= smooth(rotorSpeed,flow_staticPressure,0.1,'loess');
+plot(rotorSpeed,S_flow_staticPressure,'r');
+xlabel('转速(rpm)');
+ylabel('流量管（pa）');
+title(['流量管静压随转速变化'])
+
+
+%% 进口A截面的计算马赫数随转速的变化曲线
+    case 3
+fprintf('进口A-D截面的计算马赫数随转速的变化曲线'); 
+
+plot(rotorSpeed,Av_machNumber_A,'.g');
+hold on
+S_Av_machNumber_A= smooth(rotorSpeed,Av_machNumber_A,0.1,'loess');
+plot(rotorSpeed,S_Av_machNumber_A,'g');
+hold on
+plot(rotorSpeed,Av_machNumber_D,'.r');
+hold on
+S_Av_machNumber_D= smooth(rotorSpeed,Av_machNumber_D,0.1,'loess');
+plot(rotorSpeed,S_Av_machNumber_D,'r');
+xlabel('转速(rpm)');
+ylabel('计算马赫数');
+title(['进口A\D截面马赫数随转速变化'])
+legend('进口A截面-散点','进口A截面-拟合线','进口D截面-散点','进口D截面-拟合线','Location','northwest');
+
+
+
+%% 压比特性曲线（横坐标为流量，纵坐标为压比）
+ case 4
+
+fprintf('压比特性曲线（横坐标为流量，纵坐标为压比)');
+
+ 
+plot(Av_blow_flowRate_A,Av_pressureRate,'.r');
+hold on 
+S_Av_blow_flowRate_A= smooth(Av_pressureRate,Av_blow_flowRate_A,0.1,'loess');
+%plot(S_Av_blow_flowRate_A,Av_pressureRate,'r')
+hold on
+famen(famen==0) =NaN;
+plot(Av_blow_flowRate_D,Av_pressureRate,'.b');
+%text(Av_blow_flowRate_D,Av_pressureRate,cellstr(num2str(famen)))
+figure
+plot(Av_blow_flowRate_D,Av_pressureRate)
+hold on 
+S_Av_blow_flowRate_D= smooth(Av_pressureRate,Av_blow_flowRate_D,0.1,'loess');
+%plot(S_Av_blow_flowRate_A,Av_pressureRate,'y')
+hold on
+%plot(Av_physical_flowRate,Av_pressureRate,'.g');
+hold on
+S_Av_physical_flowRate= smooth(Av_pressureRate,Av_physical_flowRate,0.1,'loess');
+%plot(S_Av_physical_flowRate,Av_pressureRate,'g')
+hold on
+%plot(Av_equation_flowRate,Av_pressureRate,'.b');
+hold on
+S_Av_equation_flowRate= smooth(Av_pressureRate,Av_equation_flowRate,0.1,'loess');
+%plot(S_Av_equation_flowRate,Av_pressureRate,'b')
+xlabel('流量(kg/s)');
+ylabel('压比');
+% text(S_Av_blow_flowRate_A(end),Av_pressureRate(end),['\leftarrow ',num2str],'Fontsize', 12)
+% text(S_Av_physical_flowRate(end),Av_pressureRate(end),['\leftarrow ',num2str],'Fontsize', 12)
+% text(S_Av_equation_flowRate(end),Av_pressureRate(end),['\leftarrow ',num2str],'Fontsize', 12)
+title(['压比特性曲线'])
+legend('吹风流量A截面-散点','吹风流量D截面-散点','吹风流量D截面-拟合线',...
+'物理流量-散点','物理流量-拟合线','折合流量-散点','折合流量-拟合线','Location','northwest');
+
+% legend_Str{1,i_file}=['吹风流量','-实验',num2str];
+% legend_Str{2,i_file}=['物理流量','-实验',num2str];
+% legend_Str{3,i_file}=['折合流量','-实验',num2str];
+% para=3; %表示共有3个参数
+%% 压比随转速变化（横坐标为转速，纵坐标为压比）
+case 5
+fprintf('压比随转速变化（横坐标为转速，纵坐标为压比）');
+
+plot(rotorSpeed,Av_pressureRate,'.g');
+hold on
+S_Av_pressureRate= smooth(rotorSpeed,Av_pressureRate,0.1,'loess');
+plot(rotorSpeed,S_Av_pressureRate,'r');
+xlabel('转速(rpm)');
+ylabel('压比');
+title(['压比随转速变化曲线'])
+legend('测量散点','拟合线','Location','northwest');
+
+%% 效率特性曲线（横坐标为流量，纵坐标为效率）
+case 6
+fprintf('效率特性曲线（横坐标为流量，纵坐标为效率）');    
+
+%plot(Av_blow_flowRate_A(w_1:end),Av_efficient(w_1:end),'.r');
+%hold on 
+plot(Av_blow_flowRate_D(w_1:end),Av_efficient(w_1:end),'.b');
+%famen(famen==0) =NaN;
+%text(Av_blow_flowRate_D(w_1:end),Av_efficient(w_1:end),cellstr(num2str(famen(w_1:end))))
+% hold on 
+% plot(Av_physical_flowRate,Av_efficient,'.g');
+% hold on
+% plot(Av_equation_flowRate,Av_efficient,'.b');
+xlabel('流量(kg/s)');
+ylabel('效率');
+title(['效率特性曲线-',num2str(round(max(rotorSpeed)/100)*100)])
+%legend('吹风流量A截面','吹风流量D截面','物理流量','折合流量','Location','southeast');
+legend('吹风流量D截面','物理流量','折合流量','Location','southeast');
+%figure
+%comet(Av_blow_flowRate_D,Av_efficient)
+%% 效率随转速变化（横坐标为转速，纵坐标为效率）
+case 7
+fprintf('效率随转速变化（横坐标为转速，纵坐标为效率）');
+
+plot(rotorSpeed,Av_efficient,'.g');%axis([0,rotorSpeed(end),0,1])
+hold on
+S_Av_efficient = smooth(rotorSpeed,Av_efficient,0.1,'loess');
+plot(rotorSpeed,S_Av_efficient,'r')
+
+xlabel('转速(rpm)');
+ylabel('效率');
+title(['效率随转速变化曲线'])
+legend('测量散点','拟合线','Location','northwest');
+
+%% 流量随转速变化（横坐标为转速，纵坐标为流量）
+case 8
+fprintf('流量随转速变化（横坐标为转速，纵坐标为流量）');
+
+plot(rotorSpeed,Av_blow_flowRate_A,'.r');%axis([0,rotorSpeed(end),0,10])
+hold on
+S_Av_blow_flowRate_A = smooth(rotorSpeed,Av_blow_flowRate_A,0.1,'loess');
+plot(rotorSpeed,S_Av_blow_flowRate_A,'r');
+hold on
+plot(rotorSpeed,Av_blow_flowRate_D,'.y');
+hold on
+S_Av_blow_flowRate_D = smooth(rotorSpeed,Av_blow_flowRate_D,0.1,'loess');
+plot(rotorSpeed,S_Av_blow_flowRate_D,'y');
+hold on
+plot(rotorSpeed,Av_physical_flowRate,'.g');
+hold on
+S_Av_physical_flowRate = smooth(rotorSpeed,Av_physical_flowRate,0.1,'loess');
+plot(rotorSpeed,S_Av_physical_flowRate,'g');
+hold on
+plot(rotorSpeed,Av_equation_flowRate,'.b');
+hold on
+S_Av_equation_flowRate = smooth(rotorSpeed,Av_equation_flowRate,0.1,'loess');
+plot(rotorSpeed,S_Av_equation_flowRate,'b'); 
+xlabel('转速(rpm)');
+ylabel('流量(kg/s)');
+title(['流量随转速变化曲线'])
+
+legend('吹风流量A截面-散点','吹风流量A截面-拟合线','吹风流量D截面-散点','吹风流量D截面-拟合线',...
+'物理流量-散点','物理流量-拟合线','折合流量-散点','折合流量-拟合线','Location','northwest');
+
+%% 验证马赫数和“标态流量”的关系（横坐标为马赫数，纵坐标为三种类型的流量）
+    case 9
+fprintf(' 验证马赫数和“标态流量”的关系（横坐标为马赫数，纵坐标为三种类型的流量）');
+
+plot(Av_machNumber_A,Av_blow_flowRate_A,'.r');
+hold on
+plot(Av_machNumber_D,Av_blow_flowRate_D,'.y');
+hold on
+plot(Av_machNumber_A,Av_physical_flowRate,'.g');
+hold on
+plot(Av_machNumber_A,Av_equation_flowRate,'.b');
+hold on
+xlabel('马赫数');
+ylabel('流量（kg/s）');
+title(['验证马赫数和“标态流量”的关系'])
+legend('吹风流量A截面','吹风流量D截面','物理流量','折合流量','Location','northwest');
+
+%% A截面静压随转速变化（横坐标为转速，纵坐标为静压）-（123-124）__气体压力 __A截面静压2支（校准）
+case 10
+fprintf(' A截面静压随转速变化（横坐标为转速，纵坐标为静压）');
+
+plot(rotorSpeed,A_staticPressure1,'.r');
+hold on
+S_A_staticPressure1 = smooth(rotorSpeed,A_staticPressure1,0.1,'loess');
+plot(rotorSpeed,S_A_staticPressure1,'r');
+hold on
+plot(rotorSpeed,A_staticPressure2,'.g');
+hold on
+S_A_staticPressure2 = smooth(rotorSpeed,A_staticPressure2,0.1,'loess');
+plot(rotorSpeed,S_A_staticPressure2,'g');
+xlabel('rotorSpeed(rpm)');
+ylabel('A截面 静压1-2(pa)');
+title(['A截面-流量管静压（相对大气压）随转速变化'])
+legend('静压1-测量散点','静压1-拟合线','静压2-测量散点','静压2-拟合线','Location','northeast');
+
+%%  A截面总压随转速变化（横坐标为转速，纵坐标为总压）-(125-134)__气体压力 __A截面总压2支（校准）
+case 11
+fprintf(' A截面总压随转速变化（横坐标为转速，纵坐标为总压）');
+
+plot(rotorSpeed,A_totalPressure1_1,'.r');
+hold on
+S_A_totalPressure1_1 = smooth(rotorSpeed,A_totalPressure1_1,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure1_1,'r');
+hold on
+plot(rotorSpeed,A_totalPressure1_2,'.g');
+hold on
+S_A_totalPressure1_2 = smooth(rotorSpeed,A_totalPressure1_2,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure1_2,'g');
+hold on
+plot(rotorSpeed,A_totalPressure1_3,'.b');
+hold on
+S_A_totalPressure1_3= smooth(rotorSpeed,A_totalPressure1_3,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure1_3,'b');
+hold on
+plot(rotorSpeed,A_totalPressure1_4,'.y');
+hold on
+S_A_totalPressure1_4 = smooth(rotorSpeed,A_totalPressure1_4,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure1_4,'y');
+%hold on
+%plot(rotorSpeed,A_totalPressure1_5,'.'); %该传感器测量误差较大，故去除
+%hold on
+%S_A_totalPressure1_5 = smooth(rotorSpeed,A_totalPressure1_5,0.1,'loess');
+%plot(rotorSpeed,S_A_totalPressure1_5);
+
+hold on
+plot(rotorSpeed,A_totalPressure2_1,'+r');
+hold on
+S_A_totalPressure2_1 = smooth(rotorSpeed,A_totalPressure2_1,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure2_1,'r');
+hold on
+plot(rotorSpeed,A_totalPressure2_2,'+g');
+hold on
+S_A_totalPressure2_2 = smooth(rotorSpeed,A_totalPressure2_2,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure2_2,'g');
+hold on
+plot(rotorSpeed,A_totalPressure2_3,'+k');
+hold on
+S_A_totalPressure2_3= smooth(rotorSpeed,A_totalPressure2_3,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure2_3,'k');
+hold on
+plot(rotorSpeed,A_totalPressure2_4,'+b');
+hold on
+S_A_totalPressure2_4 = smooth(rotorSpeed,A_totalPressure2_4,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure2_4,'b');
+hold on
+plot(rotorSpeed,A_totalPressure2_5,'+y');
+hold on
+S_A_totalPressure2_5 = smooth(rotorSpeed,A_totalPressure2_5,0.1,'loess');
+plot(rotorSpeed,S_A_totalPressure2_5,'y');
+
+xlabel('转速(rpm)');
+ylabel('A截面 总压(pa)');
+title(['A截面五点梳状总压（相对大气压）随转速变化'])
+legend('总压1-1-散点','总压1-1-拟合线','总压1-2-散点','总压1-2-拟合线','总压1-3-散点','总压1-3-拟合线','总压1-4-散点','总压1-4-拟合线',...
+'总压2-1-散点','总压2-1-拟合线','总压2-2-散点','总压2-2-拟合线','总压2-3-散点','总压2-3-拟合线','总压2-4-散点','总压2-4-拟合线','总压2-5-散点','总压2-5-拟合线','Location','eastoutside');
+
+%%  D截面静压随转速变化（横坐标为转速，纵坐标为静压）-（135-136）__气体压力 __D截面静压2支
+case 12
+fprintf(' D截面静压随转速变化（横坐标为转速，纵坐标为静压）n');
+
+plot(D_staticPressure1,'.r');
+hold on
+S_D_staticPressure1 = smooth(rotorSpeed,D_staticPressure1,0.1,'loess');
+plot(S_D_staticPressure1,'r');
+hold on
+plot(D_staticPressure2,'.g');
+hold on
+S_D_staticPressure2 = smooth(rotorSpeed,D_staticPressure2,0.1,'loess');
+plot(S_D_staticPressure2,'g');
+xlabel('time');
+ylabel('D截面 静压1-2(pa)');
+title(['D截面-静压（相对大气压）随转速变化'])
+legend('静压1-测量散点','静压1-拟合线','静压2-测量散点','静压2-拟合线','Location','northwest');
+
+%% D截面总压随转速变化（横坐标为转速，纵坐标为总压）-（137-145）__气体压力 __D截面总压3支（校准）
+case 13
+fprintf(' D截面总压随转速变化（横坐标为转速，纵坐标为总压）');
+
+plot(D_totalPressure1_1,'.r');
+hold on
+S_D_totalPressure1_1 = smooth(rotorSpeed,D_totalPressure1_1,0.1,'loess');
+plot(S_D_totalPressure1_1,'r');
+hold on
+plot(D_totalPressure1_2,'.g');
+hold on
+S_D_totalPressure1_2 = smooth(rotorSpeed,D_totalPressure1_2,0.1,'loess');
+plot(S_D_totalPressure1_2,'g');
+hold on
+plot(D_totalPressure1_3,'.b');
+hold on
+S_D_totalPressure1_3= smooth(rotorSpeed,D_totalPressure1_3,0.1,'loess');
+plot(S_D_totalPressure1_3,'b');
+hold on
+plot(D_totalPressure2_1,'+r');
+hold on
+S_D_totalPressure2_1 = smooth(rotorSpeed,D_totalPressure2_1,0.1,'loess');
+plot(S_D_totalPressure2_1,'r');
+hold on
+plot(D_totalPressure2_2,'+g');
+hold on
+S_D_totalPressure2_2 = smooth(rotorSpeed,D_totalPressure2_2,0.1,'loess');
+plot(S_D_totalPressure2_2,'g');
+
+hold on
+plot(D_totalPressure2_3,'+b');
+hold on
+S_D_totalPressure2_3 = smooth(rotorSpeed,D_totalPressure2_3,0.1,'loess');
+plot(S_D_totalPressure2_3,'b');
+hold on
+plot(D_totalPressure3_1,'xr');
+hold on
+S_D_totalPressure3_1 = smooth(rotorSpeed,D_totalPressure3_1,0.1,'loess');
+plot(S_D_totalPressure3_1,'r');
+hold on
+plot(D_totalPressure3_2,'xg');
+hold on
+S_D_totalPressure3_2= smooth(rotorSpeed,D_totalPressure3_2,0.1,'loess');
+plot(S_D_totalPressure3_2,'g');
+hold on
+plot(D_totalPressure3_3,'xb');
+hold on
+S_D_totalPressure3_3= smooth(rotorSpeed,D_totalPressure3_3,0.1,'loess');
+plot(S_D_totalPressure3_3,'b');
+xlabel('time');
+ylabel('截面 总压(pa)');
+title(['D截面三点梳状总压（相对大气压）随转速变化'])
+legend('总压1-1-散点','总压1-1-拟合线','总压1-2-散点','总压1-2-拟合线','总压1-3-散点','总压1-3-拟合线','总压2-1-散点','总压2-1-拟合线',...
+'总压2-2-散点','总压2-2-拟合线','总压2-3-散点','总压2-3-拟合线','总压3-1-散点','总压3-1-拟合线','总压3-2-散点','总压3-2-拟合线','总压3-3-散点','总压3-3-拟合线','Location','eastoutside');
+
+%%A截面总温随转速变化（横坐标为转速，纵坐标为总温）- (147-151)__气体压力 __A截面五点总温探针1支
+case 14
+fprintf(' A截面总温随转速变化（横坐标为转速，纵坐标为总温）');
+
+plot(rotorSpeed,A_temp1_1,'.r');
+hold on
+S_A_temp1_1 = smooth(rotorSpeed,A_temp1_1,0.1,'loess');
+plot(rotorSpeed,S_A_temp1_1,'r');
+hold on
+plot(rotorSpeed,A_temp1_2,'.g');
+hold on
+S_A_temp1_2 = smooth(rotorSpeed,A_temp1_2,0.1,'loess');
+plot(rotorSpeed,S_A_temp1_2,'g');
+%hold on
+%plot(rotorSpeed,A_temp1_3,'.');  %3号探针坏了
+%hold on
+%S_A_temp1_3= smooth(rotorSpeed,A_temp1_3,0.1,'loess');
+%plot(rotorSpeed,S_A_temp1_3);
+hold on
+plot(rotorSpeed,A_temp1_4,'.b');
+hold on
+S_A_temp1_4 = smooth(rotorSpeed,A_temp1_4,0.1,'loess');
+plot(rotorSpeed,S_A_temp1_4,'b');
+hold on
+plot(rotorSpeed,A_temp1_5,'.y');
+hold on
+S_A_temp1_5 = smooth(rotorSpeed,A_temp1_5,0.1,'loess');
+plot(rotorSpeed,S_A_temp1_5,'y');
+
+xlabel('转速(rpm)');
+ylabel('A截面 总温(摄氏度)');
+title(['A截面五点梳状总温随转速变化'])
+legend('总温1-测量散点','总温1-拟合线','总温2-测量散点','总温2-拟合线','总温4-测量散点','总温4-拟合线','总温5-测量散点','总温5-拟合线','Location','eastoutside');
+
+%% D截面总温随转速变化（横坐标为转速，纵坐标为总温）-（152-160）__气体压力 __D截面总温3支（校准）
+case 15
+fprintf(' D截面总温随转速变化（横坐标为转速，纵坐标为总温）');
+
+plot(rotorSpeed,D_temp1_1,'.r');
+hold on
+S_D_temp1_1 = smooth(rotorSpeed,D_temp1_1,0.1,'loess');
+plot(rotorSpeed,S_D_temp1_1,'r');
+hold on
+plot(rotorSpeed,D_temp1_2,'.g');
+hold on
+S_D_temp1_2 = smooth(rotorSpeed,D_temp1_2,0.1,'loess');
+plot(rotorSpeed,S_D_temp1_2,'g');
+hold on
+plot(rotorSpeed,D_temp1_3,'.b');
+hold on
+S_D_temp1_3= smooth(rotorSpeed,D_temp1_3,0.1,'loess');
+plot(rotorSpeed,S_D_temp1_3,'b');
+hold on
+plot(rotorSpeed,D_temp2_1,'+r');
+hold on
+S_D_temp2_1 = smooth(rotorSpeed,D_temp2_1,0.1,'loess');
+plot(rotorSpeed,S_D_temp2_1,'r');
+hold on
+plot(rotorSpeed,D_temp2_2,'+g');
+hold on
+S_D_temp2_2 = smooth(rotorSpeed,D_temp2_2,0.1,'loess');
+plot(rotorSpeed,S_D_temp2_2,'g');
+
+hold on
+plot(rotorSpeed,D_temp2_3,'+b');
+hold on
+S_D_temp2_3 = smooth(rotorSpeed,D_temp2_3,0.1,'loess');
+plot(rotorSpeed,S_D_temp2_3,'b');
+hold on
+plot(rotorSpeed,D_temp3_1,'xr');
+hold on
+S_D_temp3_1 = smooth(rotorSpeed,D_temp3_1,0.1,'loess');
+plot(rotorSpeed,S_D_temp3_1,'r');
+hold on
+plot(rotorSpeed,D_temp3_2,'xg');
+hold on
+S_D_temp3_2= smooth(rotorSpeed,D_temp3_2,0.1,'loess');
+plot(rotorSpeed,S_D_temp3_2,'g');
+hold on
+plot(rotorSpeed,D_temp3_3,'xb');
+hold on
+S_D_temp3_3= smooth(rotorSpeed,D_temp3_3,0.1,'loess');
+plot(rotorSpeed,S_D_temp3_3,'b');
+xlabel('转速(rpm)');
+ylabel('截面 总温(℃)');
+title(['D截面三点梳状总温随转速变化'])
+legend('总温1-1-测量散点','总温1-1-拟合线','总温1-2-测量散点','总温1-2-拟合线','总温1-3-测量散点','总温1-3-拟合线',...
+    '总温2-1-测量散点','总温2-1-拟合线','总温2-2-测量散点','总温2-2-拟合线','总温2-3-测量散点','总温2-3-拟合线',...
+    '总温3-1-测量散点','总温3-1-拟合线','总温3-2-测量散点','总温3-2-拟合线','总温3-3-测量散点','总温3-3-拟合线',...
+'Location','eastoutside');
+
+
+%% A、D截面动压（总压-静压）随转速变化（横坐标为转速，纵坐标为动压）
+case 16
+fprintf(' A截面动压（总压-静压）随转速变化');
+
+Ps1av_A=1/2*(A_staticPressure1+A_staticPressure2);
+Pv_A=A_av_totalPressure-Ps1av_A;
+plot(rotorSpeed,Pv_A,'.r');
+hold on
+S_Av_Pv_A = smooth(rotorSpeed,Pv_A,0.1,'loess');
+plot(rotorSpeed,S_Av_Pv_A,'r'); 
+hold on
+Ps1av_D=1/2*(D_staticPressure1+D_staticPressure2);
+Pv_D=D_av_totalPressure-Ps1av_D;
+plot(rotorSpeed,Pv_D,'.g');
+hold on
+S_Av_Pv_D = smooth(rotorSpeed,Pv_D,0.1,'loess');
+plot(rotorSpeed,S_Av_Pv_D,'g'); 
+xlabel('转速(rpm)');
+ylabel('动压(pa)');
+title(['动压(总压-静压)随转速变化曲线'])
+legend('A截面动压-散点','A截面动压-拟合线','D截面动压-散点','D截面动压-拟合线','Location','northwest');
+
+
+%% 压比特性曲线（横坐标为流量，纵坐标为压比）
+ case 17
+
+fprintf('静压升特性曲线-折合（横坐标为流量，纵坐标为压比)');
+
+plot(flowRate_A_zhehe(w_1:end),pressure_rate_zhehe(w_1:end),'.r');
+hold on 
+S_Av_blow_flowRate_A= smooth(flowRate_A_zhehe,pressure_rate_zhehe,0.1,'loess');
+% %plot(S_Av_blow_flowRate_A,Av_pressureRate,'r')
+figure
+plot(flowRate_A_zhehe,pressure_rate_zhehe)
+%comet(flowRate_A_zhehe,pressure_rate_zhehe)
+% hold on
+% famen(famen==0) =NaN;
+% plot(Av_blow_flowRate_D,Av_pressureRate,'.b');
+% text(Av_blow_flowRate_D,Av_pressureRate,cellstr(num2str(famen)))
+% figure
+% comet(Av_blow_flowRate_D,Av_pressureRate)
+% hold on 
+% S_Av_blow_flowRate_D= smooth(Av_pressureRate,Av_blow_flowRate_D,0.1,'loess');
+% %plot(S_Av_blow_flowRate_A,Av_pressureRate,'y')
+% hold on
+% %plot(Av_physical_flowRate,Av_pressureRate,'.g');
+% hold on
+% S_Av_physical_flowRate= smooth(Av_pressureRate,Av_physical_flowRate,0.1,'loess');
+% %plot(S_Av_physical_flowRate,Av_pressureRate,'g')
+% hold on
+% %plot(Av_equation_flowRate,Av_pressureRate,'.b');
+% hold on
+% S_Av_equation_flowRate= smooth(Av_pressureRate,Av_equation_flowRate,0.1,'loess');
+%plot(S_Av_equation_flowRate,Av_pressureRate,'b')
+xlabel('流量(kg/s)');
+ylabel('压比');
+% text(S_Av_blow_flowRate_A(end),Av_pressureRate(end),['\leftarrow ',num2str],'Fontsize', 12)
+% text(S_Av_physical_flowRate(end),Av_pressureRate(end),['\leftarrow ',num2str],'Fontsize', 12)
+% text(S_Av_equation_flowRate(end),Av_pressureRate(end),['\leftarrow ',num2str],'Fontsize', 12)
+title(['静压升特性曲线-折合'])
+%legend('吹风流量A截面-散点','吹风流量D截面-散点','吹风流量D截面-拟合线',...
+%'物理流量-散点','物理流量-拟合线','折合流量-散点','折合流量-拟合线','Location','northwest');
+
+% legend_Str{1,i_file}=['吹风流量','-实验',num2str];
+% legend_Str{2,i_file}=['物理流量','-实验',num2str];
+% legend_Str{3,i_file}=['折合流量','-实验',num2str];
+% para=3; %表示共有3个参数
+
+
+
+
+
+end %end of switch
+%% 校正函数
+
+
+clear;
+end
+function X_Pressure=Xiaozhun(Pressure,the_Pulse)  
+    X_Pressure=Pressure-mean(Pressure(1:the_Pulse(end)));
+end
+function Av_efficient=efficientCompute(T4,T1,Av_pressureRate,~)   %输入单位为摄氏度
+
+    B1=7.2806730;B2=-0.0014341481;B3=0.23482926E-5;
+    B4=-0.10484129E-8;B5=0.12429040E-12;
+    T=(T1+T4)/2;    %单位为K
+    k1=(B1+2*B2*T+3*B3*T.^2+4*B4*T.^3+5*B5*T.^4)./(B1-1.98726+2*B2*T+3*B3*T.^2+4*B4*T.^3+5*B5*T.^4);
+
+    Av_efficient=T1.*((Av_pressureRate.^((k1-1)./k1))-1)./smooth(T4-T1+3.5*ones(length(T1),1));  %温度差加上一个附加值，可防分母为0的干扰
+    %plot(Av_efficient)
+  
+end
+function Av_physical_flowRate=physical_flowRateCompute(T1,flow_staticPressure,A_av_totalPressure)   %输入单位为摄氏度
+
+F=0.126;  %推算出来的，根据导出数据的流量 ？？
+KG=0.995;%流量管附面层修正系数
+k=1.4;%绝热系数
+Ph=A_av_totalPressure+101325*ones(length(T1),1);%大气压力
+Phs=flow_staticPressure+101325  ;%流量管壁面静压
+Av_physical_flowRate=abs((0.1561*KG*F*Ph)./(T1.^0.5).*((Phs./Ph).^(2/k)-(Phs./Ph).^((k+1)/k)).^0.5);%abs去除虚数的影响，在小转速附件出现的小量，不影响结果精度
+
+
+end
+function Av_equation_flowRate=equation_flowRateCompute(T1,Av_physical_flowRate,A_av_totalPressure)
+
+Av_equation_flowRate=101325*Av_physical_flowRate./(A_av_totalPressure+101325).*(T1/288.15).^0.5;
+
+end
+% %%通过静压和总压探针来计算截面A的轴流速度  %和下面计算mach数方法等同
+% function Av_machNumber_A=machNumberCompute(A_av_totalPressure,staticPressure1,staticPressure2)  
+% Ps1av=1/2*(staticPressure1+staticPressure2);
+% Ph=A_av_totalPressure+101325*ones(length(Ps1av),1);%大气压力
+% Av_machNumber_A=(5*((Ph./(Ps1av+Ph)).^(0.286)-1*ones(length(Ps1av),1))).^0.5;
+% 
+% 
+% end
+
+%%通过动压来计算压气机截面A的轴流速度
+function Av_machNumber=machNumberCompute(A,av_totalPressure,staticPressure1,staticPressure2,T)  
+Ps1av=1/2*(staticPressure1+staticPressure2);
+Pv=abs(av_totalPressure-Ps1av); %取绝对值排除开根号出现虚数，只影响0转速附近的小量
+F=0.126;%流量管通道面积
+%A=0.05426;%截面A的面积
+R=287.05;%气体常数
+rou=(101325/R)./T;
+k=1.4;%绝热指数，空气为1.4
+Vair=sqrt(k*R*T);
+Ca=sqrt(2*(Pv)./rou);%轴流速度
+Av_machNumber=Ca./Vair;
+end
+function static_pressure_zhehe=static_pressure_zhehe_Compute(staticPressure1,staticPressure2,T)  
+Utip=(12000/60*2*pi*((0.185+0.1302)/2));
+%A=0.05426;%截面A的面积
+R=287.05;%气体常数
+rou=(101325/R)./T;
+static_pressure_zhehe=abs(staticPressure1-staticPressure2)./(0.5*rou*Utip^2);
+end
+
+
+function Av_blow_flowRate=blow_flowRateCompute(A,Av_machNumber,T)
+%A=0.05426;%截面A的面积
+R=287.05;%气体常数
+k=1.4;%绝热指数，空气为1.4
+Vair=sqrt(k*R*T);
+Ca=Av_machNumber.*Vair;
+Av_blow_flowRate=A*Ca;
+
+
+end
+function yy=frameSave(save_directory,save_name,save_type)
+F=getframe(gcf); % //获取整个窗口内容的图像  
+F1=getframe;     % //获取坐标轴为界的图像  
+% //======保存图像至指定文件夹===============  
+% //mkdir([cd,'/image']) % 与下一句一样  
+mkdir(save_directory)   %在当前work directory下建立image文件夹  
+% //如果文件夹已存在，会提示warning，运行无碍  
+directory=[cd,'/',save_directory,'/']; 
+imwrite(F.cdata,[directory,save_name,save_type])   
+%%
+end

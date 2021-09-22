@@ -1,0 +1,1403 @@
+\title{
+DUNE PDELab Tutorial 00 Piecewise Linear Finite Elements for the Poisson Equation on Simplices
+}
+
+\author{
+DUNE/PDELab Team
+}
+
+
+\section{Introduction}
+
+In this tutorial we solve Poisson's equation with piecewise linear conforming finite elements on simplicial elements in one, two and three space dimensions. This can be considered as the "hello world" example in the numerical solution of partial differential equations which every software should be able to solve easily (well, there are codes which have difficulties with triangles). We first provide a short review of the problem and its finite element solution in order to fix the notation. Then we demonstrate how this problem is solved using DUNE and PDELab.
+
+\textbf{Depends On}
+
+This tutorial depends on no other tutorials.
+
+\section{ Problem Formulation}
+
+\subsection{Strong Formulation}
+
+In this tutorial we consider the `Poisson equation`
+
+$$
+-\Delta u=f \text { in } \Omega \
+\label{1a}
+$$
+
+$$
+u =g  \text { on } \partial \Omega
+\label{1b}
+$$
+
+where $\Omega \subset \mathbb{R}^{d}$ (domains are open and connected sets) is a given, polyhedral domain (elements with curved boundaries are possible in DUNE but will not be considered here). The problem with homogeneous right hand side $f \equiv 0$ is sometimes called `Laplace equation`. This problem is one of the basic equations of mathematical physics which describes gravitational and electric potential as well as stationary heat or groundwater flow. Poisson's equation is an instance of an `elliptic partial differential equation`. More about modeling with partial differential equations can be found in [^6] [^1].
+
+A function $u \in C^{2}(\Omega) \cap C^{0}(\bar{\Omega})$ (the space of twice continuously differentiable functions in $\Omega$ which are continuous up to the boundary) is called a `strong solution` if it satisfies equations \ref{1a} , \ref{1b} pointwise. Condition \ref{1b} is called a `Dirichlet boundary condition`. Boundary conditions are necessary to render the solution unique and sometimes one speaks also of a `boundary value problem`. Formally, one often reduces \ref{1a} , \ref{1b} to a problem with homogeneous `Dirichlet boundary condition`s $g \equiv 0$ as the starting point for theoretical considerations. We will deliberately not do this here as it is also not done in the computer implementation of the method.
+
+\subsection{Weak Formulation}
+
+Existence, uniqueness and stability of solutions, i.e. well-posedness in the sense of Hadamard, is easier to prove for so-called weak solutions. As the `weak formulation` is also the basis of the finite element method we explain it here. As a start, suppose $u$ is a `strong solution` of $(1 \mathrm{a}),(1 \mathrm{~b})$ and take any function $v \in C^{1}(\Omega) \cap C^{0}(\Omega)$ with $v=0$ on $\partial \Omega$, then we have by integration by parts:
+
+$$
+\int_{\Omega}(-\Delta u) v d x=\int_{\Omega} \nabla u \cdot \nabla v d x=\int_{\Omega} f v d x
+$$
+
+Observe that the boundary integral $\int_{\partial \Omega} \nabla u \cdot n v d x$ vanishes due to the fact that $v=0$ on $\partial \Omega$. Loosely speaking $v=0$ is a consequence of the `Dirichlet boundary condition` $u=g$ on $\partial \Omega$.
+
+Introducing the abbreviations
+
+$$
+a(u, v)=\int_{\Omega} \nabla u \cdot \nabla v d x, \quad l(v)=\int_{\Omega} f v d x
+\label{2}
+$$
+
+one can on the other hand ask the question: Is there a class, more specific a vector space, of functions $V$ with $V_{g}=\{v \in V: v=g$ on $\partial \Omega\}$ and $V_{0}=\{v \in V:$ $v=0$ on $\partial \Omega\}$ such that the problem
+
+$$
+u \in V_{g}: \quad a(u, v)=l(v) \quad \forall v \in V_{0}
+\label{3}
+$$
+
+has a unique solution. The answer is yes and in particular one can prove the following:
+
+i) With $V=H^{1}(\Omega)$, the Sobolev space of functions with square integrable weak derivatives, the problem 33 has a unique solution provided the bilinear form $a: V \times V \rightarrow \mathbb{R}$ is continuous and coercive on the subspace $V_{0} \subset V$ and the linear form $l: V \rightarrow \mathbb{R}$ is also continuous. Coercivity on $V_{0}$ follows from Friedrich's inequality and for the continuity of the right hand side functional $f \in L^{2}(\Omega)$ is a sufficient condition.
+
+ii) If in addition $u \in C^{2}(\Omega) \cap C^{0}(\bar{\Omega})$, then the solutions of (3) and (1a) (1b) coincide.
+
+We call \ref{3} the `weak formulation` of \ref{1a} , \ref{1b} . As it has a unique solution under more general conditions than (1a), $(1 \mathrm{~b})$, e.g. discontinuous right hand side functions $f$, it can be considered a generalization of the problem.
+
+\section{The Finite Element Method}
+
+The (conforming) finite element method, in a nutshell, is based on the `weak formulation` where the function space $V$ is replaced by a subspace $V_{h} \subset V$ which is `finite dimensional`. Here, the subscript $h$ relates to the dimension of the function space. One major part of the finite element method is to construct such so-called `finite element spaces`. Typically, `finite element spaces` consist of piecewise polynomial functions. We consider one particular choice, the space of linear functions on simplicial elements. There are many text books about the finite element method, a small selection is [1-11]. 
+
+\subsection{Finite Element Mesh}
+
+In order to construct a finite element space a finite element mesh is required. For simplicity we just consider meshes consisting of $d$-simplices, where a simplex in $d$ dimensions is the convex hull of $d+1$ points $x_{0}, \ldots, x_{d} \in \mathbb{R}^{d}$ (thus a simplex is, by definition, a closed set of points).
+
+The finite element mesh consists of an ordered set
+
+$$
+\mathcal{X}_{h}=\left\{x_{1}, \ldots, x_{N}\right\}
+\label{4}
+$$
+
+of points in $\mathbb{R}^{d}$ called `vertices` and an ordered set
+
+$$
+\mathcal{T}_{h}=\left\{T_{1}, \ldots, T_{M}\right\}
+\label{5}
+$$
+
+of $d$-simplices called `elements`. The elements form a partition of the polygonal domain $\Omega$
+
+$$
+\bigcup_{T \in \mathcal{T}_{h}} T=\bar{\Omega}, \quad \forall T, T^{\prime} \in \mathcal{T}_{h}, T \neq T^{\prime}: \stackrel{\circ}{T} \cap \stackrel{\circ}{T}^{\prime}=\emptyset
+\label{6}
+$$
+
+and where each of the vertices $x_{T, 0}, \ldots, x_{T, d}$ of a $d$-simplex $T \in \mathcal{T}_{h}$ coincides with a vertex of the set $\mathcal{X}_{h}$ (and every $x \in \mathcal{X}_{h}$ is a vertex of at least one element).
+
+A simplicial mesh is called `conforming` if the intersection of two different elements, $T \cap T^{\prime}$, is either empty or a `facet` (a simplex of lower dimension, i.e. a `vertex`, `edge`, `face`) of both elements.
+
+The association of the local numbering of vertices within each element and the global numbering of vertices in the vertex set is facilitated via the `local to global map` defined by:
+
+$$
+\forall T \in \mathcal{T}_{h}, 0 \leq m \leq d: g_{T}(m)=j \Leftrightarrow x_{T, m}=x_{j}
+\label{7}
+$$
+
+The map $g_{T}:\{0, \ldots, d\} \rightarrow \mathbb{N}$ plays also a very important role in the implementation of the finite element method. Note also that the symbol $g$ is used for the local to global map and the `Dirichlet boundary condition`s but it should always be clear from the context which function is meant.
+
+The `index set of the vertices` is denoted by $\mathcal{I}_{h}=\{1, \ldots, N\} .$ It can be partitioned into indices of interior and boundary vertices:
+
+$$
+\mathcal{I}_{h}=\mathcal{I}_{h}^{i n t} \cup \mathcal{I}_{h}^{\partial \Omega}, \quad \mathcal{I}_{h}^{i n t}=\left\{i \in \mathcal{I}_{h}: x_{i} \in \Omega\right\}, \quad \mathcal{I}_{h}^{\partial \Omega}=\left\{i \in \mathcal{I}_{h}: x_{i} \in \partial \Omega\right\}
+$$
+
+In order to illustrate the notation introduced, [Fig1] shows an example of a conforming finite element mesh in two space dimensions with its numbering of vertices and elements, as well as the local to global map. In order to improve clarity we use $i, j$ only as global indices, and $m$ as local.
+
+Finally, by
+
+$$
+h=\max _{T \in \mathcal{T}_{h}} \operatorname{diam}(T)
+\label{8}
+$$
+
+we denote the `mesh size`. 
+
+
+
+
+
+
+
+
+
+\textbf{Reference Elements and Element Transformation}
+
+The geometry of the mesh elements can be described more easily by reference elements and an element transformation map. To that end, the reference $d$-simplex is defined by
+
+$$
+\hat{T}^{d}=\left\{x \in \mathbb{R}^{d}: 0 \leq \sum_{l=1}^{d}(x)_{l} \leq 1 \wedge \forall l:(x)_{l} \geq 0\right\} .
+$$
+
+The vertices of the reference $d$ simplex are given by
+
+$$
+\hat{x}_{0}^{d}=(0, \ldots, 0)^{T}, \quad \forall l, m \in\{1, \ldots, d\}:\left(\hat{x}_{m}^{d}\right)_{l}=\delta_{m, l}
+$$
+
+[Fig2] shows the reference elements of dimension 1, 2 and 3 with their numbering of the vertices.
+
+The relation between the reference elements and the elements of the mesh is provided by the `element transformation maps`. For each element $T \in \mathcal{T}$ there is a map
+
+$$
+\mu_{T}: \hat{T} \rightarrow T
+$$
+
+which maps points of the reference element to the given element $T$. In an `affine` mesh the map $\mu_{T}$ is affine linear, i.e. it has the form
+
+$$
+\mu_{T}(\hat{x})=B_{T} \hat{x}+a_{T}
+$$
+
+for given $d \times d$ matrices $B_{T}$ and $d$-vectors $a_{T}$. Consistency of the local vertex numbering is ensured by the condition
+
+$$
+\forall m \in\{0, \ldots, d\}: \mu_{T}\left(\hat{x}_{m}\right)=x_{T, m}
+$$
+
+\subsection{Piecewise Linear Finite Element Functions}
+
+Given a conforming, simplicial and affine finite element mesh in $d$ dimensions we now can define the space of piecewise linear finite element functions $V_{h} .$ It is given by
+
+$$
+V_{h}\left(\mathcal{T}_{h}\right)=\left\{v \in C^{0}(\bar{\Omega}): \forall T \in \mathcal{T}_{h}:\left.v\right|_{T} \in \mathbb{P}_{1}^{d}\right\}
+\label{9}
+$$
+
+where
+
+$$
+\mathbb{P}_{1}^{d}=\left\{p: \mathbb{R}^{d} \rightarrow \mathbb{R}: p(x)=a^{T} x+b, a \in \mathbb{R}^{d}, b \in \mathbb{R}\right\}
+$$
+
+is the vector space of multivariate polynomials of degree one in $\mathbb{R}^{d}$. It turns out that the condition of continuity is crucial to ensure that $V_{h} \subset H^{1}(\Omega)$. This definition of the finite element space given above does not refer to a basis. However, for the practical computations one requires a basis for the finite element space. Analysis reveals that the dimension of the finite element space $V_{h}$ is related to the number of vertices of the mesh:
+
+$$
+\operatorname{dim} V_{h}=N=\operatorname{dim} \mathcal{X}_{h}
+$$
+
+Therefore, one may construct a basis $\Phi_{h}=\left\{\phi_{1}, \ldots, \phi_{N}\right\}$ of $V_{h}$ where each basis function $\phi_{i}$ is related to vertex $x_{i} \in \mathcal{X}_{h}$ in the following way:
+
+$$
+\forall i, j \in \mathcal{I}_{h}: \phi_{i}\left(x_{j}\right)=\delta_{i, j}
+$$
+
+A basis with this property is called a Lagrange basis. Exploiting this property of the basis we may define the subspace of finite element functions satisfying homogeneous `Dirichlet boundary condition`s
+
+$$
+V_{h, 0}=\left\{v \in V_{h}: \forall i \in \mathcal{I}_{h}^{\partial \Omega}: v\left(x_{i}\right)=0\right\}
+$$
+
+and the set of finite element functions satisfying the given boundary conditions $\sqrt{1 \mathrm{~b}}$ :
+
+$$
+V_{h, g}=\left\{v \in V_{h}: \forall i \in \mathcal{I}_{h}^{\partial \Omega}: v\left(x_{i}\right)=g\left(x_{i}\right)\right\} .
+$$
+
+Note that $V_{h, 0}$ is a subspace of $V_{h}$ and satisfies the homogeneous boundary data exactly whereas $V_{h, g}$ is not a subspace (it is an affine space) and only approximates the given boundary data by piecewise linear functions. Twodimensional Lagrange basis functions are illustrated in [Fig3] . 
+
+
+
+
+\subsection{Finite Element Solution}
+
+We are now in a position to define and solve the finite element problem. As pointed out above, the idea is to solve the `weak formulation` in appropriate finite-dimensional spaces, i.e.:
+
+$$
+u_{h} \in V_{h, g}: \quad a\left(u_{h}, v\right)=l(v) \quad \forall v \in V_{h, 0}
+$$
+
+Using the Lagrange basis defined above we may expand $u_{h} \in V_{h}$ as
+
+$$
+u_{h}=\sum_{j=1}^{N}(z)_{j} \phi_{j}
+$$
+
+with coefficient vector $z \in \mathbb{R}^{N}$. Inserting into the discrete `weak formulation` $3.3$ yields:
+
+$$
+\begin{aligned}
+a\left(u_{h}, v\right) &=l(v) \quad \forall v \in V_{h, 0} & \text { (discrete weak problem), } \\
+\Leftrightarrow & a\left(\sum_{j=1}^{N}(z)_{j} \phi_{j}, \phi_{i}\right)=l\left(\phi_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\text {int }} & \text { (insert basis, linearity) } \\
+\Leftrightarrow & \Leftrightarrow \sum_{j=1}^{N}(z)_{j} a\left(\phi_{j}, \phi_{i}\right)=l\left(\phi_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\text {int }} & \text { (linearity) }
+\end{aligned}
+\label{10}
+$$
+
+The condition $u_{h} \in V_{h, g}$ can be formulated as a set of equations
+
+$$
+u_{h}\left(x_{i}\right)=z_{i}=g\left(x_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\partial \Omega}
+\label{11}
+$$
+
+which are also linear. Combining the equations $(10)$ and $(11)$ into a single system of linear equations results in
+
+$$
+A z=b
+\label{12}
+$$
+
+where
+
+$$
+(A)_{i, j}=\left\{\begin{array}{ll}
+a\left(\phi_{j}, \phi_{i}\right) & i \in \mathcal{I}_{h}^{i n t} \\
+\delta_{i, j} & i \in \mathcal{I}_{h}^{\partial \Omega}
+\end{array}, \quad(b)_{i}= \begin{cases}l\left(\phi_{i}\right) & i \in \mathcal{I}_{h}^{i n t} \\
+g\left(x_{i}\right) & i \in \mathcal{I}_{h}^{\partial \Omega}\end{cases}\right.
+\label{13}
+$$
+
+This system may be solved in various ways. The first option are direct solvers based on some form of the Gaussian elimination technique. However, the matrix $A$ is very sparse as it contains only relatively few nonzero elements per row $(3$ for $d=1$, about 7 for $d=2$ and about 14 for $d=3$ and Gaussian elimination may have difficulties to exploit this fact, especially for $d=3$.
+
+Another option is to solve the system iteratively. As the matrix is symmetric and positive definite there is a variety of methods available which produce, starting from an initial iterate $z^{0}$, a convergent sequence $\lim _{k \rightarrow \infty} z^{k}=z$. As a solution one accepts the first iterate which satisfies the computable criterion $\left\|b-A z^{k}\right\|<\epsilon\left\|b-A z^{0}\right\|$ for a given reduction factor $\epsilon$.
+
+A very simple (but not very effective) method is `Richardson iteration` which is used to illustrate the concept. It is given by the formula
+
+$$
+z^{k+1}=z^{k}+\omega\left(b-A z^{k}\right)
+$$
+
+Algorithmically, this iterative method can be implemented as follows [Algo1]:
+
+
+
+
+
+It can be observed that the matrix $A$ is only involved in matrix-vector products in lines 2 and 6 , an observation that is true for most iterative solvers. This operation can effectively take into account the sparsity structure of the matrix and only computations for non-zero elements are necessary. Thus, one iteration can be implemented with effort $O(N)$. The other major factor in the total work is then the number of iterations needed to achieve the convergence criterion. To keep this number at an acceptable level effective preconditioners are required. We do ignore any discussions on effective preconditioners here but they may require a major portion of the total work.
+
+Matrix-vector products $y=A z$, require between one and three memory accesses for two floating point operations as there is never any reuse of the matrix elements. The exact number depends on the cache reuse of $x$ and $y$ (this is true for dense and sparse matrices). This fact leads to a very low floating point performance on modern processors which are much better at computations than at memory access. A possible way out of this dilemma is to perform the matrix-vector product in a matrix-free fashion, i.e. to recompute the matrix elements while performing the matrix-vector product instead of storing them. This may lead to a faster execution of this operation, especially for certain high-order elements. Let us consider the matrix-free execution of the matrix-vector product, better called `operator evaluation`, in more detail. For $i \in \mathcal{I}_{h}^{\text {int }}$ we get
+
+$$
+(A z)_{i}=\sum_{j=1}^{N}(A)_{i, j}(z)_{j}=\sum_{j=1}^{N} a\left(\phi_{j}, \phi_{i}\right)(z)_{j}=a\left(\sum_{j=1}^{N}(z)_{j} \phi_{j}, \phi_{i}\right)=a\left(u_{h}, \phi_{i}\right)
+\label{14}
+$$
+
+where $u_{h}$ is the finite element function with the coefficients $z$. On the other hand, for $i \in \mathcal{I}_{h}^{\partial \Omega}$ we have
+
+$$
+(A z)_{i}=\sum_{j=1}^{N} \delta_{i, j}(z)_{j}=(z)_{i}
+$$
+
+We may summarize the typical steps needed to solve the finite element problem as follows:
+
+1) Assembling the matrix $A$. This mainly involves the computation of the matrix elements $a\left(\phi_{j}, \phi_{i}\right)$ and storing them in an appropriate data structure.
+
+2) Assembling the right hand side vector $b$. This mainly involves evaluations of the right hand side functional $l\left(\phi_{i}\right)$.
+
+3) Perform a matrix free operator evaluation $y=A z$. This involves evaluations of $a\left(u_{h}, \phi_{i}\right)$ for all test functions $\phi_{i}$ and a given function $u_{h}$.
+
+\subsection{Implementation of the Solution Steps}
+
+We now consider the three operations outlined in the previous section in more detail. The efficient implementation of these operations involves the reference elements and the element transformation as part of the following tools:
+
+Tool 1) Transformation formula for integrals. For $T \in \mathcal{T}_{h}$ we have
+
+$$
+\int_{T} y(x) d x=\int_{\hat{T}} y\left(\mu_{T}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x}
+$$
+
+Tool 2) Quadrature formula. The midpoint rule reads
+
+$$
+\int_{\hat{T}} q(\hat{x}) d \hat{x}=q\left(\hat{S}_{d}\right) w_{d}
+$$
+
+where $\hat{S}_{d}$ is the center of mass of the reference simplex $\hat{T}^{d}$ and $w_{d}$ is the volume of $\hat{T}^{d}$. This quadrature formula is exact for linear functions.
+
+Tool 3) Shape functions. On the reference simplex the linear Lagrange basis functions are $\hat{\phi}_{m}(\hat{x})=(\hat{x})_{m}$ for $m>0$ and $\hat{\phi}_{0}(\hat{x})=1-\sum_{m=1}^{d}(\hat{x})_{m} .$ The basis functions on a general element $T$ can then be defined via transformation
+
+$$
+\phi_{T, m}\left(\mu_{T}(\hat{x})\right)=\hat{\phi}_{m}(\hat{x})
+$$
+
+This construction principle can be extend to any function defined on the reference element. Given $\hat{w}(\hat{x})$ then
+
+$$
+w\left(\mu_{T}(\hat{x})\right)=\hat{w}(\hat{x})
+\label{15}
+$$
+
+is the corresponding function on the general element. 
+
+Tool 4) Computation of gradients. The construction via the reference element is particularly useful when computing gradients of functions on the general element. Applying the chain rule to $(15)$ gives
+
+$$
+B_{T}^{T} \nabla w\left(\mu_{T}(\hat{x})\right)=\hat{\nabla} \hat{w}(\hat{x}) \quad \Leftrightarrow \quad \nabla w\left(\mu_{T}(\hat{x})\right)=B_{T}^{-T} \hat{\nabla} \hat{w}(\hat{x}) .
+$$
+
+Gradients can be computed by computing gradients on the reference element and multiplying them with $B_{T}^{-T}$.
+
+Note that all these tools can be extended to higher order basis functions and more general element transformations.
+
+\textbf{Assembly of the Right Hand Side}
+
+We start with the assembly of the right hand side vector $b$ defined in equation $(13)$. Since there are typically much more interior vertices than boundary vertices we may first compute $(b)_{i}=l\left(\phi_{i}\right)$ for all $i \in \mathcal{I}_{h}$ and then overwrite the entries on the boundary with $(b)_{i}=g\left(x_{i}\right)$. Moreover, when considering the global index $i$ only the pairs in the set
+
+$$
+C(i)=\left\{(T, m) \in \mathcal{T}_{h} \times\{0, \ldots, d\}: g_{T}(m)=i\right\}
+$$
+
+contribute to the computation, which can be carried out in the following way:
+
+$$
+\begin{aligned}
+(b)_{i} &=l\left(\phi_{i}\right)=\int_{\Omega} f \phi_{i} d x & & \text { (definition) } \\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} f \phi_{i} d x & \text { (use mesh) } \\
+&=\sum_{(T, m) \in C(i)} \int_{\hat{T}} f\left(\mu_{T}(\hat{x})\right) \hat{\phi}_{m}(\hat{x})\left|\operatorname{det} B_{T}\right| d x \quad & \\
+&=\sum_{(T, m) \in C(i)} f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d}+\text { error. } & & \text { (employ quadrature) }
+\end{aligned}
+$$
+
+Note that for general $f$ the integral cannot be computed exactly. The quadrature formula here only yields exact results for elementwise constant functions $f$ as $\phi_{i}$ is linear. From now on we ignore this quadrature error.
+
+The computations for all components $i \in \mathcal{I}_{h}$ are now arranged in such a way that all computations involving element $T$ are carried out together. These computations at element $T$ are:
+
+$$
+\left(b_{T}\right)_{m}=f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d} \quad \forall m=0, \ldots, d
+\label{16}
+$$
+
+Then define the restriction matrix $R_{T}: \mathbb{R}^{N} \rightarrow \mathbb{R}^{d+1}$ as
+
+$$
+\left(R_{T} z\right)_{m}=(z)_{i} \quad \forall 0 \leq m \leq d, g_{T}(m)=i
+\label{17}
+$$
+
+extracting all components involved with element $T$. Then the assembly of the right hand side can be written in compact form as
+
+$$
+b=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} b_{T}
+\label{18}
+$$
+
+
+
+\textbf{Assembly of the Matrix}
+
+The assembly of the matrix $A$ defined in $(13)$ can be carried out in a similar way. We assemble first the entries as $(A)_{i, j}=a\left(\phi_{j}, \phi_{i}\right)$ for all $i, j \in \mathcal{I}_{h}$ and then modify the matrix to respect the `Dirichlet boundary condition`s. In the computation of $(A)_{i, j}$ only the triples
+
+$$
+C(i, j)=\left\{(T, m, n) \in \mathcal{T}_{h} \times\{0, \ldots, d\} \times\{0, \ldots, d\}: g_{T}(m)=i \wedge g_{T}(n)=j\right\}
+$$
+
+are involved due to the locality of the Lagrange basis functions:
+
+$$
+\begin{aligned}
+(A)_{i, j} &=a\left(\phi_{j}, \phi_{i}\right)=\int_{\Omega} \nabla \phi_{j} \cdot \nabla \phi_{i} d x & \text { (definition) } \\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} \nabla \phi_{j} \cdot \nabla \phi_{i} d x \quad & \text { (use mesh) } \\
+&=\sum_{(T, m, n) \in C(i, j)} \int_{\hat{T}}\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}(\hat{x})\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x} \quad \text { (localize) } \\
+&=\sum_{(T, m, n) \in C(i, j)}\left(B_{T}^{-T \hat{\nabla}} \hat{\phi}_{n}\left(\hat{S}_{d}\right)\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\left(\hat{S}_{d}\right)\right)\left|\operatorname{det} B_{T}\right| w_{d} . \quad \text { (quadrature) }
+\end{aligned}
+$$
+
+Note that the quadrature formula is exact since gradients of linear basis functions and $B_{T}$ are constant on the element.
+
+Again, the computations are arranged in such a way that all the computations necessary at a single element are collected. To that end, the gradients of the basis functions on the reference element (which are independent of position) are collected in the $d \times d+1$ matrix
+
+$$
+\hat{G}=\left[\hat{\nabla} \hat{\phi}_{0}\left(\hat{S}_{d}\right), \ldots, \hat{\nabla} \hat{\phi}_{d}\left(\hat{S}_{d}\right)\right]
+$$
+
+The matrix $\hat{G}$ need only be computed once as it does not depend on the particular element. With the matrix of transformed gradients $G=B_{T}^{-T} \hat{G}$ all computations at element $T$ are combined in the so-called `local stiffness matrix` given by
+
+$$
+A_{T}=G^{T} G\left|\operatorname{det} B_{T}\right| w_{d}
+\label{19}
+$$
+
+and the system matrix $A$ can be computed as
+
+$$
+A=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} A_{T} R_{T}
+\label{20}
+$$
+
+
+
+\textbf{Matrix-free Operator Evaluation}
+
+Finally, the considerations above can be applied to the matrix-free operator evaluation (14):
+
+$$
+\begin{aligned}
+(A z)_{i} &=a\left(u_{h}, \phi_{i}\right)=\int_{\Omega} \nabla u_{h} \cdot \nabla \phi_{i} d x=\\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} \nabla u_{h} \cdot \nabla \phi_{i} d x \quad \text { (definition) } \\
+&=\sum_{(T, m) \in C(i)} \int_{\hat{T}}\left(\sum_{n=0}^{d}(z)_{g_{T}(n)} B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\right)\left|\operatorname{det} B_{T}\right| d \hat{x} \quad \text { (localize) } \\
+&=\sum_{(T, m) \in C(i)}\left(\sum_{n=0}^{d}(z)_{g_{T}(n)} B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\right)\left|\operatorname{det} B_{T}\right| w_{d} . \quad \text { (quadrature) }
+\end{aligned}
+$$
+
+Again, computations for all indices can be arranged in an element-wise fashion which now computes per element
+
+$$
+y_{T}=\left|\operatorname{det} B_{T}\right| w_{d} G^{T} G R_{T} z
+\label{21}
+$$
+
+and then accumulates
+
+$$
+A z=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} y_{T}
+\label{22}
+$$
+
+\textbf{Generic Assembly Procedure}
+
+Comparing the formulas $(18),(20 \mathrm{p}$ and $\sqrt{22} \mathrm{f}$ for the three basic operations necessary for finite element computations reveals a joint algorithmic form [Algo2] .
+
+
+
+It turns out that this basic structure is the same for a huge number of finite element and finite volume methods independently of the partial differential equation to be solved, including linear and nonlinear equations, stationary and time-dependent equations and even systems of equations. Only the element-local computations in step (3) need to be exchanged. Therefore PDELab provides a generic assembler class carrying out steps $(1),(2)$ and (4) while the element-local computations are supplied by a parameter class.
+
+\section{Realization in PDELab}
+
+The solution of Poisson's equation with piecewise linear finite elements in dimension 1,2 and 3 is now realized using PDELab. The dimension-independent implementation is an important aspect of this example. The `main` file is `tutorial00.cc` which includes several other files containing different solution components: 
+
+1) File `poissonp1.hh` contains the class template `PoissonP1` realizing the elementlocal computations comprising the piecewise linear finite element method as described in Subsection $3.4$.
+
+2) File `driver.hh` contains the function template `driver` setting up and solving the finite element problem on a particular grid.
+
+3) And finally the file `tutorial00.cc` includes all the other files and contains the `main` function which reads the user parameters, creates a finite element mesh and calls the `driver` function to solve the problem on the given mesh.
+
+We discuss these functions and classes in detail in a top down manner.
+
+\subsection{Function `main`}
+
+The file `tutorial00.cc` contains the `main` function which is the starting point of every $\mathrm{C}++$ program. All the DUNE code should be within a try block in order to catch any exceptions DUNE might throw and to print meaningful error messages:
+
+
+~~~C++
+try
+{
+    ...
+}
+catch (Dune ::Exception &e)
+{
+    std ::cerr << " Dune   reported   error : " << e << std ::endl;
+    return 1;
+}
+
+~~~
+
+
+The function starts by instantiating the MPIHelper singleton:
+
+~~~C++
+Dune ::MPIHelper &
+    helper = Dune ::MPIHelper ::instance(argc, argv);
+if (Dune ::MPIHelper ::isFake)
+    std ::cout << " This  is a  sequential   program ." << std ::endl;
+else
+    std ::cout << " Parallel   code   run on "
+               << helper.size() << "  process (es)" << std ::endl;
+~~~
+
+
+
+In case of a parallel code it initializes the MPI (message passing interface) library. Even if there is no MPI library to initialize there is a default version, so you can always use this code.
+
+The next block of four lines uses the parameter tree parser to read the user data from an input file (colloquially called ini-file) and store it in a parameter tree object named ptree:
+
+~~~C++
+Dune ::ParameterTree ptree;
+Dune ::ParameterTreeParser ptreeparser;
+ptreeparser.readINITree(" tutorial00 .ini ", ptree);
+ptreeparser.readOptions(argc, argv, ptree);
+~~~
+
+
+
+It is customary that the input file has the same name as the `main` file of the application with the extension `.ini`. Here is the content of the file `tutorial00.ini`: 
+
+~~~C++
+[ grid ]
+dim =2
+refinement =5
+
+[ grid.oned ]
+a =0.0
+b =1.0
+elements =10
+
+[ grid.twod ]
+filename = unitsquare . msh
+
+[ grid.threed ]
+filename = unitcube .msh
+
+[ output ]
+filename = tuttut
+
+~~~
+
+
+
+The parameter file is structured hierarchically into sections beginning with the section name in square brackets. Within each section names can be associated with strings which can be interpreted in various ways. E.g. the following two lines from the `main` function read the grid's dimension and number of global refinements from the block [grid]:
+
+~~~C++
+const int dim = ptree .get(" grid.dim" ,(int )2);
+const int refinement = ptree .get <int >(" grid.refinement ");
+~~~
+
+
+
+The first version provides a default value in case the key is not contained in the input file. Note that the type of the object returned by the get-method (and the corresponding interpretation of the string in the file) is determined by the type of the default value. In the second version the type is explicitly given by the template parameter and an exception is thrown if the key is not contained in the file.
+
+The rest of the `main` function creates meshes in 1,2 and 3 dimensions and calls the function `driver`. Since the grid dimension is a template parameter in DUNE but we want to select the dimension at run-time all three variants need to be compiled.
+
+For the one-dimensional case we use the `OneDGrid` implementation of the DUNE grid interface and construct the initial grid from the user data provided in the ini file.
+
+For the two- and three-dimensional case either `ALUGrid` or `UGGrid` are used and `ALUGrid` is preferred if it is available. If neither is present the code cannot be run. Both grid managers can read two- and three-dimensional simplicial grids generated by the program `gmsh` [^8]. In the following we just explain the 2 d section here as all sections are similar.
+
+First we define the type Grid to be either `ALUGrid` or `UGGrid` using some preprocessor magic. An error message is printed if neither grid manager is installed:
+
+~~~C++
+#if HAVE_DUNE_ALUGRID
+typedef Dune ::ALUGrid<2, 2, Dune ::simplex,
+                       Dune ::nonconforming>
+    Grid;
+#elif HAVE_UG
+typedef Dune ::UGGrid<2> Grid;
+#else // ! ( HAVE_UG || HAVE_DUNE_ALUGRID )
+std ::cout << " Example   requires  a  simplex   grid !" << std ::endl;
+#endif
+
+~~~
+
+
+Now we can create a DUNE grid initialized with the coarse mesh from the gmsh input file:
+
+~~~C++
+#if (HAVE_UG || HAVE_DUNE_ALUGRID)
+std ::string filename = ptree.get(" grid . twod . filename ",
+                                  " unitsquare . msh");
+Dune ::GridFactory<Grid> factory;
+Dune ::GmshReader<Grid>::read(factory, filename, true, true);
+
+~~~
+
+
+
+Here the method get is provided with the name of the entry in the parameter file and a default value in case the entry is not present in the file.
+
+The next few lines refine the mesh globally the specified number of times and report the time spent:
+
+~~~C++
+Dune ::Timer timer;
+gridp->globalRefine(refinement);
+std ::cout << " Time  for  mesh   refinement  " << timer.elapsed()
+           << "  seconds " << std ::endl;
+~~~
+
+
+Voilà, we can call the function `driver` to solve the finite element problem on the given mesh (which in this case is the finest mesh in the complete hierarchy, the so called leaf view):
+
+~~~C++
+driver(gridp->leafGridView(), ptree);
+~~~
+
+\subsection{Function `driver`}
+
+The generic `driver` function contains all the PDELab code that sets up and solves the finite element problem. The solution of complicated problems such as nonlinear problems, instationary problems or systems of partial differential equations follows the same pattern with some of the components exchanged, as will become clear in further examples.
+
+The function `driver` has the following interface:
+
+~~~C++
+template < class GV >
+void driver ( const GV& gv , Dune :: ParameterTree & ptree )
+~~~
+
+
+
+The first argument is supposed to provide a leaf grid view of a conforming simplicial grid in any space dimension. A grid view is a subset of a hierarchical finite element mesh as it is provided by the DUNE grid interface. A leaf grid view provides the finest mesh defined in the hierarchy and here it represents the mesh $\mathcal{T}_{h}$ on which we want to solve the finite element problem. The second argument provides a parameter tree containing user data. Currently only the output file name is taken from the parameter tree.
+
+The function starts by extracting the dimension of the grid (we assume that grid and world dimension coincide) and the type used by the grid to represent coordinates. Then the type to be used for the entries of the vectors and matrices is defined:
+
+~~~C++
+const int dim = GV :: dimension ;
+typedef typename GV :: Grid :: ctype DF; // type for ccordinates
+~~~
+
+
+The next step is to instantiate objects representing the data of the partial differential equation to be solved:
+
+~~~C++
+auto flambda = [](const auto &x)
+{ return Dune ::FieldVector<RF, 1>(-2.0 * x.size()); };
+auto f = Dune ::PDELab ::
+    makeGridFunctionFromCallable(gv, flambda);
+~~~
+
+
+Here we use one way where a generic lambda function `flambda` (a $\mathrm{C}++14$ feature) is defined which returns a value associated with a point $\mathrm{x}$ in global coordinates. In this case it denotes the right hand side $f$ in the partial differential equation. Note that it is mandatory to explicitly specify the type for the return value in order to make the automatic extraction of the return type work. Then the lambda function (actually closure) is used by the function `makeGridFunctionFromCallable` which wraps the lambda function into a class having the interface of a PDELab `GridFunction`. Such types and corresponding objects can then be used to interpolate finite element functions or provide graphical output.
+
+The same code can now be used to define a function $g$ extending the `Dirichlet` boundary values into the interior. This function can be used to provide e.g. the exact solution of the problem for testing purposes or an initial guess for the iterative solvers.
+
+~~~C++
+auto glambda = [](const auto &x)
+{
+    RF s = 0.0;
+    for (std ::size_t i = 0; i < x.size(); i++)
+        s += x[i] * x[i];
+    return s;
+};
+auto g = Dune ::PDELab ::
+    makeGridFunctionFromCallable(gv, glambda);
+
+~~~
+
+
+
+Finally we need to declare where `Dirichlet boundary condition`s are to be applied. In our example, `Dirichlet boundary condition`s are applied on all of $\partial \Omega$ but in general one may apply also other boundary conditions.
+
+
+~~~C++
+auto blambda = [](const auto &x)
+{ return true; };
+auto b = Dune ::PDELab ::
+    makeBoundaryConditionFromCallable(gv, blambda);
+~~~
+
+
+The return type of the lambda function must be bool. Note that the function `makeBoundaryConditionFromCallable` is now used as the specification of constraints on function spaces, which requires a class with a different interface in PDELab.
+
+The purpose of the next block of lines
+
+~~~C++
+typedef Dune ::PDELab ::PkLocalFiniteElementMap<GV, DF, RF, 1> FEM;
+FEM fem(gv);
+typedef Dune ::PDELab ::ConformingDirichletConstraints CON;
+typedef Dune ::PDELab ::ISTL ::VectorBackend<> VBE;
+typedef Dune ::PDELab ::GridFunctionSpace<GV, FEM, CON, VBE> GFS;
+GFS gfs(gv, fem);
+gfs.name("P1");
+~~~
+
+
+
+
+
+is to set up a grid function space represented by the type GFS. It can be considered to represent the finite element space $V_{h}$, i.e. it knows about the dimension of the space, the basis functions as well as the local to global map.
+
+The first two lines set up a finite element map of type `PkLocalFiniteElementMap`. A finite element map associates finite element basis functions, defined on the corresponding reference element, with each element of the mesh. In our simple case every element of the mesh is supposed to have the same basis functions but in general, e.g. in $h p$ finite element methods, every element could have a different set of basis functions. In addition, information is provided how the global finite element space $V_{h}$ is to be constructed from its local, element-wise pieces. This involves the identification of global degrees of freedom via the local to global map.
+
+The next line defines the type `CON`, a so-called constraints class, which provides a way to assemble constraints on a function space. In our case it is used to identify degrees of freedom constrained by `Dirichlet boundary condition`s.
+
+The following line defines the type `VBE` which provides a vector backend. PDELab is designed in such a way that different iterative solver libraries can be used. Such libraries also provide their own data types for vectors and (sparse) matrices and we would like PDELab to be able to directly fill the data into these data structures without a copy step. In this case here we use the ISTL vector backend using DUNE's own iterative solver library ISTL.
+
+Now all template parameters are in place to define the type `GFS` from the class template `GridFunctionSpace`. This class template combines all the given information to construct the global finite element space $V_{h}$ on a given grid view. Finally an object of this class is instantiated and the space is given a name.
+
+The grid function space actually corresponds to the unconstrained function space $V_{h} .$ The `CON` class does not provide the constraints themselves but rather a way to determine the constraints. The determination of the constraints for a specific grid function space from the boundary condition type function `b` constructed above is done by the following lines:
+
+~~~C++
+typedef typename GFS ::template ConstraintsContainer<RF>::Type CC;
+CC cc;
+Dune ::PDELab ::constraints(b, gfs, cc); // assemble constraints
+std ::cout << " constrained   dofs =" << cc.size() << " of "
+           << gfs.globalSize() << std ::endl;
+~~~
+
+
+
+The constraints function assembles the constraints, in our case the index set $\mathcal{I}_{h}^{\partial \Omega}$, into the constraints container `cc` of type $\mathrm{CC}$. The separation of the function space $V_{h}$ and the constraints set $\mathcal{I}_{h}^{\partial \Omega}$ allows one to reuse the function space together with different constraints, e.g. for a system of partial differential equations.
+
+The next step is to declare a variable that will later on contain the solution vector $z$ :
+
+~~~C++
+using Z = Dune ::PDELab ::Backend ::Vector<GFS, RF>;
+Z z(gfs); // initial value
+~~~
+
+
+
+The type $Z$ representing the $\mathbb{R}^{N}$ is extracted from the vector backend of the grid function space while we are still able to specify the type `RF` for each component of the solution vector.
+
+The finite element isomorphism $\mathrm{FE}_{h}: \mathbb{R}^{N} \rightarrow V_{h}$,
+
+$$
+\mathrm{FE}_{h}(z)=\sum_{j=1}^{N}(z)_{j} \phi_{j}
+$$
+
+provides a one-to-one correspondence between coefficient vectors and finite element functions. The following lines produce a finite element function from a coefficient vector:
+
+~~~C++
+typedef Dune :: PDELab :: DiscreteGridFunction <GFS ,Z> ZDGF ;
+ZDGF zdgf (gfs ,z);
+~~~
+
+
+You should be aware that the object `zdgf` stores a `reference` to the object $z$ which means that when you change entries of the coefficient vector then also the function changes.
+
+Often one wants to fill a coefficient vector such that $\mathrm{FE}_{h}(z)$ approximates a given function, say $w .$ In general, $w$ is not a finite element function, but if it is, then $w=\mathrm{FE}_{h}(z)$ should hold. So what we seek is $z=\mathrm{FE}_{h}^{-1}(P(w))$ where $P$ is a projection into the finite element space. This is provided by the following line:
+
+~~~C++
+Dune :: PDELab :: interpolate (g,gfs ,z);
+~~~
+
+
+
+In this case the projection $P$ used by the function `interpolate` is the Lagrange interpolation of the function $g:$
+
+$$
+P(g)=\sum_{j=1}^{N} g\left(x_{j}\right) \phi_{j}
+$$
+
+i.e. $(z)_{j}=g\left(x_{j}\right)$ where $x_{j}$ are the mesh vertices. The projection to be used depends on the finite element space and is part of the definition of the grid function space. For example in the case of discontinuous finite element functions it might be an $L^{2}$-projection.
+
+The line
+
+~~~C++
+Dune :: PDELab :: set_nonconstrained_dofs (cc ,0.0 ,z);
+~~~
+
+
+then sets all interior degrees of freedom to zero.
+
+As pointed out in Subsection 3.4 the assembly of the right hand side $b$ and the matrix $A$ as well as matrix-free computation of $A z$ can be separated into a generic part looping over the finite element mesh and doing element-local computations. This separation is represented in the code by first setting up a `local operator`, here of the type `LOP`
+
+~~~C++
+typedef PoissonP1 < decltype (f),FEM > LOP;
+LOP lop (f,fem. find (* gv. template begin <0 >()));
+~~~
+
+
+providing the element-wise computations. The class template `PoissonP1` implementing the piecewise linear finite element method for Poisson's equation is described in detail below. The constructor requires the right hand side function as the first argument and the finite element of the first element of the mesh as the second argument. The finite element is used to precompute the basis functions on the reference element as well as the gradients. Importantly, we assume that the same basis is used for all mesh elements.
+
+Now the `local operator` is used as one of the template arguments in the global assembler or grid operator:
+
+~~~C++
+typedef Dune ::PDELab ::ISTL ::BCRSMatrixBackend<> MBE;
+MBE mbe(1 << (dim + 1)); // guess nonzeros per row
+typedef Dune ::PDELab ::GridOperator<
+    GFS, GFS,   /* ansatz and test space */
+    LOP,        /* local operator */
+    MBE,        /* matrix backend */
+    RF, RF, RF, /* domain , range , jacobian field type */
+    CC, CC      /* constraints for ansatz and test space */
+    >
+    GO;
+GO go(gfs, cc, gfs, cc, lop, mbe);
+~~~
+
+
+The grid operator implemented by the type `GO` provides the generic part of the assembly procedure. It requires the types for ansatz and test space, which may be different in general, the local operator type, a matrix backend, the types to be used for components of coefficients vectors of the ansatz and test space as well as the entries of the Matrix $A$ and last but not least the types of the constraints containers of ansatz and test space. The constructor then takes the corresponding objects as arguments. Note that here an object `mbe` of the matrix backend type is needed. It is constructed with a guess of the average number of nonzeros per row.
+
+As the next step we need to select a solver that will be used to solve the linear system $A z=b$. This is done by the following two lines:
+
+~~~C++
+typedef Dune :: PDELab :: ISTLBackend_SEQ_CG_AMG_SSOR <GO > LS;
+LS ls (100 ,3);
+~~~
+
+
+
+Since we used the ISTL backends for vectors and matrices we need to select a solver from the ISTL library. Complete solvers are packaged by PDELab for sequential and parallel computations. Here we select the conjugate gradient method with algebraic multigrid as preconditioner and symmetric successive overrelaxation as smoother in multigrid in its sequential implementation. The linear solver object ls is initialized with the maximum number of iterations and a verbose parameter.
+
+So far, no finite element computations have actually been performed, only the necessary components have been configured to now do the real work together. We can now set up the matrix $A$ as well as the right hand side $b$ and then solve the system. Since this is required often, there is a class in PDELab for this:
+
+~~~C++
+typedef Dune ::PDELab ::
+    StationaryLinearProblemSolver<GO, LS, Z>
+        SLP;
+SLP slp(go, ls, z, 1e-10);
+~~~
+
+
+The object slp of type `StationaryLinearProblemSolver` receives the grid operator, the selected linear solver backend and a coefficient vector with the initial guess and the correct `Dirichlet` boundary data and solves the problem up to a given accuracy upon a call of the apply method:
+
+~~~C++
+slp. apply (); // here all the work is done !
+~~~
+
+
+In the given example a problem with a known exact solution, which is given by the function $g$, is solved. In order to compare the computed solution with the exact solution we initialize another coefficient vector with the Lagrange interpolant of the exact solution and provide a grid function:
+
+~~~C++
+Z w(gfs); // Lagrange interpolation of exact solution
+Dune ::PDELab ::interpolate(g, gfs, w);
+ZDGF wdgf(gfs, w);
+~~~
+
+
+Finally it is time to write the results to disk for postprocessing with VTK/ParaView. This is done with DUNE's `VTKWriter` class:
+
+~~~C++
+Dune ::VTKWriter<GV> vtkwriter(gv, Dune ::VTK ::conforming);
+typedef Dune ::PDELab ::VTKGridFunctionAdapter<ZDGF> VTKF;
+vtkwriter.addVertexData(std ::shared_ptr<VTKF>(new VTKF(zdgf, " fesol ")));
+vtkwriter.addVertexData(std ::shared_ptr<VTKF>(new VTKF(wdgf, " exact ")));
+vtkwriter.write(ptree.get(" output . filename ", " output "),
+                Dune ::VTK ::appendedraw);
+~~~
+
+
+The VTK writer is not part of PDELab and uses a different interface to represent functions on a grid. Therefore we need to use the adapter class `VTKF` to pass PDELab grid functions to the VTK writer. Moreover, objects of this adapter class should be passed via a `std:: shared_ptr` to the VTK writer object since this takes care about the memory management. The output file is written when the `write` method is called.
+
+\subsection{ Local Operator `PoissonP1` }
+
+The finite element method itself is implemented in the so-called `local operator` realized by the class template `PoissonP1` in file `poissonp1.hh`. It provides all the necessary element-local computations as described in Subsection $3.4$ and is declared as follows:
+
+~~~C++
+template < typename F, typename FiniteElementMap >
+class PoissonP1 ;
+~~~
+
+
+
+The first template parameter provides the right hand side function of the PDE and the second parameter provides a finite element map giving access to finite element basis functions on the reference element for all elements of the grid. The class derives from the PDELab classes `FullVolumePattern` and `Local0peratorDefaultFlags` which provide some default constants and methods.
+
+The basic assumption of this implementation of the finite element method is that all elements of the mesh are simplices of dimension $d$ which use the same polynomial degree 1. In order to make the code faster it is a good idea to do the evaluation of the basis functions and their gradients on the reference element once before the computations start. This will be done in the constructor, but before we can do so we need to do some preparations.
+
+\textbf{Type Definitions and Data Members}
+
+The class begins by extracting important types. The finite element map provides a finite element for each element of the map. Its type is
+
+~~~C++
+typedef typename FiniteElementMap ::Traits ::FiniteElementType
+    FiniteElementType;
+~~~
+
+
+Among other things the finite element contains the basis functions on the reference element which can be accessed via the following type:
+
+~~~C++
+typedef typename FiniteElementType ::Traits ::LocalBasisType
+    LocalBasisType;
+~~~
+
+
+DUNE thinks of basis functions on the reference element to be of the most general form
+
+$$
+\hat{\phi}: \mathbb{A}^{d} \rightarrow \mathbb{B}^{k}, \quad \nabla \hat{\phi}: \mathbb{A}^{d} \rightarrow \mathbb{B}^{k \times d},
+$$
+
+i.e. they may be vector-valued. The following type definitions
+
+~~~C++
+typedef typename LocalBasisType ::Traits ::DomainType
+    DomainType;
+typedef typename LocalBasisType ::Traits ::RangeFieldType
+    RF;
+typedef typename LocalBasisType ::Traits ::RangeType
+    RangeType;
+typedef typename LocalBasisType ::Traits ::JacobianType
+    JacobianType;
+
+~~~
+
+
+
+provide types to represent arguments and results of basis function evaluations. `DomainType` represents $\mathbb{A}^{d}$, RF represents $\mathbb{B}$, `RangeType` represents $\mathbb{B}^{k}$ and finally `JacobianType` represents $\mathbb{B}^{k \times d}$.
+
+Next, we extract some important constants, the dimension of the grid and the number of basis functions per element:
+
+~~~C++
+enum
+{
+    dim = LocalBasisType ::Traits ::dimDomain
+};
+enum
+{
+    n = dim + 1
+};
+
+~~~
+
+
+As private data members the class stores an instance of the right hand side function $\mathrm{f}$ provided by the `driver`:
+
+~~~C++
+const F f; // right hand side function
+~~~
+
+the midpoint quadrature rule
+
+~~~C++
+DomainType qp; // center of mass of refelem
+double weight ; // quadrature weight on refelem
+~~~
+
+
+where $\mathrm{qp}$ is $\hat{S}_{d}$ and weight is $w_{d}$, and the values of the basis functions at the quadrature point and their gradients: 
+
+~~~C++
+double phihat [n]; // basis functions at qp
+double gradhat [ dim ][n]; // coordinate x # basisfct
+~~~
+
+
+
+Then, already in the public part, we need to define some constants that control the operation of the grid operator doing the global assembly:
+
+~~~C++
+enum { doPatternVolume = true };
+enum { doAlphaVolume = true };
+enum { doLambdaVolume = true };
+~~~
+
+
+
+These constants are evaluated at compile time and tell the grid operator class which methods have been implemented in the local operator by the user. Actually, the base class `Local0peratorDefaultFlags` provides all possible flags with the value false and we just need to overwrite the ones that are needed. The constant `doPatternVolume` tells the global assembler to determine the sparsity pattern of the matrix $A$ from a method `pattern_volume` which is inherited from the base class `FullVolumePattern`. This default implementation inserts nonzeros between all degrees of freedom of an element. The constants `doAlphaVolume` and `doLambdaVolume` determine that our finite element method contains a volume integral involving the finite element solution $u_{h}$ and a right hand side integral which does not involve the finite element solution.
+
+Setting `doAlphaVolume` to true implies that the local operator class implements the methods `alpha_volume`, `jacobian_apply_volume` and `jacobian_volume`. Setting `doLambdaVolume` to true implies that the method `lambda_volume` must be implemented.
+
+\textbf{Constructor}
+
+The constructor of the class has the following signature:
+
+~~~C++
+PoissonP1 ( const F& f_ , const FiniteElementType & fel )
+~~~
+
+
+It takes the right hand side function $f$ and a finite element `fel` as argument. The finite element is obtained from the finite element map and the first element of the grid in the function `driver`.
+
+First thing to do is to get the lowest order quadrature rule for simplices from DUNE:
+
+~~~C++
+Dune ::GeometryType gt = fel.type();
+const Dune ::QuadratureRule<RF, dim> &
+    rule = Dune ::QuadratureRules<RF, dim>::rule(gt, 1);
+~~~
+
+
+Then we check that this is actually the midpoint rule
+
+~~~C++
+if (rule.size() > 1)
+{
+    std ::cout << " Wrong   quadrature   rule !" << std ::endl;
+    exit(1);
+}
+~~~
+
+
+and store the first quadrature point in the local data members: 
+
+~~~C++
+weight = rule[0].weight();
+qp = rule[0].position();
+~~~
+
+
+It is also a good idea to check that the basis given by the user has at least the correct size:
+
+~~~C++
+if (fel.localBasis().size() != n)
+{
+    std ::cout << " Wrong   basis !" << std ::endl;
+    exit(1);
+}
+~~~
+
+
+Now the basis functions can be evaluated at the quadrature point in the reference element and the results are stored in the data members of the class:
+
+~~~C++
+std ::vector<RangeType> phi(n);
+fel.localBasis().evaluateFunction(qp, phi);
+for (int i = 0; i < n; i++)
+    phihat[i] = phi[i];
+
+~~~
+
+
+And the same now for the gradients:
+
+~~~C++
+std ::vector<JacobianType> js(n);
+fel.localBasis().evaluateJacobian(qp, js);
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < dim; j++)
+        gradhat[j][i] = js[i][0][j];
+
+~~~
+
+
+
+Note that the last index loops over the number of basis functions.
+
+\textbf{Method `lambda_volume`}
+
+This method computes the contributions $b_{T}$ to the right hand side vector for a given element as given in Eq. (16). It has the following signature:
+
+~~~C++
+template <typename EG, typename LFSV, typename R>
+void lambda_volume(const EG &eg, const LFSV &lfsv,
+                   R &r) const
+~~~
+
+
+
+Argument `eg` provides the element $T$ in a wrapped form such that PDELab need not operate directly on a DUNE grid. With `eg.geometry ()` the geometry of the element can be accessed in the form of a `Dune::Geometry`. With `eg.entity ()` one can access the underlying codim 0 entity of the DUNE grid. The second argument lfsv provides the test functions on the reference element and $r$ provides a container where the result should be stored.
+
+First thing to do is to evaluate the right hand side function at the quadrature point:
+
+~~~C++
+typename F:: Traits :: RangeType fval ;
+f. evaluate (eg. entity (),qp , fval );
+~~~
+
+
+Next, we compute the factor that is common to all entries of $b_{T}$ :
+
+~~~C++
+RF factor = fval * weight *eg. geometry (). integrationElement (qp );
+~~~
+
+
+
+Note that the method `integrationElement` on the geometry provides the value of $\left|\operatorname{det} B_{T}\right|$
+
+Finally, we can compute the entries and store them in the results container:
+
+~~~C++
+for (int i = 0; i < n; i++)
+    r.accumulate(lfsv, i, -factor *phihat[i]);
+~~~
+
+
+
+Here it is important to note the minus sign because PDELab actually solves the `weak formulation` as
+
+$$
+r\left(u_{h}, v\right)=a\left(u_{h}, v\right)-l(v)=0 \quad \forall v \in V
+$$
+
+since this is more appropriate in the case of nonlinear partial differential equations.
+
+\textbf{Method `jacobian_volume`}
+
+Next we need to compute the element contributions to the stiffness matrix as described in Eq. 190. This is done by the method `jacobian_volume` with the following interface:
+
+~~~C++
+template <typename EG, typename LFSU, typename X,
+          typename LFSV, typename M>
+void jacobian_volume(const EG &eg, const LFSU &lfsu,
+                     const X &x, const LFSV &lfsv,
+                     M &mat) const
+~~~
+
+
+
+Its arguments are: `eg` providing the wrapped codim 0 entity $T$, `lfsu` providing the basis functions of the ansatz space, $x$ providing the coefficients of the current iterate of the finite element solution, `lfsv` providing the test functions and mat a container to store the result.
+
+The `jacobian_volume` method works in the same way also for nonlinear problems. Nonlinear problems are solved iteratively, e.g. using Newton's method or a fixed-point iteration, where the method should provide a linearization at the current iterate given by the combination of `lfsu` and $\mathrm{x}$. In our case of a linear problem the result does not depend on the current iterate. Moreover, the basis functions for the test space are precomputed so we need not access them via `lfsv`. Note also that in general the ansatz and test space might be different.
+
+First thing we need is to get $B_{T}^{-T}$ and store it into S:
+
+~~~C++
+const auto geo = eg. geometry ();
+const auto S = geo . jacobianInverseTransposed (qp );
+~~~
+
+
+Next, $\left|\operatorname{det} B_{T}\right|$ is retrieved from the geometry and the factor that is common to all entries of the `local stiffness matrix` is computed:
+
+~~~C++
+RF factor = weight *geo . integrationElement (qp );
+~~~
+
+Now form the matrix of transformed gradients $G=B_{T}^{-T} \hat{G}$ and store it in grad:
+
+~~~C++
+double grad[dim][n] = {{0.0}};      // coordinate x # basisfct
+for (int i = 0; i < dim; i++)       // rows of S
+    for (int k = 0; k < dim; k++)   // columns of S
+        for (int j = 0; j < n; j++) // columns of gradhat
+            grad[i][j] += S[i][k] * gradhat[k][j];
+~~~
+
+
+The computations are arranged in such a way that the innermost loop has the dimension number of basis functions. In 3d there are four basis functions and the loop has a chance to get vectorized.
+
+Now the `local stiffness matrix` $A_{T}=G^{T} G$ (up to the factor $\left.\left|\operatorname{det} B_{T}\right| w_{d}\right)$ is formed
+
+~~~C++
+double A[n][n] = {{0.0}};
+for (int i = 0; i < n; i++)
+    for (int k = 0; k < dim; k++)
+        for (int j = 0; j < n; j++)
+            A[i][j] += grad[k][i] * grad[k][j];
+~~~
+
+and stored in the results container (now multiplying with the common factor):
+
+~~~C++
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+        mat.accumulate(lfsu, i, lfsu, j, A[i][j] * factor);
+~~~
+
+
+\textbf{Method `alpha_volume`}
+
+The method `alpha_volume` provides the element-local computations for the matrixfree evaluation of $a\left(u_{h}, \phi_{i}\right)$ for all test functions $\phi_{i}$ as given by Eq. $210 .$ It has the interface:
+
+~~~C++
+template <typename EG, typename LFSU, typename X,
+          typename LFSV, typename R>
+void alpha_volume(const EG &eg, const LFSU &lfsu,
+                  const X &x, const LFSV &lfsv,
+                  R &r) const
+~~~
+
+
+Its arguments are: `eg` providing the wrapped codim 0 entity $T$, `lfsu` providing the basis functions of the ansatz space, $x$ providing the coefficients of the current iterate of the finite element solution, lfsv providing the test functions and $\mathrm{r}$ a container to store the result.
+
+The computations are actually quite similar to those in `jacobian_volume`. In particular, the computation of $B_{T}^{-T},\left|\operatorname{det} B_{T}\right|$ and $G=B_{T}^{-T} \hat{G}$ are the same.
+
+Extracting the element local coefficients $z_{T}=R_{T} z$ is done by:
+
+~~~C++
+double z_T[n];
+for (int j = 0; j < n; j++)
+    z_T[j] = x(lfsu, j); // read coeffs
+~~~
+
+
+Now we may compute $\nabla u_{h}$ via $G z_{T}$ :
+
+~~~C++
+double graduh[dim] = {0.0};
+for (int k = 0; k < dim; k++)   // rows of grad
+    for (int j = 0; j < n; j++) // columns of grad
+        graduh[k] += grad[k][j] * z_T[j];
+~~~
+
+
+
+Finally, the result $a_{T}=G^{T} \nabla u_{h}$ is formed:
+
+
+~~~C++
+double a_T[n] = {0.0};
+for (int k = 0; k < dim; k++) // rows of grad
+    for (int j = 0; j < n; j++)
+        a_T[j] += grad[k][j] * graduh[k];
+~~~
+
+
+and stored in the results container (while being multiplied with the common factor):
+
+~~~C++
+for (int i = 0; i < n; i++)
+    r.accumulate(lfsv, i, a_T[i] * factor);
+~~~
+
+
+\textbf{Method `jacobian_apply_volume`}
+
+In the case of a nonlinear partial differential equation the finite element method results in a weak form
+
+$$
+u_{h} \in V_{h}: \quad r\left(u_{h}, v\right)=\alpha\left(u_{h}, v\right)-\lambda(v)=0 \quad \forall v \in V_{h}
+$$
+
+which is nonlinear in its first argument. Inserting the finite element basis results in a nonlinear algebraic problem
+
+$$
+R(z)=0
+$$
+
+with $(R(z))_{i}=r\left(\mathrm{FE}_{h}(z), \phi_{i}\right)$ which is typically solved by Newton's iteration or some other iterative method. In case of Newton's method, each step involves the solution of a linear system of the form
+
+$$
+J(z) w=R(z)
+$$
+
+where $(J(z))_{i, j}=\frac{(\partial R(z))_{i}}{\partial z_{j}}=\frac{\partial \alpha\left(\mathrm{FE}_{h}(z), \phi_{i}\right)}{\partial z_{j}}$ is the Jacobian of the nonlinear map $R$.
+
+Naturally, the nonlinear case also includes the linear case described in this tutorial by setting $r(u, v)=a(u, v)-l(v)$. Then, due to the linearity of $a$ in its first argument, one can show that $J(z)=A$ and
+
+$$
+(J(z) w)_{i}=(A w)_{i}=a\left(\mathrm{FE}_{h}(w), \phi_{i}\right)
+$$
+
+This is not true in the nonlinear case. There, the evaluation of the form $\alpha\left(\mathrm{FE}_{h}(w), \phi_{i}\right)$ and the application of the Jacobian $J w$ are different operations. Therefore, PDELab provides two functions with the application of the Jacobian implemented in `jacobian_apply_volume` with the interface:
+
+~~~C++
+template <typename EG, typename LFSU, typename X,
+          typename LFSV, typename R>
+void jacobian_apply_volume(const EG &eg, const LFSU &lfsu,
+                           const X &z, const LFSV &lfsv,
+                           R &r) const
+~~~
+
+
+
+Note, this is the same interface as for `alpha_volume`. Since our problem is linear, Jacobian application is identical to bilinear form evaluation and therefore we may just forward the call to the function `alpha_volume`:
+
+~~~C++
+alpha_volume (eg ,lfsu ,z,lfsv ,r);
+~~~
+
+
+
+\subsection{Running the Example}
+
+Now we can run the tutorial and look at the results. One may check that $u(x)=$ $\sum_{i=1}^{d}(x)_{i}^{2}$ solves the $\mathrm{PDE}-\Delta u=-2 d$ in $d$ dimensions (in $d=1$ this is not a PDE but a two-point `boundary value problem`). So we provide the exact solution as `Dirichlet` boundary data and set $f=-2 d$.
+
+The program can be run by typing 
+
+~~~Shell
+./ tutorial00
+~~~
+
+on the command line. It then produces some output on the console and a VTK file with the extension `.vtp` on one space dimension and `.vtu` in two and three space dimensions.
+
+First, the program reports that it is run on one processor:
+
+~~~Shell
+Parallel code run on 1 process (es)
+~~~
+
+
+
+Then the mesh file is read and some statistics about it are reported:
+
+~~~Shell
+Reading 2d Gmsh grid ...
+version 2.2 Gmsh file detected
+file contains 133 nodes
+file contains 268 elements
+number of real vertices = 133
+number of boundary elements = 36
+number of elements = 228
+~~~
+
+
+Now an instance of a DUNE grid is created and refined the required number of times:
+
+~~~Shell
+Created serial ALUGrid <2,2, simplex , nonconforming >.
+Time for mesh refinement 0.011566 seconds
+~~~
+
+
+Next, `Dirichlet` boundary constraints are evaluated and statistics are reported:
+
+~~~Shell
+constrained dofs =288 of 7441
+~~~
+
+
+Now the matrix and right hand side are set up:
+
+~~~Shell
+=== matrix setup (max ) 0.013918 s
+=== matrix assembly ( max) 0.012634 s
+=== residual assembly (max ) 0.009034 s
+~~~
+
+
+The solver is started, in this case using the conjugate gradient method with an algebraic multigrid preconditioner. This preconditioner needs a set up phase which produces the following output:
+
+
+~~~Shell
+=== solving ( reduction : 1e -10)
+Using a direct coarse solver ( UMFPACK )
+Building hierarchy of 2 levels ( inclusive coarse solver ) took
+0.022688 seconds .
+~~~
+
+
+Finally, the solver prints some statistics about the convergence:
+
+~~~Shell
+=== CGSolver
+12 1.9016e -09
+=== rate =0.144679 , T =0.021999 , TIT =0.00183325 , IT =12
+0.044764 s
+~~~
+
+[Fig4] shows the finite element solution $u_h$ as well as the absolute error $\left|u-u_{h}\right|$ for the 2d problem with the exact solution $u(x, y)=x^{2}+y^{2}$. The largest error is obtained in the vertices of the coarse mesh.
+
+
+
+
+
+
+
+\section{Outlook}
+
+The interested reader can proceed in different directions from here. The more obvious things are:
+
+- Run the problem on various levels of refinement and determine the maximum error. The maximum error should behave like $O\left(h^{2}\right)$ with the mesh size.
+
+- Try a different solution, like $u(x, y)=x^{3}+y^{3}$, change the program accordingly and study the error with respect to mesh refinement.
+
+- Replace the algebraic multigrid preconditioner with a different one, e.g. the BiCGStab method with SSOR preconditioner:
+
+~~~C++
+typedef Dune :: PDELab :: ISTLBackend_SEQ_BCGS_SSOR LS;
+LS ls (5000 , true );
+~~~
+
+Other, more involved options which will be covered in further tutorials are:
+
+- Implementation of Neumann type boundary conditions involving boundary integrals.
+
+- Extension of the finite element method to cube elements using multi-linear basis functions.
+
+- Extension of the finite element method to higher order polynomials. 
+
+
+
+
+
+
+
+[Fig1]: https://cdn.mathpix.com/snip/images/GpGyEf4xCZ4YEeZWUcMNaE4S526VIDoh-SKhyey0qFc.original.fullsize.png
+[Fig2]: https://cdn.mathpix.com/snip/images/MvUIfBphccUZfMPO090waeaf-S97zPV0uHGUMpX1TGo.original.fullsize.png
+[Fig3]: https://cdn.mathpix.com/snip/images/vxwpJ9lnJnJkkc7K8DTOoJRuT7oslL1g-3Ty0WM_-38.original.fullsize.png
+[Fig4]: https://cdn.mathpix.com/snip/images/ruE_a1gMxTswGi1f8HNuf6t5NO7uphSZjjhsNEKmGQA.original.fullsize.png
+[Algo1]: https://cdn.mathpix.com/snip/images/mzEv1n7KZSmpYXBcFt3YRTPUIxVsYgN8kcQjb9wIz_k.original.fullsize.png
+[Algo2]: https://cdn.mathpix.com/snip/images/sek2vTMrhpCv13OoAkQd8IzCdc47JekHZ1-EqAzZMSY.original.fullsize.png
+
+
+
+
+
+
+[^1]: P. Bastian. Lecture notes on scientific computing with partial differential equations. https://conan.iwr.uni-heidelberg.de/data/teaching/finiteelements_ ws2017/num2.pdf, 2014 .
+
+[^2]: D. Braess. Finite Elemente. Springer, 3rd edition, 2003 .
+
+[^3]: S. C. Brenner and L. $R$. Scott. The mathematical theory of finite element methods. Springer, 1994 .
+
+[^4]: P. G. Ciarlet. The finite element method for elliptic problems. Classics in Applied Mathematics. SIAM, 2002 .
+
+[^5]: H. Elman, D. Silvester, and A. Wathen. Finite Elements and Fast Iterative Solvers. Oxford University Press, 2005 .
+
+[^6]: K. Eriksson, D. Estep, P. Hansbo, and C. Johnson. Computational Differential Equations. Cambridge University Press, $1996 .$ http://ww.csc.kth.se/ jjan/ transfer/cde.pdf.
+
+[^7]: A. Ern and J.-L. Guermond. Theory and practice of finite element methods. Springer, 2004 .
+
+[^8]: Christophe Geuzaine and Jean-François Remacle. Gmsh: A 3-d finite element mesh generator with built-in pre- and post-processing facilities. International Journal for Numerical Methods in Engineering, 79(11): 1309-1331,2009 .
+
+[^9]: C. Großmann and H.-G. Roos. Numerische Behandlung partieller Differentialgleichungen. Teubner, 2006 .
+
+[^10]: W. Hackbusch. Theorie und Numerik elliptischer Differentialgleichungen. Teubner, 1986. http://www.mis.mpg.de/preprints/ln/lecturenote-2805.pdf.
+
+[^11]: R. Rannacher. Einführung in die Numerische Mathematik II (Numerik partieller differentialgleichungen). http://numerik.iwr.uni-heidelberg.de/ 〜ehre/notes, 2006 .
+
+

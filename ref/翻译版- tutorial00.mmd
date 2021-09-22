@@ -1,0 +1,1409 @@
+\title{
+DUNE PDELab Tutorial 00 简单上的泊松方程的逐个线性有限元
+}
+
+\author{
+DUNE/PDELab Team
+翻译：Jiaqi
+}
+
+
+
+ \section{Introduction} 
+
+在本教程中，我们用一、二、三维空间的简约元素上的片状线性符合有限元来解决泊松方程。这可以看作是偏微分方程数值解法中的 "你好世界 "例子，每个软件都应该能够轻松解决这个问题（当然，也有一些代码在处理三角形时有困难）。我们首先对这个问题和它的有限元解法做了一个简短的回顾，以固定符号。然后我们演示如何使用DUNE和PDELab来解决这个问题。
+
+\textbf{Depends On} 
+
+本教程不依赖于其他教程。
+
+ \section{ Problem Formulation} 
+
+ \subsection{Strong Formulation} 
+
+在本教程中，我们考虑了 `Poisson equation` 的问题。
+
+\begin{equation}
+-\Delta u=f \text { in } \Omega \
+\label{1a}
+\end{equation}
+
+\begin{equation}
+u =g  \text { on } \partial \Omega
+\label{1b}
+\end{equation}
+
+其中$\Omega \subset \mathbb{R}^{d}$（域是开放和连接的集合）是一个给定的多面体域（在DUNE中，具有弯曲边界的元素是可能的，但这里不会考虑）。具有同质右手的问题$f \equiv 0$有时被称为`Laplace equation` 。这个问题是数学物理学的基本方程之一，它描述了重力和电动势以及静止的热或地下水流。泊松方程是一个 `elliptic partial differential equation` 的实例。关于用偏微分方程建模的更多信息可以在 [^6] [^1] 中找到。
+
+如果一个函数$u \in C^{2}(\Omega) \cap C^{0}(\bar{\Omega})$（$\Omega$中的两次连续可微函数的空间，这些函数到边界为止是连续的）满足方程\ref{1a} , \ref{1b}的点，则称为一个`strong solution`。条件\ref{1b}被称为`Dirichlet boundary condition` 。边界条件是使解决方案唯一的必要条件，有时也会说到`boundary value problem` 。从形式上看，人们通常将\ref{1a}, \ref{1b}简化为具有同质`Dirichlet boundary condition` s $g \equiv 0$的问题，作为理论考虑的起点。我们在这里故意不这样做，因为在该方法的计算机实现中也没有这样做。
+
+ \subsection{Weak Formulation} 
+
+对于所谓的弱解，解的存在性、唯一性和稳定性，即Hadamard意义上的良好解决性，比较容易证明。由于`weak formulation`也是有限元方法的基础，我们在此解释。首先，假设$u$是$(1 \mathrm{a}),(1 \mathrm{~b})$的`strong solution`，并在$\partial \Omega$上取任何具有$v=0$的函数$v \in C^{1}(\Omega) \cap C^{0}(\Omega)$ ，那么我们通过部分积分得到。
+
+$$
+\int_{\Omega}(-\Delta u) v d x=\int_{\Omega} \nabla u \cdot \nabla v d x=\int_{\Omega} f v d x
+$$ 
+
+注意边界积分$\int_{\partial \Omega} \nabla u \cdot n v d x$消失，因为$v=0$在$\partial \Omega$上。宽泛地说，$v=0$是`Dirichlet boundary condition`$u=g$上$\partial \Omega$的结果。
+
+介绍一下缩略语
+
+\begin{equation}
+a(u, v)=\int_{\Omega} \nabla u \cdot \nabla v d x, \quad l(v)=\int_{\Omega} f v d x
+\label{2}
+\end{equation}
+
+我们可以在另一方面提出这样的问题。是否有一类，更具体的是一个向量空间，即在$V$上有$V_{g}=\{v \in V: v=g$，在$\partial \Omega\}$上有$V_{0}=\{v \in V:$$v=0$的函数，从而使问题
+
+\begin{equation}
+u \in V_{g}: \quad a(u, v)=l(v) \quad \forall v \in V_{0}
+\label{3}
+\end{equation}
+
+有一个唯一的解决方案。答案是肯定的，特别是可以证明以下几点。
+
+i) 对于$V=H^{1}(\Omega)$，即具有平方整数弱导数的函数的Sobolev空间，只要双线性形式$a: V \times V \rightarrow \mathbb{R}$在子空间$V_{0} \subset V$上是连续和矫捷的，并且线性形式$l: V \rightarrow \mathbb{R}$也是连续的，问题\ref{3}就有唯一解。在$V_{0}$上的胁迫性来自Friedrich’s inequality，对于右手边函数的连续性$f \in L^{2}(\Omega)$是一个充分条件。
+
+ii) 如果另外$u \in C^{2}(\Omega) \cap C^{0}(\bar{\Omega})$ ，那么\ref{3}和\ref{1a}\ref{1b} 的解是重合的。
+
+我们称\ref{3}为\ref{1a} , \ref{1b} 的`weak formulation`。由于它在比\ref{1a}更一般的条件下有唯一的解，\ref{1b} ，例如不连续的右手边函数$f$ ，它可以被认为是问题的一般化。
+
+ \section{The Finite Element Method} 
+
+简而言之，（符合要求的）有限元方法是基于`weak formulation`，其中函数空间$V$被子空间$V_{h} \subset V$取代，该子空间为`finite dimensional` 。这里，下标$h$与函数空间的维度有关。有限元方法的一个主要部分是构建这种所谓的`finite element spaces` 。通常情况下，`finite element spaces`由分片多项式函数组成。我们考虑一种特殊的选择，即简单元素上的线性函数空间。有很多关于有限元方法的教科书，一小部分是[1-11]。
+
+ \subsection{Finite Element Mesh} 
+
+为了构造一个有限元空间，需要一个有限元网格。为了简单起见，我们只考虑由$d$个单体组成的网格，其中$d$维的单体是$d+1$个点的凸壳$x_{0}, \ldots, x_{d} \in \mathbb{R}^{d}$（因此，单体根据定义是一个封闭的点集）。
+
+有限元网格由一个有序的集合组成
+
+\begin{equation}
+\mathcal{X}_{h}=\left\{x_{1}, \ldots, x_{N}\right\}
+\label{4}
+\end{equation}
+
+称为`vertices`的点的有序集合和一个有序集合
+
+\begin{equation}
+\mathcal{T}_{h}=\left\{T_{1}, \ldots, T_{M}\right\}
+\label{5}
+\end{equation}
+
+的有序集合$d$ --称为`elements` 。这些元素构成了多边形域$\Omega$的一个分区。
+
+\begin{equation}
+\bigcup_{T \in \mathcal{T}_{h}} T=\bar{\Omega}, \quad \forall T, T^{\prime} \in \mathcal{T}_{h}, T \neq T^{\prime}: \stackrel{\circ}{T} \cap \stackrel{\circ}{T}^{\prime}=\emptyset
+\label{6}
+\end{equation}
+
+其中$x_{T, 0}, \ldots, x_{T, d}$的每个顶点$d$-简单网$T \in \mathcal{T}_{h}$与$\mathcal{X}_{h}$的一个顶点重合（并且每个$x \in \mathcal{X}_{h}$都是至少一个元素的顶点）。
+
+如果两个不同元素的交点$T \cap T^{\prime}$要么是空的，要么是两个元素的`facet`（低维的单线，即`vertex`, `edge`, `face`），那么一个简单的网格被称为`conforming` 。
+
+每个元素内顶点的局部编号和顶点集的全局编号的关联通过`local to global map`的定义来促进。
+
+\begin{equation}
+\forall T \in \mathcal{T}_{h}, 0 \leq m \leq d: g_{T}(m)=j \Leftrightarrow x_{T, m}=x_{j}
+\label{7}
+\end{equation}
+
+`ma p`$g_{T}:\{0, \ldots, d\} \rightarrow \mathbb{N}$在有限元方法的实现中也起着非常重要的作用。还要注意的是，符号$g$被用于局部到全局的映射和`Dirichlet boundary condition`s，但从上下文中应该始终清楚哪个函数的意思。
+
+`index set of the vertices`用$\mathcal{I}_{h}=\{1, \ldots, N\} .$表示，它可以被划分为内部和边界顶点的索引。
+
+ $$
+\mathcal{I}_{h}=\mathcal{I}_{h}^{i n t} \cup \mathcal{I}_{h}^{\partial \Omega}, \quad \mathcal{I}_{h}^{i n t}=\left\{i \in \mathcal{I}_{h}: x_{i} \in \Omega\right\}, \quad \mathcal{I}_{h}^{\partial \Omega}=\left\{i \in \mathcal{I}_{h}: x_{i} \in \partial \Omega\right\}
+$$ 
+
+为了说明所介绍的符号，[Fig1]显示了一个在两个空间维度上符合要求的有限元网格的例子，其顶点和元素的编号，以及局部到全局的映射。为了提高清晰度，我们只使用$i, j$作为全局索引，$m$作为局部索引。
+
+最后，通过
+
+\begin{equation}
+h=\max _{T \in \mathcal{T}_{h}} \operatorname{diam}(T)
+\label{8}
+\end{equation}
+
+我们表示`mesh size` . 
+
+
+
+
+
+
+
+
+
+\textbf{Reference Elements and Element Transformation} 
+
+网格元素的几何形状可以更容易地通过参考元素和元素变换图来描述。为此，参考$d$ -simplex定义为
+
+ $$
+\hat{T}^{d}=\left\{x \in \mathbb{R}^{d}: 0 \leq \sum_{l=1}^{d}(x)_{l} \leq 1 \wedge \forall l:(x)_{l} \geq 0\right\} .
+$$ 
+
+参考$d$单线的顶点由以下公式给出
+
+ $$
+\hat{x}_{0}^{d}=(0, \ldots, 0)^{T}, \quad \forall l, m \in\{1, \ldots, d\}:\left(\hat{x}_{m}^{d}\right)_{l}=\delta_{m, l}
+$$ 
+
+ [Fig2]显示了维度1、2和3的参考元素及其顶点的编号。
+
+参考元素和网格元素之间的关系由 `element transformation maps` 提供。对于每个元素$T \in \mathcal{T}$都有一个映射
+
+ $$
+\mu_{T}: \hat{T} \rightarrow T
+$$ 
+
+它将参考元素的点映射到给定的元素 $T$ 。在一个`affine`网格中，`map`$\mu_{T}$是`affine`线性的，即它的形式是
+
+ $$
+\mu_{T}(\hat{x})=B_{T} \hat{x}+a_{T}
+$$ 
+
+对于给定的 $d \times d$ 矩阵 $B_{T}$ 和 $d$ 矢量 $a_{T}$ 。本地顶点编号的一致性由以下条件保证
+
+ $$
+\forall m \in\{0, \ldots, d\}: \mu_{T}\left(\hat{x}_{m}\right)=x_{T, m}
+$$ 
+
+ \subsection{Piecewise Linear Finite Element Functions} 
+
+给定一个符合要求的、简单的和`affine`的有限元网格，在$d$维度上，我们现在可以定义片状线性有限元函数的空间$V_{h} .$ 它由以下公式给出
+
+\begin{equation}
+V_{h}\left(\mathcal{T}_{h}\right)=\left\{v \in C^{0}(\bar{\Omega}): \forall T \in \mathcal{T}_{h}:\left.v\right|_{T} \in \mathbb{P}_{1}^{d}\right\}
+\label{9}
+\end{equation}
+
+其中
+
+ $$
+\mathbb{P}_{1}^{d}=\left\{p: \mathbb{R}^{d} \rightarrow \mathbb{R}: p(x)=a^{T} x+b, a \in \mathbb{R}^{d}, b \in \mathbb{R}\right\}
+$$ 
+
+是$\mathbb{R}^{d}$中一度的多变量多项式的向量空间。事实证明，连续性的条件对于确保 $V_{h} \subset H^{1}(\Omega)$ . 上面给出的这个有限元空间的定义并没有提到一个基础。然而，在实际计算中，人们需要一个有限元空间的基。分析表明，有限元空间$V_{h}$的维度与网格顶点的数量有关。
+
+ $$
+\operatorname{dim} V_{h}=N=\operatorname{dim} \mathcal{X}_{h}
+$$ 
+
+因此，可以构建$V_{h}$的基$\Phi_{h}=\left\{\phi_{1}, \ldots, \phi_{N}\right\}$，其中每个基函数$\phi_{i}$都与顶点$x_{i} \in \mathcal{X}_{h}$有如下关系。
+
+ $$
+\forall i, j \in \mathcal{I}_{h}: \phi_{i}\left(x_{j}\right)=\delta_{i, j}
+$$ 
+
+具有这种性质的基称为拉格朗日基。利用基的这一特性，我们可以定义满足同质`Dirichlet boundary condition`s的有限元函数的子空间
+
+ $$
+V_{h, 0}=\left\{v \in V_{h}: \forall i \in \mathcal{I}_{h}^{\partial \Omega}: v\left(x_{i}\right)=0\right\}
+$$ 
+
+和满足给定边界条件的有限元函数的集合 $\sqrt{1 \mathrm{~b}}$ 。
+
+ $$
+V_{h, g}=\left\{v \in V_{h}: \forall i \in \mathcal{I}_{h}^{\partial \Omega}: v\left(x_{i}\right)=g\left(x_{i}\right)\right\} .
+$$ 
+
+请注意，$V_{h, 0}$是$V_{h}$的一个子空间，完全满足同质边界数据，而$V_{h, g}$不是一个子空间（它是一个`affine`空间），只是通过分片线性函数来近似给定的边界数据。二维拉格朗日基函数在[Fig3]中得到了说明。
+
+
+
+
+ \subsection{Finite Element Solution} 
+
+我们现在可以定义和解决有限元问题了。如上所述，我们的想法是在适当的有限维空间中解决`weak formulation`，也就是说。
+
+ $$
+u_{h} \in V_{h, g}: \quad a\left(u_{h}, v\right)=l(v) \quad \forall v \in V_{h, 0}
+$$ 
+
+使用上面定义的拉格朗日基础，我们可以将$u_{h} \in V_{h}$展开为
+
+ $$
+u_{h}=\sum_{j=1}^{N}(z)_{j} \phi_{j}
+$$ 
+
+与系数向量$z \in \mathbb{R}^{N}$ 。将其插入离散的`weak formulation`$3.3$中，得到。
+
+\begin{equation}
+\begin{aligned}
+a\left(u_{h}, v\right) &=l(v) \quad \forall v \in V_{h, 0} & \text { (discrete weak problem), } \\
+\Leftrightarrow & a\left(\sum_{j=1}^{N}(z)_{j} \phi_{j}, \phi_{i}\right)=l\left(\phi_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\text {int }} & \text { (insert basis, linearity) } \\
+\Leftrightarrow & \Leftrightarrow \sum_{j=1}^{N}(z)_{j} a\left(\phi_{j}, \phi_{i}\right)=l\left(\phi_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\text {int }} & \text { (linearity) }
+\end{aligned}
+\label{10}
+\end{equation}
+
+条件$u_{h} \in V_{h, g}$可以被表述为一组方程
+
+\begin{equation}
+u_{h}\left(x_{i}\right)=z_{i}=g\left(x_{i}\right) \quad \forall i \in \mathcal{I}_{h}^{\partial \Omega}
+\label{11}
+\end{equation}
+
+这也是线性的。将方程\ref{10}和\ref{11}合并为一个单一的线性方程组，结果为
+
+\begin{equation}
+A z=b
+\label{12}
+\end{equation}
+
+其中
+
+\begin{equation}
+(A)_{i, j}=\left\{\begin{array}{ll}
+a\left(\phi_{j}, \phi_{i}\right) & i \in \mathcal{I}_{h}^{i n t} \\
+\delta_{i, j} & i \in \mathcal{I}_{h}^{\partial \Omega}
+\end{array}, \quad(b)_{i}= \begin{cases}l\left(\phi_{i}\right) & i \in \mathcal{I}_{h}^{i n t} \\
+g\left(x_{i}\right) & i \in \mathcal{I}_{h}^{\partial \Omega}\end{cases}\right.
+\label{13}
+\end{equation}
+
+这个系统可以用不同的方法来解决。第一个选择是基于某种形式的高斯消除技术的直接求解。然而，矩阵$A$是非常稀疏的，因为它每行只包含相对较少的非零元素$(3$，$d=2$约7个，$d=3$约14个，高斯消除法可能难以利用这一事实，特别是对于$d=3$。
+
+另一个选择是迭代解决该系统。由于矩阵是对称和正定的，有多种方法可以产生，从初始迭代开始 $z^{0}$ ，产生一个收敛序列 $\lim _{k \rightarrow \infty} z^{k}=z$ 。作为一个解决方案，我们接受满足可计算标准的第一个迭代 $\left\|b-A z^{k}\right\|<\epsilon\left\|b-A z^{0}\right\|$ 的给定还原系数 $\epsilon$ 。
+
+一个非常简单（但不是很有效）的方法是`Richardson iteration`，用来说明这个概念。它由以下公式给出
+
+ $$
+z^{k+1}=z^{k}+\omega\left(b-A z^{k}\right)
+$$ 
+
+算法上，这种迭代方法可以实现如下 [Algo1] 。
+
+
+
+
+
+可以看到，矩阵$A$只在第2行和第6行参与了矩阵-向量乘积，这种观察对大多数迭代求解器都是如此。这种操作可以有效地考虑到矩阵的稀疏结构，只需要对非零元素进行计算就可以了。因此，一个迭代可以通过努力实现 $O(N)$ 。然后，总工作的另一个主要因素是达到收敛标准所需的迭代次数。为了使这个数字保持在一个可接受的水平，需要有效的预处理程序。我们在此忽略了对有效的预处理程序的讨论，但它们可能需要总工作量的主要部分。
+
+矩阵-向量乘积$y=A z$，两个浮点运算需要1到3次内存访问，因为矩阵元素没有任何重复使用。具体数字取决于$x$和$y$的缓存重用情况（对于密集和稀疏矩阵都是如此）。这一事实导致现代处理器的浮点性能非常低，而现代处理器的计算能力比内存访问能力强得多。摆脱这一困境的可能方法是以无矩阵方式执行矩阵-向量乘积，即在执行矩阵-向量乘积时重新计算矩阵元素而不是存储它们。这可能会导致该操作的快速执行，特别是对于某些高阶元素。让我们更详细地考虑矩阵-向量乘积的无矩阵执行，最好称为`operator evaluation`，。对于$i \in \mathcal{I}_{h}^{\text {int }}$我们得到
+
+\begin{equation}
+(A z)_{i}=\sum_{j=1}^{N}(A)_{i, j}(z)_{j}=\sum_{j=1}^{N} a\left(\phi_{j}, \phi_{i}\right)(z)_{j}=a\left(\sum_{j=1}^{N}(z)_{j} \phi_{j}, \phi_{i}\right)=a\left(u_{h}, \phi_{i}\right)
+\label{14}
+\end{equation}
+
+其中$u_{h}$是系数为$z$的有限元函数。另一方面，对于$i \in \mathcal{I}_{h}^{\partial \Omega}$我们有
+
+ $$
+(A z)_{i}=\sum_{j=1}^{N} \delta_{i, j}(z)_{j}=(z)_{i}
+$$ 
+
+我们可以将解决有限元问题所需的典型步骤总结如下。
+
+1) 组装矩阵 $A$ 。这主要包括计算矩阵元素 $a\left(\phi_{j}, \phi_{i}\right)$ 并将其存储在适当的数据结构中。
+
+2) 组装右手向量 $b$ 。这主要涉及右侧函数的评估 $l\left(\phi_{i}\right)$ 。
+
+3) 进行无矩阵算子评估 $y=A z$ 。这涉及到对所有测试函数 $\phi_{i}$ 和一个给定函数 $u_{h}$ 的评估。
+
+ \subsection{Implementation of the Solution Steps} 
+
+现在我们更详细地考虑上一节中概述的三种操作。这些操作的有效实现涉及到参考元素和元素转换，是以下工具的一部分。
+
+工具1）积分的变换公式。对于$T \in \mathcal{T}_{h}$我们有
+
+ $$
+\int_{T} y(x) d x=\int_{\hat{T}} y\left(\mu_{T}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x}
+$$ 
+
+工具2) 正交公式。中点法则为
+
+ $$
+\int_{\hat{T}} q(\hat{x}) d \hat{x}=q\left(\hat{S}_{d}\right) w_{d}
+$$ 
+
+其中$\hat{S}_{d}$是参考单轴$\hat{T}^{d}$的质心，$w_{d}$是$\hat{T}^{d}$的体积。这个正交公式对线性函数是精确的。
+
+工具3) 形状函数。在参考单轴上，线性拉格朗日基函数是$\hat{\phi}_{m}(\hat{x})=(\hat{x})_{m}$，用于$m>0$和$\hat{\phi}_{0}(\hat{x})=1-\sum_{m=1}^{d}(\hat{x})_{m} .$ 一般元素$T$上的基函数可以通过变换来定义
+
+ $$
+\phi_{T, m}\left(\mu_{T}(\hat{x})\right)=\hat{\phi}_{m}(\hat{x})
+$$ 
+
+这个构造原理可以扩展到任何定义在参考元素上的函数。鉴于$\hat{w}(\hat{x})$，那么
+
+\begin{equation}
+w\left(\mu_{T}(\hat{x})\right)=\hat{w}(\hat{x})
+\label{15}
+\end{equation}
+
+是一般元素上的相应函数。
+
+工具4）梯度的计算。在计算一般元素上的函数梯度时，通过参考元素的构造特别有用。对$(15)$应用连锁法则可以得到
+
+ $$
+B_{T}^{T} \nabla w\left(\mu_{T}(\hat{x})\right)=\hat{\nabla} \hat{w}(\hat{x}) \quad \Leftrightarrow \quad \nabla w\left(\mu_{T}(\hat{x})\right)=B_{T}^{-T} \hat{\nabla} \hat{w}(\hat{x}) .
+$$ 
+
+梯度可以通过计算参考元素上的梯度并将其与$B_{T}^{-T}$相乘来计算。
+
+请注意，所有这些工具都可以扩展到更高阶的基函数和更一般的元素变换。
+
+\textbf{Assembly of the Right Hand Side} 
+
+我们从方程\ref{13}中定义的右手边向量$b$的装配开始。由于内部顶点通常比边界顶点多得多，我们可以先计算所有$i \in \mathcal{I}_{h}$的$(b)_{i}=l\left(\phi_{i}\right)$，然后用$(b)_{i}=g\left(x_{i}\right)$覆盖边界上的条目。此外，当考虑全局索引$i$时，只有集合中的一对
+
+ $$
+C(i)=\left\{(T, m) \in \mathcal{T}_{h} \times\{0, \ldots, d\}: g_{T}(m)=i\right\}
+$$ 
+
+贡献于计算，这可以按以下方式进行。
+
+ $$
+\begin{aligned}
+(b)_{i} &=l\left(\phi_{i}\right)=\int_{\Omega} f \phi_{i} d x & & \text { (definition) } \\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} f \phi_{i} d x & \text { (use mesh) } \\
+&=\sum_{(T, m) \in C(i)} \int_{\hat{T}} f\left(\mu_{T}(\hat{x})\right) \hat{\phi}_{m}(\hat{x})\left|\operatorname{det} B_{T}\right| d x \quad & \\
+&=\sum_{(T, m) \in C(i)} f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d}+\text { error. } & & \text { (employ quadrature) }
+\end{aligned}
+$$ 
+
+请注意，对于一般的$f$来说，积分不能被精确计算。这里的正交公式只对元素常数函数$f$产生精确结果，因为$\phi_{i}$是线性的。从现在开始，我们忽略这个正交误差。
+
+现在，所有组件$i \in \mathcal{I}_{h}$的计算被安排在这样一种方式，即所有涉及元素$T$的计算被一起进行。这些在元素$T$的计算是。
+
+\begin{equation}
+\left(b_{T}\right)_{m}=f\left(\mu_{T}\left(\hat{S}_{d}\right)\right) \hat{\phi}_{m}\left(\hat{S}_{d}\right)\left|\operatorname{det} B_{T}\right| w_{d} \quad \forall m=0, \ldots, d
+\label{16}
+\end{equation}
+
+然后定义限制矩阵$R_{T}: \mathbb{R}^{N} \rightarrow \mathbb{R}^{d+1}$为
+
+\begin{equation}
+\left(R_{T} z\right)_{m}=(z)_{i} \quad \forall 0 \leq m \leq d, g_{T}(m)=i
+\label{17}
+\end{equation}
+
+提取与元素$T$有关的所有组件。然后右手边的集合可以用紧凑的形式写成
+
+\begin{equation}
+b=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} b_{T}
+\label{18}
+\end{equation}
+
+
+
+\textbf{Assembly of the Matrix} 
+
+在$(13)$中定义的矩阵$A$的组装也可以用类似的方式进行。我们首先将所有$i, j \in \mathcal{I}_{h}$的条目组装成$(A)_{i, j}=a\left(\phi_{j}, \phi_{i}\right)$，然后修改矩阵以尊重`Dirichlet boundary condition`s。在$(A)_{i, j}$的计算中，只有三重
+
+ $$
+C(i, j)=\left\{(T, m, n) \in \mathcal{T}_{h} \times\{0, \ldots, d\} \times\{0, \ldots, d\}: g_{T}(m)=i \wedge g_{T}(n)=j\right\}
+$$ 
+
+由于拉格朗日基函数的位置性而涉及。
+
+ $$
+\begin{aligned}
+(A)_{i, j} &=a\left(\phi_{j}, \phi_{i}\right)=\int_{\Omega} \nabla \phi_{j} \cdot \nabla \phi_{i} d x & \text { (definition) } \\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} \nabla \phi_{j} \cdot \nabla \phi_{i} d x \quad & \text { (use mesh) } \\
+&=\sum_{(T, m, n) \in C(i, j)} \int_{\hat{T}}\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}(\hat{x})\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}(\hat{x})\right)\left|\operatorname{det} B_{T}\right| d \hat{x} \quad \text { (localize) } \\
+&=\sum_{(T, m, n) \in C(i, j)}\left(B_{T}^{-T \hat{\nabla}} \hat{\phi}_{n}\left(\hat{S}_{d}\right)\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\left(\hat{S}_{d}\right)\right)\left|\operatorname{det} B_{T}\right| w_{d} . \quad \text { (quadrature) }
+\end{aligned}
+$$ 
+
+请注意，正交公式是精确的，因为线性基函数的梯度和$B_{T}$在元素上是常数。
+
+同样，计算是以这样的方式安排的，即在一个元素上所有必要的计算都被收集起来。为此，参考元素上的基函数梯度（与位置无关）被收集在$d \times d+1$矩阵中
+
+ $$
+\hat{G}=\left[\hat{\nabla} \hat{\phi}_{0}\left(\hat{S}_{d}\right), \ldots, \hat{\nabla} \hat{\phi}_{d}\left(\hat{S}_{d}\right)\right]
+$$ 
+
+矩阵$\hat{G}$只需要计算一次，因为它不依赖于特定的元素。通过转换梯度矩阵$G=B_{T}^{-T} \hat{G}$，所有在元素$T$上的计算都被合并到所谓的`local stiffness matrix`中，其公式为
+
+\begin{equation}
+A_{T}=G^{T} G\left|\operatorname{det} B_{T}\right| w_{d}
+\label{19}
+\end{equation}
+
+和系统矩阵$A$可以计算为
+
+\begin{equation}
+A=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} A_{T} R_{T}
+\label{20}
+\end{equation}
+
+
+
+\textbf{Matrix-free Operator Evaluation} 
+
+最后，上面的考虑可以应用于无矩阵算子评估（14）。
+
+ $$
+\begin{aligned}
+(A z)_{i} &=a\left(u_{h}, \phi_{i}\right)=\int_{\Omega} \nabla u_{h} \cdot \nabla \phi_{i} d x=\\
+&=\sum_{T \in \mathcal{T}_{h}} \int_{T} \nabla u_{h} \cdot \nabla \phi_{i} d x \quad \text { (definition) } \\
+&=\sum_{(T, m) \in C(i)} \int_{\hat{T}}\left(\sum_{n=0}^{d}(z)_{g_{T}(n)} B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\right)\left|\operatorname{det} B_{T}\right| d \hat{x} \quad \text { (localize) } \\
+&=\sum_{(T, m) \in C(i)}\left(\sum_{n=0}^{d}(z)_{g_{T}(n)} B_{T}^{-T} \hat{\nabla} \hat{\phi}_{n}\right) \cdot\left(B_{T}^{-T} \hat{\nabla} \hat{\phi}_{m}\right)\left|\operatorname{det} B_{T}\right| w_{d} . \quad \text { (quadrature) }
+\end{aligned}
+$$ 
+
+同样，所有指数的计算可以按元素顺序排列，现在每个元素的计算方法是
+
+\begin{equation}
+y_{T}=\left|\operatorname{det} B_{T}\right| w_{d} G^{T} G R_{T} z
+\label{21}
+\end{equation}
+
+然后累加
+
+\begin{equation}
+A z=\sum_{T \in \mathcal{T}_{h}} R_{T}^{T} y_{T}
+\label{22}
+\end{equation}
+
+\textbf{Generic Assembly Procedure} 
+
+比较有限元计算所需的三个基本操作的公式 $(18),(20 \mathrm{p}$ 和 $\sqrt{22} \mathrm{f}$ ，可以发现一个联合算法形式 [Algo2] 。
+
+
+
+事实证明，这一基本结构对于大量的有限元和有限体积方法是相同的，与要解决的偏微分方程无关，包括线性和非线性方程，静止和时间依赖方程，甚至方程组。只有步骤（3）中的元素局部计算需要交换。因此，PDELab提供了一个执行步骤$(1),(2)$和(4)的通用汇编器类，而元素局部计算则由一个参数类提供。
+
+ \section{Realization in PDELab} 
+
+现在使用PDELab实现了1,2和3维的片状线性有限元的泊松方程的求解。与维度无关的实现是这个例子的一个重要方面。`main`文件为`tutorial00.cc`，其中包括其他几个包含不同求解组件的文件。
+
+1) 文件`poissonp1.hh`包含类模板`PoissonP1`，实现了$3.4$小节中描述的包含片状线性有限元方法的元素局部计算。
+
+2) 文件`driver.hh`包含函数模板`driver`，设置和解决特定网格上的有限元问题。
+
+3) 最后，文件`tutorial00.cc`包括所有其他文件，并包含`main`函数，该函数读取用户参数，创建有限元网格并调用`driver`函数在给定网格上解决问题。
+
+我们以自上而下的方式来详细讨论这些函数和类。
+
+ \subsection{Function `main`} 
+
+文件`tutorial00.cc`包含了`main`函数，这是每个$\mathrm{C}++$程序的起点。所有的DUNE代码都应该在一个尝试块中，以便捕捉DUNE可能抛出的任何异常，并打印有意义的错误信息。
+
+
+~~~C++
+try
+{
+    ...
+}
+catch (Dune::Exception &e)
+{
+    std::cerr << " Dune   reported   error : " << e << std::endl;
+    return 1;
+}
+
+~~~
+
+
+该函数以实例化MPIHelper单体开始。
+
+~~~C++
+Dune::MPIHelper &
+    helper = Dune::MPIHelper::instance(argc, argv);
+if (Dune::MPIHelper::isFake)
+    std::cout << " This  is a  sequential   program ." << std::endl;
+else
+    std::cout << " Parallel   code   run on "
+               << helper.size() << "  process (es)" << std::endl;
+~~~
+
+
+
+如果是并行代码，它会初始化MPI（消息传递接口）库。即使没有要初始化的MPI库，也有一个默认版本，所以你总是可以使用这段代码。
+
+接下来的四行块使用参数树解析器从输入文件（俗称ini-file）中读取用户数据，并将其存储在一个名为ptree的参数树对象中。
+
+~~~C++
+Dune::ParameterTree ptree;
+Dune::ParameterTreeParser ptreeparser;
+ptreeparser.readINITree(" tutorial00 .ini ", ptree);
+ptreeparser.readOptions(argc, argv, ptree);
+~~~
+
+
+
+习惯上，输入文件的名称与应用程序的`main`文件相同，扩展名为`.ini` 。下面是文件 `tutorial00.ini` 的内容。
+
+~~~C++
+[ grid ]
+dim =2
+refinement =5
+
+[ grid.oned ]
+a =0.0
+b =1.0
+elements =10
+
+[ grid.twod ]
+filename = unitsquare . msh
+
+[ grid.threed ]
+filename = unitcube .msh
+
+[ output ]
+filename = tuttut
+
+~~~
+
+
+
+参数文件的结构是分层次的，以方括号中的章节名称开始。在每个部分中，名称可以与字符串联系起来，这些字符串可以用不同的方式解释。例如，以下两行来自`main`函数，从[grid]块中读取网格的维度和全局细化的数量。
+
+~~~C++
+const int dim = ptree .get(" grid.dim" ,(int )2);
+const int refinement = ptree .get <int >(" grid.refinement ");
+~~~
+
+
+
+第一个版本提供了一个默认值，以防输入文件中不包含该键。请注意，由get方法返回的对象的类型（以及文件中字符串的相应解释）是由默认值的类型决定的。在第二个版本中，类型是由模板参数明确给出的，如果键不包含在文件中，则抛出一个异常。
+
+`main`函数的其余部分在1,2和3维上创建网格并调用函数 `driver` 。由于网格维度在DUNE中是一个模板参数，但我们想在运行时选择维度，所以这三种变体都需要被编译。
+
+对于一维的情况，我们使用DUNE网格接口的`OneDGrid`实现，并根据ini文件中提供的用户数据构建初始网格。
+
+对于二维和三维的情况，我们使用`ALUGrid`或`UGGrid`，如果有`ALUGrid`的话，我们更愿意使用。如果两者都不存在，代码就不能运行。两个网格管理器都可以读取由程序 `gmsh` [^8] 生成的二维和三维简约网格。下面我们只解释二维部分，因为所有部分都是类似的。
+
+首先，我们使用一些预处理程序的魔法将网格类型定义为`ALUGrid`或`UGGrid`。如果没有安装网格管理器，就会打印出一条错误信息。
+
+~~~C++
+#if HAVE_DUNE_ALUGRID
+typedef Dune::ALUGrid<2, 2, Dune::simplex,
+                       Dune::nonconforming>
+    Grid;
+#elif HAVE_UG
+typedef Dune::UGGrid<2> Grid;
+#else // ! ( HAVE_UG || HAVE_DUNE_ALUGRID )
+std::cout << " Example   requires  a  simplex   grid !" << std::endl;
+#endif
+
+~~~
+
+
+现在我们可以创建一个DUNE网格，用gmsh输入文件中的粗略网格进行初始化。
+
+~~~C++
+#if (HAVE_UG || HAVE_DUNE_ALUGRID)
+std::string filename = ptree.get(" grid . twod . filename ",
+                                  " unitsquare . msh");
+Dune::GridFactory<Grid> factory;
+Dune::GmshReader<Grid>::read(factory, filename, true, true);
+
+~~~
+
+
+
+在这里，get方法提供了参数文件中的条目名称和一个默认值，以防该条目不存在于文件中。
+
+接下来的几行在全球范围内细化网格，并报告所花费的时间。
+
+~~~C++
+Dune::Timer timer;
+gridp->globalRefine(refinement);
+std::cout << " Time  for  mesh   refinement  " << timer.elapsed()
+           << "  seconds " << std::endl;
+~~~
+
+
+这样，我们就可以调用函数`driver`来求解给定网格的有限元问题(在这里是完整层次结构中最细的网格，即所谓的叶视图)。
+
+~~~C++
+driver(gridp->leafGridView(), ptree);
+~~~
+
+ \subsection{Function `driver`} 
+
+通用的`driver`函数包含所有设置和解决有限元问题的PDELab代码。解决复杂的问题，如非线性问题、静态问题或偏微分方程系统，遵循同样的模式，交换一些组件，这将在进一步的例子中变得清晰。
+
+函数`driver`有以下接口。
+
+~~~C++
+template < class GV >
+void driver ( const GV& gv , Dune::ParameterTree & ptree )
+~~~
+
+
+
+第一个参数应该是提供任何空间维度上的符合简化网格的叶子网格视图。网格视图是分层有限元网格的一个子集，它由DUNE网格接口提供。一个叶子网格视图提供了层次结构中定义的最细的网格，这里它代表了我们要解决有限元问题的网格$\mathcal{T}_{h}$。第二个参数提供了一个包含用户数据的参数树。目前只有输出文件的名称是从参数树中提取的。
+
+该函数首先提取网格的维度（我们假设网格和物理的维度是一致的）和网格用来表示坐标的类型。然后定义用于向量和矩阵条目的类型。
+
+~~~C++
+const int dim = GV::dimension ;
+typedef typename GV::Grid::ctype DF; // type for ccordinates
+~~~
+
+
+下一步是实例化代表要解决的偏微分方程数据的对象。
+
+~~~C++
+auto flambda = [](const auto &x)
+{ return Dune::FieldVector<RF, 1>(-2.0 * x.size()); };
+auto f = Dune::PDELab::
+    makeGridFunctionFromCallable(gv, flambda);
+~~~
+
+
+这里我们使用一种方式，即定义一个通用的lambda函数`flambda`（一个$\mathrm{C}++14$特征），返回一个与全局坐标中的一个点$\mathrm{x}$相关的值。在这种情况下，它表示偏微分方程的右手边$f$。请注意，必须明确指定返回值的类型，以使返回类型的自动提取发挥作用。然后lambda函数（实际上是闭包）被函数`makeGridFunctionFromCallable`使用，该函数将lambda函数包装成一个具有PDELab `GridFunction`接口的类。这样的类型和相应的对象就可以用来插值有限元函数或提供图形输出。
+
+同样的代码现在可以用来定义一个函数 glambda 将 `Dirichlet` 的边界值扩展到内部。这个函数可以用来提供例如用于测试目的的问题的精确解或迭代求解器的初始猜测。
+
+~~~C++
+auto glambda = [](const auto &x)
+{
+    RF s = 0.0;
+    for (std::size_t i = 0; i < x.size(); i++)
+        s += x[i] * x[i];
+    return s;
+};
+auto g = Dune::PDELab::
+    makeGridFunctionFromCallable(gv, glambda);
+
+~~~
+
+
+
+最后，我们需要声明`Dirichlet boundary condition`s将被应用到哪里。在我们的例子中，`Dirichlet boundary condition`s被应用于$\partial \Omega$的所有地方，但在一般情况下，也可以应用其他边界条件。
+
+
+~~~C++
+auto blambda = [](const auto &x)
+{ return true; };
+auto b = Dune::PDELab::
+    makeBoundaryConditionFromCallable(gv, blambda);
+~~~
+
+
+lambda函数的返回类型必须是bool。请注意，函数`makeBoundaryConditionFromCallable`现在被用作函数空间的约束规范，这需要一个在PDELab中具有不同接口的类。
+
+下一个行块的目的是
+
+~~~C++
+typedef Dune::PDELab::PkLocalFiniteElementMap<GV, DF, RF, 1> FEM;
+FEM fem(gv);
+typedef Dune::PDELab::ConformingDirichletConstraints CON;
+typedef Dune::PDELab::ISTL::VectorBackend<> VBE;
+typedef Dune::PDELab::GridFunctionSpace<GV, FEM, CON, VBE> GFS;
+GFS gfs(gv, fem);
+gfs.name("P1");
+~~~
+
+
+
+
+
+是建立一个由GFS类型代表的网格函数空间。它可以被认为是代表有限元空间$V_{h}$，即它知道空间的维度、基函数以及局部到全局的映射。
+
+前两行设置了一个`PkLocalFiniteElementMap`类型的有限元映射。有限元映射将定义在相应参考元素上的有限元基函数与网格的每个元素联系起来。在我们的简单案例中，网格中的每个元素都应该有相同的基函数，但在一般情况下，例如在$h p$有限元方法中，每个元素可能有不同的基函数集。此外，还提供了如何从局部的、与元素有关的部分构造全局有限元空间$V_{h}$的信息。这涉及到通过局部到全局的映射识别全局自由度。
+
+下一行定义了类型`CON`，一个所谓的约束类，它提供了一种在函数空间上组合约束的方法。在我们的例子中，它被用来识别受`Dirichlet boundary condition`s约束的自由度。
+
+下面一行定义了`VBE`类型，它提供了一个矢量后端。PDELab的设计方式是可以使用不同的迭代求解器库。这些库也为向量和（稀疏）矩阵提供他们自己的数据类型，我们希望PDELab能够直接将数据填充到这些数据结构中，而不需要复制步骤。在这种情况下，这里我们使用ISTL矢量后端，使用DUNE自己的迭代求解器库ISTL。
+
+现在所有的模板参数都到位了，从类模板 `GridFunctionSpace` 中定义类型 `GFS` 。这个类模板结合所有给定的信息，在给定的网格视图上构造全局有限元空间$V_{h}$。最后这个类的一个对象被实例化，空间被赋予一个名字。
+
+网格函数空间实际上对应于无约束函数空间$V_{h} .$ `CON`类不提供约束本身，而是提供确定约束的方法。从上面构建的边界条件类型函数`b`中确定特定网格函数空间的约束条件，由以下几行完成。
+
+~~~C++
+typedef typename GFS::template ConstraintsContainer<RF>::Type CC;
+CC cc;
+Dune::PDELab::constraints(b, gfs, cc); // assemble constraints
+std::cout << " constrained   dofs =" << cc.size() << " of "
+           << gfs.globalSize() << std::endl;
+~~~
+
+
+
+约束函数将约束条件，在我们的例子中是index set$\mathcal{I}_{h}^{\partial \Omega}$，集合到类型$\mathrm{CC}$的约束容器`cc`中。函数空间$V_{h}$和约束集$\mathcal{I}_{h}^{\partial \Omega}$的分离允许人们将函数空间与不同的约束一起重复使用，例如用于偏微分方程系统。
+
+下一步是声明一个变量，该变量将在以后包含解向量$z$ 。
+
+~~~C++
+using Z = Dune::PDELab::Backend::Vector<GFS, RF>;
+Z z(gfs); // initial value
+~~~
+
+
+
+代表$Z$的类型从网格函数空间的向量后端提取，同时我们仍然能够为解向量的每个分量指定类型`RF`。
+
+有限元同构 $\mathrm{FE}_{h}: \mathbb{R}^{N} \rightarrow V_{h}$ 。
+
+ $$
+\mathrm{FE}_{h}(z)=\sum_{j=1}^{N}(z)_{j} \phi_{j}
+$$ 
+
+提供了系数向量和有限元函数之间的一对一对应关系。下面几行从系数向量产生一个有限元函数。
+
+~~~C++
+typedef Dune::PDELab::DiscreteGridFunction <GFS ,Z> ZDGF ;
+ZDGF zdgf (gfs ,z);
+~~~
+
+
+你应该知道，对象`zdgf`通过引用到方式存储到对象$z$，这意味着当你改变系数向量的条目时，函数也会改变。
+
+通常，人们希望填充一个系数向量，使 $\mathrm{FE}_{h}(z)$ 近似 一个给定的函数，例如 $w$（连续空间） 。一般来说，$w$不是一个有限元函数，但如果它是，那么 $w=\mathrm{FE}_{h}(z)$ 应该成立。所以我们所寻求的是 $z=\mathrm{FE}_{h}^{-1}(P(w))$ ，其中$P$是对有限元空间(离散空间)的投射。这是由下面一行提供的。
+
+《Jiaqi笔记》： P是离散化过程。
+
+~~~C++
+Dune::PDELab::interpolate(g, gfs, z);
+~~~
+
+
+
+在这种情况下，函数`interpolate`所使用的`投影`$P$是函数$g$的拉格朗日内插点上的值。
+
+ $$
+P(g)=\sum_{j=1}^{N} g\left(x_{j}\right) \phi_{j}
+$$ 
+
+即$(z)_{j}=g\left(x_{j}\right)$，其中$x_{j}$为网格顶点。要使用的`投影`取决于有限元空间，是网格函数空间定义的一部分。例如，在不连续的有限元函数的情况下，它可能是一个$L^{2}$-投影。
+
+下面这行代码
+
+~~~C++
+Dune::PDELab::set_nonconstrained_dofs (cc, 0.0, z);
+~~~
+
+
+则接着将所有内部自由度设为零。
+
+正如第3.4节所指出的，右手边$b$和矩阵$A$的装配以及$A z$的无矩阵计算可以被分离成一个在有限元网格上循环的通用部分，并进行元素局部计算。这种分离在代码中的表现是，首先设置一个`local operator`，这里的类型是`LOP` 
+
+~~~C++
+typedef PoissonP1 < decltype (f),FEM > LOP;
+LOP lop (f,fem. find ( *gv.template begin<0>() ));
+~~~
+
+
+提供元素的计算。实现泊松方程的逐元线性有限元方法的类模板`PoissonP1`将在下文中详细描述。构造函数需要右手边的函数作为第一个参数，网格中第一个元素的有限元作为第二个参数。有限元被用来预先计算参考元素的基函数以及梯度。重要的是，我们假设所有的网格元素都使用相同的基。
+
+现在`local operator`被用作全局集合器或网格运算器中的模板参数之一。
+
+~~~C++
+typedef Dune::PDELab::ISTL::BCRSMatrixBackend<> MBE;
+MBE mbe(1 << (dim + 1)); // guess nonzeros per row
+typedef Dune::PDELab::GridOperator<
+    GFS, GFS,   /* ansatz and test space */
+    LOP,        /* local operator */
+    MBE,        /* matrix backend */
+    RF, RF, RF, /* domain , range , jacobian field type */
+    CC, CC      /* constraints for ansatz and test space */
+    >
+    GO;
+GO go(gfs, cc, gfs, cc, lop, mbe);
+~~~
+
+
+由`GO`类型实现的网格运算器提供了装配程序的通用部分。它需要的类型为解析器和测试空间，一般情况下可能是不同的解析器和测试空间的类型、本地运算器类型、矩阵后端、用于解析和测试空间的系数向量组件的类型以及矩阵$A$的条目，最后但同样重要的是解析和测试空间的约束容器类型。然后，构造函数将相应的对象作为参数。请注意，这里需要一个矩阵后端类型的对象`mbe`。它是用每行非零点的平均数的猜测来构造的。
+
+作为下一步，我们需要选择一个解算器，用来解决线性系统 $A z=b$ 。这是由以下两行完成的。
+
+~~~C++
+typedef Dune::PDELab::ISTLBackend_SEQ_CG_AMG_SSOR <GO > LS;
+LS ls (100 ,3);
+~~~
+
+
+
+由于我们使用了ISTL的向量和矩阵的后端，我们需要从ISTL库中选择一个求解器。完整的求解器是由PDELab打包的，用于顺序和并行计算。这里我们选择共轭梯度法，用代数多重网格作为预处理程序，用对称连续过度松弛作为多重网格的平滑器，在其顺序执行。线性求解器对象ls被初始化为最大迭代次数和一个粗略的参数。
+
+到目前为止，实际上还没有进行有限元计算，只是配置了必要的组件，现在一起做真正的工作。我们现在可以设置矩阵$A$以及右手边$b$，然后求解该系统。由于经常需要这样做，所以在PDELab中有一个类用于此。
+
+~~~C++
+typedef Dune::PDELab::
+    StationaryLinearProblemSolver<GO, LS, Z>
+        SLP;
+SLP slp(go, ls, z, 1e-10);
+~~~
+
+
+类型为`StationaryLinearProblemSolver`的对象slp接收网格算子、选定的线性求解器后端以及带有初始猜测和正确`Dirichlet`边界数据的系数向量，并在调用apply方法时将问题解到给定的精度。
+
+~~~C++
+slp. apply (); // here all the work is done !
+~~~
+
+
+在给定的例子中，一个已知精确解的问题，由函数$g$给出，被解决了。为了比较计算出来的解和精确解，我们用精确解的拉格朗日插值初始化另一个系数向量，并提供一个网格函数。
+
+~~~C++
+Z w(gfs); // Lagrange interpolation of exact solution
+Dune::PDELab::interpolate(g, gfs, w);
+ZDGF wdgf(gfs, w);
+~~~
+
+
+最后，是时候将结果写入磁盘，以便用VTK/ParaView进行后处理。这是用DUNE的`VTKWriter`类完成的。
+
+~~~C++
+Dune::VTKWriter<GV> vtkwriter(gv, Dune::VTK::conforming);
+typedef Dune::PDELab::VTKGridFunctionAdapter<ZDGF> VTKF;
+vtkwriter.addVertexData(std::shared_ptr<VTKF>(new VTKF(zdgf, " fesol ")));
+vtkwriter.addVertexData(std::shared_ptr<VTKF>(new VTKF(wdgf, " exact ")));
+vtkwriter.write(ptree.get(" output . filename ", " output "),
+                Dune::VTK::appendedraw);
+~~~
+
+
+VTK写程序不是PDELab的一部分，它使用不同的接口来表示网格上的函数。因此，我们需要使用适配器类`VTKF`来将PDELab的网格函数传递给VTK写程序。此外，这个适配器类的对象应该通过`std:: shared_ptr`传递给VTK写程序对象，因为这需要照顾到内存管理。当`write`方法被调用时，输出文件被写入。
+
+ \subsection{ Local Operator `PoissonP1` } 
+
+有限元方法本身是由文件 `poissonp1.hh` 中的类模板 `PoissonP1` 实现的所谓 `local operator` 。它提供了所有必要的元素局部计算，如$3.4$小节中所述，并声明如下。
+
+~~~C++
+template < typename F, typename FiniteElementMap >
+class PoissonP1 ;
+~~~
+
+
+
+第一个模板参数提供了PDE的右手边函数，第二个参数提供了一个有限元映射，可以访问网格中所有元素的参考元素上的有限元基函数。该类派生自PDELab类`FullVolumePattern`和`Local0peratorDefaultFlags`，提供了一些默认的常数和方法。
+
+这个有限元方法实现的基本假设是，网格的所有元素都是维度为$d$的简单元素，使用相同的多项式1阶。 为了使代码更快，最好在计算开始前对参考元素的基函数及其梯度做一次评估。这将在构造函数中完成，但在这之前我们需要做一些准备工作。
+
+\textbf{Type Definitions and Data Members} 
+
+该类首先提取了重要的类型。有限元映射为每个元素提供一个有限元。它的类型是
+
+~~~C++
+typedef typename FiniteElementMap::Traits::FiniteElementType
+    FiniteElementType;
+~~~
+
+
+在其他方面，有限元包含参考元素上的基函数，可以通过以下类型访问。
+
+~~~C++
+typedef typename FiniteElementType::Traits::LocalBasisType
+    LocalBasisType;
+~~~
+
+
+DUNE认为参考元素上的基函数是最一般的形式
+
+ $$
+\hat{\phi}: \mathbb{A}^{d} \rightarrow \mathbb{B}^{k}, \quad \nabla \hat{\phi}: \mathbb{A}^{d} \rightarrow \mathbb{B}^{k \times d},
+$$ 
+
+也就是说，它们可以是矢量值的。以下是类型定义
+
+~~~C++
+typedef typename LocalBasisType::Traits::DomainType
+    DomainType;
+typedef typename LocalBasisType::Traits::RangeFieldType
+    RF;
+typedef typename LocalBasisType::Traits::RangeType
+    RangeType;
+typedef typename LocalBasisType::Traits::JacobianType
+    JacobianType;
+
+~~~
+
+
+
+提供了代表参数和基函数求值结果的类型。 `DomainType`代表$\mathbb{A}^{d}$，RF代表$\mathbb{B}$，`RangeType`代表$\mathbb{B}^{k}$，最后`JacobianType`代表$\mathbb{B}^{k \times d}$ 。
+
+接下来，我们提取一些重要的常数，网格的维度和每个元素的基函数数量。
+
+~~~C++
+enum
+{
+    dim = LocalBasisType::Traits::dimDomain
+};
+enum
+{
+    n = dim + 1
+};
+
+~~~
+
+
+作为私有数据成员，该类存储了由 `driver` 提供的右手边函数 $\mathrm{f}$ 的一个实例。
+
+~~~C++
+const F f; // right hand side function
+~~~
+
+中点正交法则
+
+~~~C++
+DomainType qp; // center of mass of refelem
+double weight ; // quadrature weight on refelem
+~~~
+
+
+其中$\mathrm{qp}$为$\hat{S}_{d}$，权重为$w_{d}$ ，正交点的基函数值及其梯度：
+
+~~~C++
+double phihat [n]; // basis functions at qp
+double gradhat [ dim ][n]; // coordinate x # basisfct
+~~~
+
+
+
+然后，在公共部分，我们需要定义一些常数来控制做全局装配的网格操作者的操作。
+
+~~~C++
+enum { doPatternVolume = true };
+enum { doAlphaVolume = true };
+enum { doLambdaVolume = true };
+~~~
+
+
+
+这些常量在编译时被评估，并告诉网格运算器类哪些方法已经被用户在本地运算器中实现。实际上，基类`Local0peratorDefaultFlags`提供了所有可能的标志，其值为false，我们只需要覆盖需要的标志。常数 `doPatternVolume` 告诉全局汇编器从基类 `FullVolumePattern` 继承的方法 `pattern_volume` 中确定矩阵 $A$ 的稀疏度模式。这个默认实现在一个元素的所有自由度之间插入非零。常数`doAlphaVolume`和`doLambdaVolume`决定了我们的有限元方法包含一个涉及有限元解的体积积分$u_{h}$和一个不涉及有限元解的右手侧积分。
+
+将`doAlphaVolume`设置为真，意味着局部算子类实现了方法`alpha_volume`、`jacobian_apply_volume`和`jacobian_volume`。将`doLambdaVolume`设置为真，意味着必须实现`lambda_volume`方法。
+
+\textbf{Constructor} 
+
+该类的构造函数有如下签名。
+
+~~~C++
+PoissonP1 ( const F& f_ , const FiniteElementType & fel )
+~~~
+
+
+它接受右手边的函数$f$和一个有限元`fel`作为参数。有限元是由有限元映射和函数 `driver` 中的网格的第一个元素得到的。
+
+首先要做的是，从DUNE中得到简化体的最低阶正交规则。
+
+~~~C++
+Dune::GeometryType gt = fel.type();
+const Dune::QuadratureRule<RF, dim> &
+    rule = Dune::QuadratureRules<RF, dim>::rule(gt, 1);
+~~~
+
+
+然后我们检查一下，这实际上是中点规则
+
+~~~C++
+if (rule.size() > 1)
+{
+    std::cout << " Wrong   quadrature   rule !" << std::endl;
+    exit(1);
+}
+~~~
+
+
+并将第一个正交点存储在本地数据成员中。
+
+~~~C++
+weight = rule[0].weight();
+qp = rule[0].position();
+~~~
+
+
+检查用户给出的基础是否至少有正确的大小也是一个好主意。
+
+~~~C++
+if (fel.localBasis().size() != n)
+{
+    std::cout << " Wrong   basis !" << std::endl;
+    exit(1);
+}
+~~~
+
+
+现在，基函数可以在参考元素的正交点进行评估，结果存储在类的数据成员中。
+
+~~~C++
+std::vector<RangeType> phi(n);
+fel.localBasis().evaluateFunction(qp, phi);
+for (int i = 0; i < n; i++)
+    phihat[i] = phi[i];
+
+~~~
+
+
+现在对梯度也是如此。
+
+~~~C++
+std::vector<JacobianType> js(n);
+fel.localBasis().evaluateJacobian(qp, js);
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < dim; j++)
+        gradhat[j][i] = js[i][0][j];
+~~~
+
+
+
+请注意，最后一个索引在基函数的数量上循环。
+
+\textbf{Method `lambda_volume`} 
+
+这个方法计算公式\ref{16}中给定元素对右侧向量的贡献$b_{T}$。它有以下特征。
+
+~~~C++
+template <typename EG, typename LFSV, typename R>
+void lambda_volume(const EG &eg, const LFSV &lfsv,
+                   R &r) const
+~~~
+
+
+
+参数`eg`以包装形式提供元素$T$，这样PDELab不需要直接在DUNE网格上操作。通过 `eg.geometry()` 可以以 `Dune::Geometry` 的形式访问元素的几何形状。用`eg.entity()`可以访问DUNE网格的基础codim 0实体。第二个参数lfsv提供了在参考元素上的测试函数，$r$提供了一个应该存储结果的容器。
+
+首先要做的是在正交点评估右手边的函数。
+
+~~~C++
+typename F::Traits::RangeType fval ;
+f.evaluate (eg.entity (), qp , fval );
+~~~
+
+
+接下来，我们计算$b_{T}$中所有条目的共同因子。
+
+~~~C++
+RF factor = fval * weight * eg.geometry().integrationElement(qp);
+~~~
+
+
+
+注意，几何学上的方法`integrationElement`提供了$\left|\operatorname{det} B_{T}\right|$的值。
+
+最后，我们可以计算这些条目，并将其存储在结果容器中。
+
+~~~C++
+for (int i = 0; i < n; i++)
+    r.accumulate(lfsv, i, -factor*phihat[i] );
+~~~
+
+
+
+这里要注意减号，因为PDELab实际上将`weak formulation`解为
+
+$$
+r\left(u_{h}, v\right)=a\left(u_{h}, v\right)-l(v)=0 \quad \forall v \in V
+$$ 
+
+因为这在非线性偏微分方程的情况下更合适。
+
+\textbf{Method `jacobian_volume`} 
+
+接下来我们需要计算公式 \ref{19} 中描述的对刚度矩阵的元素贡献。这可以通过以下接口的方法`jacobian_volume`来完成。
+
+~~~C++
+template <typename EG, typename LFSU, typename X,
+          typename LFSV, typename M>
+void jacobian_volume(const EG &eg, const LFSU &lfsu,
+                     const X &x, const LFSV &lfsv, M &mat) const
+~~~
+
+
+
+其参数为: `eg`提供包装好的codim 0实体$T$，`lfsu`提供Ansatz空间的基础函数，$x$提供有限元解决方案的当前迭代的系数，`lfsv`提供测试函数和mat一个容器来存储结果。
+
+`jacobian_volume`方法对非线性问题也以同样的方式工作。非线性问题是通过迭代解决的，例如使用牛顿方法或定点迭代，该方法应该在当前迭代中提供一个由`lfsu`和$\mathrm{x}$组合给出的线性化。在我们的线性问题中，结果并不取决于当前的迭代。此外，测试空间的基函数是预先计算好的，所以我们不需要通过`lfsv`访问它们。还要注意的是，在一般情况下，定理和检验空间可能是不同的。
+
+我们首先需要得到$B_{T}^{-T}$并将其存入S。
+
+~~~C++
+const auto geo = eg.geometry();
+const auto S = geo.jacobianInverseTransposed(qp);
+~~~
+
+
+接下来，从几何学中检索出$\left|\operatorname{det} B_{T}\right|$，并计算出`local stiffness matrix`中所有条目的共同因子。
+
+~~~C++
+RF factor = weight * geo.integrationElement(qp);
+~~~
+
+现在形成变换后的梯度矩阵$G=B_{T}^{-T} \hat{G}$并将其存储在grad中。
+
+~~~C++
+double grad[dim][n] = {{0.0}};      // coordinate x # basisfct
+for (int i = 0; i < dim; i++)       // rows of S
+    for (int k = 0; k < dim; k++)   // columns of S
+        for (int j = 0; j < n; j++) // columns of gradhat
+            grad[i][j] += S[i][k] * gradhat[k][j];
+~~~
+
+
+计算的安排是这样的：最里面的循环有基函数的维数。在3D中，有四个基函数，循环有机会被矢量化。
+
+现在，`local stiffness matrix`$A_{T}=G^{T} G$（至于$\left.\left|\operatorname{det} B_{T}\right| w_{d}\right)$的系数是形成的
+
+~~~C++
+double A[n][n] = {{0.0}};
+for (int i = 0; i < n; i++)
+    for (int k = 0; k < dim; k++)
+        for (int j = 0; j < n; j++)
+            A[i][j] += grad[k][i] * grad[k][j];
+~~~
+
+并存储在结果容器中（现在与公因子相乘）。
+
+~~~C++
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+        mat.accumulate(lfsu, i, lfsu, j, A[i][j] * factor);
+~~~
+
+
+\textbf{Method `alpha_volume`} 
+
+方法`alpha_volume`为所有测试函数$\phi_{i}$的无矩阵评估提供元素本地计算，如公式$210 .$所给出。
+
+~~~C++
+template <typename EG, typename LFSU, typename X,
+          typename LFSV, typename R>
+void alpha_volume(const EG &eg, const LFSU &lfsu,
+                  const X &x, const LFSV &lfsv,
+                  R &r) const
+~~~
+
+
+它的参数是。 `eg` 提供包装好的codim 0实体 $T$ ， `lfsu` 提供Ansatz空间的基函数， $x$ 提供有限元解的当前迭代的系数， lfsv提供测试函数和 $\mathrm{r}$ 存储结果的一个容器。
+
+这些计算实际上与 `jacobian_volume` 中的计算非常相似。特别是，$B_{T}^{-T},\left|\operatorname{det} B_{T}\right|$和$G=B_{T}^{-T} \hat{G}$的计算是一样的。
+
+提取元素局部系数$z_{T}=R_{T} z$的方法是。
+
+~~~C++
+double z_T[n];
+for (int j = 0; j < n; j++)
+    z_T[j] = x(lfsu, j); // read coeffs
+~~~
+
+
+现在我们可以通过$G z_{T}$来计算$\nabla u_{h}$ 。
+
+~~~C++
+double graduh[dim] = {0.0};
+for (int k = 0; k < dim; k++)   // rows of grad
+    for (int j = 0; j < n; j++) // columns of grad
+        graduh[k] += grad[k][j] * z_T[j];
+~~~
+
+
+
+最后，形成结果$a_{T}=G^{T} \nabla u_{h}$。
+
+
+~~~C++
+double a_T[n] = {0.0};
+for (int k = 0; k < dim; k++) // rows of grad
+    for (int j = 0; j < n; j++)
+        a_T[j] += grad[k][j] * graduh[k];
+~~~
+
+
+并存储在结果容器中（同时与公因子相乘）。
+
+~~~C++
+for (int i = 0; i < n; i++)
+    r.accumulate(lfsv, i, a_T[i] * factor);
+~~~
+
+
+\textbf{Method `jacobian_apply_volume`} 
+
+在非线性偏微分方程的情况下，有限元方法的结果是一个弱的形式
+
+ $$
+u_{h} \in V_{h}: \quad r\left(u_{h}, v\right)=\alpha\left(u_{h}, v\right)-\lambda(v)=0 \quad \forall v \in V_{h}
+$$ 
+
+它的第一个参数是非线性的。插入有限元基础的结果是一个非线性代数问题
+
+ $$
+R(z)=0
+$$ 
+
+与$(R(z))_{i}=r\left(\mathrm{FE}_{h}(z), \phi_{i}\right)$，通常通过牛顿迭代或其他迭代方法解决。在牛顿方法中，每一步都涉及一个线性系统的解决，其形式为
+
+ $$
+J(z) w=R(z)
+$$ 
+
+其中$(J(z))_{i, j}=\frac{(\partial R(z))_{i}}{\partial z_{j}}=\frac{\partial \alpha\left(\mathrm{FE}_{h}(z), \phi_{i}\right)}{\partial z_{j}}$是非线性图的雅各布系数$R$ 。
+
+当然，非线性情况也包括本教程中描述的线性情况，通过设置$r(u, v)=a(u, v)-l(v)$ 。然后，由于$a$的第一个参数是线性的，可以证明$J(z)=A$和
+
+ $$
+(J(z) w)_{i}=(A w)_{i}=a\left(\mathrm{FE}_{h}(w), \phi_{i}\right)
+$$ 
+
+这在非线性情况下是不对的。在那里，形式$\alpha\left(\mathrm{FE}_{h}(w), \phi_{i}\right)$的评估和雅各布$J w$的应用是不同的操作。因此，PDELab提供了两个函数，在`jacobian_apply_volume`中实现了雅各布的应用，并提供了接口。
+
+~~~C++
+template <typename EG, typename LFSU, typename X,
+          typename LFSV, typename R>
+void jacobian_apply_volume(const EG &eg, const LFSU &lfsu,
+                           const X &z, const LFSV &lfsv,
+                           R &r) const
+~~~
+
+
+
+注意，这与 `alpha_volume` 的接口相同。由于我们的问题是线性的，雅各布的应用与双线性形式的评估是相同的，因此我们可以直接转发对函数 `alpha_volume` 的调用。
+
+~~~C++
+alpha_volume (eg ,lfsu ,z,lfsv ,r);
+~~~
+
+
+
+ \subsection{Running the Example} 
+
+现在我们可以运行该教程并查看结果。我们可以检查一下，$u(x)=$ $\sum_{i=1}^{d}(x)_{i}^{2}$在$d$维度上解决了$\mathrm{PDE}-\Delta u=-2 d$（在$d=1$中这不是一个PDE而是一个两点`boundary value problem`）。所以我们提供精确的解决方案作为 `Dirichlet` 边界数据，并设置 $f=-2 d$ 。
+
+该程序可以通过输入以下内容来运行 
+
+~~~Shell
+./ tutorial00
+~~~
+
+在命令行上输入 ~~~Shell
+./ tutorial00
+~~~
+ 来运行程序。然后它在控制台产生一些输出，并在一个空间维度上产生一个扩展名为`.vtp`的VTK文件，在两个和三个空间维度上产生`.vtu`。
+
+首先，该程序报告说它是在一个处理器上运行的。
+
+~~~Shell
+Parallel code run on 1 process (es)
+~~~
+
+
+
+然后读取网格文件并报告一些相关的统计数据。
+
+~~~Shell
+Reading 2d Gmsh grid ...
+version 2.2 Gmsh file detected
+file contains 133 nodes
+file contains 268 elements
+number of real vertices = 133
+number of boundary elements = 36
+number of elements = 228
+~~~
+
+
+现在，一个DUNE网格的实例被创建，并被精简到所需的次数。
+
+~~~Shell
+Created serial ALUGrid <2,2, simplex , nonconforming >.
+Time for mesh refinement 0.011566 seconds
+~~~
+
+
+接下来，`Dirichlet`边界约束被评估，并报告统计数据。
+
+~~~Shell
+constrained dofs =288 of 7441
+~~~
+
+
+现在，矩阵和右手边被设置好了。
+
+~~~Shell
+=== matrix setup (max ) 0.013918 s
+=== matrix assembly ( max) 0.012634 s
+=== residual assembly (max ) 0.009034 s
+~~~
+
+
+解算器启动，在这种情况下，使用共轭梯度法和代数多网格预处理器。这个预处理程序需要一个设置阶段，产生以下输出。
+
+
+~~~Shell
+=== solving ( reduction : 1e -10)
+Using a direct coarse solver ( UMFPACK )
+Building hierarchy of 2 levels ( inclusive coarse solver ) took
+0.022688 seconds .
+~~~
+
+
+最后，求解器打印出一些关于收敛的统计数据。
+
+~~~Shell
+=== CGSolver
+12 1.9016e -09
+=== rate =0.144679 , T =0.021999 , TIT =0.00183325 , IT =12
+0.044764 s
+~~~
+
+ [Fig4] 显示有限元解 $u_h$ 以及2d问题与精确解 $u(x, y)=x^{2}+y^{2}$ 的绝对误差 $\left|u-u_{h}\right|$ 。最大的误差是在粗大网格的顶点得到的。
+
+
+
+
+
+
+
+ \section{Outlook} 
+
+有兴趣的读者可以从这里开始向不同的方向前进。比较明显的是。
+
+- 在不同的细化水平上运行问题并确定最大误差。最大误差应该表现为$O\left(h^{2}\right)$的网格大小。
+
+- 尝试不同的解决方案，如$u(x, y)=x^{3}+y^{3}$，相应地改变程序并研究与网格细化有关的误差。
+
+- 用不同的方法代替代数多网格预处理，例如带SSOR预处理的BiCGStab方法。
+
+~~~C++
+typedef Dune::PDELab::ISTLBackend_SEQ_BCGS_SSOR LS;
+LS ls (5000 , true );
+~~~
+
+其他更多的选项将在以后的教程中介绍。
+
+- 涉及边界积分的诺伊曼型边界条件的实现。
+
+- 使用多线性基函数将有限元方法扩展到立方体元素。
+
+- 将有限元方法扩展到高阶多项式。
+
+
+
+
+
+
+
+
+[Fig1]: https://cdn.mathpix.com/snip/images/GpGyEf4xCZ4YEeZWUcMNaE4S526VIDoh-SKhyey0qFc.original.fullsize.png
+[Fig2]: https://cdn.mathpix.com/snip/images/MvUIfBphccUZfMPO090waeaf-S97zPV0uHGUMpX1TGo.original.fullsize.png
+[Fig3]: https://cdn.mathpix.com/snip/images/vxwpJ9lnJnJkkc7K8DTOoJRuT7oslL1g-3Ty0WM_-38.original.fullsize.png
+[Fig4]: https://cdn.mathpix.com/snip/images/ruE_a1gMxTswGi1f8HNuf6t5NO7uphSZjjhsNEKmGQA.original.fullsize.png
+[Algo1]: https://cdn.mathpix.com/snip/images/mzEv1n7KZSmpYXBcFt3YRTPUIxVsYgN8kcQjb9wIz_k.original.fullsize.png
+[Algo2]: https://cdn.mathpix.com/snip/images/sek2vTMrhpCv13OoAkQd8IzCdc47JekHZ1-EqAzZMSY.original.fullsize.png
+
+
+
+
+
+
+[1]: P. Bastian. Lecture notes on scientific computing with partial differential equations. https://conan.iwr.uni-heidelberg.de/data/teaching/finiteelements_ ws2017/num2.pdf, 2014 .
+
+[2]: D. Braess. Finite Elemente. Springer, 3rd edition, 2003 .
+
+[3]: S. C. Brenner and L. $R$. Scott. The mathematical theory of finite element methods. Springer, 1994 .
+
+[4]: P. G. Ciarlet. The finite element method for elliptic problems. Classics in Applied Mathematics. SIAM, 2002 .
+
+[5]: H. Elman, D. Silvester, and A. Wathen. Finite Elements and Fast Iterative Solvers. Oxford University Press, 2005 .
+
+[6]: K. Eriksson, D. Estep, P. Hansbo, and C. Johnson. Computational Differential Equations. Cambridge University Press, $1996 .$ http://ww.csc.kth.se/ jjan/ transfer/cde.pdf.
+
+[7]: A. Ern and J.-L. Guermond. Theory and practice of finite element methods. Springer, 2004 .
+
+[8]: Christophe Geuzaine and Jean-François Remacle. Gmsh: A 3-d finite element mesh generator with built-in pre- and post-processing facilities. International Journal for Numerical Methods in Engineering, 79(11): 1309-1331,2009 .
+
+[9]: C. Großmann and H.-G. Roos. Numerische Behandlung partieller Differentialgleichungen. Teubner, 2006 .
+
+[10]: W. Hackbusch. Theorie und Numerik elliptischer Differentialgleichungen. Teubner, 1986. http://www.mis.mpg.de/preprints/ln/lecturenote-2805.pdf.
+
+[11]: R. Rannacher. Einführung in die Numerische Mathematik II (Numerik partieller differentialgleichungen). http://numerik.iwr.uni-heidelberg.de/ 〜ehre/notes, 2006 .
+
+

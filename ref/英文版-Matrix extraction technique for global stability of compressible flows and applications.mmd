@@ -1,0 +1,252 @@
+\title{
+Matrix extraction technique for global stability of compressible flows and applications
+}
+
+\author{
+Miguel Fosas de Pando*, Denis Sipp $^{\dagger}$ Peter J. Schmid \\ Laboratoire d'Hydrodynamique, CNRS-Ecole Polytechnique, 91128 Palaiseau, France \\ ONERA $/ D A F E, 8$ rue des vertugadins, 92190 Meudon, France
+}
+
+\begin{abstract}
+The derivation of the linearized operator for large-scale flow problems is a cumbersome and error-prone task, especially regarding the adjoint. The complexity of compressible direct numerical simulations and the use of high-order discretizations complicate the application of efficient procedures. Nevertheless, both operators are at the core of numerous algorithms for quantitative flow analysis; thus providing access to them is of great practical interest. A novel algorithm based on a divide and conquer strategy for the extraction and evaluation of the linearized operators, from a nonlinear flow solver, is presented. This technique is demonstrated on an existing compressible flow solver and validated by the computation of global modes in a spatially developing boundary layer. Finally, potential applications will be illustrated by the computation of the most unstable direct and adjoint global modes in the flow around an airfoil.
+\end{abstract}
+
+\section{Introduction}
+
+In the past decades, a wide variety of techniques for quantitative flow description have been developed. Studies such as global $^{1}$ and non-modal $^{2}$ stability, sensitivity and receptivity analyses have become important for gaining insight into complex behavior observed in many flows of practical interest; in addition, they form the foundation for efficient control techniques.
+
+Typically, the algorithms at the heart of these studies rely on the evaluation of the linearized operator of the Navier-Stokes equations around a base flow, which we call the direct operator, and its adjoint. For example, they play a fundamental role in the determination of the linear stability, the physical mechanisms for the onset of unsteadiness and the identification of the most sensitive regions for modifications of the base flow. ${ }^{3,4}$ Nevertheless, the derivation of the direct and adjoint operators is an error-prone and time-consuming task and usually has to be performed case by case.
+
+Until very recently, the majority of researchers using the above tools have focused their attention on incompressible configurations. Compressible flows remain partially unexplored, but it is nevertheless believed that these techniques could shed some light on open issues such as the role of acoustic waves in instability mechanisms.
+
+Despite the evident interest, the analysis of compressible flows does not come without additional difficulties, mainly due to the use of high-order spatial schemes, that are needed in order to resolve all the flow features at a reasonable cost. ${ }^{5}$ The width of the stencil leads to dense or low-sparsity matrices that would require prohibitive computational efforts even for small-scale problems. To illustrate this, it is worth pointing out that the storage of the linearized operator of a flow configuration with half a million degrees of freedom requires substantial storage, ranging from tens of gigabytes up to two terabytes in the worst-case scenario. On the other hand, most of the state-of-the-art numerical methods for large-scale linear algebra problems, ${ }^{6}$ e.g. the Krylov subspace methods, require only the result of the matrix-vector product, rather than the matrix itself.
+
+In this article, we present a new technique for the extraction of the linearized Navier-Stokes operator from a nonlinear compressible flow solver. This technique overcomes most of the difficulties mentioned above. First, it can be classified as matrix-free, since it allows for the evaluation of the direct and adjoint operator from a nonlinear solver without explicitly forming the resulting matrix, thus requiring minimal storage. The evaluation of the linear operators allows for potential code reuse from its nonlinear counterpart. Second, the extraction can be performed in a systematic fashion, without being restricted to a specific geometry or set of boundary conditions. Any change in the nonlinear code will automatically be reflected in the extracted direct and adjoint operator.
+
+Once that the operator is obtained, it can be readily incorporated in any of the studies mentioned above. This will be demonstrated by the calculation of global modes in a spatially developing boundary layer and the flow around an airfoil.
+
+\section{Numerical methods}
+
+A compressible flow solver developed by the authors has been used in the present computations. This numerical code, conveniently parallelized using the industry de facto standards MPI and OpenMP, applies to smooth flows where the sound generation is the principal feature of interest. The matrix extraction technique is implemented around this code with minimal effort due to a careful analysis of the structure of the discretization; it enables significant reuse of existing code.
+
+\section{II.A. Direct numerical simulation}
+
+The three-dimensional compressible Navier-Stokes equations $\sqrt{1}$, are rearranged and solved using the curvilinear pseudo-characteristics formulation $^{7}$ together with $\sqrt{2} \mid$ and the state equation.
+
+$$
+\begin{array}{r}
+\frac{\partial p}{\partial t}+\mathbf{u} \cdot \nabla p+\rho c^{2} \nabla \cdot \mathbf{u}=\frac{p}{c_{v}}\left(\frac{\partial s}{\partial t}+\mathbf{u} \cdot \nabla s\right) \\
+\frac{\partial s}{\partial t}+\mathbf{u} \cdot \nabla s=\frac{1}{\rho T}(-\nabla \cdot \mathbf{q}+\bar{\tau}: \nabla \mathbf{u}) \\
+\frac{\partial \mathbf{u}}{\partial t}+(\mathbf{u} \cdot \nabla) \mathbf{u}=-\frac{1}{\rho} \nabla p+\frac{1}{\rho} \nabla \cdot \bar{\tau} \\
+\mathbf{q}=-\lambda \nabla T \\
+\bar{\tau}=\mu\left(\nabla \mathbf{u}+\nabla \mathbf{u}^{T}\right)+\left(\mu_{v}-\frac{2}{3} \mu\right)(\nabla \cdot \mathbf{u}) \delta_{i j}
+\end{array}
+$$
+
+These equations are written in non-dimensional form using free-stream values as reference. The entropy is normalized with the gas constant $R$ and the characteristic lengths are chosen from the geometry. The following parameters are defined:
+
+$$
+M=\frac{U_{\infty}}{c_{\infty}} \quad R e=\frac{\rho_{\infty} U_{\infty} L}{\mu} \quad P r=\frac{c_{p} \mu}{\lambda}
+$$
+
+The time evolution of the resulting system is performed using the method of lines. The spatial discretization is carried out with finite differences. Once that boundary conditions are imposed, we are left with a nonlinear system of ordinary differential equations that constitutes an initial value problem that is integrated explicitly in time starting from an initial field.
+
+High-order schemes are preferred for the evaluation of spatial derivatives and numerical stability of the computation is achieved through the use of the compact upwind low-dissipative schemes $^{8}$ for the advection terms. In view of our interest in linearizing the evolution operator, a nonlinear weight function is used in the switching module of the upwind finite differences. Diffusion terms are evaluated with central compact schemes. ${ }^{9}$ Non-reflecting inflow and outflow boundary conditions, ${ }^{10,11}$ whose implementation is straightforward in the current formulation, are imposed at boundaries of the domain together with sponge layers $^{12}$ to reduce spurious reflections of outgoing acoustic waves and vortical structures. The time integration is performed using a low-storage Runge-Kutta method. ${ }^{13}$ The maximum allowable time step is computed automatically from the Courant-Friedrichs-Lewy condition taking into account the stability margins of the discretizations. Mesh generation on curvilinear geometries is performed using an elliptic grid generation program in a preprocessing stage. 
+
+\section{II.B. Matrix extraction technique}
+
+As previously stated, we are left with a nonlinear system of ordinary differential equations that we wish to linearize. We symbolically write:
+
+$$
+\frac{\partial \mathbf{v}}{\partial t}=\mathbf{F}(\mathbf{v})
+$$
+
+A way to proceed, that has been extensively followed until now, would be to derive and implement manually the linearization of the Navier-Stokes equations and its continuous adjoint. Independent of whether the matrix is built explicitly or only the matrix-vector product is evaluated, several disadvantages arise from this approach: it has to be performed on a case by case basis and commonly requires an enormous debugging effort. Moreover, the analytical derivation of the continuous adjoint is far from simple, especially concerning the boundary conditions and numerical artifacts such as sponge layers. The resulting discretization often does not satisfy some important properties that are desirable to ensure the well-posedness and convergence of numerical methods, e.g. the scalar product $\langle\mathbf{v}, \mathbf{A} \mathbf{u}\rangle$ is only equal to $\left\langle\mathbf{A}^{*} \mathbf{v}, \mathbf{u}\right\rangle$ up to the accuracy of the discretization, not up to machine round-off error. Giving up this strategy, we seek an alternative procedure. It seems clear that matrix-free techniques are preferred over the explicit assembly of the matrices, as are systematic methods that are independent of the specific case and flow configuration under consideration.
+
+A first alternative would be the numerical evaluation of the direct operator by quasi-linearization, ${ }^{14}$ i.e.,
+
+$$
+\mathbf{A} \mathbf{v}^{\prime} \approx \frac{\mathbf{F}\left(\mathbf{v}_{0}+\epsilon \mathbf{v}^{\prime}\right)-\mathbf{F}\left(\mathbf{v}_{0}\right)}{\epsilon}
+$$
+
+but the approach falls short of providing access to the adjoint operator; in addition, a poorly conditioned matrix could lead to large errors.
+
+If storage were not a limiting factor, the linearized operator could be extracted, with all generality, column-by-column by evaluating the right-hand-side for each degree of freedom in the problem. In this case, we have
+
+$$
+\mathbf{A}_{i j} \approx \frac{\mathbf{F}_{\mathbf{i}}\left(\mathbf{v}_{0}+\epsilon \mathbf{e}_{\mathbf{j}}\right)-\mathbf{F}_{\mathbf{i}}\left(\mathbf{v}_{0}\right)}{\epsilon}
+$$
+
+The number of evaluations can be greatly reduced by nearly an order of magnitude if explicit schemes are used and the stencil width and ordering are known. Nonetheless, we aim at a procedure that could be used with any spatial discretization, even if the matrix is dense. We contend that black-box strategies may not lead to optimal procedures, and rather prefer customization (without losing generality) by evaluation of the discretizations of $(1)$ and $(20)$. The most natural way of evaluating the right-hand-side would be
+
+1. computation of central derivatives of $\mathbf{v}$,
+
+2. evaluation of $(2)$, including its boundary conditions,
+
+3. computation of upwind derivatives of $\mathbf{v}$ and central derivatives of $\mathbf{q}$ and $\bar{\tau}$,
+
+4. evaluation of 11 , including its boundary conditions.
+
+We note that only through the calculation of the spatial derivatives (steps 1 and 3 ) the flow field variables at a given point depend on values at neighboring points, leading to dense or low-sparsity matrices. This fact can be exploited to derive a computationally efficient algorithm for the extraction and evaluation of the linearized dynamics. To illustrate this point, we evaluate terms from the advection in a two-dimensional problem as: $u \frac{\partial u}{\partial x}+v \frac{\partial u}{\partial y}$, contained in the nonlinear part of the code (steps 2 and 4). Considering these steps separately is analogous to the evaluation of the function $f(u, v, r, s)=u r+v s$ as $u \frac{\partial u}{\partial x}+v \frac{\partial u}{\partial y}=f\left(u, v, \frac{\partial u}{\partial x}, \frac{\partial u}{\partial y}\right)$ where the auxiliary variables $s$ and $r$ are explicitly introduced to highlight the fact that spatial derivatives are calculated at a different step. Since differentiation is a linear operator, only the nonlinear terms need to be linearized. In this particular example, the linearization reads
+
+$$
+R u+U r+S v+V s
+$$
+
+where $R, U, S$ and $V$ stand for base flow quantities of the associated variables $r, u, s$ and $v$. The coefficients can moreover be evaluated in a systematic way. For instance, the coefficient $R$ in front of $u$ may be obtained for our function $f(u, v, r, s)$ according to
+
+$$
+\frac{f(U+\epsilon, V, R, S)-f(U, V, R, S)}{\epsilon} \approx R
+$$
+
+up to a precision of the order of $\sqrt{\epsilon_{m}}$ (with $\epsilon_{m}$ as the machine precision) which is usually sufficient for most applications. The number of coefficients to be stored for a general case is of the order of the degrees of freedom; the coefficients can be regarded as block diagonal matrices multiplying respective differentiation operators which are already implemented in the nonlinear code. It is also worth mentioning that most of the parallelization effort is concentrated in steps 1 and 3 (differentiation), whereas the matrix-vector product of the block diagonal matrices can be accomplished without any communication due to the local nature of the operation.
+
+These arguments apply to the rest of the terms and boundary conditions and the complete linearized operator is evaluated as follows:
+
+1. computation of central derivatives of $\mathbf{v}^{\prime}$,
+
+2. evaluation of linearization of step 2 from the nonlinear code,
+
+3. computation of upwind derivatives of $\mathbf{v}^{\prime}$ and central derivatives of $\mathbf{q}^{\prime}$ and $\bar{\tau}^{\prime}$,
+
+4. evaluation of linearization of step 4 using the nonlinear code.
+
+The adjoint can be evaluated by simple transposition of the previous algorithm. The only remaining issue is the evaluation of the transpose of the spatial derivatives of a field $\mathrm{w}$. In the case of compact schemes for a one-dimensional problem, the evaluation is performed by solving the system of equations $\mathbf{A w}^{\prime}=\mathbf{B w}$, with $\mathbf{A}$ and $\mathbf{B}$ denoting banded matrices. Then $\mathbf{D}=\mathbf{A}^{-1} \mathbf{B}$, and the action of the operator $\mathbf{D}^{*}$ on a field is evaluated as $\mathbf{D}^{*}=\mathbf{B}^{*} \mathbf{A}^{*-1}$. The generalization to two and three dimensions is easily written in terms of the one-dimensional operator by means of Kronecker products. For instance, if lexicographical ordering is used, the spatial derivative in two-dimensions with respect to the second direction reads $\mathbf{D}_{\mathbf{y}}=\mathbf{D} \otimes \mathbf{I}$ and its transpose $\mathbf{D}_{\mathbf{y}}{ }^{*}=\mathbf{D}^{*} \otimes$ I. An analog can be derived for three-dimensional problems.
+
+\section{II.C. Base flow and global modes computation}
+
+The linearization is usually performed around steady solutions of the equations. The Selective Frequency Damping (SFD) method ${ }^{15}$ is used for base flow calculations. The frequency cut-off of the filter and the damping rate are estimated from the characteristic frequencies of the nonlinear simulations.
+
+Once the linearized operators are extracted, the eigenvalues and eigenvectors are computed iteratively via Krylov subspace projection techniques. These algorithms are widely available in computational packages ${ }^{16}$ such as (P)ARPACK $^{17,18}$ or SLEPc. ${ }^{19,20}$ Specifically, SLEPc has been chosen because of its flexibility. We use the Krylov-Schur algorithm in combination with a time-stepper approach since the most unstable eigenvalues of an operator $\mathbf{M}$ (largest real part) correspond to the largest magnitude eigenvalues of $e^{T \mathrm{M}}$. Given a propagation time $T$ on the order of the characteristic time scales in the problem, we construct the Krylov subspace basis for the calculation of direct and adjoint global modes.
+
+\section{Examples}
+
+To demonstrate the above technique, we consider two compressible flow configurations: the spatially developing boundary layer and the flow around an airfoil. The first is a well-known test case which will be used as a validation problem; the second illustrates the potential of this tool in an application to a less common problem. In all the examples, the viscosity and the Prandtl number are constants.
+
+\section{III.A. Boundary layer on a flat plate}
+
+We consider a compressible boundary layer. The displacement thickness at the inlet is taken as the reference length. The Reynolds number is $R e=1000$, and the Mach number is $M=0.8$. The ratio of specific heats is taken as $\gamma=1.4$ and the Prandtl number is $\operatorname{Pr}=0.71$. 
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-06.jpg?height=182&width=877&top_left_y=110&top_left_x=217)
+
+Figure 1. Base flow streamwise velocity. The compressible Blasius boundary layer profiles are imposed at the inlet of the domain. The steady solution is obtained by long-time integration.
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-06.jpg?height=580&width=882&top_left_y=382&top_left_x=214)
+
+Figure 2. Three different types of modes found in the spectrum of the compressible boundary layer. The first one is associated with Tollmien-Schlichting (TS) waves. The second and the third correspond to free stream and Orr modes, respectively. These results agree qualitatively with incompressible calculations.
+
+The physical domain extends over $0 \leq x \leq 800$ and $0 \leq y \leq 40$. A total of 384 points are taken in the streamwise direction and 64 points in the wall normal direction. A thorough study of the incompressible case is available. ${ }^{21}$
+
+The velocity and entropy profiles are specified at the inlet by means of a partially non-reflecting inflow boundary condition. ${ }^{11}$ These profiles are obtained from the self-similar solution of the compressible Blasius boundary layer equations.
+
+This case is known to be convectively unstable and thus globally stable. The computation of the steady state (see Figure 1 ) can be directly performed starting from the self-similar solution by long-time integration. The nonlinear simulation is run until the residual $\frac{1}{\|\mathrm{v}\|}\left\|\frac{\partial \mathrm{v}}{\partial t}\right\|$ drops below $10^{-6}$.
+
+Global modes are computed choosing a propagation time of $T=0.14$, and the dimension of Krylov subspaces is 240 . They are considered as converged when the residual of the eigenvalue with respect to the time-stepper is smaller than $10^{-6}$. Typical simulations take about six hours on a regular workstation.
+
+In the computed spectrum, it is interesting to note that we find the compressible analogues of the branches from the incompressible study. Three types of modes are also identified according to their characteristics: Tollmien-Schlichting waves, free-stream modes and Orr modes (see Figure 2 . 
+
+\section{III.B. Flow around an airfoil}
+
+The compressible flow around a modified NACA 0012 airfoil with a blunt trailing edge is considered. The Reynolds number based on the chord is $\operatorname{Re}=15000$, and the Mach number is $M=0.5$. The ratio of specific heats is $\gamma=1.4$ and the Prandtl number is $\operatorname{Pr}=1.0$.
+
+A C-grid is used to mesh the geometry, 192 points are taken on the airfoil and 288 points along the wake. The total number of points in the domain is $768 \times 128$. The airfoil centerline is placed at $y=0$ and $0 \leq x \leq 1$. The physical domain extends over $-3 \leq x \leq 9$ and $-3 \leq y \leq 3$.
+
+Grid points are clustered near the airfoil and wake, where the relevant length scales are expected to be smaller. The required number of points is estimated from rough approximations of the boundary layer thickness at the leading and trailing edge. In particular, the first cell size on the airfoil determines the time step. Setting the CFL number equal to one, the maximum time step is $\Delta t=2.5 \cdot 10^{-4}$ time units.
+
+Partially non-reflecting inflow and outflow boundary conditions are imposed at the boundaries far from the airfoil. The velocity and entropy profiles at the inlet are obtained from a potential flow solver. A sponge layer is added downstream to reduce spurious reflections due to the advection of vortical structures.
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-07.jpg?height=526&width=848&top_left_y=552&top_left_x=192)
+
+Figure 3. Snapshot of the streamwise velocity in the quasi-periodic state. In this regime, pairs of vortices detach alternately from the upper and lower parts of the separation bubble at the trailing edge, yielding the familiar VonKarman vortex street that commonly occurs in the wake of bluff bodies. The Strouhal number for vortex shedding is $2.7 .$
+
+For our configuration, the base flow exhibits an absolute instability, and a nonlinear simulation is first performed. At the above Reynolds number, the airfoil behaves as a bluff body, and separation occurs rapidly. A quasi-periodic regime is achieved after 40 time units, and the period of the characteristic oscillations is estimated from the time history of the norm of the residual. A snapshot of the streamwise velocity field is is shown in Figure 3 The typical frequency of the vortex shedding is $2.7$.
+
+From these results, we estimate the angular frequency cut-off as $5.0$ and a damping rate of $7.0$ which we subsequently used in the calculation of the base flow with the SFD technique. Time integration is performed until the residual drops below $10^{-3}$.
+
+The linear operator is extracted and the most unstable global modes, direct and adjoint, are computed by long-time integration. These results are shown in Figure 4 and Figure 5
+
+The most dominant eigenvalue of the operator is found unstable and we observe a oscillator type behavior. The most unstable direct eigenvector (Figure 4 ) presents an alternating symmetry vorticity pattern where 
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-08.jpg?height=525&width=846&top_left_y=192&top_left_x=193)
+
+Figure 4. The dominant direct global mode obtained by long-time integration.
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-08.jpg?height=525&width=844&top_left_y=893&top_left_x=194)
+
+Figure 5. The dominant adjoint global mode obtained by long-time integration.
+
+7 of $[9$
+
+American Institute of Aeronautics and Astronautics a characteristic wavelength emerges, and no significant acoustic footprint is found. In the corresponding adjoint eigenvector (Figure 5), the shear layer on the separation region is found to be a sensitive area for excitation of the associated direct mode. Moreover, noticeable support along the airfoil and upstream of the airfoil is also found.
+
+The direct mode appears to be more sensitive to acoustic perturbations in the free-stream, even though it does not generate acoustic radiation itself.
+
+\section{Conclusions}
+
+Direct and adjoint operators have multiple applications in quantitative flow analysis. In this work we have presented a novel technique for the extraction of the linearized operator from a non-linear compressible flow solver. This method constitutes a general strategy that is independent of the problem under consideration and provides an algorithm for the evaluation of the matrix-vector products for the direct and adjoint operators without explicitly forming the matrices.
+
+This technique is shown to have great advantage over alternative procedures since the derivation of both operators would be difficult otherwise and would have to be performed on a case by case basis. In addition, it enables the use of high-order spatial discretizations.
+
+A preliminary study featuring a compressible boundary layer and the flow around a NACA 0012 profile has been presented to showcase the details of the method and its application to relevant technological problems.
+
+A detailed exposition of the algorithm, extensions to more complex schemes and a more encompassing investigation of physical flow configurations are part of an ongoing study.
+
+\section{Acknowledgments}
+
+The first author wishes to thank X. Garnaud for having taken the time to read the manuscript and his useful comments. This work was performed using HPC resources from GENCI-CINES (Grant 2011-026451).
+
+\section{References}
+
+${ }^{1}$ Chomaz, J.-M., "Global instabilities in spatially developing flows: Non-Normality and Nonlinearity," Annual Review of Fluid Mechanics, Vol. 37, No. 1, 2005, pp. 357-392.
+
+${ }^{2}$ Schmid, P. J., "Nonmodal Stability Theory," Annual Review of Fluid Mechanics, Vol. 39, No. 1, 2007, pp. 129-162.
+
+${ }^{3}$ Giannetti, $\mathrm{F}$. and Luchini, P., "Structural sensitivity of the first instability of the cylinder wake," Journal of Fluid Mechanics, Vol. 581, 2007, pp. 167-197.
+
+4arquet, O., Sipp, D., and Jacquin, L., "Sensitivity analysis and passive control of cylinder flow," Journal of Fluid Mechanics, Vol. 615, 2008, pp. 221-252.
+
+${ }^{5}$ Colonius, $\mathrm{T}$. and Lele, S. K., "Computational aeroacoustics: progress on nonlinear problems of sound generation,"
+
+Progress in Aerospace Sciences, Vol. 40, No. 6,2004, pp. $345-416$.
+
+${ }^{6}$ Saad, Y., Numerical Methods for Large Eigenvalue Problems, Second edition, Society for Industrial and Applied Mathematics, 2011 .
+
+${ }^{7}$ Sesterhenn, J., "A characteristic-type formulation of the Navier-Stokes equations for high order upwind schemes," Com-
+
+puters and Fluids, Vol. 30, No. 1, 2000, pp. $37-67 .$
+
+${ }^{8}$ Adams, N. and Shariff, K., "A high-resolution hybrid compact-ENO scheme for shock-turbulence interaction problems," Journal of Computational Physics, Vol. 127, No. 1, 1996, pp. 27-51.
+
+${ }^{9}$ Lele, S. K., "Compact finite difference schemes with spectral-like resolution," Journal of Computational Physics, Vol. 103,
+
+No. 1, 1992, pp. 16-42.
+
+${ }^{10}$ Poinsot, T. J. and Lele, S. K., "Boundary conditions for direct simulations of compressible viscous flows," Journal of Computational Physics, Vol. 101, No. 1, 1992, pp. 104-129.
+
+11 Lodato, G., Domingo, P., and Vervisch, L., "Three-dimensional boundary conditions for direct and large-eddy simulation
+
+of compressible viscous flows," Journal of Computational Physics, Vol. 227, No. 10, 2008, pp. $5105-5143$.
+
+12 Colonius, T., "Modeling artificial boundary conditions for compressible flow," Annual Review of Fluid Mechanics, Vol. 36,
+
+No. 1, 2004, pp. 315-345.
+
+13\}ennedy, C., Carpenter, M., and Lewis, R., "Low-storage, explicit Runge-Kutta schemes for the compressible NavierStokes equations," Applied Numerical Mathematics, Vol. 35, No. 3, 2000, pp. 177-219.
+
+${ }^{14}$ Mack, C. J. and Schmid, P. J., "A preconditioned Krylov technique for global hydrodynamic stability analysis of large-
+
+scale compressible flows," Journal of Computational Physics, Vol. 229, No. 3,2010, pp. $541-560 .$
+
+${ }^{15}$ Akervik, E., Brandt, L., Henningson, D. S., Hoepffner, J., Marxen, O., and Schlatter, P., "Steady solutions of the Navier-Stokes equations by selective frequency damping," Physics of Fluids, Vol. 18, No. 6,2006, pp. 068102 . 16Hernández, V., Román, J. E., Tomás, A., and Vidal, V., "A Survey of Software for Sparse Eigenvalue Problems," Tech.
+
+Rep. STR-6, 2007 .
+
+17 Lehoucq, R. B., Sorensen, D. C., and Yang, C., ARPACK Users' Guide: Solution of Large-Scale Eigenvalue Problems with Implicitly Restarted Arnoldi Methods, SIAM, $1998 .$
+
+18 Lehoucq, R. B. and Salinger, A. G., "Large-Scale Eigenvalue Calculations for Stability Analysis of Steady Flows on
+
+Massively Parallel Computers," International Journal of Numerical Methods in Fluids, Vol. 36,1999, pp. 309-327.
+
+19 Hernandez, V., Roman, J., and Vidal, V., "SLEPc: A Scalable and Flexible Toolkit for the Solution of Eigenvalue Problems," ACM Transactions on Mathematical Software, Vol. 31, No. 3, Sept. 2005, pp. 351-362.
+
+${ }^{20}$ Román, J. E., Romero, E., and Tomás, A., "SLEPc Users Manual," Tech. Rep. DSIC-II/24/02, Universidad Politécnica de Valencia, 2010 .
+
+${ }^{21}$ Akervik, E., Ehrenstein, U., Gallaire, $\mathrm{F} .$, and Henningson, D. S., "Global two-dimensional stability measures of the flat plate boundary-layer flow," European Journal of Mechanics - B/Fluids, Vol. 27, No. 5, 2008, pp. 501-513.

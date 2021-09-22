@@ -1,0 +1,252 @@
+\title{
+可压缩流的全局稳定性的矩阵提取技术及应用
+}
+
+\Author{
+Miguel Fosas de Pando*, Denis Sipp , Peter J. Schmid 
+}
+
+\begin{abstract}
+大尺度流动问题的线性化算子的推导是一项繁琐且容易出错的任务，尤其是关于adjoint。可压缩直接数值模拟的复杂性和高阶离散化的使用使高效程序的应用更加复杂。然而，这两个算子是众多定量流动分析算法的核心，因此提供对它们的访问具有很大的实际意义。本文介绍了一种基于分割和征服策略的新型算法，用于从非线性流解算器中提取和评估线性化算子。该技术在一个现有的可压缩流求解器上进行了演示，并通过计算空间发展的边界层中的全局模式进行了验证。最后，将通过计算机翼周围流动中最不稳定的直接和辅助全局模式来说明潜在的应用。
+\end{abstract}
+
+\section{Introduction}
+
+在过去的几十年里，已经开发了各种各样的定量流动描述技术。全局$^{1}$和非模式$^{2}$稳定性、敏感性和接受性分析等研究对于深入了解在许多具有实际意义的流动中观察到的复杂行为变得非常重要；此外，它们构成了高效控制技术的基础。
+
+通常，这些研究的核心算法依赖于对围绕基流的纳维-斯托克斯方程的线性化算子的评估，我们称之为直接算子，以及它的adjoint值。例如，它们在确定线性稳定性、不稳定发生的物理机制和确定基流修改的最敏感区域方面起着根本作用。  ${ }^{3,4}$然而，直接和adjoint算子的推导是一项容易出错和耗时的任务，通常必须逐个进行。
+
+直到最近，大多数使用上述工具的研究人员都把注意力集中在不可压缩的配置上。可压缩流仍有部分未被探索，但人们相信这些技术可以阐明一些开放的问题，如声波在不稳定机制中的作用。
+
+尽管有明显的兴趣，可压缩流的分析并不是没有额外的困难，主要是由于使用高阶空间方案，需要以合理的成本来解决所有的流动特征。  [模板的宽度导致密集或低稀疏矩阵，即使对于小规模的问题，也需要进行大量的计算工作。为了说明这一点，值得指出的是，具有50万个自由度的流动配置的线性化算子的存储需要大量的存储，在最坏的情况下，从几十G到两TB不等。另一方面，大多数最先进的大规模线性代数问题的数值方法，${ }^{6}$例如Krylov子空间方法，只需要矩阵-向量乘积的结果，而不是矩阵本身。
+
+在这篇文章中，我们提出了一种从非线性可压缩流求解器中提取线性化Navier-Stokes算子的新技术。这项技术克服了上述的大部分困难。首先，它可以被归类为无矩阵，因为它允许从非线性求解器中评估直接和adjoint算子，而不需要明确地形成结果矩阵，因此需要最小的存储量。对线性算子的评估允许从其非线性对应物中重用潜在的代码。第二，提取可以以系统的方式进行，不受限于特定的几何形状或边界条件集。非线性代码的任何变化都会自动反映在提取的直接和相邻算子中。
+
+一旦得到算子，它就可以很容易地被纳入上述任何研究中。这将通过计算空间发展的边界层中的全局模式和围绕机翼的流动来证明。
+
+\section{Numerical methods}
+
+作者开发的可压缩流求解器已被用于本计算中。这个数值代码，使用工业事实上的标准MPI和OpenMP方便地并行化，适用于平滑流动，其中声音的产生是感兴趣的主要特征。由于对离散化的结构进行了仔细的分析，矩阵提取技术是围绕这段代码实现的，它使现有代码得到了显著的重用。
+
+\section{II.A. Direct numerical simulation}
+
+三维可压缩纳维-斯托克斯方程（1），使用曲线伪特征公式$^{7}$以及（2）和状态方程进行重新排列和求解。
+
+$$
+\begin{array}{r}
+\frac{\partial p}{\partial t}+\mathbf{u} \cdot \nabla p+\rho c^{2} \nabla \cdot \mathbf{u}=\frac{p}{c_{v}}\left(\frac{\partial s}{\partial t}+\mathbf{u} \cdot \nabla s\right) \\
+\frac{\partial s}{\partial t}+\mathbf{u} \cdot \nabla s=\frac{1}{\rho T}(-\nabla \cdot \mathbf{q}+\bar{\tau}: \nabla \mathbf{u}) \\
+\frac{\partial \mathbf{u}}{\partial t}+(\mathbf{u} \cdot \nabla) \mathbf{u}=-\frac{1}{\rho} \nabla p+\frac{1}{\rho} \nabla \cdot \bar{\tau} \\
+\mathbf{q}=-\lambda \nabla T \\
+\bar{\tau}=\mu\left(\nabla \mathbf{u}+\nabla \mathbf{u}^{T}\right)+\left(\mu_{v}-\frac{2}{3} \mu\right)(\nabla \cdot \mathbf{u}) \delta_{i j}
+\end{array}
+$$
+
+这些方程是以无量纲形式写成的，使用自由流值作为参考。熵用气体常数$R$归一化，特征长度从几何学上选择。以下参数被定义。
+
+$$
+M=\frac{U_{\infty}}{c_{\infty}} \quad R e=\frac{\rho_{\infty} U_{\infty} L}{\mu} \quad P r=\frac{c_{p} \mu}{\lambda}
+$$
+
+所得系统的时间演化是用线的方法进行的。空间离散化是用有限差分法进行的。一旦边界条件被强加，我们就剩下一个非线性常微分方程系统，它构成了一个从初始场开始明确地在时间上整合的初值问题。
+
+对于空间导数的评估，首选高阶方案；对于平流项，通过使用紧凑的上风低耗散方案$^{8}$实现计算的数值稳定性。考虑到我们对演化算子线性化的兴趣，在上风有限差分的切换模块中使用了一个非线性权重函数。扩散项是用中心紧凑方案来评估的。  ${ }^{9}$无反射的流入和流出边界条件${ }^{10,11}$在目前的公式中是直接实现的，在域的边界处施加海绵层$^{12}$以减少传出声波和涡流结构的虚假反射。时间积分使用低存储量的Runge-Kutta方法进行。  ${ }^{13}$ 最大允许的时间步长是根据Courant-Friedrichs-Lewy条件自动计算的，同时考虑到离散的稳定边际。在预处理阶段，使用椭圆网格生成程序对曲线几何图形进行网格生成。
+
+\section{II.B. Matrix extraction technique}
+
+如前所述，我们剩下的是一个非线性的常微分方程系统，我们希望将其线性化。我们象征性地写道：
+
+$$
+\frac{\partial \mathbf{v}}{\partial t}=\mathbf{F}(\mathbf{v})
+$$
+
+到目前为止，被广泛采用的一种方法是手动推导和实现纳维-斯托克斯方程的线性化及其连续adjoint。不管是明确地建立矩阵还是只评估矩阵-向量乘积，这种方法都有几个缺点：它必须在个案的基础上进行，通常需要巨大的调试努力。此外，连续adjoint的分析推导并不简单，特别是关于边界条件和海绵层等数值假象。由此产生的离散化往往不满足一些重要的特性，而这些特性对于确保数值方法的良好处理和收敛是可取的，例如，标量积$\langle\mathbf{v}, \mathbf{A} \mathbf{u}\rangle$只等于$\left\langle\mathbf{A}^{*} \mathbf{v}, \mathbf{u}\right\rangle$到离散化的精度，而不是到机器的舍弃误差。放弃这种策略，我们寻求一种替代程序。很明显，无矩阵技术比明确的矩阵组装更受欢迎，独立于所考虑的特定情况和流量配置的系统方法也是如此。
+
+第一个选择是通过准线性化对直接算子进行数值评估，${ }^{14}$即。
+
+$$
+\mathbf{A} \mathbf{v}^{\prime} \approx \frac{\mathbf{F}\left(\mathbf{v}_{0}+\epsilon \mathbf{v}^{\prime}\right)-\mathbf{F}\left(\mathbf{v}_{0}\right)}{\epsilon}
+$$
+
+但该方法没有提供对adjoint算子的访问；此外，一个条件不好的矩阵可能会导致很大的误差。
+
+如果存储不是一个限制性因素，线性化算子可以通过对问题中每个自由度的右手边进行评估来逐列提取，具有所有的通用性。在这种情况下，我们有
+
+$$
+\mathbf{A}_{i j} \approx \frac{\mathbf{F}_{\mathbf{i}}\left(\mathbf{v}_{0}+\epsilon \mathbf{e}_{\mathbf{j}}\right)-\mathbf{F}_{\mathbf{i}}\left(\mathbf{v}_{0}\right)}{\epsilon}
+$$
+
+如果使用显式方案，并且已知模版宽度和顺序，那么评估的数量可以大大减少，几乎是一个数量级。尽管如此，我们的目标是一个可以用于任何空间离散化的程序，即使矩阵是密集的。我们认为，黑箱策略可能不会导致最佳程序，而更倾向于通过评估$(1)$和$(20)$的离散化进行定制（而不失去通用性）。评估右手边的最自然的方式是
+
+1.计算$\mathbf{v}$的中心导数。
+
+2. 对$(2)$的评估，包括其边界条件。
+
+3. 计算$\mathbf{v}$的上风导数以及$\mathbf{q}$和$\bar{\tau}$的中心导数。
+
+4. 对11的评估，包括其边界条件。
+
+我们注意到，只有通过空间导数的计算（步骤1和3），给定点的流场变量才取决于邻近点的值，从而导致密集或低稀疏矩阵。这一事实可以被利用来推导出一种计算效率高的算法，用于提取和评估线性化的动力学。为了说明这一点，我们在一个二维问题中评估来自平流的条款。  $u \frac{\partial u}{\partial x}+v \frac{\partial u}{\partial y}$ ，包含在代码的非线性部分（步骤2和4）。分别考虑这些步骤类似于对函数$f(u, v, r, s)=u r+v s$的评价为$u \frac{\partial u}{\partial x}+v \frac{\partial u}{\partial y}=f\left(u, v, \frac{\partial u}{\partial x}, \frac{\partial u}{\partial y}\right)$，其中明确引入了辅助变量$s$和$r$，以强调空间导数是在不同步骤计算的。由于微分是一个线性算子，只有非线性项需要被线性化。在这个特殊的例子中，线性化的结果是
+
+$$
+R u+U r+S v+V s
+$$
+
+其中$R, U, S$和$V$代表相关变量$r, u, s$和$v$的基本流动量。此外，系数还可以以系统的方式进行评估。例如，$u$前面的系数$R$可以根据我们的函数$f(u, v, r, s)$得到
+
+$$
+\frac{f(U+\epsilon, V, R, S)-f(U, V, R, S)}{\epsilon} \approx R
+$$
+
+准确度为$\sqrt{\epsilon_{m}}$（机器精度为$\epsilon_{m}$），通常足以满足大多数应用。在一般情况下，需要存储的系数数量是自由度的数量级；系数可以被看作是块状对角线矩阵乘以各自的微分运算符，这在非线性代码中已经实现。值得一提的是，大部分的并行化工作集中在步骤1和3（微分），而块对角线矩阵的矩阵-向量乘积由于操作的局部性质，可以在没有任何通信的情况下完成。
+
+这些论据适用于其余的条款和边界条件，完整的线性化算子被评估如下。
+
+1.计算$\mathbf{v}^{\prime}$的中心导数。
+
+2.从非线性代码中评估步骤2的线性化。
+
+3. 计算$\mathbf{v}^{\prime}$的上风导数以及$\mathbf{q}^{\prime}$和$\bar{\tau}^{\prime}$的中心导数。
+
+4.使用非线性代码对步骤4的线性化进行评估。
+
+adjoint点可以通过之前算法的简单转置来评估。剩下的唯一问题是场的空间导数的转置的评估 $\mathrm{w}$ 。在一维问题的紧凑方案的情况下，评估是通过解方程组$\mathbf{A w}^{\prime}=\mathbf{B w}$来进行的，$\mathbf{A}$和$\mathbf{B}$表示带状矩阵。然后$\mathbf{D}=\mathbf{A}^{-1} \mathbf{B}$ ，算子$\mathbf{D}^{*}$对场的作用被评估为$\mathbf{D}^{*}=\mathbf{B}^{*} \mathbf{A}^{*-1}$ 。对二维和三维的泛化很容易通过克朗克乘积写成一维算子。例如，如果使用lexographical ordering，二维的空间导数相对于第二方向为$\mathbf{D}_{\mathbf{y}}=\mathbf{D} \otimes \mathbf{I}$，其转置为$\mathbf{D}_{\mathbf{y}}{ }^{*}=\mathbf{D}^{*} \otimes$ I。
+
+\section{II.C. Base flow and global modes computation}
+
+线性化通常是围绕方程的稳定解进行的。选择性频率阻尼（SFD）方法${ }^{15}$被用于基流计算。滤波器的频率截止点和阻尼率是由非线性模拟的特征频率估算出来的。
+
+一旦线性化算子被提取出来，特征值和特征向量将通过Krylov子空间投影技术迭代计算。这些算法在计算包${ }^{16}$中广泛使用，如(P)ARPACK$^{17,18}$或SLEPc。  ${ }^{19,20}$ 具体来说，选择SLEPc是因为它的灵活性。我们使用Krylov-Schur算法与时间步进方法相结合，因为算子$\mathbf{M}$的最不稳定特征值（最大实部）对应于$e^{T \mathrm{M}}$的最大量级特征值。给定问题中特征时间尺度的传播时间$T$，我们构建Krylov子空间基础来计算直接和辅助全局模式。
+
+\section{Examples}
+
+为了证明上述技术，我们考虑了两种可压缩的流动配置：空间发展的边界层和围绕机翼的流动。第一个例子是众所周知的测试案例，将被用作验证问题；第二个例子说明了这个工具在一个不太常见的问题上的应用潜力。在所有的例子中，粘度和普兰德尔数都是常数。
+
+\section{III.A. Boundary layer on a flat plate}
+
+我们考虑一个可压缩的边界层。入口处的位移厚度被视为参考长度。雷诺数为$R e=1000$ ，马赫数为$M=0.8$ 。比热比为$\gamma=1.4$，普朗特尔数为$\operatorname{Pr}=0.71$ 。
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-06.jpg?height=182&width=877&top_left_y=110&top_left_x=217)
+
+图1.基准流的流速。可压缩的Blasius边界层轮廓被强加在域的入口处。稳定解是通过长时程积分得到的。
+ ![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-06.jpg?height=580&width=882&top_left_y=382&top_left_x=214)
+
+图2.在可压缩边界层的光谱中发现三种不同类型的模式。第一个是与Tollmien-Schlichting（TS）波有关。第二种和第三种分别对应于自由流和Orr模式。这些结果与不可压缩的计算结果在质量上一致。
+
+物理域在$0 \leq x \leq 800$和$0 \leq y \leq 40$范围内延伸。在流向上共取384个点，在壁面法线方向上取64个点。对不可压缩情况的深入研究是可以得到的。  ${ }^{21}$
+
+速度和熵剖面是通过部分不反射的流入边界条件在入口处规定的。  ${ }^{11}$这些剖面是由可压缩布拉修斯边界层方程的自相似解得到的。
+
+众所周知，这种情况是对流不稳定的，因此是全局稳定的。稳态的计算（见图1）可以直接从自相似解开始，通过长时间积分进行。非线性模拟运行到残差$\frac{1}{\|\mathrm{v}\|}\left\|\frac{\partial \mathrm{v}}{\partial t}\right\|$下降到$10^{-6}$以下。
+
+全局模式的计算选择了$T=0.14$的传播时间，Krylov子空间的尺寸为240。当特征值相对于时间步长的残差小于$10^{-6}$时，它们被认为是收敛的。在一个普通的工作站上，典型的模拟需要大约六个小时。
+
+在计算的频谱中，值得注意的是，我们发现了不可压缩研究中的分支的可压缩类似物。三种类型的模式也根据它们的特点被确定。Tollmien-Schlichting波、自由流模式和Orr模式（见图2）。
+
+\section{III.B. Flow around an airfoil}
+
+考虑了带有钝后缘的改进型NACA 0012机翼周围的可压缩流动。基于弦的雷诺数为$\operatorname{Re}=15000$ ，马赫数为$M=0.5$ 。比热比为$\gamma=1.4$，普朗特尔数为$\operatorname{Pr}=1.0$ 。
+
+使用C型网格对几何体进行网格化，在机翼上取192个点，沿着尾流取288个点。域中的总点数为$768 \times 128$ 。机翼中心线被放置在 $y=0$ 和 $0 \leq x \leq 1$ 。物理域延伸到 $-3 \leq x \leq 9$ 和 $-3 \leq y \leq 3$ 上。
+
+网格点集中在机翼和尾流附近，那里的相关长度尺度预计会比较小。所需的点的数量是根据前缘和后缘的边界层厚度的粗略近似值来估计的。特别是，机翼上的第一个单元大小决定了时间步长。设置CFL数等于1，最大时间步长为$\Delta t=2.5 \cdot 10^{-4}$时间单位。
+
+在远离机翼的边界处施加了部分不反射的流入和流出的边界条件。入口处的速度和熵剖面由势流求解器获得。在下游增加了一个海绵层，以减少由于涡流结构的平流而产生的虚假反射。
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-07.jpg?height=526&width=848&top_left_y=552&top_left_x=192)
+
+图3.准周期状态下的流向速度快照。在这种状态下，成对的旋涡在后缘交替地从分离泡的上部和下部分离出来，产生了熟悉的冯卡曼旋涡街，这在悬崖体的尾部经常发生。涡流脱落的Strouhal数是$2.7 .$ 。
+
+对于我们的配置，基础流动表现出绝对的不稳定性，首先进行了非线性模拟。在上述雷诺数下，机翼表现为虚张声势体，分离迅速发生。在40个时间单位后达到了准周期制度，特征振荡的周期是由残差规范的时间历史来估计的。图3显示了流速场的快照，涡流脱落的典型频率为$2.7$。
+
+根据这些结果，我们估计角频率截止点为$5.0$，阻尼率为$7.0$，随后我们用SFD技术计算基流时使用。进行时间积分，直到残差下降到 $10^{-3}$ 以下。
+
+线性算子被提取出来，通过长时间积分计算出最不稳定的全局模式，直接模式和adjoint模式。这些结果显示在图4和图5中。
+
+算子的最主要特征值被发现是不稳定的，我们观察到一个振荡器类型的行为。最不稳定的直接特征向量（图4）呈现出一种交替对称的涡度模式，其中
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-08.jpg?height=525&width=846&top_left_y=192&top_left_x=193)
+
+图4.通过长时间积分得到的占主导地位的直接全局模式。
+
+![](https://cdn.mathpix.com/cropped/3c6a2f1124b7f54c60d54082f2499ffa-08.jpg?height=525&width=844&top_left_y=893&top_left_x=194)
+
+图5.通过长时间积分得到的主导的adjoint全局模式。
+
+$[9$之7
+
+美国航空航天学会出现了一个特征波长，并且没有发现明显的声学足迹。在相应的adjoint特征向量（图5）中，发现分离区的剪切层是激发相关直接模式的敏感区域。此外，还发现沿机翼和机翼上游有明显的支持。
+
+直接模式似乎对自由流中的声学扰动更加敏感，尽管它本身不产生声学辐射。
+
+\section{Conclusions}
+
+直接和adjoint算子在定量流动分析中具有多种应用。在这项工作中，我们提出了一种从非线性可压缩流求解器中提取线性化算子的新技术。该方法构成了一个独立于所考虑问题的一般策略，并提供了一种无需明确形成矩阵的直接和辅助算子的矩阵-向量乘积的评估算法。
+
+这种技术比其他程序有很大的优势，因为如果不这样做，这两个算子的推导会很困难，必须逐个进行。此外，它还可以使用高阶空间离散化。
+
+一个以可压缩边界层和NACA 0012剖面周围的流动为特征的初步研究，展示了该方法的细节和它在相关技术问题上的应用。
+
+对该算法的详细阐述、对更复杂方案的扩展以及对物理流配置的更全面调查是正在进行的研究的一部分。
+
+\section{Acknowledgments}
+
+第一作者希望感谢X. Garnaud抽出时间阅读手稿并提出有用的意见。这项工作是利用GENCI-CINES（Grant 2011-026451）的HPC资源进行的。
+
+\section{References}
+
+${ }^{1}$ Chomaz, J.-M., "Global instabilities in spatially developing flows:Non-Normality and Nonlinearity," Annual Review of Fluid Mechanics, Vol.37, No.1, 2005, pp.357-392.
+
+${ }^{2}$ Schmid, P. J., "Nonmodal Stability Theory," Annual Review of Fluid Mechanics, Vol.39, No.1, 2007, pp.129-162.
+
+${ }^{3}$ Giannetti, $\mathrm{F}$ .和Luchini, P., "圆柱体尾流的第一个不稳定性的结构敏感性，" 《流体力学杂志》，第581卷，2007年，第167-197页。
+
+4arquet, O., Sipp, D., and Jacquin, L., "Sensitivity analysis and passive control of cylinder flow," Journal of Fluid Mechanics, Vol. 615, 2008, pp.221-252.
+
+${ }^{5}$ Colonius, $\mathrm{T}$ .和Lele, S. K., "计算航空声学：声音产生的非线性问题的进展，"
+
+航空航天科学进展》，第40卷，第6期，2004年，第$345-416$页。
+
+${ }^{6}$ Saad, Y., Numerical Methods for Large Eigenvalue Problems, Second edition, Society for Industrial and Applied Mathematics, 2011 .
+
+${ }^{7}$ Sesterhenn, J., "A characteristic-type formulation of Navier-Stokes equations for high order upwind schemes," Com-Markets.
+
+puters and Fluids, Vol. 30, No.1, 2000, pp.
+
+${ }^{8}$ Adams, N. and Shariff, K., "A high-resolution hybrid compact-ENO scheme for shock-turbulence interaction problems," Journal of Computational Physics, Vol. 127, No. 1, 1996, pp.27-51.
+
+${ }^{9}$ Lele, S. K., "Compact finite difference schemes with spectral-like resolution," Journal of Computational Physics, Vol. 103。
+
+第1期，1992年，第16-42页。
+
+${ }^{10}$ Poinsot, T. J. 和 Lele, S. K., "Boundary conditions for direct simulations of compressible viscous flows," Journal of Computational Physics, Vol. 101, No. 1, 1992, pp.
+
+11 Lodato, G., Domingo, P., and Vervisch, L., "直接和大尺度模拟的三维边界条件
+
+的可压缩粘性流动"，《计算物理学杂志》，第227卷，第10期，2008年，第$5105-5143$ 页。
+
+12 Colonius, T., "Modeling artificial boundary conditions for compressible flow, " Annual Review of Fluid Mechanics, Vol. 36,
+
+第1期，2004年，第315-345页。
+
+13}ennedy, C., Carpenter, M., and Lewis, R., "Low-storage, explicit Runge-Kutta schemes for the compressible NavierStokes equations, " Applied Numerical Mathematics, Vol. 35, No. 3, 2000, pp.
+
+${ }^{14}$ Mack, C. J. and Schmid, P. J., "A preonditioned Krylov technique for global hydrodynamic stability analysis of large-
+
+scale compressible flows," Journal of Computational Physics, Vol. 229, No. 3,2010, pp.
+
+${ }^{15}$ Akervik, E., Brandt, L., Henningson, D. S., Hoepffner, J., Marxen, O., and Schlatter, P., "Steady solutions of the Navier-Stokes equations by selective frequency damping," Physics of Fluids, Vol.18, No.6,2006, pp.068102 .16Hernández, V., Román, J. E., Tomás, A., and Vidal, "A Survey of Software for Sparse Eigenvalue Problems," Tech.
+
+Rep. STR-6, 2007 .
+
+17 Lehoucq, R. B., Sorensen, D. C., and Yang, C., ARPACK Users' Guide:用隐式重启Arnoldi方法解决大规模的特征值问题, SIAM, $1998 .$ 。
+
+18 Lehoucq, R. B. and Salinger, A. G., "Large-Scale Eigenvalue Calculations for Stability Analysis of Steady Flows on
+
+Massively Parallel Computers," International Journal of Numerical Methods in Fluids, Vol. 36,1999, pp.309-327.
+
+19 Hernandez, V., Roman, J., and Vidal, V., "SLEPc: A Scalable and Flexible Toolkit for the Solution of Eigenvalue Problems," ACM Transactions on Mathematical Software, Vol. 31, No. 3, September 2005, pp.
+
+${ }^{20}$ Román, J. E., Romero, E., and Tomás, A., "SLEPc用户手册，" Tech.DSIC-II/24/02, Universidad Politécnica de Valencia, 2010 。
+
+${ }^{21}$ Akervik, E., Ehrenstein, U., Gallaire, $\mathrm{F} .$ , and Henningson, D. S., "Global two-dimensional stability measures of the flat plate boundary-layer flow, " European Journal of Mechanics - B/Fluids, Vol. 27, No. 5, 2008, pp.

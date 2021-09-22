@@ -6985,7 +6985,7 @@ Objects of type `BlockVector` implement the full container and linear algebra in
 
 ~~~C++
 BlockVector<float> fibonacci = {1,1,2,3,5,8};
-BlockVector<FieldVector<double,3> > canonical = {{1,0,0}, {0,1,0}, {0,0,1}};
+BlockVector<FieldVector<double,3> > canonical = {{1,0,0}, {0,1,0}, {0,0,1} };
 ~~~
 
 
@@ -7038,7 +7038,7 @@ using MultiTypeVector = MultiTypeBlockVector<DisplacementVector,
 To construct an object of this type, construct the separate components and then hand them to the constructor of the `MultiTypeBlockVector` class:
 
 ~~~C++
-DisplacementVector displacement = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+DisplacementVector displacement = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
 PressureVector pressure = {0, 0, 0};
 MultiTypeVector multiType(displacement, pressure);
 ~~~
@@ -7479,7 +7479,7 @@ Finally, a `FieldMatrix` can be constructed from a `std::initializer_list` . Ano
 ~~~C++
 FieldMatrix<double,3,3> matrix = {{1,0,0},
                                   {0,1,0},
-                                  {0,0,1}};
+                                  {0,0,1} };
 ~~~
 
 
